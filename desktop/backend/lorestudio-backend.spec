@@ -1,12 +1,14 @@
-# PyInstaller recipe for the desktop app's backend (macOS proof of concept).
+# PyInstaller recipe for the desktop app's backend (macOS, Windows, Linux).
 #
 # A folder, not one file: a single-file build unpacks itself into a temporary folder on every
-# launch. Built by `just desktop-backend`; the Tauri shell carries the folder as a resource.
+# launch. Built by desktop/build.py (`just desktop`), always on the platform it is for.
 #
-# WeasyPrint's native libraries (Pango, HarfBuzz, fontconfig, GLib) come from Homebrew: the
-# contrib hook finds them when DYLD_FALLBACK_LIBRARY_PATH includes /opt/homebrew/lib, and
-# PyInstaller copies each with everything it links to, rewritten to load from the bundle.
+# WeasyPrint's native libraries (Pango, HarfBuzz, fontconfig, GLib) come from the build
+# machine: Homebrew on macOS, MSYS2's UCRT64 on Windows, the distribution on Linux. The
+# contrib hook finds them (build.py puts their folder on the search path) and PyInstaller
+# copies each with everything it links to, set to load from the bundle.
 import os
+import sys
 from pathlib import Path
 
 from PyInstaller.utils.hooks import collect_all, collect_dynamic_libs, collect_submodules
@@ -15,12 +17,19 @@ ROOT = Path(SPECPATH).resolve().parents[1]  # noqa: F821 — PyInstaller defines
 BACKEND = ROOT / "backend"
 WEB = ROOT / "frontend" / "dist"
 PANDOC = os.environ.get("LORESTUDIO_PANDOC", "")
+#: Where the build found WeasyPrint's libraries (Homebrew's lib folder on macOS).
+LIBS = os.environ.get("LORESTUDIO_LIBS", "")
+#: The release this is, read by the backend at start (Settings › About and updates).
+VERSION = ROOT / "build" / "desktop" / "VERSION"
+VERSION.parent.mkdir(parents=True, exist_ok=True)
+VERSION.write_text(os.environ.get("LORESTUDIO_VERSION", "dev"))
 
 datas = [
     (str(BACKEND / "alembic.ini"), "."),
     (str(BACKEND / "alembic"), "alembic"),
     (str(BACKEND / "app" / "assets"), "app/assets"),
     (str(WEB), "web"),
+    (str(VERSION), "."),
 ]
 binaries = collect_dynamic_libs("sqlite_vec")
 if PANDOC:
@@ -59,8 +68,8 @@ a = Analysis(  # noqa: F821
 )
 # Pillow carries its own, older HarfBuzz under the same name, and only one is kept. Homebrew's
 # HarfBuzz-Subset (WeasyPrint's font subsetting) needs the newer one, which Pillow accepts too.
-HARFBUZZ = Path("/opt/homebrew/lib/libharfbuzz.0.dylib").resolve()
-if HARFBUZZ.exists():
+HARFBUZZ = (Path(LIBS) / "libharfbuzz.0.dylib").resolve() if LIBS else None
+if sys.platform == "darwin" and HARFBUZZ and HARFBUZZ.exists():
     a.binaries = [
         (dest, str(HARFBUZZ) if Path(dest).name == "libharfbuzz.0.dylib" else src, kind)
         for dest, src, kind in a.binaries
@@ -75,6 +84,5 @@ exe = EXE(  # noqa: F821
     name="lorestudio-backend",
     console=True,
     upx=False,
-    target_arch="arm64",
 )
 coll = COLLECT(exe, a.binaries, a.datas, upx=False, name="lorestudio-backend")  # noqa: F821

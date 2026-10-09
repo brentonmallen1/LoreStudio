@@ -1,0 +1,101 @@
+# Build the desktop app for each platform with desktop/build.py: macOS (Apple silicon and
+# Intel) as a .dmg, Windows as an NSIS setup .exe, Linux as an AppImage and a .deb.
+#
+# Run it by hand (Actions › Desktop apps › Run workflow) to get the installers as artifacts,
+# or let a published release run it: the installers are then attached to that release.
+# None is signed with an Apple Developer ID or a Windows certificate: see desktop/README.md.
+name: Desktop apps
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: write # attach the installers to the release
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, target: macos-arm64 }
+          - { os: macos-15-intel, target: macos-x64 }
+          - { os: windows-2025, target: windows-x64 }
+          # The oldest supported Ubuntu: an AppImage runs on distributions at least as new.
+          - { os: ubuntu-22.04, target: linux-x64 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            desktop/package-lock.json
+
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2.9.2
+        with:
+          workspaces: desktop/src-tauri
+
+      # WeasyPrint's libraries (Pango, HarfBuzz, fontconfig, GLib), which the backend carries.
+      - name: Pango (macOS)
+        if: runner.os == 'macOS'
+        run: brew install pango
+
+      - name: Pango (Windows)
+        if: runner.os == 'Windows'
+        id: msys2
+        uses: msys2/setup-msys2@v2.33.0
+        with:
+          msystem: UCRT64
+          update: false
+          install: mingw-w64-ucrt-x86_64-pango
+
+      - name: Tauri's and Pango's libraries (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev \
+            libpango-1.0-0 libpangoft2-1.0-0
+
+      - name: Frontend dependencies
+        working-directory: frontend
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        shell: bash
+        env:
+          # A release builds as its version (v2026.10.3 → 2026.10.3); a run by hand as dev.
+          LORESTUDIO_VERSION: ${{ github.event_name == 'release' && github.ref_name || 'dev' }}
+          LORESTUDIO_LIBS: ${{ runner.os == 'Windows' && format('{0}\ucrt64\bin', steps.msys2.outputs.msys2-location) || '' }}
+        run: uv run --no-project python desktop/build.py --version "${LORESTUDIO_VERSION#v}"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: lorestudio-${{ matrix.target }}
+          path: build/desktop/out/*
+          if-no-files-found: error
+
+      - name: Attach to the release
+        if: github.event_name == 'release'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" build/desktop/out/* --clobber

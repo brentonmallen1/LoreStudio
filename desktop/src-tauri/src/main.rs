@@ -1,9 +1,10 @@
-//! LoreStudio's desktop shell (macOS proof of concept).
+//! LoreStudio's desktop shell (macOS, Windows, Linux).
 //!
 //! The app is the same web app the Docker image serves. This shell starts the frozen backend
-//! (`Resources/backend/lorestudio-backend`) on a free port on 127.0.0.1 with a one-time launch
-//! key, shows a "starting" page until it answers, then signs the window in through the key.
-//! Quitting asks the backend to stop (SIGTERM), so the database closes cleanly.
+//! (`backend/lorestudio-backend` among the app's resources) on a kept port on 127.0.0.1 with a
+//! one-time launch key, shows a "starting" page until it answers, then signs the window in
+//! through the key. Quitting asks the backend to stop (POST /desktop/quit with the key), so the
+//! database closes cleanly; if it does not stop in time, it is ended.
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
@@ -17,11 +18,18 @@ use std::time::{Duration, Instant};
 
 use tauri::webview::{DownloadEvent, NewWindowResponse};
 use tauri::{AppHandle, Manager, RunEvent, Url, WebviewUrl, WebviewWindowBuilder};
+use tauri_plugin_opener::OpenerExt;
 
 /// How long a first start may take (the database is made and the demo story added).
 const STARTUP_LIMIT: Duration = Duration::from_secs(120);
+/// How long the backend has to stop cleanly when the app quits.
+const STOP_LIMIT: Duration = Duration::from_secs(10);
 
-struct Backend(Mutex<Option<Child>>);
+struct Backend {
+    child: Mutex<Option<Child>>,
+    port: u16,
+    key: String,
+}
 
 /// The same port every launch: the window's storage (theme, panel layout, the unsaved-draft
 /// buffer) belongs to its address, so a new port would start it empty. The first launch picks
@@ -51,42 +59,75 @@ fn launch_key() -> String {
     bytes.iter().map(|b| format!("{b:02x}")).collect()
 }
 
-/// The backend answers once its database is migrated and it is listening.
-fn healthy(port: u16) -> bool {
+/// One small HTTP/1.0 request to the backend; true if it answered 200.
+fn ask(port: u16, request: &str) -> bool {
     let Ok(mut stream) = TcpStream::connect(("127.0.0.1", port)) else {
         return false;
     };
     let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
-    let request = format!("GET /api/health HTTP/1.0\r\nHost: 127.0.0.1:{port}\r\n\r\n");
     let mut reply = String::new();
     stream.write_all(request.as_bytes()).is_ok()
         && stream.read_to_string(&mut reply).is_ok()
         && reply.starts_with("HTTP/1.1 200")
 }
 
+/// The backend answers once its database is migrated and it is listening.
+fn healthy(port: u16) -> bool {
+    ask(
+        port,
+        &format!("GET /api/health HTTP/1.0\r\nHost: 127.0.0.1:{port}\r\n\r\n"),
+    )
+}
+
 /// The frozen backend inside the app; `LORESTUDIO_BACKEND` points elsewhere while developing.
 fn backend_path(app: &AppHandle) -> PathBuf {
+    let name = if cfg!(windows) {
+        "lorestudio-backend.exe"
+    } else {
+        "lorestudio-backend"
+    };
     std::env::var_os("LORESTUDIO_BACKEND")
         .map(PathBuf::from)
         .unwrap_or_else(|| {
             app.path()
                 .resource_dir()
                 .expect("no resource folder")
-                .join("backend/lorestudio-backend")
+                .join("backend")
+                .join(name)
         })
+}
+
+fn start_backend(app: &AppHandle, port: u16, key: &str, data_dir: &std::path::Path) -> Child {
+    let mut command = Command::new(backend_path(app));
+    command
+        .arg("--port")
+        .arg(port.to_string())
+        .arg("--data-dir")
+        .arg(data_dir)
+        .env("LORESTUDIO_DESKTOP_KEY", key);
+    #[cfg(windows)]
+    {
+        // No console window beside the app's own.
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
+    command.spawn().expect("the backend did not start")
 }
 
 fn is_ours(url: &Url, port: u16) -> bool {
     match url.scheme() {
         "tauri" | "about" | "blob" | "data" => true,
+        // The starting page: tauri://localhost on macOS and Linux, http(s)://tauri.localhost on Windows.
+        "http" | "https" if url.host_str() == Some("tauri.localhost") => true,
         "http" => url.host_str() == Some("127.0.0.1") && url.port() == Some(port),
         _ => false,
     }
 }
 
 /// Anything that is not the app opens in the person's own browser.
-fn open_outside(url: &Url) {
-    let _ = Command::new("open").arg(url.as_str()).spawn();
+fn open_outside(app: &AppHandle, url: &Url) {
+    let _ = app.opener().open_url(url.as_str(), None::<&str>);
 }
 
 /// A window on the app: the main one, or one it opened (the side panel popped out).
@@ -98,24 +139,25 @@ fn app_window<'a>(
 ) -> WebviewWindowBuilder<'a, tauri::Wry, AppHandle> {
     static OPENED: AtomicUsize = AtomicUsize::new(0);
     let downloads = app.path().download_dir().ok();
-    let handle = app.clone();
+    let for_links = app.clone();
+    let for_windows = app.clone();
     WebviewWindowBuilder::new(app, label, url)
         .title("LoreStudio")
         .on_navigation(move |url| {
             if is_ours(url, port) {
                 return true;
             }
-            open_outside(url);
+            open_outside(&for_links, url);
             false
         })
         .on_new_window(move |url, features| {
             if !is_ours(&url, port) {
-                open_outside(&url);
+                open_outside(&for_windows, &url);
                 return NewWindowResponse::Deny;
             }
             let n = OPENED.fetch_add(1, Ordering::Relaxed);
             match app_window(
-                &handle,
+                &for_windows,
                 &format!("opened-{n}"),
                 WebviewUrl::External(url),
                 port,
@@ -140,18 +182,22 @@ fn app_window<'a>(
         })
 }
 
+/// Ask the backend to stop (it folds its write-ahead log into the database on the way out),
+/// wait for it, and end it only if it does not.
 fn stop_backend(app: &AppHandle) {
     let Some(state) = app.try_state::<Backend>() else {
         return;
     };
-    let Some(mut child) = state.0.lock().unwrap().take() else {
+    let Some(mut child) = state.child.lock().unwrap().take() else {
         return;
     };
-    // SIGTERM lets uvicorn finish its requests and close the database; then wait a little.
-    unsafe {
-        libc::kill(child.id() as libc::pid_t, libc::SIGTERM);
-    }
-    let deadline = Instant::now() + Duration::from_secs(10);
+    let port = state.port;
+    let quit = format!(
+        "POST /desktop/quit HTTP/1.0\r\nHost: 127.0.0.1:{port}\r\nX-LoreStudio-Key: {}\r\nContent-Length: 0\r\n\r\n",
+        state.key
+    );
+    let _ = ask(port, &quit);
+    let deadline = Instant::now() + STOP_LIMIT;
     while Instant::now() < deadline {
         if let Ok(Some(_)) = child.try_wait() {
             return;
@@ -163,20 +209,28 @@ fn stop_backend(app: &AppHandle) {
 
 fn main() {
     let app = tauri::Builder::default()
+        // One LoreStudio at a time: a second would start a second backend on the same database.
+        // Opening it again brings the window that is already open to the front.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.unminimize();
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }))
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let handle = app.handle().clone();
             let data_dir = app.path().app_data_dir()?;
             let port = app_port(&data_dir);
             let key = launch_key();
 
-            let child = Command::new(backend_path(&handle))
-                .arg("--port")
-                .arg(port.to_string())
-                .arg("--data-dir")
-                .arg(&data_dir)
-                .env("LORESTUDIO_DESKTOP_KEY", &key)
-                .spawn()?;
-            app.manage(Backend(Mutex::new(Some(child))));
+            let child = start_backend(&handle, port, &key, &data_dir);
+            app.manage(Backend {
+                child: Mutex::new(Some(child)),
+                port,
+                key: key.clone(),
+            });
 
             let window = app_window(&handle, "main", WebviewUrl::App("index.html".into()), port)
                 .inner_size(1440.0, 900.0)
