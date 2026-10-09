@@ -76,6 +76,11 @@ export function closeTyping(): void {
 
 /** Open a scene's text with a history of its own: ⌘Z never brings back the last scene's. */
 export function loadScene(editor: Editor, html: string, { emitUpdate = false } = {}): void {
+  // React can run the loading effect on an editor TipTap has already destroyed: a Suspense
+  // boundary that hid the page (the side panel lazy-loading on its This scene tab) tears the
+  // editor down, then reconnects the effect with the old instance. Its view is gone, so this
+  // threw and took the whole app with it. The new editor's own effect loads the scene.
+  if (editor.isDestroyed) return;
   editor.chain().setMeta("addToHistory", false).setContent(html, emitUpdate).run();
   const { state } = editor;
   editor.view.updateState(
@@ -91,6 +96,7 @@ export function loadScene(editor: Editor, html: string, { emitUpdate = false } =
  * autosave; the server already holds this text.
  */
 export function patchScene(editor: Editor, html: string): void {
+  if (editor.isDestroyed) return;
   let next;
   try {
     next = createDocument(html, editor.schema);

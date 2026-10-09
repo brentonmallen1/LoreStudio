@@ -51,6 +51,15 @@ describe("the open scene's history", () => {
     expect(ed.state).toBe(before);
   });
 
+  it("an editor already torn down is left alone, not crashed into (the panel's This scene tab)", () => {
+    // A Suspense boundary hiding the page destroys the editor, then React reconnects the
+    // loading effect with the old instance; its view is gone (doc 24 P0 regression).
+    const ed = make("<p>Scene one</p>");
+    ed.destroy();
+    expect(() => loadScene(ed, "<p>Scene two</p>")).not.toThrow();
+    expect(() => patchScene(ed, "<p>Scene two</p>")).not.toThrow();
+  });
+
   it("a new history is a new session, so steps from the old one are dead", () => {
     const ed = make("<p>A</p>");
     setLiveScene({ editor: ed, nodeId: "a", title: "A", flush: async () => {} });
