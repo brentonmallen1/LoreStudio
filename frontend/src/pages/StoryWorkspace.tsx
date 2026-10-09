@@ -25,7 +25,7 @@ export default function StoryWorkspacePage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { setActiveNode, setSceneCast } = useStoryStore();
-  const { viewState, setViewMode, storySearchOpen, closeStorySearch, openStorySearch } = useUIStore();
+  const { viewState, storySearchOpen, closeStorySearch, openStorySearch } = useUIStore();
   const [loading, setLoading] = useState(true);
   const isFocused = viewState === "focus";
   const [stripRevealed, setStripRevealed] = useState(false);
@@ -166,10 +166,7 @@ export default function StoryWorkspacePage() {
         <StorySearchPanel
           storyId={storyId}
           onClose={closeStorySearch}
-          onNavigateToNode={(nodeId) => {
-            setViewMode("tree");
-            navigate(`/stories/${storyId}/write/${nodeId}`);
-          }}
+          onNavigateToNode={(nodeId) => navigate(`/stories/${storyId}/write/${nodeId}`)}
         />
       )}
 

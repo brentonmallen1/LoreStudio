@@ -22,7 +22,6 @@ import "@xyflow/react/dist/style.css";
 import { Plus, LayoutGrid, X, Save } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
-import { useUIStore } from "../../stores/uiStore";
 import type { StructureNode } from "../../types";
 import styles from "./StoryboardView.module.css";
 
@@ -203,7 +202,6 @@ export default function StoryboardView() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { structure, setActiveNode } = useStoryStore();
-  const { setViewMode } = useUIStore();
 
   const [nodes, setNodes, onNodesChange] = useNodesState<RFNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<RFEdge>([]);
@@ -270,8 +268,7 @@ export default function StoryboardView() {
     const sNode = nodeMap.get(structureId);
     if (sNode) {
       setActiveNode(sNode);
-      setViewMode("tree");
-      navigate(`/stories/${storyId}/write`);
+      navigate(`/stories/${storyId}/write/${sNode.id}`);
     }
   }
 

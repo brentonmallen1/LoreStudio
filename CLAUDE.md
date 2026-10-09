@@ -176,8 +176,8 @@ The character's full profile becomes the LLM system prompt — the character IS 
   only pass a `feature=` id that is in the table (`tests/services/test_ai_features.py`).
 - Keyboard shortcuts: `frontend/src/lib/keyboard/shortcuts.ts` (`matchesCombo`, `formatCombo`). Never
   hard-code a key combo in a component or a title string.
-- Story pages: `frontend/src/lib/routes.ts` (More menu, palette nav commands, ModeGate). Grouped pages
-  (Lorebook, Promises, Compendium, Chronicle) declare `sections` (each a deep link, a More-menu row and a palette
+- Story pages: `frontend/src/lib/routes.ts` (the logo menu, palette nav commands, ModeGate). Grouped pages
+  (Lorebook, Promises, Compendium, Chronicle) declare `sections` (each a deep link, a word in the logo menu and a palette
   command with the old page names as keywords) and old paths go in `STORY_REDIRECTS`; bodies live in
   `pages/routeElements.ts`. Every page that is not the prose uses `components/layout/PageHeader`.
 - Settings sections: `frontend/src/pages/settings/sections.ts` (side nav, deep links, palette).

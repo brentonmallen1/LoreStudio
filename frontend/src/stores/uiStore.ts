@@ -179,10 +179,6 @@ interface UIState {
   startSprint: (duration: number, goalWords: number, startWordCount: number) => void;
   endSprint: () => void;
 
-  // Story view mode
-  viewMode: "tree" | "storyboard" | "summary" | "manuscript";
-  setViewMode: (mode: "tree" | "storyboard" | "summary" | "manuscript") => void;
-
   // Brainstorm panel ("What's Next?")
   brainstormPanelOpen: boolean;
   openBrainstormPanel: () => void;
@@ -490,9 +486,6 @@ export const useUIStore = create<UIState>((set, get) => ({
       sprintStartWordCount: startWordCount,
     }),
   endSprint: () => set({ sprintActive: false, sprintStartTime: null }),
-
-  viewMode: "tree" as "tree" | "storyboard" | "summary" | "manuscript",
-  setViewMode: (mode) => set({ viewMode: mode }),
 
   brainstormPanelOpen: false,
   openBrainstormPanel: () => set({ brainstormPanelOpen: true }),

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
-import { useUIStore } from "../../stores/uiStore";
 import type { StructureNode } from "../../types";
 import NodeItem from "../layout/StructureTreeNode";
 import {
@@ -29,7 +28,6 @@ import styles from "./Strip.module.css";
 export default function FullTree({ storyId }: { storyId: string | undefined }) {
   const navigate = useNavigate();
   const { structure, setStructure, activeTemplate, activeNode } = useStoryStore();
-  const { viewMode, setViewMode } = useUIStore();
   const [filter, setFilter] = useState("");
   const [addingLevel, setAddingLevel] = useState<number | null>(null);
   const [newTitle, setNewTitle] = useState("");
@@ -152,25 +150,16 @@ export default function FullTree({ storyId }: { storyId: string | undefined }) {
 
   return (
     <div className={tree.full}>
-      <div className={`${tree.header} ${tree.fullHead}`} style={{ padding: "0.35rem 0.5rem" }}>
-        <label className={tree.viewPicker} style={{ margin: 0, flex: 1 }}>
-          <span className={tree.viewPickerLabel}>View</span>
-          <select
-            className={tree.viewSelect}
-            value={viewMode}
-            onChange={(e) => {
-              const v = e.target.value as typeof viewMode;
-              setViewMode(v);
-              if (v !== "tree") navigate(`/stories/${storyId}/write`);
-              else if (activeNode) navigate(`/stories/${storyId}/write/${activeNode.id}`);
-            }}
-          >
-            <option value="tree">Write</option>
-            <option value="storyboard">Storyboard</option>
-            <option value="summary">Summaries</option>
-            <option value="manuscript">Manuscript &amp; export</option>
-          </select>
-        </label>
+      {/* The filter and the + share one row: Storyboard, Summaries and Manuscript, once a
+          select here, are pages in the logo menu (doc 24 D12). */}
+      <div className={`${tree.fullBar} ${tree.fullHead}`}>
+        <input
+          className={styles.filter}
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder="Filter scenes…"
+          aria-label="Filter scenes"
+        />
         <div className={tree.addMenuWrap} ref={addMenuRef}>
           <button
             className={`${tree.addBtn} ${showAddMenu ? tree.addBtnActive : ""}`}
@@ -181,8 +170,9 @@ export default function FullTree({ storyId }: { storyId: string | undefined }) {
             }}
             title="Add to the outline"
             aria-label="Add to the outline"
+            aria-expanded={showAddMenu}
           >
-            <Plus size={12} />
+            <Plus size={14} />
           </button>
           {showAddMenu && (
             <div className={tree.addMenu}>
@@ -221,15 +211,6 @@ export default function FullTree({ storyId }: { storyId: string | undefined }) {
             </div>
           )}
         </div>
-      </div>
-      <div className={`${styles.filterWrap} ${tree.fullHead}`}>
-        <input
-          className={styles.filter}
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          placeholder="Filter scenes…"
-          aria-label="Filter scenes"
-        />
       </div>
       <div className={`${tree.tree} ${tree.fullRows}`}>
         {addingLevel !== null && (

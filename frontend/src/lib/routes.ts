@@ -4,9 +4,11 @@ import {
   Book,
   BookOpen,
   BookOpenCheck,
+  BookOpenText,
   CalendarDays,
   Clock,
   Diamond,
+  FileText,
   Fingerprint,
   Footprints,
   GitBranch,
@@ -19,6 +21,7 @@ import {
   Waypoints,
   History,
   Images,
+  LayoutGrid,
   MapIcon,
   MapPin,
   MessageSquareMore,
@@ -41,7 +44,7 @@ export type Domain = "home" | "manuscript" | "lorebook" | "compendium" | "codex"
 
 /**
  * A section of a grouped page (doc 12 P1): Lorebook › Characters, Chronicle › Versions.
- * Each is a deep link, a row under its page in the More menu and a palette command, so
+ * Each is a deep link, a word under its page in the logo menu and a palette command, so
  * grouping pages never hides where something lives.
  */
 export interface RouteSection {
@@ -90,6 +93,64 @@ export const STORY_ROUTES: StoryRoute[] = [
     keywords: ["home", "dashboard", "summary"],
   },
   {
+    id: "write",
+    path: "/write",
+    label: "Write",
+    icon: PenLine,
+    domain: "manuscript",
+    modes: BOTH,
+    keywords: ["editor", "scene", "manuscript", "prose"],
+  },
+  {
+    id: "plan",
+    path: "/plan",
+    label: "Plan",
+    icon: MapIcon,
+    domain: "manuscript",
+    modes: BOTH,
+    keywords: ["outline", "beats", "snowflake", "synopsis", "logline", "method", "scene list", "beat board"],
+  },
+  {
+    // The book as cards on a board (doc 24 D12): a page of its own, no longer a view of Write.
+    id: "storyboard",
+    path: "/storyboard",
+    label: "Storyboard",
+    icon: LayoutGrid,
+    domain: "manuscript",
+    modes: BOTH,
+    keywords: ["board", "cards", "index cards", "corkboard", "canvas", "scene cards", "view"],
+  },
+  {
+    // Every scene's summary down one page, written or drafted by the Assistant (doc 24 D12).
+    id: "summaries",
+    path: "/summaries",
+    label: "Summaries",
+    icon: FileText,
+    domain: "manuscript",
+    modes: BOTH,
+    keywords: ["scene summaries", "synopsis", "recap", "what happens", "view"],
+  },
+  {
+    // The book read straight through, and exported from there (doc 24 D12).
+    id: "manuscript",
+    path: "/manuscript",
+    label: "Manuscript",
+    icon: BookOpenText,
+    domain: "manuscript",
+    modes: BOTH,
+    keywords: ["read through", "read it through", "whole book", "full text", "export", "print", "view"],
+  },
+  {
+    // Loose writing, a heading for each day; words made into notes and characters (doc 15 N3).
+    id: "freewrite",
+    path: "/freewrite",
+    label: "Freewrite",
+    icon: NotebookPen,
+    domain: "manuscript",
+    modes: BOTH,
+    keywords: ["ideas", "brain dump", "stream of consciousness", "journal", "loose", "capture"],
+  },
+  {
     // Seven short steps for a new writer, from New story or the palette (doc 18 C10).
     id: "first-story",
     path: "/first-story",
@@ -106,34 +167,6 @@ export const STORY_ROUTES: StoryRoute[] = [
       "onboarding",
       "start here",
     ],
-  },
-  {
-    id: "write",
-    path: "/write",
-    label: "Write",
-    icon: PenLine,
-    domain: "manuscript",
-    modes: BOTH,
-    keywords: ["editor", "scene", "manuscript", "prose"],
-  },
-  {
-    // Loose writing, a heading for each day; words made into notes and characters (doc 15 N3).
-    id: "freewrite",
-    path: "/freewrite",
-    label: "Freewrite",
-    icon: NotebookPen,
-    domain: "manuscript",
-    modes: BOTH,
-    keywords: ["ideas", "brain dump", "stream of consciousness", "journal", "loose", "capture"],
-  },
-  {
-    id: "plan",
-    path: "/plan",
-    label: "Plan",
-    icon: MapIcon,
-    domain: "manuscript",
-    modes: BOTH,
-    keywords: ["outline", "beats", "snowflake", "synopsis", "logline", "method", "scene list", "beat board"],
   },
   {
     id: "lorebook",
@@ -475,7 +508,7 @@ export function sectionModes(route: StoryRoute, section: RouteSection): { modes:
   return { modes: section.modes ?? route.modes, ai: Boolean(section.ai ?? route.ai) };
 }
 
-/** Pages and their sections in one list, for the palette, the More menu and the tests. */
+/** Pages and their sections in one list, for the palette, the logo menu and the tests. */
 export interface NavEntry {
   route: StoryRoute;
   section?: RouteSection;

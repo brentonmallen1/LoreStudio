@@ -85,32 +85,18 @@
   color: var(--color-text);
 }
 
-/* View mode toggle */
-.viewPicker {
+/* The full tree's bar: the filter, then the + (doc 24). */
+.fullBar {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.6rem;
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
+  gap: 0.35rem;
+  padding: 0.35rem 0.5rem 0.25rem;
 }
 
-.viewPickerLabel {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-section-title);
-}
-
-.viewSelect {
+.fullBar > input {
   flex: 1;
   min-width: 0;
-  padding: 0.22rem 0.4rem;
-  border: 1px solid var(--color-control-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg);
-  color: var(--color-text);
-  font: inherit;
-  font-size: 0.78rem;
+  margin: 0;
 }
 
 /* Tree content */

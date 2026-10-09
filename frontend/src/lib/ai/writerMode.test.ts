@@ -50,6 +50,7 @@ const WRITER_ENTRY_POINTS = [
   "src/components/chronicle/versions/VersionsSection.tsx",
   "src/components/story/StoryboardView.tsx",
   "src/components/story/SummaryOverviewView.tsx",
+  "src/pages/ManuscriptPage.tsx",
   "src/components/story/StoryIdentityPanel.tsx",
   "src/components/lorebook/sections/CharactersSection.tsx",
   "src/components/lorebook/sections/PlacesSection.tsx",
@@ -155,6 +156,7 @@ describe("the story routes this test walks", () => {
       "lorebook.series",
       "lorebook.systems",
       "lorebook.travel",
+      "manuscript",
       "numbers",
       "overview",
       "plan",
@@ -165,6 +167,8 @@ describe("the story routes this test walks", () => {
       "promises.threads",
       "promises.twists",
       "proposals",
+      "storyboard",
+      "summaries",
       "write",
     ]);
   });
