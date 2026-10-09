@@ -178,7 +178,7 @@
   height: 0.667rem;
   border-radius: 50%;
   background: var(--color-accent);
-  border: 2px solid var(--color-bg);
+  border: 2px solid var(--color-ground);
 }
 
 .groupTitle {

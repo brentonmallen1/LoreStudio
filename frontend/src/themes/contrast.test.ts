@@ -72,13 +72,16 @@ export function contrast(a: string, b: string): number {
 }
 
 /** [foreground token, background token, minimum ratio, what it is] */
-// Doc 17 (D3): all text meets AA, 4.5:1, on every ground it sits on: the page, cards, and the
-// vellum of the header, strip and panel tab bar (surface-2). Non-text (slot dots, control
-// edges, the focus ring) meets 3:1.
+// Doc 17 (D3): all text meets AA, 4.5:1, on every ground it sits on. Non-text (slot dots,
+// control edges, the focus ring) meets 3:1. Doc 24 (quiet chrome): the header, strip and
+// rail float on the page ground with none of their own; the page and the panel are surface
+// planes; groups sit in tone boxes; anything pressable takes the hover ground under the
+// pointer, which is the vellum (`--color-hover` is `--color-surface-2`, base.css).
 const GROUNDS: [string, string][] = [
-  ["--color-bg", "page"],
-  ["--color-surface", "cards"],
-  ["--color-surface-2", "the header, strip and tab bar"],
+  ["--color-bg", "the page ground and the chrome on it"],
+  ["--color-surface", "the page and panel planes, cards"],
+  ["--color-surface-2", "hover grounds, chips and segmented controls"],
+  ["--color-tone", "tone boxes"],
 ];
 const TEXT: [string, string][] = [
   ["--color-text", "body text"],
@@ -149,13 +152,17 @@ const PAIRS: [string, string, number, string][] = [
   ...[...GROUNDS, ["--color-surface-3", "hover"] as [string, string]].map(
     ([bg, where]): [string, string, number, string] => ["--color-focus", bg, 3, `focus ring on ${where}`],
   ),
-  // Region edges (doc 13 P7): the rules between header, strip, index, page and panel. Not
-  // text, so not WCAG's 3:1, but under these the dividers vanished and the screen read as
-  // one slab, worst in dark mode.
-  ["--color-border", "--color-surface", 1.35, "rules on cards and the header"],
-  ["--color-border", "--color-surface-2", 1.25, "rules on the strip and raised surfaces"],
+  // Rules that remain (doc 13 P7, narrowed by doc 24): the edge of a card and the hairline
+  // between rows. Not text, so not WCAG's 3:1, but under these they vanished, worst in dark
+  // mode. The header, strip and panel tab bar have no rules any more: they float on the page
+  // ground, and the planes beside them are told apart by tone.
+  ["--color-border", "--color-surface", 1.35, "rules on cards"],
   ["--color-border", "--color-bg", 1.3, "rules on the page"],
   ["--color-border-light", "--color-surface", 1.15, "hairlines between rows on cards"],
+  // A plane must read as a plane against the ground it floats on, and a tone box against the
+  // plane it sits in (doc 24). Floors measured on the quietest palette, so none is lost.
+  ["--color-surface", "--color-bg", 1.03, "the page plane against the ground"],
+  ["--color-tone", "--color-surface", 1.03, "a tone box on a plane"],
 ];
 
 /** Tokens every palette must define in hex, light and dark, or the pairs above are silently skipped. */
@@ -165,6 +172,7 @@ const REQUIRED = [
   "--status-draft",
   "--status-revised",
   "--status-final",
+  "--color-tone",
 ];
 
 /**

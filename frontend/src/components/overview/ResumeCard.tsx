@@ -21,7 +21,7 @@ export default function ResumeCard({ storyId, ov }: { storyId: string; ov: Story
         <div className={styles.resumeHead}>Scenes are laid out; none has words yet.</div>
         <div className={styles.resumeActions}>
           <Link to={`/stories/${storyId}/write`} className={styles.continue}>
-            Start writing <ArrowRight size={16} aria-hidden />
+            Start writing <ArrowRight size={14} aria-hidden />
           </Link>
         </div>
       </section>
@@ -37,19 +37,19 @@ export default function ResumeCard({ storyId, ov }: { storyId: string; ov: Story
   return (
     <section className={styles.resume} aria-label="Where you left off">
       <div className={styles.resumeHead}>
+        <h2 className={styles.label}>Where you left off</h2>
         <span>
-          Where you left off
           {chapter && (
             <>
-              {" · "}
               <span className={styles.resumeChapter}>{chapter}</span>
+              {" · "}
             </>
           )}
+          {[ago(recent.updated_at), words, recent.status].join(" · ")}
         </span>
-        <span>{[ago(recent.updated_at), words, recent.status].join(" · ")}</span>
       </div>
       <div className={styles.resumeBody}>
-        <h2 className={styles.resumeTitle}>{recent.title || "Untitled scene"}</h2>
+        <h3 className={styles.resumeTitle}>{recent.title || "Untitled scene"}</h3>
         {excerpt.map((p, i) => (
           <p key={i} className={styles.resumeLine} data-last={i === excerpt.length - 1 || undefined}>
             {p}
@@ -58,7 +58,7 @@ export default function ResumeCard({ storyId, ov }: { storyId: string; ov: Story
       </div>
       <div className={styles.resumeActions}>
         <Link to={`/stories/${storyId}/write/${recent.id}`} className={styles.continue}>
-          Continue writing <ArrowRight size={16} aria-hidden />
+          Continue writing <ArrowRight size={14} aria-hidden />
         </Link>
         {next && (
           <Link to={`/stories/${storyId}/write/${next.id}`} className={styles.nextScene}>

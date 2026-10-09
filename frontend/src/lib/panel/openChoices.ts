@@ -1,13 +1,14 @@
 /**
  * What + Open… in the side panel offers: everything that opens beside the page, grouped,
- * filtered by what the author types. Entities open as their own tab; the lists and tools
- * open as theirs.
+ * filtered by what the author types. Entities and pages open as their own tab; the lists and
+ * tools show from the rail, without a tab (doc 24 D11).
  */
 import type { EntityKind, ToolId } from "../../types/panel";
 
 export type OpenChoice =
   | { type: "entity"; kind: EntityKind; id: string; label: string; meta?: string }
-  | { type: "tool"; tool: ToolId; label: string; meta?: string };
+  | { type: "tool"; tool: ToolId; label: string; meta?: string }
+  | { type: "page"; routeId: string; label: string; meta?: string };
 
 export interface OpenGroup {
   name: string;

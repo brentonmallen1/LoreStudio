@@ -1,7 +1,11 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
-import { MoreHorizontal, type LucideIcon } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { MoreHorizontal, PanelRightOpen, type LucideIcon } from "lucide-react";
 import PopoverMenu, { type MenuItem } from "../common/PopoverMenu";
+import { openBesideTheProse } from "../../lib/panel/openBeside";
+import { canOpenBeside, routeAt, sectionAt, storyRelative } from "../../lib/panel/pages";
+import { useStoryStore } from "../../stores/storyStore";
+import { useInPanelPage } from "../panel/inPanelPage";
 import styles from "./PageHeader.module.css";
 
 export interface PageView {
@@ -23,6 +27,8 @@ export interface PrimaryAction {
  * count or summary under it, a view switch beside the title when the page has views,
  * filter chips if it filters, one primary action (the palette's accent), and everything else behind ⋯
  * (Assistant actions included, in their colour, so purple is not spread across headers).
+ * A story's page gets "Open beside the prose" last under ⋯ (doc 24 D2), except where it is
+ * already beside the prose.
  */
 export default function PageHeader({
   title,
@@ -47,6 +53,7 @@ export default function PageHeader({
   more?: MenuItem[];
 }) {
   const PrimaryIcon = primary?.icon;
+  const beside = useBesideItem();
   const primaryBody = (
     <>
       {PrimaryIcon && <PrimaryIcon size={14} aria-hidden />}
@@ -91,10 +98,32 @@ export default function PageHeader({
               {primaryBody}
             </button>
           ))}
-        <PopoverMenu label="More actions" trigger={<MoreHorizontal size={15} />} items={more} />
+        <PopoverMenu
+          label="More actions"
+          trigger={<MoreHorizontal size={15} />}
+          items={beside ? [...more, beside] : more}
+        />
       </div>
       {summary && <div className={styles.summary}>{summary}</div>}
       {chips && <div className={styles.chips}>{chips}</div>}
     </header>
   );
+}
+
+/** "Open beside the prose" for the story page this header is on, when it can be. */
+function useBesideItem(): MenuItem | null {
+  const { pathname } = useLocation();
+  const storyId = useStoryStore((s) => s.activeStory?.id);
+  const inPanel = useInPanelPage();
+  if (inPanel || !storyId) return null;
+  const rel = storyRelative(storyId, pathname);
+  const route = rel === null ? undefined : routeAt(rel);
+  if (!route || !canOpenBeside(route)) return null;
+  const section = sectionAt(route, rel ?? "");
+  return {
+    key: "beside-the-prose",
+    label: "Open beside the prose",
+    icon: PanelRightOpen,
+    onSelect: () => openBesideTheProse(route.id, section?.id),
+  };
 }

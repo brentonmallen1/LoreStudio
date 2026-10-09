@@ -1,19 +1,24 @@
 /* The side panel (doc 11): one column of tabs beside the page. */
 
+/* Docked, a tone box on the ground beside the prose (doc 24, D18 "flat"): a small gutter,
+   no border and no shadow; the faint change of tone is the edge. */
 .panel {
   position: relative;
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   min-width: 0;
-  height: 100%;
-  border-left: 1px solid var(--color-border);
-  background: var(--color-surface);
+  min-height: 0;
+  align-self: stretch;
+  margin: 0 0 12px 6px;
+  border-radius: var(--radius-xl);
+  background: var(--color-tone);
 }
 
+/* In the gutter between the page and the panel. */
 .resizeHandle {
   position: absolute;
-  left: -3px;
+  left: -6px;
   top: 0;
   bottom: 0;
   width: 0.4rem;
@@ -33,30 +38,36 @@
   align-items: flex-end;
   gap: 2px;
   flex-shrink: 0;
-  padding: 0.4rem 0.4rem 0;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface-2);
+  padding: 0.5rem 0.5rem 0.25rem;
 }
 
+/* As wide as the name, up to --tab-max; shrinking to --tab-min (the name truncates, the full
+   name is the tooltip). TabStrip sets both, and folds into ☰ what does not fit at the min. */
 .tab {
   display: flex;
   align-items: center;
-  width: var(--tab-width);
-  height: 2.267rem;
+  flex: 0 1 auto;
+  min-width: var(--tab-min, auto);
+  max-width: var(--tab-max, none);
+  height: 2.133rem;
   padding: 0 0.2rem 0 0.25rem;
   box-sizing: border-box;
-  border-radius: var(--radius) var(--radius) 0 0;
+  border-radius: 8px;
   color: var(--color-text-muted);
-  flex-shrink: 0;
 }
 
-.tabActive {
-  background: var(--color-surface);
+.tab:hover {
+  background: var(--color-hover);
   color: var(--color-text);
-  box-shadow:
-    0 -1px 0 var(--color-border),
-    1px 0 0 var(--color-border),
-    -1px 0 0 var(--color-border);
+}
+
+/* The tab showing is the ground inside the panel's tone box, set apart by weight and tone,
+   not a folder's edge. */
+.tabActive,
+.tabActive:hover {
+  background: var(--color-ground);
+  color: var(--color-text);
+  font-weight: 600;
 }
 
 .tabLabel {
@@ -82,10 +93,6 @@
   white-space: nowrap;
 }
 
-.tabPinned .tabLabel {
-  font-weight: 600;
-}
-
 .tabDot {
   flex-shrink: 0;
   width: 0.533rem;
@@ -94,8 +101,33 @@
   background: var(--tab-color, var(--color-text-subtle));
 }
 
-.tabDotSquare {
-  border-radius: 2px;
+.tabIcon {
+  flex-shrink: 0;
+  color: var(--color-text-subtle);
+}
+
+/* "Full page ↗" at the strip's end while a page is beside the prose (doc 24 D2). */
+.fullPage {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  height: 1.867rem;
+  margin-bottom: 3px;
+  padding: 0 0.5rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.fullPage:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
 .tabClose {
@@ -464,63 +496,15 @@
   content: "▾ ";
 }
 
-.overviewWrap :global(.overviewPanel) {
-  border-bottom: none;
-}
-
-/* ── The assistant's tab (doc 11 P5, A2) ── */
-.aiDivider {
-  width: 1px;
-  height: 1.467rem;
-  margin: 0 0.3rem 0.45rem 0.35rem;
-  flex-shrink: 0;
-  background: var(--color-border);
-}
-
-.aiTab {
-  width: auto;
-  padding: 0 0.15rem;
-  background: var(--color-ai-subtle);
-  box-shadow: inset 0 0 0 1px var(--color-ai-border);
-}
-
-.aiTabOn {
-  background: var(--color-surface);
-  border-top: 2px solid var(--color-ai);
-  box-shadow:
-    1px 0 0 var(--color-ai-border),
-    -1px 0 0 var(--color-ai-border);
-}
-
-.aiTabBtn {
+/* A page beside the prose (doc 24 D2): the page's own column, as the workspace's main gives it,
+   and a container, so the page folds to its narrow layout by container query. */
+.page {
   display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  height: 2rem;
-  padding: 0 0.5rem;
-  border: none;
-  background: none;
-  color: var(--color-ai);
-  cursor: pointer;
-}
-
-.aiBadge {
-  min-width: 1.133rem;
-  height: 1.133rem;
-  padding: 0 5px;
-  box-sizing: border-box;
-  border-radius: 9px;
-  background: var(--color-ai-border);
-  color: var(--color-ai);
-  font-size: var(--text-xs);
-  font-weight: 700;
-  line-height: 17px;
-  text-align: center;
-}
-
-.aiBadgeOn {
-  background: var(--color-ai);
-  color: var(--color-ai-fg);
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  container-type: inline-size;
 }
 
 .aiBody {
@@ -530,37 +514,12 @@
   min-height: 0;
 }
 
-/* ── Panel controls and frames (doc 11 P5) ── */
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 1px;
-  margin-bottom: 4px;
-  flex-shrink: 0;
-}
-
-.controlBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.733rem;
-  height: 1.733rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-}
-
-.controlBtn:hover {
-  background: var(--color-surface-3);
-  color: var(--color-text);
-}
-
+/* ── Panel frames (doc 11 P5); their controls are on the rail ── */
 .panelFloating {
   position: fixed;
   z-index: var(--z-popover);
   height: auto;
+  margin: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
@@ -568,8 +527,9 @@
 }
 
 .panelFill {
-  width: 100% !important;
-  border-left: none;
+  flex: 1 1 auto;
+  margin: 0;
+  border-radius: 0;
 }
 
 .dragStrip {
@@ -642,11 +602,11 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  width: 2.4rem;
+  /* The same 14px gutter from the window's edge as the strip on the left (doc 24). */
+  box-sizing: border-box;
+  width: calc(2.4rem + 14px);
   height: 100%;
-  padding: 0.35rem 0;
-  border-left: 1px solid var(--color-border);
-  background: var(--color-surface);
+  padding: 0.35rem 14px 0.35rem 0;
 }
 
 .railTabs {
@@ -659,7 +619,6 @@
   overflow-y: auto;
   padding-top: 0.35rem;
   margin-top: 0.35rem;
-  border-top: 1px solid var(--color-border-light);
 }
 
 .railBtn {
@@ -678,20 +637,20 @@
 }
 
 .railBtn:hover {
-  background: var(--color-surface-3);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
-/* A tab that is open in the panel, though not the one showing. */
-.railBtnOpen {
-  color: var(--color-text);
+/* In the pop-out window the rail sits inside the window's edge, with the same gutter. */
+.railInWindow {
+  padding-left: 6px;
 }
 
+/* Groups on the rail are told apart by space, not a rule (doc 24). */
 .railRule {
   flex-shrink: 0;
   width: 1.2rem;
-  margin: 0.2rem 0;
-  border-top: 1px solid var(--color-border-light);
+  height: 0.5rem;
 }
 
 .railBtnOn {
@@ -700,25 +659,29 @@
   box-shadow: inset 2px 0 0 var(--color-text);
 }
 
-.railDot {
-  width: 0.667rem;
-  height: 0.667rem;
-  border-radius: 50%;
-  background: var(--color-text-subtle);
+/* The Assistant: the rail's one filled button, in its own colour, so it reads apart from the
+   tools above it (doc 24). Showing, it takes a ring rather than the tools' grey ground. */
+.railAi,
+.railAi:hover {
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
 }
 
-.railAi {
-  color: var(--color-ai);
-  margin-top: 0.35rem;
-  padding-top: 0.35rem;
-  border-top: 1px solid var(--color-border-light);
-  border-radius: 0;
-  height: auto;
-  padding-bottom: 2px;
+.railAi:hover {
+  background: var(--color-ai-hover);
 }
 
 .railAi.railBtnOn {
-  box-shadow: inset 2px 0 0 var(--color-ai);
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
+  box-shadow:
+    0 0 0 2px var(--color-ground),
+    0 0 0 3.5px var(--color-ai);
+}
+
+.railAi:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 .railCount {
@@ -733,8 +696,10 @@
   line-height: 13px;
   text-align: center;
   border-radius: 999px;
-  background: var(--color-ai);
-  color: var(--color-ai-fg);
+  /* On the filled button: the ground with the Assistant's colour, ringed so it sits apart. */
+  background: var(--color-ground);
+  color: var(--color-ai);
+  box-shadow: 0 0 0 1.5px var(--color-ai);
 }
 
 /* A character's who-they-are line on the compact sheet (doc 20 P6). */

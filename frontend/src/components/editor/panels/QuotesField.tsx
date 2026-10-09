@@ -5,7 +5,7 @@ import { toolsApi } from "../../../api/tools";
 import type { StructureNode } from "../../../types";
 import type { QuoteStyleReport } from "../../../types/tools";
 import styles from "../SceneEditor.module.css";
-import actions from "../SaveStatus.module.css";
+import actions from "../DraftBanner.module.css";
 
 /** Straight vs curly quote usage across the story, with one-click normalisation. */
 export default function QuotesField({ activeNode }: { activeNode: StructureNode }) {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  COLLAPSED_PX,
   colourFor,
   stopShape,
   type ColourContext,
@@ -82,6 +83,7 @@ export default function TransitStrip({ line, mode, ctx, storyId }: Props) {
               {line.hasStations && (
                 <button
                   className={`${styles.row} ${styles.rowStation}`}
+                  data-strip-mark
                   onClick={() => go(station.node?.id)}
                   onMouseEnter={(e) => peekAt(e, { kind: "station", station })}
                   aria-label={`${station.title || `Chapter ${station.number}`}, ${Math.round(station.done * 100)}% final: open its plan`}
@@ -113,6 +115,7 @@ export default function TransitStrip({ line, mode, ctx, storyId }: Props) {
                   <button
                     key={stop.node.id}
                     className={`${styles.row} ${styles.rowStop}`}
+                    data-strip-mark
                     onClick={(e) => stopClick(e, stop.node.id, go)}
                     onMouseEnter={(e) => peekAt(e, { kind: "stop", stop })}
                     aria-label={`${stop.node.title}${stop.planned ? " (planned)" : ""}${isPresent && highlight ? `, with ${highlight.name}` : ""}`}
@@ -181,7 +184,7 @@ function PeekCard({ peek, mode, ctx }: { peek: Peek; mode: ColourMode; ctx: Colo
   if (peek.kind === "station") {
     const st = peek.station;
     return (
-      <div className={styles.peek} style={{ top, left: 72 }} role="tooltip">
+      <div className={styles.peek} style={{ top, left: COLLAPSED_PX + 8 }} role="tooltip">
         <span className={styles.peekKicker}>
           Chapter {st.number} · {st.stops.length} {st.stops.length === 1 ? "scene" : "scenes"} · click for its
           plan
@@ -199,7 +202,7 @@ function PeekCard({ peek, mode, ctx }: { peek: Peek; mode: ColourMode; ctx: Colo
   const s = peek.stop;
   const tags = colourFor(mode === "status" ? "none" : mode, s, ctx);
   return (
-    <div className={styles.peek} style={{ top, left: 72 }} role="tooltip">
+    <div className={styles.peek} style={{ top, left: COLLAPSED_PX + 8 }} role="tooltip">
       <span className={styles.peekKicker}>
         {s.planned ? "Planned" : `${s.words.toLocaleString()} words · ${s.status}`}
       </span>

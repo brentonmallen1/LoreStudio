@@ -1,7 +1,5 @@
 .wrap {
-  border-top: 1px solid var(--color-border-light);
-  margin-top: 0.6rem;
-  padding-top: 0.6rem;
+  margin-top: 1rem;
 }
 
 .head {
@@ -25,8 +23,7 @@
   font-size: var(--text-xs);
   padding: 0.05rem 0.35rem;
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-light);
+  background: var(--color-surface-2);
   color: var(--color-text-muted);
 }
 
@@ -41,14 +38,14 @@
   font-size: var(--text-xs);
   padding: 0.15rem 0.4rem;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border-light);
+  border: none;
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
 }
 
 .copyBtn:hover {
-  background: var(--color-surface);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -72,16 +69,22 @@
   font-size: 0.74rem;
   padding: 0.15rem 0.45rem;
   border-radius: var(--radius-sm);
-  border: 1px solid transparent;
+  border: none;
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
 }
 
-.tabActive {
-  background: var(--color-surface);
-  border-color: var(--color-border-light);
+.tab:hover {
+  background: var(--color-hover);
   color: var(--color-text);
+}
+
+.tabActive,
+.tabActive:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+  font-weight: 600;
 }
 
 .body > p:first-child {
@@ -104,8 +107,7 @@
   font-size: 0.76rem;
   line-height: 1.5;
   background: var(--color-surface);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   color: var(--color-text);
 }
 

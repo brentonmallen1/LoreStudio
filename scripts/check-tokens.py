@@ -72,7 +72,6 @@ UNDEFINED: dict[str, int] = {}
 HARDCODED: dict[str, int] = {
     "frontend/src/lib/diagramTemplates.ts": 26,
     "frontend/src/pages/Settings.tsx": 21,
-    "frontend/src/components/layout/GlobalHeader.tsx": 21,
     "frontend/src/components/media/DiagramEditor.tsx": 6,
     "frontend/src/lib/diagramExport.ts": 2,
 }

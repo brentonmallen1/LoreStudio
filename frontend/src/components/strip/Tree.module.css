@@ -1,116 +1,19 @@
-.panel {
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  background: var(--color-surface);
-  border-right: 1px solid var(--color-border);
-  overflow: hidden;
-  position: relative;
-}
+/* The full tree at the strip's widest (FullTree) and its rows (StructureTreeNode). On the
+   page ground with the strip (doc 24): no rules, no outlined buttons; rows and the + get
+   the hover ground under the pointer. */
 
-/* Focus mode: panel floats over content, offset by collapsed sidebar rail */
-.panelOverlay {
-  position: fixed;
-  top: var(--header-height);
-  left: 48px;
-  height: calc(100% - var(--header-height));
-  z-index: 40;
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Resize handle on right edge */
-.resizeHandle {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 0.333rem;
-  cursor: col-resize;
-  z-index: 10;
-}
-
-.resizeHandle::after {
-  content: "";
-  position: absolute;
-  inset: 0 1px;
-  background: transparent;
-  transition: background var(--transition);
-}
-
-.resizeHandle:hover::after {
-  background: var(--color-accent);
-  opacity: 0.4;
-}
-
-/* Hint that the edge can be dragged, before the pointer finds the exact 5px. */
-.panel:hover .resizeHandle::after {
-  background: var(--color-border);
-}
-
-/* Header */
-.header {
+/* The full tree's bar: the filter, then the + (doc 24). */
+.fullBar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 0.625rem;
-  height: 2.667rem;
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
+  gap: 0.35rem;
+  padding: 0.35rem 0.5rem 0.25rem;
 }
 
-.title {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--color-section-title);
-}
-
-.dockBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.6rem;
-  height: 1.6rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-subtle);
-  cursor: pointer;
-  transition:
-    background var(--transition),
-    color var(--transition);
-}
-
-.dockBtn:hover {
-  background: var(--color-surface-2);
-  color: var(--color-text);
-}
-
-/* View mode toggle */
-.viewPicker {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.6rem;
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
-}
-
-.viewPickerLabel {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-section-title);
-}
-
-.viewSelect {
+.fullBar > input {
   flex: 1;
   min-width: 0;
-  padding: 0.22rem 0.4rem;
-  border: 1px solid var(--color-control-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg);
-  color: var(--color-text);
-  font: inherit;
-  font-size: 0.78rem;
+  margin: 0;
 }
 
 /* Tree content */
@@ -118,6 +21,30 @@
   flex: 1;
   overflow-y: auto;
   padding: 0.5rem 0.25rem;
+}
+
+/* The whole tree at the strip's widest (FullTree): the header and filter stay put and only the
+   rows scroll, so the header's + menu hangs over the rows instead of inside a scroller that
+   clipped it. */
+.full {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.fullHead {
+  flex-shrink: 0;
+}
+
+.fullRows {
+  min-height: 0;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.fullRows::-webkit-scrollbar {
+  display: none;
 }
 
 .emptyHint {
@@ -136,7 +63,7 @@
 }
 
 .nodeRowWrap:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
 }
 
 .nodeRowWrapActive {
@@ -270,13 +197,6 @@
   color: var(--status-revised);
 }
 
-/* Header right group */
-.headerRight {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
 /* Add menu (+ button in header) */
 .addMenuWrap {
   position: relative;
@@ -286,41 +206,44 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.6rem;
-  height: 1.6rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: var(--radius);
   background: transparent;
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   cursor: pointer;
   transition:
     background var(--transition),
-    color var(--transition),
-    border-color var(--transition);
+    color var(--transition);
 }
 
 .addBtn:hover,
 .addBtnActive {
-  background: var(--color-surface-2);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
-/* Opens rightward, over the editor: right-aligned it hung off the panel's left edge. */
+.addBtn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Opens inward from the + at the strip's right end. Opening outward it ran past the strip's
+   edge and was cut off; the strip is never narrower than the menu (EXPANDED_MIN_PX). */
 .addMenu {
   position: absolute;
   top: calc(100% + 4px);
-  left: 0;
+  right: 0;
   width: max-content;
   min-width: 190px;
   max-width: 280px;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  z-index: 50;
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-popover);
   overflow: hidden;
-  padding: 3px;
+  padding: 6px;
 }
 
 .addMenuItem {
@@ -334,14 +257,14 @@
   text-align: left;
   background: none;
   border: none;
-  border-radius: calc(var(--radius) - 2px);
+  border-radius: 8px;
   color: var(--color-text);
   cursor: pointer;
   transition: background var(--transition);
 }
 
 .addMenuItem:hover:not(:disabled) {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
 }
 
 .addMenuItemDisabled {

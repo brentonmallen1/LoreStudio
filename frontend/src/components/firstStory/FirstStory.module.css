@@ -4,7 +4,7 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: var(--color-bg);
+  background: var(--color-ground);
 }
 
 .bar {
@@ -340,9 +340,48 @@
   }
 }
 
+/* The same beside the prose (doc 24 D2): there the side panel is the container. */
+@container (max-width: 70rem) {
+  .main {
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+  }
+
+  .aside {
+    width: auto;
+  }
+}
+
 @media (max-width: 48rem) {
   .layout {
     flex-direction: column;
+  }
+
+  .steps {
+    width: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 0.75rem 1rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .stepsHint,
+  .stepBecomes {
+    display: none;
+  }
+}
+
+/* The same beside the prose (doc 24 D2): there the side panel is the container. */
+@container (max-width: 48rem) {
+  .layout {
+    flex-direction: column;
+  }
+
+  /* Each step its own width in the scrolling row, not squeezed to a word a line. */
+  .steps > * {
+    flex: 0 0 auto;
+    max-width: 14rem;
   }
 
   .steps {

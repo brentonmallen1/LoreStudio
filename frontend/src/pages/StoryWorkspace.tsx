@@ -25,7 +25,7 @@ export default function StoryWorkspacePage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { setActiveNode, setSceneCast } = useStoryStore();
-  const { viewState, setViewMode, storySearchOpen, closeStorySearch, openStorySearch } = useUIStore();
+  const { viewState, storySearchOpen, closeStorySearch, openStorySearch } = useUIStore();
   const [loading, setLoading] = useState(true);
   const isFocused = viewState === "focus";
   const [stripRevealed, setStripRevealed] = useState(false);
@@ -60,14 +60,17 @@ export default function StoryWorkspacePage() {
       .finally(() => setLoading(false));
   }, [storyId, setActiveNode]);
 
-  // The panel knows whether it is beside the prose (doc 12 P2). Open or collapsed is the
-  // author's one choice for every page: moving between them never changes it.
+  // The strip and the panel know whether they are beside the prose (doc 12 P2). Off it both
+  // start collapsed so a page has the room (doc 24); back at the prose they are as the author
+  // left them there. A scene's sheet is a page; an act's or a chapter's plan sits with the prose.
   const { pathname } = useLocation();
   const setPanelSide = usePanelStore((s) => s.setSide);
-  const writing = pathname.includes("/write");
+  const setStripOnProse = useUIStore((s) => s.setStripOnProse);
+  const writing = /\/write(\/[^/]+)?\/?$/.test(pathname);
   useEffect(() => {
     setPanelSide(writing ? "writing" : "pages");
-  }, [writing, setPanelSide]);
+    setStripOnProse(writing);
+  }, [writing, setPanelSide, setStripOnProse]);
 
   // Remember the open scene per story, so the Write page reopens it next time.
   const activeNode = useStoryStore((s) => s.activeNode);
@@ -102,14 +105,14 @@ export default function StoryWorkspacePage() {
     return () => clearInterval(interval);
   }, [storyId]);
 
-  // ⌘⇧F — open story-wide search panel; ⌘[ / ⌘] — the scene before or after
+  // ⌘⇧F — open story-wide search panel; ⌥⌘↑ / ⌥⌘↓ — the scene before or after
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (matchesCombo(e, SHORTCUTS.storySearch.combo)) {
         e.preventDefault();
         openStorySearch();
       }
-      // ⌘[ / ⌘]: the scene before or after. Off a scene they stay the browser's Back/Forward.
+      // ⌥⌘↑ / ⌥⌘↓: the scene before or after, while one is open.
       const dir = matchesCombo(e, SHORTCUTS.nextScene.combo)
         ? 1
         : matchesCombo(e, SHORTCUTS.prevScene.combo)
@@ -166,10 +169,7 @@ export default function StoryWorkspacePage() {
         <StorySearchPanel
           storyId={storyId}
           onClose={closeStorySearch}
-          onNavigateToNode={(nodeId) => {
-            setViewMode("tree");
-            navigate(`/stories/${storyId}/write/${nodeId}`);
-          }}
+          onNavigateToNode={(nodeId) => navigate(`/stories/${storyId}/write/${nodeId}`)}
         />
       )}
 

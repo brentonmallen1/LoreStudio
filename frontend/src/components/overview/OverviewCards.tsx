@@ -21,6 +21,11 @@ import styles from "./Overview.module.css";
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
 
+/**
+ * The story's figures beside its title (doc 24 board 6b): a number in the serif and a word
+ * under it, each opening the page that measures it. The detail a ledger used to print is in
+ * the figure's tooltip and its name.
+ */
 export function Vitals({ storyId, ov }: { storyId: string; ov: StoryOverview }) {
   const target = ov.word_count_target;
   const states = (["draft", "revised", "final", "planned"] as const)
@@ -29,7 +34,7 @@ export function Vitals({ storyId, ov }: { storyId: string; ov: StoryOverview }) 
     .join(" · ");
   const items = [
     {
-      label: "Words",
+      label: target ? `words of ${target.max.toLocaleString()}` : "words",
       value: ov.word_count.toLocaleString(),
       sub: target ? `${Math.round(target.pct)}% of ${target.max.toLocaleString()}` : "no target length set",
       bar: target ? Math.min(100, target.pct) : null,
@@ -38,41 +43,43 @@ export function Vitals({ storyId, ov }: { storyId: string; ov: StoryOverview }) 
       to: `/stories/${storyId}/numbers`,
     },
     {
-      label: "Scenes",
+      label: ov.scene_count === 1 ? "scene" : "scenes",
       value: String(ov.scene_count),
       sub: states || "none yet",
       to: `/stories/${storyId}/numbers`,
     },
     {
-      label: "Threads",
-      value: `${ov.open_threads.length} open`,
+      label: "open threads",
+      value: String(ov.open_threads.length),
       sub:
         ov.open_threads.join(", ") ||
         (ov.thread_counts.resolved ? `${ov.thread_counts.resolved} resolved, none open` : "none open"),
       to: sectionPath(storyId, "promises", "threads"),
     },
     {
-      label: "Goals",
-      value: ov.goals_total ? `${ov.goals_done} of ${ov.goals_total}` : "None set",
+      label: "goals",
+      value: ov.goals_total ? `${ov.goals_done} of ${ov.goals_total}` : "None",
       sub: ov.next_goal ? `Next: ${ov.next_goal}` : ov.goals_total ? "all met" : "what this draft is for",
       to: sectionPath(storyId, "lorebook", "identity"),
     },
   ];
   return (
-    <nav className={styles.vitals} aria-label="The story in numbers">
+    <nav className={styles.figures} aria-label="The story in numbers">
       {items.map((v) => (
-        <Link key={v.label} to={v.to} className={styles.vital}>
-          <span className={styles.vitalLabel}>{v.label}</span>
-          <span className={styles.vitalBody}>
-            <span className={styles.vitalValue}>{v.value}</span>
-            {"bar" in v && v.bar !== null && v.bar !== undefined && (
-              <span className={styles.vitalBar} data-warn={v.warn !== "normal" ? v.warn : undefined}>
-                <span style={{ width: `${v.bar}%` }} />
-              </span>
-            )}
-            <span className={styles.vitalSub}>{v.sub}</span>
-          </span>
-          <ChevronRight size={14} className={styles.vitalGo} aria-hidden />
+        <Link
+          key={v.label}
+          to={v.to}
+          className={styles.figure}
+          title={v.sub}
+          aria-label={`${v.value} ${v.label}: ${v.sub}`}
+        >
+          <span className={styles.figureValue}>{v.value}</span>
+          <span className={styles.figureLabel}>{v.label}</span>
+          {"bar" in v && v.bar !== null && v.bar !== undefined && (
+            <span className={styles.vitalBar} data-warn={v.warn !== "normal" ? v.warn : undefined}>
+              <span style={{ width: `${v.bar}%` }} />
+            </span>
+          )}
         </Link>
       ))}
     </nav>
@@ -255,7 +262,7 @@ export function Lately({ storyId, ov }: { storyId: string; ov: StoryOverview }) 
     .sort((a, b) => b.at.localeCompare(a.at))
     .slice(0, 5);
   return (
-    <section className={styles.card} aria-label="Lately">
+    <section className={styles.card} data-plain aria-label="Lately">
       <div className={styles.cardHead}>
         <h2 className={styles.label}>Lately</h2>
         <Link to={`/stories/${storyId}/chronicle`} className={styles.headLink}>

@@ -1,7 +1,7 @@
 .manager {
   flex: 1;
   overflow-y: auto;
-  background: var(--color-bg);
+  background: var(--color-ground);
   width: 100%;
 }
 
@@ -47,7 +47,7 @@
   gap: 0.3rem;
   padding: 0.35rem 0.65rem;
   border-radius: var(--radius);
-  border: 1px solid var(--color-border);
+  border: none;
   background: transparent;
   color: var(--color-text-muted);
   font-size: 0.78rem;
@@ -150,7 +150,7 @@
   gap: 0.3rem;
   padding: 0.35rem 0.65rem;
   border-radius: var(--radius);
-  border: 1px solid var(--color-border);
+  border: none;
   background: transparent;
   color: var(--color-text-muted);
   font-size: 0.78rem;
@@ -162,7 +162,7 @@
 }
 
 .addBeatBtn:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -172,7 +172,7 @@
   gap: 0.3rem;
   padding: 0.4rem 0.85rem;
   border-radius: var(--radius);
-  border: 1px solid var(--color-accent);
+  border: none;
   background: var(--color-accent);
   color: var(--color-accent-fg);
   font-size: 0.82rem;
@@ -374,8 +374,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-bg);
+  /* No rule under the tabs (doc 24 P8): the tab showing is set apart by tone and weight. */
+  background: var(--color-ground);
   /* Lined up with the page header above it (components/layout/PageHeader.module.css). */
   padding: 0 max(1.25rem, calc((100% - var(--page-measure)) / 2));
   flex-shrink: 0;
@@ -387,7 +387,8 @@
 .tabs {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 2px;
+  padding: 0.25rem 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -400,9 +401,9 @@
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.55rem 0.75rem;
+  padding: 0.4rem 0.75rem;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-radius: var(--radius);
   background: transparent;
   color: var(--color-text-muted);
   font-size: 0.8rem;
@@ -411,18 +412,20 @@
   white-space: nowrap;
   transition:
     color var(--transition),
-    border-color var(--transition);
-  margin-bottom: -1px;
+    background var(--transition);
   position: relative;
 }
 
 .tab:hover {
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
-.tabActive {
+.tabActive,
+.tabActive:hover {
+  background: var(--color-surface-3);
   color: var(--color-text);
-  border-bottom-color: var(--color-accent);
+  font-weight: 600;
 }
 
 .tabName {
@@ -587,8 +590,8 @@
   gap: 0.3rem;
   padding: 0.3rem 0.6rem;
   border-radius: var(--radius);
-  border: 1px solid color-mix(in srgb, var(--color-ai) 40%, transparent);
-  background: color-mix(in srgb, var(--color-ai) 8%, transparent);
+  border: none;
+  background: transparent;
   color: var(--color-ai);
   font-size: 0.75rem;
   font-family: inherit;
@@ -609,8 +612,8 @@
   gap: 0.3rem;
   padding: 0.3rem 0.6rem;
   border-radius: var(--radius);
-  border: 1px solid color-mix(in srgb, var(--color-ai) 40%, transparent);
-  background: color-mix(in srgb, var(--color-ai) 8%, transparent);
+  border: none;
+  background: transparent;
   color: var(--color-ai);
   font-size: 0.75rem;
   font-family: inherit;
@@ -626,7 +629,6 @@
 
 .alignmentBtnActive {
   background: color-mix(in srgb, var(--color-accent) 12%, transparent);
-  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
   color: var(--color-accent);
 }
 
@@ -640,27 +642,25 @@
   gap: 0.3rem;
   padding: 0.3rem 0.6rem;
   border-radius: var(--radius);
-  border: 1px solid var(--color-border);
+  border: none;
   background: none;
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   font-size: 0.75rem;
   font-family: inherit;
   cursor: pointer;
   transition:
     background var(--transition),
-    color var(--transition),
-    border-color var(--transition);
+    color var(--transition);
 }
 
 .selectBtn:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
 .selectBtnActive {
-  border-color: var(--color-accent);
   color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
 .selectBtnActive:hover {

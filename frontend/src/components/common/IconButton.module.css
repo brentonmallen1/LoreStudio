@@ -30,10 +30,12 @@
 }
 
 /* Variants */
+/* The ghost tier (DESIGN.md): no fill and no edge at rest; the hover ground under the
+   pointer. The transparent edge keeps the box the size it always was. */
 .ghost {
   background: none;
-  border: 1px solid var(--color-border);
-  color: var(--color-text-subtle);
+  border: 1px solid transparent;
+  color: var(--color-text-muted);
 }
 
 .ghost:hover:not(:disabled) {
@@ -52,11 +54,10 @@
   color: var(--color-text);
 }
 
-/* Active state */
+/* Active state: deep vellum, as anything pressed or open (DESIGN.md). */
 .active {
-  background: var(--color-surface-2);
+  background: var(--color-surface-3);
   color: var(--color-text);
-  border-color: var(--color-accent);
 }
 
 .label {

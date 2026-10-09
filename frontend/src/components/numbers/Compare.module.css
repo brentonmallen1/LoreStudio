@@ -12,22 +12,24 @@
   gap: 0.35rem;
   height: 1.867rem;
   padding: 0 0.6rem;
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: var(--radius);
-  background: var(--color-surface);
-  color: var(--color-text);
+  /* The ghost tier (DESIGN.md); deep vellum while a comparison is on. */
+  background: transparent;
+  color: var(--color-text-muted);
   font: inherit;
   font-size: var(--text-sm);
   cursor: pointer;
 }
 
 .pickerButton:hover:not(:disabled) {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
 .pickerButton[data-on] {
-  border-color: var(--color-text-muted);
-  background: var(--color-surface-2);
+  background: var(--color-surface-3);
+  color: var(--color-text);
 }
 
 .pickerButton:disabled {
@@ -187,10 +189,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.25rem 0.35rem 0.25rem 0.65rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface-2);
+  padding: 0.25rem 0.35rem 0.25rem 0.75rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-tone);
   font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
@@ -215,7 +216,7 @@
 }
 
 .barClose:hover {
-  background: var(--color-surface);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -223,10 +224,9 @@
 
 .changed {
   margin: 1.25rem 0 0.5rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
+  padding: 0.95rem 1.15rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-tone);
 }
 
 .changedTitle {
@@ -360,14 +360,14 @@
 
 .dotNow {
   background: var(--color-text);
-  box-shadow: 0 0 0 2px var(--color-bg);
+  box-shadow: 0 0 0 2px var(--color-ground);
 }
 
 .dotFrom {
   width: 9px;
   height: 9px;
   border: 2px solid var(--color-text);
-  background: var(--color-bg);
+  background: var(--color-ground);
   box-sizing: border-box;
 }
 
@@ -506,7 +506,7 @@ span.hit {
   left: var(--x);
   z-index: 1;
   padding: 0 0.35rem;
-  background: var(--color-bg);
+  background: var(--color-ground);
   color: var(--color-text);
   font-weight: 600;
   transform: translateX(-50%);
@@ -540,7 +540,7 @@ span.hit {
 
 .keyDot[data-kind="from"] {
   border: 2px solid var(--color-text);
-  background: var(--color-bg);
+  background: var(--color-ground);
   box-sizing: border-box;
 }
 

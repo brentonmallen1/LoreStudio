@@ -12,11 +12,11 @@ A tagged line is `"…"<Name>`: straight, curly or single quotes, with or withou
 
 In every picker **Tab** or **Enter** takes the highlighted name, the rest of the top one shows faintly as you type, and **Esc** closes it.
 
-Untagged lines are worked out from the prose: a speech tag (`"…," Maya said`), the one character acting in the paragraph, an `@mention` nearby, or two speakers taking turns. **Highlight dialogue** (the ⋯ menu, under _Type and width_) shows it in the prose: tagged lines tinted, worked-out lines dashed, lines nobody could be found for in amber; the prose and the **Dialogue** view agree, and a new line is coloured once the scene saves. A tag that names nobody is amber too: point at it to correct it, add the character, or take the tag off. _Tag the dialogue_ in the top bar's ⋯ menu fixes them in bulk (heuristic, no AI).
+Untagged lines are worked out from the prose: a speech tag (`"…," Maya said`), the one character acting in the paragraph, an `@mention` nearby, or two speakers taking turns. **Highlight dialogue** (the ⋯ menu, under _Type and width_) shows it in the prose: tagged lines tinted, worked-out lines dashed, lines nobody could be found for in amber; the prose and the side panel's **Dialogue** tool agree, and a new line is coloured once the scene saves. A tag that names nobody is amber too: point at it to correct it, add the character, or take the tag off. _Tag the dialogue_ in the top bar's ⋯ menu fixes them in bulk (heuristic, no AI).
 
 ## Quote style
 
-Straight `"…"` and curly `“…”` quotes mixed in one manuscript is the most common copy-edit note. The **Quote style** field in the side panel's _This scene_ tab counts both across the story and converts everything with one click, after showing you how many characters change. Markup, speaker tags and the names in mentions are never touched, and a quote after italics stays a closing one. The same command is in the palette: _Normalize quotes_.
+Straight `"…"` and curly `“…”` quotes mixed in one manuscript is the most common copy-edit note. **Quote style**, under _Tidy-ups_ on the Scene sheet's **Findings** page, counts both across the story and converts everything with one click, after showing you how many characters change. Markup, speaker tags and the names in mentions are never touched, and a quote after italics stays a closing one. The same command is in the palette: _Normalize quotes_.
 
 ## Voice
 

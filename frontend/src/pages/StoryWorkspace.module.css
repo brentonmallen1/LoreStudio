@@ -2,7 +2,7 @@
   display: flex;
   height: 100%;
   overflow: hidden;
-  background: var(--color-bg);
+  background: var(--color-ground);
 }
 
 .main {
@@ -27,7 +27,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg);
+  background: var(--color-ground);
   color: var(--color-text-muted);
   font-size: 0.875rem;
 }
@@ -52,7 +52,8 @@
   }
 }
 
-/* Focus mode: the sidebar and the strip revealed together from the left edge. */
+/* Focus mode: the strip revealed from the left edge. It has no ground of its own (doc 24),
+   so over the page it takes the page ground, lifted off the desk. */
 .revealed {
   position: fixed;
   top: 0;
@@ -60,5 +61,6 @@
   bottom: 0;
   display: flex;
   z-index: 50;
+  background: var(--color-ground);
   box-shadow: var(--shadow-lg);
 }

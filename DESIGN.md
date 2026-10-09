@@ -6,6 +6,7 @@ colors:
   paper: "#ffffff"
   vellum: "#f0efe9"
   vellum-deep: "#e8e7e0"
+  tone: "#f5f4f0"
   rule: "#e0ded7"
   rule-light: "#ebe9e2"
   ink: "#1a1916"
@@ -88,9 +89,16 @@ components:
     height: "32px"
   button-ghost:
     backgroundColor: "transparent"
-    textColor: "{colors.ink-subtle}"
+    textColor: "{colors.ink-muted}"
     rounded: "{rounded.md}"
     padding: "5px 10px"
+  button-ghost-hover:
+    backgroundColor: "{colors.vellum}"
+    textColor: "{colors.ink}"
+  tone-box:
+    backgroundColor: "{colors.tone}"
+    rounded: "{rounded.lg}"
+    padding: "12px 14px"
   view-switch-on:
     backgroundColor: "{colors.ink}"
     textColor: "{colors.parchment}"
@@ -100,8 +108,11 @@ components:
     backgroundColor: "{colors.paper}"
     rounded: "{rounded.lg}"
     padding: "12px 14px"
+  side-panel:
+    backgroundColor: "{colors.tone}"
+    rounded: "{rounded.xl}"
   page-header:
-    backgroundColor: "{colors.paper}"
+    backgroundColor: "transparent"
     padding: "18px 20px 14px"
 ---
 
@@ -118,8 +129,10 @@ edge holds the story's shape as a transit line; the right holds whatever the aut
 pulled out to look at. Everything that is not the prose is reference: legible at a glance,
 then gone.
 
-Density is moderate and calm. Hierarchy comes from type and space first, tone second, lines
-last. Colour is rare and always means something. Seven palettes (Zen, Nord, Catppuccin,
+Density is moderate and calm. Type and space first, a tone box second, a line almost never.
+The chrome (the header, the strip, the panel's rail) floats on one ground with no
+background and no border of its own, and the prose sits on that same ground, so nothing
+frames the page; the side panel is a faint tone box beside it. Colour is rare and always means something. Seven palettes (Zen, Nord, Catppuccin,
 Gruvbox, Solarized, Dracula, E-ink), each in light and dark, share one set of token names;
 Zen light is the canonical design and dark is an intentional inversion, not the default.
 
@@ -132,7 +145,9 @@ screenshot that shows every feature at once.
 - Warm tinted neutrals; one accent (forest) for the author's own actions.
 - Meaning colours with fixed jobs: violet is the Assistant, teal is local analysis.
 - Entities carry a palette slot (`--cat-1` to `--cat-8`), scenes a status colour and shape.
-- Flat surfaces separated by tone and hairlines; shadows only for things that float.
+- One ground under the chrome and the prose alike, the side panel a faint tone box; shadows
+  only for things lifted off the desk.
+- What you can press gets a ground under the pointer; what you read never does.
 
 ## 2. Colors: The Parchment Palette
 
@@ -152,11 +167,18 @@ Warm, low-chroma neutrals with a handful of signal colours, each assigned one jo
   normalisation, prose metrics). Present in both modes.
 
 ### Neutral
-- **Parchment** (#f7f6f3): the page background, behind everything.
-- **Paper** (#ffffff): surfaces the author works on: the prose page, sheets, headers.
-- **Vellum** (#f0efe9) and **Vellum Deep** (#e8e7e0): recessed areas, hovers, segmented
-  controls, chips.
-- **Rule** (#e0ded7) and **Rule Light** (#ebe9e2): hairlines between regions and rows.
+- **Paper** (#ffffff, `--color-surface`): the ground (`--color-ground`, doc 24 D18) under
+  the header, the strip, the prose and the rail alike; also menus and sheets.
+- **Parchment** (#f7f6f3, `--color-bg`): the old page ground. No page paints it now (doc 24
+  P8); it stays for wells inside a box, such as a field or a message bubble, a step down from the tone.
+- **Tone** (#f5f4f0, `--color-tone`): the tone box, a quiet ground that groups things on
+  the paper ("In this scene", a menu's footer) where a rule or a card used to, and the side
+  panel's ground.
+- **Vellum** (#f0efe9) and **Vellum Deep** (#e8e7e0): the hover ground (`--color-hover`
+  is the vellum), chips and segmented controls; deep vellum for what is pressed or
+  selected.
+- **Rule** (#e0ded7) and **Rule Light** (#ebe9e2): the edge of a card that is still a
+  card, and the hairline between rows of a long list. Never between regions.
 - **Ink** (#1a1916), **Ink Muted** (#6a675f), **Ink Subtle** (#6e6c65): text in three
   steps: content, secondary, metadata. All three read at AA; the steps are carried by size
   and weight as much as by tone (doc 17).
@@ -182,10 +204,10 @@ meaning, use a different device.
 by `contrast.test.ts`. `scripts/check-tokens.py` fails on a hex or named colour in a
 component (the theme swatches and diagrams are the locked exceptions).
 
-**The AA Rule.** All text reaches 4.5:1 on every ground it sits on: the page, cards, the
-vellum of the header, strip and tab bar, hover grounds, and a 12% tint of its own colour
-(badges and pills). Slots, control edges and the focus ring reach 3:1. Quiet comes from
-colour, never from `opacity` on text.
+**The AA Rule.** All text reaches 4.5:1 on every ground it sits on: the page ground and
+the chrome on it, the prose, cards, tone boxes, hover grounds, and a 12% tint of
+its own colour (badges and pills). Slots, control edges and the focus ring reach 3:1. Quiet
+comes from colour, never from `opacity` on text.
 
 ## 3. Typography
 
@@ -219,11 +241,27 @@ entity names. Controls, menus and data are always DM Sans.
 `themes/typeFloor.test.ts` holds it. Graph labels inside fixed shapes are the exception:
 the graph zooms.
 
-## 4. Elevation
+## 4. Elevation and Separation
 
-Flat by default. Regions are separated by tone (parchment behind, paper in front, vellum
-recessed) and by 1px rules. Shadows appear only on things that float above the desk:
-popovers, menus, the palette, dialogs, the floating panel, peek cards.
+Flat by default, and quiet. The chrome (the header, the story strip, the panel's rail)
+floats on the ground (`--color-ground`, the paper): no background of its own, no border, no
+rule under it. The prose sits on that same ground, so nothing frames it (doc 24 D18: paper
+planes on parchment read as a frame, not as floating). The side panel is a faint tone box
+with a 14px radius and a small gutter, no border or shadow: the change of tone is the edge.
+Pointing `--color-ground` at `--color-bg` and giving the page and panel `--color-surface`
+brings the planes back.
+
+On the ground, separation comes in this order:
+1. **Type and space.** A label in the section-title colour, then the value; a heading set
+   bolder; more space between groups than within them. This does most of the work.
+2. **A tone box.** When a few things belong together and space alone does not say so, they
+   sit in a tone box (`--color-tone`, 10px radius, 12px by 14px padding). One level only:
+   never a tone box in a tone box.
+3. **A line, almost never.** A hairline divides rows of a long list (Findings, Chronicle)
+   and nothing else. Never between regions, never round a group, never under a header.
+
+Shadows appear only on things that float above the desk: popovers, menus, the palette,
+dialogs, the floating panel, peek cards.
 
 ### Shadow Vocabulary
 - **Hairline lift** (`0 1px 2px rgba(0,0,0,0.05)`): pressed chips, small toggles.
@@ -235,15 +273,28 @@ popovers, menus, the palette, dialogs, the floating panel, peek cards.
 ### Named Rules
 **The Desk Rule.** Nothing on the desk casts a shadow; only what is lifted off it does.
 
+**The Floating Chrome Rule.** The header, the strip and the rail have no ground of their
+own. If a piece of chrome seems to need a background or a border to hold together, it has
+too much in it.
+
+**The Press Rule.** Everything pressable gets a ground when the pointer is on it (the hover
+ground, `--color-hover`), and nothing else does. Fields are the only things with an
+outline. Something you only read has no ground, no outline and no accent colour, ever: a
+status is a shape and a word, a figure is a number and its label.
+
 ## 5. Components
 
 ### Buttons
-- **Shape:** gently rounded (6px); 32px tall in headers, 28px in rows.
-- **Primary:** forest fill, paper text. One per view at most.
-- **Assistant:** violet fill, `--color-ai-fg` text, Orbit (runs an action) or Feather (opens a chat) icon plus a text
-  label. Studio only.
-- **Ghost / Subtle:** transparent with a rule border (ghost) or none (subtle); vellum on
-  hover.
+One look per tier, everywhere:
+- **Primary:** forest fill, paper text. One per view at most ("Continue writing").
+- **Assistant:** violet fill, `--color-ai-fg` text, Orbit (runs an action) or Feather
+  (opens a chat) icon plus a text label. Studio only.
+- **Ghost:** the quiet tier, and the default. No fill and no border at rest, ink-muted
+  text or icon; the hover ground and ink under the pointer; deep vellum while pressed or
+  open. The header's controls, the strip's, ⋯ menus, a menu's rows and a link-like word all
+  use it.
+- **Link in running text:** forest, semibold, no underline until hovered.
+- **Shape:** gently rounded (6px; 8px for a menu row); 32px tall in headers, 28px in rows.
 - **Focus:** 2px `--color-focus` outline, 2px offset, on every control (fields too).
 - **Target:** at least 24px; a small dot gets a 24px hit area round it. An icon-only
   button has an `aria-label` (`iconButtonNames.test.ts`).
@@ -253,34 +304,54 @@ popovers, menus, the palette, dialogs, the floating panel, peek cards.
 - **State:** pressed chips invert (ink background, parchment text) like the view switch.
 
 ### Cards / Containers
-- **Sheet cards** (Lorebook side column, Overview): paper, 10px radius, rule border, label
-  title, 12px by 14px padding. Never nested.
+- **Tone boxes** group a few things on the ground (In this scene, a menu's footer, the
+  Overview's sections): tone ground, 10px radius, 12px by 14px padding, no border. Never
+  nested.
+- **Sheet cards**, where something is still a card (a Lorebook entry in a grid): paper,
+  10px radius, rule border, label title, 12px by 14px padding. Never nested.
 - **Lists and feeds** (Findings, Proposals, Chronicle): rows divided by rule-light
   hairlines, no card per row.
 
 ### Inputs / Fields
 - **Style:** paper fill, `--color-control-border` edge, 6px radius; fields on a sheet
-  read as text until focused.
+  read as text until focused. The only outlined thing on screen.
 - **Focus:** border shifts to forest, plus the focus ring.
 
 ### Navigation
+- **The logo menu** (top left): the one place to go from. The story's pages grouped by
+  domain, a page's sections as quiet words under it, a count beside what is waiting
+  (Findings, Proposals), and a tone-box footer with Guides, Settings, light, dark or
+  system, the backup line, the mode and the account. The logo's badge is what is waiting
+  on you; a warning dot only when a backup failed or is overdue. ⌘K reaches all of it.
+- **Header:** floating, the trail of where you are on the left, and on the right only jobs,
+  undo and redo, the scratch pad, focus and "Search or jump", all ghost icons.
 - **Story strip** (left): the transit line. Chapters are stations with progress rings,
   scenes are stops shaped by status, and the colour-by key shows only while you hover.
-  Widths: line, chapter rows, full tree.
-- **Side panel** (right): tabs for This scene, open entities and tools, then a divider and
-  the icon-only Assistant tab.
-- **Page header:** paper band with a serif title, a pill view switch, a summary line, and a
-  ⋯ menu for secondary and Assistant actions.
+  The colour-by picker sits at the top, so the line runs the strip's full height. Two
+  states: the line, or the outline, whose scene rows carry the same dots and whose folded
+  chapters show their scenes as coloured bars.
+- **Side panel** (right): a tone box of tabs for This scene, open entities and tools;
+  the rail beside it launches them, with the Assistant's Feather and the one collapse.
+- **Sub header** (top of the page): the scene's icon, title, status and threads, and ⋯.
+  Floating, like the header; in focus mode it is quiet (subtle text) until hovered.
+- **Status corner** (bottom right of the page): a save light (green saved, yellow
+  unsaved or saving, red offline or conflict) and the word count; a click opens the
+  figures for the scene, chapter, book and today, and on a conflict Keep mine / Take theirs.
+- **Page header:** a serif title on the page itself, a pill view switch, a summary line,
+  and a ⋯ menu for secondary and Assistant actions.
 
 ### The Transit Strip (signature)
 The story as a line: stations for chapters, stops for scenes, the current position as a
-filled marker and a readout ("Ch 2 · of 7 · 5%"). Colour by who is on the page, threads,
-status, beat or findings.
+filled marker. Colour by who is on the page, threads, status, beat or findings.
 
 ## 6. Do's and Don'ts
 
 ### Do:
-- **Do** separate regions with tone and a 1px rule before reaching for a card.
+- **Do** separate things with type and space first, a tone box second, and a line almost
+  never.
+- **Do** let the chrome and the prose share one ground, with the side panel a faint tone
+  box beside them.
+- **Do** give everything pressable a hover ground, and nothing else.
 - **Do** give every colour one job (forest is the author, violet the Assistant, teal local
   analysis), and pair status colour with shape.
 - **Do** set prose in Merriweather at 640px max, and every control in DM Sans.
@@ -296,5 +367,9 @@ status, beat or findings.
 - **Don't** put every feature on screen at once; reveal tools when they are needed.
 - **Don't** use a coloured `border-left` or `border-right` wider than 1px as an accent stripe.
 - **Don't** hard-code a colour, or use violet for anything that is not the Assistant.
-- **Don't** nest cards, or add shadows to things that sit on the desk.
+- **Don't** nest cards or tone boxes, or add shadows to things that sit on the desk.
+- **Don't** put a background, a border or a rule on the header, the strip, the rail or a
+  sub header, or a rule between regions.
+- **Don't** outline a button, a chip or a group: an outline means a field.
+- **Don't** give something you only read a hover ground, an outline or an accent colour.
 - **Don't** use em dashes in UI copy.

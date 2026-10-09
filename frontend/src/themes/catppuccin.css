@@ -5,6 +5,7 @@
   --color-surface-2: #ccd0da;
   --color-surface-3: #bcc0cc;
   --color-surface-raised: #c6cad5;
+  --color-tone: #d6dae2;
   --color-border: #b4b9c6;
   --color-border-light: #d1d5de;
   --color-text: #4a4d67;
@@ -101,6 +102,7 @@
   --color-surface-2: #363a4f;
   --color-surface-3: #494d64;
   --color-surface-raised: #3f4359;
+  --color-tone: #2c3043;
   --color-border: #454960;
   --color-border-light: #2d3145;
   --color-text: #cad3f5;

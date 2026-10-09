@@ -1,10 +1,11 @@
-/* The story in numbers (doc 13 P3): one reading column; sections divided by rules, not boxed. */
+/* The story in numbers (doc 13 P3): one reading column; sections divided by space and their
+   serif headings, neither boxed nor ruled (doc 24 P8). */
 
 .page {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  background: var(--color-bg);
+  background: var(--color-ground);
 }
 
 /* The same measure as the page header above it, so the two line up. */
@@ -16,12 +17,11 @@
 }
 
 .section {
-  padding: 1.6rem 0 1.4rem;
-  border-top: 1px solid var(--color-border);
+  padding: 1.25rem 0 1.5rem;
 }
 
-.section:first-child {
-  border-top: none;
+.section + .section {
+  margin-top: 0.5rem;
 }
 
 .heading {
@@ -175,7 +175,7 @@
   gap: 0.35rem;
   height: 1.867rem;
   padding: 0 0.75rem;
-  border: 1px solid var(--color-nlp-border);
+  border: none;
   border-radius: var(--radius);
   background: var(--color-nlp-subtle);
   color: var(--color-nlp);
@@ -484,7 +484,7 @@
   box-sizing: border-box;
   border: 1.5px solid var(--color-text-subtle);
   border-radius: 50%;
-  background: var(--color-bg);
+  background: var(--color-ground);
 }
 
 .beat {
@@ -817,7 +817,7 @@
 
 .bar[data-new] {
   box-shadow:
-    0 0 0 2px var(--color-bg),
+    0 0 0 2px var(--color-ground),
     0 0 0 3.5px var(--color-text-muted);
 }
 
@@ -857,7 +857,7 @@
   border-radius: 2px;
   background: var(--color-text-subtle);
   box-shadow:
-    0 0 0 2px var(--color-bg),
+    0 0 0 2px var(--color-ground),
     0 0 0 3.5px var(--color-text-muted);
 }
 
@@ -889,7 +889,7 @@
   height: 4px;
   margin: -2px 0 0 -2px;
   border-radius: 50%;
-  background: var(--color-bg);
+  background: var(--color-ground);
 }
 
 .cell[data-change="lost"] {

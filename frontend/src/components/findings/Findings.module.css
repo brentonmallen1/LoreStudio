@@ -5,7 +5,7 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: var(--color-bg);
+  background: var(--color-ground);
 }
 
 .scroll {
@@ -38,15 +38,15 @@
   flex-direction: column;
   gap: 2px;
   padding: 0.6rem 0.85rem;
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  /* A figure you can open: no edge, the hover ground under the pointer (DESIGN.md). */
+  background: transparent;
   color: var(--color-text);
   text-decoration: none;
 }
 
 .vital:hover {
-  border-color: var(--color-border-hover);
+  background: var(--color-hover);
 }
 
 .vital:focus-visible {
@@ -84,22 +84,23 @@
   gap: 0.35rem;
   height: 1.867rem;
   padding: 0 0.75rem;
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: 999px;
-  background: var(--color-surface);
-  color: var(--color-text);
+  /* A vellum pill, as PageHeader's chips; pressed, it inverts (DESIGN.md Chips). */
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
   font: inherit;
   font-size: 0.8rem;
   cursor: pointer;
 }
 
 .chip:hover {
-  border-color: var(--color-border-hover);
+  background: var(--color-surface-3);
+  color: var(--color-text);
 }
 
 .chip[aria-pressed="true"] {
   background: var(--color-text);
-  border-color: var(--color-text);
   color: var(--color-bg);
 }
 
@@ -114,31 +115,15 @@
 
 /* ── Groups and rows ── */
 
-/* A group is one list: rows joined by hairlines, so groups separate more than rows do
-   (doc 13 P7). */
+/* A group is one list: its title, then rows divided by a hairline and nothing round them
+   (DESIGN.md, Lists and feeds). Groups separate by the space between them. */
 .group {
   display: flex;
   flex-direction: column;
 }
 
-.group > .row {
-  border-radius: 0;
-  margin-top: -1px;
-}
-
-.group > .groupTitle + .row {
-  margin-top: 0;
-  border-top-left-radius: var(--radius-lg);
-  border-top-right-radius: var(--radius-lg);
-}
-
-.group > .row:last-child {
-  border-bottom-left-radius: var(--radius-lg);
-  border-bottom-right-radius: var(--radius-lg);
-}
-
 .group > .row + .row {
-  border-top-color: var(--color-border-light);
+  border-top: 1px solid var(--color-border-light);
 }
 
 .groupTitle {
@@ -163,14 +148,7 @@
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  padding: 0.7rem 0.6rem 0.7rem 0.85rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-}
-
-.row:hover {
-  background: color-mix(in srgb, var(--color-surface-2) 55%, var(--color-surface));
+  padding: 0.7rem 0;
 }
 
 .dot {
@@ -252,24 +230,29 @@
   flex-shrink: 0;
   height: 1.867rem;
   padding: 0 0.7rem;
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: var(--radius);
-  background: var(--color-surface);
-  color: var(--color-text);
+  /* The ghost tier: the row's own action, quiet until pointed at (DESIGN.md). */
+  background: transparent;
+  color: var(--color-text-muted);
   font: inherit;
   font-size: 0.78rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
 
 .verb:hover {
-  border-color: var(--color-border-hover);
-  background: var(--color-surface-2);
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
 .verb[data-ai] {
   color: var(--color-ai);
-  border-color: var(--color-ai-border);
+}
+
+.verb[data-ai]:hover {
+  background: var(--color-ai-subtle);
 }
 
 .verb:focus-visible,
@@ -578,8 +561,12 @@ button.runItem:focus-visible {
 }
 
 .card .row {
-  padding: 0.55rem 0.4rem 0.55rem 0.6rem;
+  padding: 0.55rem 0;
   gap: 0.55rem;
+}
+
+.card > .row + .row {
+  border-top: 1px solid var(--color-border-light);
 }
 
 .card .source {
@@ -612,6 +599,20 @@ button.runItem:focus-visible {
   }
 }
 
+/* The same beside the prose (doc 24 D2): there the side panel is the container. */
+@container (max-width: 720px) {
+  .row {
+    flex-wrap: wrap;
+  }
+  /* The words take the row; the actions wrap under them instead of squeezing them. */
+  .body {
+    flex-basis: calc(100% - 2rem);
+  }
+  .verb {
+    margin-left: calc(9px + 0.75rem);
+  }
+}
+
 /* ── Proposals (doc 12 P5): the same rows, with a yes and a no ── */
 
 .kindIcon {
@@ -631,14 +632,15 @@ button.runItem:focus-visible {
   color: var(--color-text);
 }
 
-/* Outlined: the page header's button is the one filled primary on a page. */
+/* A tint, not a fill: the page header's button is the one filled primary on a page, and an
+   outline means a field (DESIGN.md). */
 .yes {
   flex-shrink: 0;
   height: 1.867rem;
   padding: 0 0.8rem;
-  border: 1px solid var(--color-accent);
+  border: none;
   border-radius: var(--radius);
-  background: var(--color-surface);
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
   color: var(--color-accent);
   font: inherit;
   font-size: 0.78rem;
@@ -648,7 +650,7 @@ button.runItem:focus-visible {
 }
 
 .yes:hover {
-  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-surface));
+  background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
 }
 
 .no {
@@ -656,6 +658,7 @@ button.runItem:focus-visible {
   height: 1.867rem;
   padding: 0 0.55rem;
   border: none;
+  border-radius: var(--radius);
   background: transparent;
   color: var(--color-text-muted);
   font: inherit;
@@ -665,6 +668,7 @@ button.runItem:focus-visible {
 }
 
 .no:hover {
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -698,6 +702,14 @@ button.runItem:focus-visible {
 }
 
 @media (max-width: 720px) {
+  .yes,
+  .no {
+    margin-left: calc(14px + 0.75rem);
+  }
+}
+
+/* The same beside the prose (doc 24 D2): there the side panel is the container. */
+@container (max-width: 720px) {
   .yes,
   .no {
     margin-left: calc(14px + 0.75rem);

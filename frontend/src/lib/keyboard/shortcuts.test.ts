@@ -11,7 +11,8 @@ import {
 /**
  * Combos a browser keeps for itself: the page never sees the keydown, so a binding here can
  * never fire. Chrome's reserved commands (new window, incognito, tab, close, reopen, switch
- * tab, quit) plus Firefox's new private window.
+ * tab, quit) plus Firefox's new private window, and ⌘\, which 1Password's extension (and
+ * some browsers) take before the page sees it.
  */
 const RESERVED = [
   "mod+n",
@@ -26,6 +27,7 @@ const RESERVED = [
   "mod+pageup",
   "mod+pagedown",
   "mod+shift+p",
+  "mod+\\",
 ];
 
 describe("SHORTCUTS", () => {
@@ -76,7 +78,7 @@ describe("SHORTCUTS", () => {
 
   it("formats combos for display", () => {
     const s = formatCombo("mod+shift+k");
-    expect(s === "⌘⇧K" || s === "Ctrl+Shift+K").toBe(true);
+    expect(s === "⇧⌘K" || s === "Ctrl+Shift+K").toBe(true);
   });
 });
 
@@ -100,8 +102,8 @@ describe("yieldsToTyping", () => {
     expect(yieldsToTyping(typing({ key: "?" }))).toBe(true);
   });
 
-  it("does not swallow a ⌘ combination: ⌘\\ is focus mode even in the editor", () => {
-    expect(yieldsToTyping(typing({ key: "\\", metaKey: true }))).toBe(false);
+  it("does not swallow a ⌘ combination: ⌥⌘F is focus mode even in the editor", () => {
+    expect(yieldsToTyping(typing({ key: "ƒ", metaKey: true, altKey: true }))).toBe(false);
     expect(yieldsToTyping(typing({ key: "/", ctrlKey: true }))).toBe(false);
   });
 

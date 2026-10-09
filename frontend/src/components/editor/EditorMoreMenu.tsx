@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   BookMarked,
+  ClipboardList,
   Cpu,
   ImageIcon,
   Info,
@@ -9,6 +10,7 @@ import {
   Link,
   MoreHorizontal,
   Quote,
+  StickyNote,
   Tag,
   Type,
   Zap,
@@ -17,10 +19,14 @@ import {
 import { useAIAvailable, useMode } from "../../lib/mode";
 import { visibleFeatures } from "../../lib/ai/featureRegistry";
 import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
+import { navigateTo } from "../../lib/navigation";
+import { sceneSheetPath } from "../../lib/scene/glance";
+import { useStoryStore } from "../../stores/storyStore";
 import type { WritingGuideTab } from "../help/WritingGuidesModal";
 import AIFeatureInfoModal from "../ai/AIFeatureInfoModal";
 import FontSettings from "../story/FontSettings";
 import { SprintSetup } from "../story/SprintTimer";
+import type { NotesView } from "../../lib/notes/view";
 import styles from "./EditorMoreMenu.module.css";
 
 interface Props {
@@ -30,14 +36,19 @@ interface Props {
   onOpenGuides: (tab: WritingGuideTab) => void;
   onOpenAutoTag: () => void;
   onOpenAutoLink: () => void;
+  /** Notes beside the text as cards, or as dots (doc 15), and how many are open. */
+  notesView: NotesView;
+  noteCount: number;
+  onNotesView: (view: NotesView) => void;
 }
 
 type Pane = "menu" | "type" | "sprint";
 
 /**
- * Everything the writing desk needs now and then, behind one ⋯ (doc 14 Q1): the image,
- * the type, a sprint, the guides and the scene tools. The type and the sprint open as
- * panes of the same menu, so nothing else needs its own button in the top bar.
+ * Everything the writing desk needs now and then, behind one ⋯ (doc 14 Q1), in groups by
+ * kind (doc 24): Write (an image, a sprint), This scene (its tools), Show (the notes in the
+ * margin), Guides, and Settings (the type) last. The type and the sprint
+ * open as panes of the same menu, so nothing else needs its own button in the top bar.
  */
 export default function EditorMoreMenu(p: Props) {
   const [open, setOpen] = useState(false);
@@ -82,7 +93,7 @@ export default function EditorMoreMenu(p: Props) {
     }
     if (pane !== "menu" || (e.key !== "ArrowDown" && e.key !== "ArrowUp")) return;
     e.preventDefault();
-    const items = [...(wrap.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
+    const items = [...(wrap.current?.querySelectorAll<HTMLElement>('[role^="menuitem"]') ?? [])];
     const at = items.indexOf(document.activeElement as HTMLElement);
     const next = e.key === "ArrowDown" ? at + 1 : at - 1;
     items[(next + items.length) % items.length]?.focus();
@@ -103,7 +114,7 @@ export default function EditorMoreMenu(p: Props) {
         type="button"
         className={`${styles.trigger} ${open ? styles.triggerOpen : ""}`}
         aria-label="More for this scene"
-        title="Image, type, sprint, guides and scene tools"
+        title="Image, sprint, scene tools, what the page shows, guides, type"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => (open ? close() : setOpen(true))}
@@ -112,15 +123,51 @@ export default function EditorMoreMenu(p: Props) {
       </button>
       {open && pane === "menu" && (
         <div className={styles.menu} role="menu" aria-label="More for this scene" data-pane>
+          {/* Grouped by what each does (doc 24): things to do, the scene's tools, what the
+              page shows, the guides, and the one setting last. */}
+          <div className={styles.label}>Write</div>
           <Item
             label="Insert image"
             icon={ImageIcon}
             hint={formatCombo(SHORTCUTS.insertImage.combo)}
             onSelect={then(p.onInsertImage)}
           />
-          <Item label="Type and width…" icon={Type} onSelect={() => setPane("type")} />
           {!p.sprintRunning && <Item label="Start a sprint…" icon={Zap} onSelect={() => setPane("sprint")} />}
-          <div className={styles.divider} role="separator" />
+          <div className={styles.label}>This scene</div>
+          <Item
+            label="Open the scene sheet"
+            icon={ClipboardList}
+            title="Every field of this scene, on one page"
+            onSelect={then(() => {
+              const { activeStory, activeNode } = useStoryStore.getState();
+              if (activeStory && activeNode) navigateTo(sceneSheetPath(activeStory.id, activeNode.id));
+            })}
+          />
+          <Item
+            label="Tag the dialogue"
+            icon={Tag}
+            title="Find quotes with no speaker"
+            onSelect={then(p.onOpenAutoTag)}
+          />
+          <Item
+            label="Link mentions"
+            icon={Link}
+            title="Find names not yet linked"
+            onSelect={then(p.onOpenAutoLink)}
+          />
+          <div className={styles.label}>Show</div>
+          <Item
+            label="Notes in the margin"
+            icon={StickyNote}
+            checked={p.notesView === "cards"}
+            hint={`${p.notesView === "cards" ? "On" : "Dots"}${p.noteCount > 0 ? ` · ${p.noteCount}` : ""}`}
+            title={
+              p.notesView === "cards"
+                ? "Notes sit beside the text; choose to show them as dots"
+                : "Notes show as dots; choose to show them beside the text"
+            }
+            onSelect={then(() => p.onNotesView(p.notesView === "cards" ? "dots" : "cards"))}
+          />
           <div className={styles.label}>Guides</div>
           <Item
             label="Dialogue"
@@ -139,30 +186,15 @@ export default function EditorMoreMenu(p: Props) {
             icon={BookMarked}
             onSelect={then(() => p.onOpenGuides("essential"))}
           />
-          <div className={styles.divider} role="separator" />
-          <div className={styles.label}>This scene</div>
-          <Item
-            label="Tag the dialogue"
-            icon={Tag}
-            title="Find quotes with no speaker"
-            onSelect={then(p.onOpenAutoTag)}
-          />
-          <Item
-            label="Link mentions"
-            icon={Link}
-            title="Find names not yet linked"
-            onSelect={then(p.onOpenAutoLink)}
-          />
           {hasAbout && (
-            <>
-              <div className={styles.divider} role="separator" />
-              <Item
-                label={ai ? "About the AI and analysis tools" : "About the analysis tools"}
-                icon={ai ? Cpu : Info}
-                onSelect={then(() => setAbout(true))}
-              />
-            </>
+            <Item
+              label={ai ? "About the AI and analysis tools" : "About the analysis tools"}
+              icon={ai ? Cpu : Info}
+              onSelect={then(() => setAbout(true))}
+            />
           )}
+          <div className={styles.label}>Settings</div>
+          <Item label="Type and width…" icon={Type} onSelect={() => setPane("type")} />
         </div>
       )}
       {open && pane !== "menu" && (
@@ -193,18 +225,34 @@ function Item({
   onSelect,
   hint,
   title,
+  checked,
 }: {
   label: string;
   icon: LucideIcon;
   onSelect: () => void;
   hint?: string;
   title?: string;
+  /** A setting that is on or off: said as such, and its state in accent. */
+  checked?: boolean;
 }) {
+  const toggle = checked !== undefined;
   return (
-    <button type="button" role="menuitem" className={styles.item} onClick={onSelect} title={title}>
+    <button
+      type="button"
+      role={toggle ? "menuitemcheckbox" : "menuitem"}
+      aria-checked={toggle ? checked : undefined}
+      className={styles.item}
+      onClick={onSelect}
+      title={title}
+    >
       <Icon size={13} aria-hidden />
       <span className={styles.itemLabel}>{label}</span>
-      {hint && <kbd className={styles.hint}>{hint}</kbd>}
+      {hint &&
+        (toggle ? (
+          <span className={`${styles.state} ${checked ? styles.stateOn : ""}`}>{hint}</span>
+        ) : (
+          <kbd className={styles.hint}>{hint}</kbd>
+        ))}
     </button>
   );
 }

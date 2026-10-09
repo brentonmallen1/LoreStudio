@@ -5,6 +5,55 @@
  * in. The active tab is always shown, even when it would not fit in order, because a tab
  * you just opened vanishing into a menu is the one thing an overflow must never do.
  */
+/**
+ * The tab strip's measures at the Default interface size, in px; the strip scales them with
+ * `scaledPx`, since its text and controls are rem. Tabs shrink between `tabMin` and `tabMax`
+ * (the label truncates, the full name is the tooltip), so what fits is decided at `tabMin`.
+ */
+export const STRIP_PX = {
+  /** A tab at its narrowest: a few letters of its name (a page tab's icon and one or two). */
+  tabMin: 64,
+  tabMax: 140,
+  /** The × the tab showing carries. */
+  close: 24,
+  /** Between the strip's items (`gap` on .strip). */
+  gap: 2,
+  /** + Open… after the tabs. */
+  open: 26,
+  /** ☰ n, once something has folded away. */
+  overflow: 44,
+  /** "Full page ↗" at the end, while a page beside the prose is showing (doc 24 D2). */
+  fullPage: 84,
+} as const;
+
+/** The narrowest a tab may be drawn, the gap after it not included. */
+export function tabMinWidth(active: boolean, px: (n: number) => number = (n) => n) {
+  return px(STRIP_PX.tabMin) + (active ? px(STRIP_PX.close) : 0);
+}
+
+/**
+ * What `fitTabs` needs for one strip: each tab's narrowest width plus the gap after it, the
+ * width left for the tabs once + Open… (and "Full page ↗", while a page is showing) are taken
+ * out of the strip's content width, and what the ☰ button takes when it appears.
+ */
+export function stripBudget<T extends { id: string }>(
+  tabs: T[],
+  activeId: string,
+  contentWidth: number,
+  { fullPage = false, px = (n: number) => n }: { fullPage?: boolean; px?: (n: number) => number } = {},
+) {
+  const gap = STRIP_PX.gap;
+  const widths = Object.fromEntries(tabs.map((t) => [t.id, tabMinWidth(t.id === activeId, px) + gap]));
+  // + Open… and the gap after it, the spacer's gap, Full page; 1px for rounding.
+  const room = contentWidth - (px(STRIP_PX.open) + gap) - gap - (fullPage ? px(STRIP_PX.fullPage) : 0) - 1;
+  return {
+    widths,
+    room,
+    overflowReserve: px(STRIP_PX.overflow) + gap,
+    defaultWidth: px(STRIP_PX.tabMin) + gap,
+  };
+}
+
 export interface FitResult<T> {
   visible: T[];
   hidden: T[];

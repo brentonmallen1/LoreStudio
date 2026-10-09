@@ -19,15 +19,15 @@ Select words in the editor and choose **Note**, **Question** or **To-do** in the
 
 **Resolve** a note when you're done with it: it leaves the margin and its highlight goes, and it stays on the Notes page under _Resolved_, where you can reopen it. Ticking a to-do or answering a question resolves it too. Any note can also be deleted; **Undo** in the message that follows brings it back.
 
-The side panel's _This scene_ tab lists every note on the scene, and adds one to the scene as a whole. Editorial notes left by an editorial pass (Studio) can be hidden with one toggle.
+The Scene sheet's **Notes** page lists every note on the scene, questions and to-dos first, and adds one to the scene as a whole; the _This scene_ tab shows how many are open and the first of them. Editorial notes left by an editorial pass (Studio) can be hidden with one toggle.
 
 ## Every note in one place
 
-**Compendium › Notes** lists them all in story order: what isn't tied to anything yet, then each scene, then the characters and places they're about. Filter by kind, or show what's answered and done. A loose note has **Tie to…**; a passage note opens beside its words. The same list sits in the side panel's _Notes_ tab, with the scene you're in first. Character and place sheets keep the notes about them.
+**Compendium › Notes** lists them all in story order: what isn't tied to anything yet, then each scene, then the characters and places they're about. Filter by kind, or show what's answered and done. A loose note has **Tie to…**; a passage note opens beside its words. The same list opens in the side panel from the **Notes** button on its rail, with the scene you're in first. Character and place sheets keep the notes about them.
 
 ## Freewrite
 
-The **Freewrite** page is for thinking on paper: type whatever comes, in any order, under a heading for each day. When a sentence turns out to be something, select it and **Make it** a note, a question, a to-do, an idea, a character or a place (under **More**: a planned scene, a theme, or the logline, premise or central conflict). The words stay where you wrote them, dotted, and the list beside the page links to what they became. Freewrite is also a tab in the side panel.
+The **Freewrite** page is for thinking on paper: type whatever comes, in any order, under a heading for each day. When a sentence turns out to be something, select it and **Make it** a note, a question, a to-do, an idea, a character or a place (under **More**: a planned scene, a theme, or the logline, premise or central conflict). The words stay where you wrote them, dotted, and the list beside the page links to what they became. Freewrite also opens in the side panel, from the button on its rail.
 
 ## Scratch pad
 

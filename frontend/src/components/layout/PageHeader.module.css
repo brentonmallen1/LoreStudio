@@ -1,10 +1,9 @@
-/* One header for every page that is not the prose (doc 12 P1). */
+/* One header for every page that is not the prose (doc 12 P1). It sits on the page's ground
+   with no rule under it (doc 24 P8): the serif title and the space below it end the header. */
 
 .header {
   flex-shrink: 0;
-  padding: 1.1rem max(1.25rem, calc((100% - var(--page-measure)) / 2)) 0.85rem;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  padding: 1.1rem max(1.25rem, calc((100% - var(--page-measure)) / 2)) 1.1rem;
 }
 
 .row {
@@ -112,24 +111,26 @@
   margin-top: 0.75rem;
 }
 
-/* Filter chips, one style for every page (doc 13 P7). Pages pass <button className={chip}>. */
+/* Filter chips, one style for every page (doc 13 P7). Pages pass <button className={chip}>.
+   A vellum pill with no outline (DESIGN.md: an outline means a field); pressed, it inverts. */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   height: 1.867rem;
   padding: 0 0.75rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid transparent;
   border-radius: 999px;
-  background: var(--color-surface);
-  color: var(--color-text);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
   font: inherit;
   font-size: 0.8rem;
   cursor: pointer;
 }
 
 .chip:hover {
-  border-color: var(--color-border-hover);
+  background: var(--color-surface-3);
+  color: var(--color-text);
 }
 
 .chip[aria-pressed="true"],

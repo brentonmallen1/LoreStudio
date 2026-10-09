@@ -1,3 +1,9 @@
+.scroller {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .page {
   max-width: 760px;
   margin: 0 auto;

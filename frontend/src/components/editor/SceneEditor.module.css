@@ -1,22 +1,27 @@
+/* The prose page (doc 24): on the ground itself (D18 "flat"), so nothing frames the prose;
+   the strip, the header and the panel float around it. The status corner hangs from its
+   bottom right. */
 .container {
+  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
   overflow: hidden;
-  background: var(--color-bg);
+  margin: 0 6px 12px;
+  border-radius: var(--radius-xl);
+  background: var(--color-ground);
   container-type: inline-size;
 }
 
-/* ── Top bar ── */
+/* ── Sub header: floats on the page, no ground, no rule (doc 24) ── */
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.25rem;
+  padding: 0 0.9rem 0 1.1rem;
   height: 3.467rem;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
   gap: 0.75rem;
 }
@@ -24,68 +29,54 @@
 .titleGroup {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   /* Never narrower than the type, the title (capped below) and the status; the responsive
      rules below hide things on the right before it gets that tight. */
   min-width: min-content;
   flex: 1;
 }
 
-/* Segment type icon — color applied via inline style */
-.typeIcon {
+/* The segment's type is its icon, in the segment colour; a menu of the template's types. */
+.typeMark {
+  display: inline-flex;
   flex-shrink: 0;
 }
 
-/* Type selector (dropdown when template is known) */
-.typeSelect {
-  font-size: var(--text-xs);
-  font-weight: 700;
-  font-family: inherit;
-  /* Coloured text on a tint of itself: a fifth of body text keeps it at AA (doc 17). */
-  color: color-mix(in srgb, var(--color-accent) 80%, var(--color-text));
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
-  border-radius: var(--radius-sm);
-  padding: 0.2rem 0.4rem;
+.typeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--seg, var(--color-text-muted));
   cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition:
-    background var(--transition),
-    border-color var(--transition);
 }
 
-.typeSelect:focus-visible,
+span.typeBtn {
+  cursor: default;
+}
+
+button.typeBtn:hover,
+button.typeBtn[aria-expanded="true"] {
+  background: var(--color-hover);
+}
+
+.typeBtn:focus-visible,
 .nodeTitle:focus-visible,
 .statusBadge:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
-.typeSelect:hover {
-  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
-  border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
-}
-
-/* Fallback static badge (no template) */
-.typeBadge {
-  font-size: var(--text-xs);
-  font-weight: 700;
-  color: color-mix(in srgb, var(--color-accent) 80%, var(--color-text));
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
-  border-radius: var(--radius-sm);
-  padding: 0.2rem 0.4rem;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
 /* The scene's name is an entity name: the serif, and the strongest thing in the bar. */
 .nodeTitle {
-  padding: 0;
+  padding: 0.15rem 0.3rem;
   border: none;
+  border-radius: var(--radius);
   background: none;
   text-align: left;
   font-family: var(--font-editor);
@@ -103,7 +94,7 @@
 }
 
 .nodeTitle:hover {
-  color: var(--color-accent);
+  background: var(--color-hover);
 }
 
 .nodeTitleInput {
@@ -120,39 +111,58 @@
   max-width: 260px;
 }
 
+/* A status is a shape and a word (DESIGN.md): a ghost you can press for the menu. */
 .statusBadge {
-  font-size: var(--text-xs);
-  font-weight: 500;
-  padding: 0.15rem 0.45rem;
-  border-radius: 99px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  height: 1.867rem;
+  padding: 0 0.55rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
   color: var(--color-text-muted);
-  text-transform: capitalize;
-  letter-spacing: 0.02em;
+  font: inherit;
+  font-size: var(--text-sm);
   cursor: pointer;
-  font-family: inherit;
   flex-shrink: 0;
   transition:
     background var(--transition),
-    color var(--transition),
-    border-color var(--transition);
+    color var(--transition);
 }
 
-.statusBadge:hover {
-  opacity: 0.8;
+.statusBadge:hover,
+.statusBadge[aria-expanded="true"] {
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
-.statusBadge.final {
-  background: color-mix(in srgb, var(--status-final) 12%, transparent);
-  color: color-mix(in srgb, var(--status-final) 80%, var(--color-text));
-  border-color: color-mix(in srgb, var(--status-final) 25%, transparent);
+/* The strip's stop shapes (lib/strip/stripModel stopShape): dashed planned, hollow draft,
+   filled revised, ringed final. */
+.statusShape {
+  width: 0.6rem;
+  height: 0.6rem;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid var(--status-draft);
 }
 
-.statusBadge.revised {
-  background: color-mix(in srgb, var(--status-revised) 10%, transparent);
-  color: color-mix(in srgb, var(--status-revised) 80%, var(--color-text));
-  border-color: color-mix(in srgb, var(--status-revised) 22%, transparent);
+.status_planned {
+  border: 1.5px dashed var(--status-planned);
+}
+
+.status_revised {
+  border: none;
+  background: var(--status-revised);
+}
+
+.status_final {
+  border: none;
+  background: var(--status-final);
+  box-shadow:
+    0 0 0 1.5px var(--color-surface),
+    0 0 0 3px var(--status-final);
 }
 
 .metaGroup {
@@ -162,122 +172,11 @@
   flex-shrink: 0;
 }
 
-.wordCount {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  font-variant-numeric: tabular-nums;
-  padding: 0 0.375rem;
-  white-space: nowrap;
-}
-
-/* Labeled action buttons */
-.topbarBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.3rem 0.55rem;
-  border-radius: var(--radius);
-  /* Quiet until reached: fourteen bordered boxes beside the prose was a toolbar, not a desk. */
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: 0.75rem;
-  font-family: inherit;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    background var(--transition),
-    color var(--transition),
-    border-color var(--transition);
-}
-
-.topbarBtn:hover {
-  background: var(--color-surface-2);
-  border-color: var(--color-border);
-  color: var(--color-text);
-}
-
-/* On is pressed in, not green: forest is for the author's actions, not a toggle's state. */
-.topbarBtnActive {
-  background: var(--color-surface-2);
-  color: var(--color-text);
-  border-color: var(--color-border);
-}
-
-.topbarBtnActive:hover {
-  background: var(--color-surface-3);
-}
-
-/* Between what the scene is (words, saved) and what you can do with it. */
-.topbarRule {
-  width: 1px;
-  height: 1.067rem;
-  margin: 0 0.2rem;
-  background: var(--color-border);
-}
-
-.focusBtn:hover {
-  background: var(--color-surface-2);
-  color: var(--color-text-muted);
-}
-
-.focusBtnActive {
-  background: var(--color-surface-2);
-  color: var(--color-text-muted);
-}
-
-/* ── View mode picker ── */
-.viewPickerWrap {
-  position: relative;
-}
-
-.viewPicker {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  right: 0;
-  z-index: 200;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 0.25rem;
-  box-shadow: var(--shadow);
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  min-width: 130px;
-}
-
-.viewPickerItem {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.6rem;
-  border: none;
-  border-radius: 5px;
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: 0.78rem;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: left;
-  width: 100%;
-  transition:
-    background var(--transition),
-    color var(--transition);
-}
-
-.viewPickerItem:hover {
-  background: var(--color-surface-2);
-  color: var(--color-text);
-}
-
-.viewPickerItemActive {
-  color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-}
-
-.viewPickerItemActive:hover {
-  background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+/* Focus mode (doc 24 D10): the sub header goes quiet in colour, never by fading, and comes
+   back under the pointer or the keyboard. */
+.topbar[data-quiet]:not(:hover):not(:focus-within)
+  :is(.nodeTitle, .statusBadge, .typeBtn, .metaGroup button) {
+  color: var(--color-text-subtle);
 }
 
 /* ── Segment overview panel ── */
@@ -523,8 +422,10 @@
 /* ── Linked Scenes section ── */
 .linkedHeader {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 0.35rem;
 }
 
 .addLinkBtn {
@@ -865,7 +766,7 @@
   position: relative;
   padding: 0.75rem 1.5rem;
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-bg);
+  background: var(--color-ground);
 }
 
 .summaryCloseBtn {
@@ -1005,7 +906,7 @@
   transform: translate(-50%, -50%);
   font-size: 0.65em;
   color: var(--color-text-subtle);
-  background: var(--color-bg);
+  background: var(--color-ground);
   padding: 0 0.5em;
   line-height: 1;
 }
@@ -1196,237 +1097,6 @@
   color: var(--color-accent);
   padding: 0.375rem 0.75rem 0.125rem;
   border-bottom: 1px solid var(--color-border-light);
-}
-
-/* ── Dialogue isolation view ── */
-.dialogueIsolationView {
-  padding: 1.5rem 2rem;
-  max-width: 680px;
-  margin: 0 auto;
-}
-
-.dialogueIsolationHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.75rem;
-  color: var(--color-text-subtle);
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.dialogueIsolationExit {
-  background: none;
-  border: none;
-  padding: 0;
-  color: var(--color-accent);
-  font-size: 0.75rem;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.dialogueIsolationActions {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin-left: auto;
-}
-
-.dialogueIsolationBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  background: none;
-  border: 1px solid var(--color-border-light);
-  border-radius: 4px;
-  padding: 0.2rem 0.45rem;
-  font-size: var(--text-xs);
-  color: var(--color-text-subtle);
-  cursor: pointer;
-  transition:
-    background 0.1s,
-    color 0.1s;
-}
-
-.dialogueIsolationBtn:hover {
-  background: var(--color-surface-2);
-  color: var(--color-text);
-}
-
-.dialogueIsolationBtnAI {
-  color: var(--color-ai);
-  border-color: var(--color-ai-border);
-}
-
-.dialogueIsolationBtnAI:hover {
-  background: var(--color-ai-subtle);
-  color: var(--color-ai);
-  border-color: color-mix(in srgb, var(--color-ai) 50%, var(--color-border));
-}
-
-.dialogueIsolationBtnLoading {
-  background: var(--color-ai-subtle);
-  border-color: var(--color-ai-border);
-  animation: aiPulse 1.5s ease-in-out infinite;
-}
-
-@keyframes aiPulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
-.spinIcon {
-  animation: spin 1.2s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.dialogueIsolationEmpty {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  font-style: italic;
-}
-
-.dialogueIsolationEmpty code {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--color-text);
-  background: var(--color-surface-raised);
-  padding: 0.1em 0.3em;
-  border-radius: 3px;
-}
-
-.dialogueScript {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.dialogueLine {
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 1rem;
-  align-items: baseline;
-  font-size: 0.9375rem;
-  line-height: 1.55;
-}
-
-.dialogueLineUnattr {
-  opacity: 0.6;
-}
-
-.dialogueLineSpeaker {
-  font-weight: 600;
-  color: var(--color-accent);
-  text-align: right;
-  font-size: 0.8125rem;
-  display: flex;
-  align-items: baseline;
-  justify-content: flex-end;
-  gap: 0.2rem;
-}
-
-.dialogueLineInferred {
-  font-size: var(--text-xs);
-  color: var(--color-text-subtle);
-  font-weight: 400;
-}
-
-.dialogueLineContent {
-  color: var(--color-text);
-}
-
-/* ── Dialogue chat bubble view ── */
-.dialogueBubbles {
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  gap: 0;
-}
-
-.dialogueBubbleWrap {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 12px;
-}
-
-.dialogueBubbleWrapRight {
-  align-items: flex-end;
-}
-
-.dialogueBubbleSpeaker {
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-  margin-bottom: 2px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.dialogueBubbleInferred {
-  color: var(--color-warning);
-  font-weight: 700;
-}
-
-.dialogueBubble {
-  max-width: 75%;
-  padding: 8px 12px;
-  border-radius: 12px;
-  font-size: 0.88rem;
-  line-height: 1.5;
-}
-
-.dialogueBubbleLeft {
-  align-self: flex-start;
-  background: var(--color-surface-raised);
-  border-bottom-left-radius: 4px;
-}
-
-.dialogueBubbleRight {
-  align-self: flex-end;
-  background: color-mix(in srgb, var(--color-accent) 15%, var(--color-surface));
-  border-bottom-right-radius: 4px;
-}
-
-.dialogueBubbleUnattr {
-  background: color-mix(in srgb, var(--color-warning) 12%, var(--color-surface));
-}
-
-/* Thought (inner monologue) bubble */
-.dialogueBubbleThought {
-  background: color-mix(in srgb, var(--color-nlp) 10%, var(--color-surface));
-  border: 1px dashed color-mix(in srgb, var(--color-nlp) 40%, var(--color-border));
-  font-style: italic;
-  color: var(--color-text-muted);
-}
-
-.dialogueBubbleThoughtLabel {
-  font-size: var(--text-xs);
-  font-style: italic;
-  color: var(--color-nlp);
-  margin-left: 4px;
-}
-
-/* POV character (narrator) bubble — distinct from other characters */
-.dialogueBubblePov {
-  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
-  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
-}
-
-.dialogueBubblePovLabel {
-  font-weight: 700;
-  font-style: italic;
-  color: var(--color-accent);
 }
 
 /* ── @mention autocomplete dropdown ── */
@@ -1715,21 +1385,7 @@
 
 /* ── Responsive topbar: progressively hide content as editor narrows ── */
 
-/* Hide button text labels → icon-only buttons. With the rest behind ⋯ (doc 14 Q1) the two
-   toggles keep their words until the column is narrow. */
-@container (max-width: 60rem) {
-  .topbarBtn span {
-    display: none;
-  }
-}
-
-/* Thread chips fold into one button at 720px (SceneThreadBadges); the word count goes later. */
-@container (max-width: 37.333rem) {
-  .wordCount {
-    display: none;
-  }
-}
-
+/* Thread chips fold into one button at 720px (SceneThreadBadges). */
 /* Hide status badge */
 @container (max-width: 29.333rem) {
   .statusBadge {
@@ -1743,7 +1399,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg);
+  background: var(--color-ground);
 }
 
 .emptyText {
@@ -1765,67 +1421,6 @@
 
 .emptyAction:hover {
   border-color: var(--color-accent);
-}
-
-/* ── AI Dialogue Attribution Suggestions ── */
-.aiSuggestionRow {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-top: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
-  border-radius: 4px;
-  font-size: var(--text-xs);
-  max-width: 75%;
-}
-
-.aiSuggestionIcon {
-  color: var(--color-accent);
-  opacity: 0.7;
-  flex-shrink: 0;
-}
-
-.aiSuggestionSpeaker {
-  font-weight: 600;
-  color: var(--color-accent);
-  white-space: nowrap;
-}
-
-.aiSuggestionReason {
-  color: var(--color-text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-  min-width: 0;
-}
-
-.aiSuggestionAccept,
-.aiSuggestionDismiss {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0 0.15rem;
-  font-size: var(--text-xs);
-  flex-shrink: 0;
-  line-height: 1;
-  transition: opacity 0.1s;
-}
-
-.aiSuggestionAccept {
-  color: var(--color-success);
-  font-weight: 700;
-}
-
-.aiSuggestionDismiss {
-  color: var(--color-text-muted);
-}
-
-.aiSuggestionAccept:hover,
-.aiSuggestionDismiss:hover {
-  opacity: 0.7;
 }
 
 /* ── Search & Replace highlights ──────────────────────────────────────── */

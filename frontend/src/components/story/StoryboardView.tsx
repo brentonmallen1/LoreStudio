@@ -22,8 +22,8 @@ import "@xyflow/react/dist/style.css";
 import { Plus, LayoutGrid, X, Save } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
-import { useUIStore } from "../../stores/uiStore";
 import type { StructureNode } from "../../types";
+import { sceneSheetPath } from "../../lib/scene/glance";
 import styles from "./StoryboardView.module.css";
 
 // ── Helpers ──────────────────────────────────────────────
@@ -89,7 +89,7 @@ function StructureStoryboardNode({ data, selected }: NodeProps) {
       }}
       onClick={() => onCenter?.(structureId)}
       onDoubleClick={() => onOpen?.(structureId)}
-      title="Click to center · Double-click to open in editor"
+      title={`Click to center · Double-click to open ${levelType === "scene" ? "its sheet" : "it"}`}
     >
       <Handle type="target" position={Position.Left} className={styles.handle} />
       <div className={styles.snHeader}>
@@ -203,7 +203,6 @@ export default function StoryboardView() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { structure, setActiveNode } = useStoryStore();
-  const { setViewMode } = useUIStore();
 
   const [nodes, setNodes, onNodesChange] = useNodesState<RFNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<RFEdge>([]);
@@ -266,12 +265,15 @@ export default function StoryboardView() {
     }
   }
 
+  // A scene opens on its sheet (doc 24 D19): the board is for planning, and the sheet has
+  // Write this scene. An act or a chapter opens on its own page.
   function navigateToStructureNode(structureId: string) {
     const sNode = nodeMap.get(structureId);
-    if (sNode) {
+    if (sNode && storyId) {
       setActiveNode(sNode);
-      setViewMode("tree");
-      navigate(`/stories/${storyId}/write`);
+      navigate(
+        sNode.children?.length ? `/stories/${storyId}/write/${sNode.id}` : sceneSheetPath(storyId, sNode.id),
+      );
     }
   }
 

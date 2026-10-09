@@ -1,13 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useStoryStore } from "../stores/storyStore";
-import { useUIStore } from "../stores/uiStore";
 import ManuscriptView from "../components/manuscript/ManuscriptView";
 
 export default function PublishPage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { setActiveNode } = useStoryStore();
-  const { setViewMode } = useUIStore();
 
   function handleNavigateToScene(id: string) {
     const { structure } = useStoryStore.getState();
@@ -20,7 +18,6 @@ export default function PublishPage() {
       }
       if (n.children) queue.push(...n.children);
     }
-    setViewMode("tree");
     navigate(`/stories/${storyId}/write/${id}`);
   }
 

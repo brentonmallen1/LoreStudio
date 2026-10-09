@@ -5,7 +5,7 @@
  */
 import { PanelLeft, Palette } from "lucide-react";
 import { commandRegistry } from "./registry";
-import { COLOUR_MODES, buildLine, toggleStrip } from "../strip/stripModel";
+import { COLOUR_MODES, toggleStrip } from "../strip/stripModel";
 import { SHORTCUTS } from "../keyboard/shortcuts";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
@@ -21,11 +21,8 @@ commandRegistry.register({
   shortcut: SHORTCUTS.cycleStrip.combo,
   when: inStory,
   action: () => {
-    // The same test the strip uses for whether there are chapters to show.
-    const { stripWidth, stripDepth, setStripWidth } = useUIStore.getState();
-    const { structure, activeTemplate } = useStoryStore.getState();
-    const { hasStations } = buildLine(structure, activeTemplate, undefined, null);
-    setStripWidth(toggleStrip(stripWidth, stripDepth, hasStations));
+    const { stripWidth, setStripWidth } = useUIStore.getState();
+    setStripWidth(toggleStrip(stripWidth));
   },
 });
 

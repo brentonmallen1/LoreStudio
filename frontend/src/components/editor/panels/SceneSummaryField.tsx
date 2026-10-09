@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Orbit } from "lucide-react";
 import { api } from "../../../api/client";
 import type { StructureNode } from "../../../types";
@@ -16,6 +16,14 @@ export default function SceneSummaryField({
 }) {
   // Parent (SceneOverviewPanel) is keyed by node id, so this seeds once per scene.
   const [summary, setSummary] = useState(activeNode.content_summary ?? "");
+  // The whole summary shows: it grows with its text instead of scrolling inside three rows.
+  const box = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight + 2}px`;
+  }, [summary]);
 
   const {
     stream,
@@ -72,6 +80,7 @@ export default function SceneSummaryField({
         </p>
       ) : summary ? (
         <textarea
+          ref={box}
           value={summary}
           onChange={(e) => setSummary(e.target.value)}
           onBlur={async () => {
@@ -79,7 +88,7 @@ export default function SceneSummaryField({
             setActiveNode({ ...activeNode, ...updated });
           }}
           className={styles.overviewTextarea}
-          rows={3}
+          rows={1}
         />
       ) : (
         <p className={styles.overviewHint}>
