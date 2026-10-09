@@ -51,6 +51,10 @@
   --color-warning: #835913;
   --color-success: #056f4f;
   --color-surface-raised: #eceae2;
+  /* Doc 24 (quiet chrome): a tone box groups things on a surface in place of a rule. Between
+     the surface and the vellum, so every text token holds AA on it (contrast.test.ts) and a
+     hover ground (the vellum, base.css) still reads inside one. */
+  --color-tone: #f5f4f0;
   --color-planner: #0d6d6b;
   --color-planner-hover: #0b7c72;
   --color-planner-fg: #ffffff;
@@ -95,6 +99,7 @@
   --color-surface-2: #242320;
   --color-surface-3: #2c2b27;
   --color-surface-raised: #201f1c;
+  --color-tone: #21201d;
   --color-border: #363531;
   --color-border-light: #2b2a26;
   --color-text: #f0ede6;

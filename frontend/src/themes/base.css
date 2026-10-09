@@ -46,6 +46,12 @@
   --color-accent-secondary: var(--color-nlp);
   /* ── Brainstorm panel accent (amber/gold) ── */
   /* ── Width the docked AI panel takes; PanelFrame sets it at runtime ── */
+  /* ── The hover ground (doc 24): everything pressable gets it under the pointer, nothing
+     else does. It is the vellum: as dark as a ground can go in every palette while every
+     text token, and coloured text on its own tint, still holds AA on it (contrast.test.ts
+     measured the step toward surface-3 and found no room), so a label never changes colour
+     to stay legible. On the page ground, a plane and a tone box alike. ── */
+  --color-hover: var(--color-surface-2);
   /* ── Border under the pointer ── */
   --color-border-hover: color-mix(in srgb, var(--color-border) 60%, var(--color-text-subtle));
   /* ── A line that divides a page into parts (the strip's ends, the Overview's sections):
