@@ -1,5 +1,11 @@
-/* The draft-recovery banner (DraftBanner.tsx). The save status itself is the status
-   corner's light (StatusCorner.tsx, doc 24). */
+/* The draft-recovery banner (DraftBanner.tsx), and the small buttons it shares with the
+   panel's Quotes field. The save status itself is the status corner's light
+   (StatusCorner.tsx, doc 24). */
+
+.actions {
+  display: inline-flex;
+  gap: 0.3rem;
+}
 
 .btn {
   padding: 0.15rem 0.6rem;

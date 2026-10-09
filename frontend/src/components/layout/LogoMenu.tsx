@@ -77,6 +77,9 @@ export default function LogoMenu() {
     trigger.current?.focus();
   }
 
+  // A link chosen closes the menu, even one to the page already open.
+  const done = () => setOpenAt(null);
+
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Escape") {
       e.stopPropagation();
@@ -125,12 +128,12 @@ export default function LogoMenu() {
         <div ref={panel} className={styles.panel} role="dialog" aria-label="Menu">
           <div className={styles.head}>
             <span className={styles.storyName}>{inStory ? activeStory!.title : "LoreStudio"}</span>
-            <Link to="/" className={styles.word}>
+            <Link to="/" className={styles.word} onClick={done}>
               All stories
             </Link>
           </div>
-          {inStory && <Pages storyId={storyId!} pathname={pathname} counts={counts} />}
-          <Footer storyId={inStory ? storyId : undefined} backup={backup} />
+          {inStory && <Pages storyId={storyId!} pathname={pathname} counts={counts} done={done} />}
+          <Footer storyId={inStory ? storyId : undefined} backup={backup} done={done} />
         </div>
       )}
     </div>
@@ -146,10 +149,12 @@ function Pages({
   storyId,
   pathname,
   counts,
+  done,
 }: {
   storyId: string;
   pathname: string;
   counts: Record<string, number>;
+  done: () => void;
 }) {
   const mode = useMode();
   const aiAvailable = useAIAvailable();
@@ -181,6 +186,7 @@ function Pages({
                 <div key={r.id}>
                   <Link
                     to={storyPath(storyId, r)}
+                    onClick={done}
                     className={`${styles.row} ${here ? styles.rowOn : ""}`}
                     aria-current={here ? "page" : undefined}
                   >
@@ -203,6 +209,7 @@ function Pages({
                           <Link
                             key={sec.id}
                             to={to}
+                            onClick={done}
                             className={`${styles.word} ${on ? styles.wordOn : ""}`}
                             aria-current={on ? "page" : undefined}
                           >
@@ -223,7 +230,15 @@ function Pages({
 }
 
 /** Guides, Settings, the colour mode, the backup, the mode and the account, in a tone box. */
-function Footer({ storyId, backup }: { storyId?: string; backup: ReturnType<typeof useBackupStatus> }) {
+function Footer({
+  storyId,
+  backup,
+  done,
+}: {
+  storyId?: string;
+  backup: ReturnType<typeof useBackupStatus>;
+  done: () => void;
+}) {
   const { colorMode, setColorMode, themeName } = useUIStore();
   const darkOnly = THEME_META[themeName].darkOnly;
   const mode = useMode();
@@ -253,11 +268,11 @@ function Footer({ storyId, backup }: { storyId?: string; backup: ReturnType<type
   return (
     <div className={styles.foot}>
       <div className={styles.footRow}>
-        <Link to="/guides" className={styles.footLink}>
+        <Link to="/guides" className={styles.footLink} onClick={done}>
           <Compass size={14} aria-hidden />
           Guides
         </Link>
-        <Link to="/settings" className={styles.footLink}>
+        <Link to="/settings" className={styles.footLink} onClick={done}>
           <Settings size={14} aria-hidden />
           Settings
         </Link>
@@ -283,6 +298,7 @@ function Footer({ storyId, backup }: { storyId?: string; backup: ReturnType<type
         {storyId && backup ? (
           <Link
             to={sectionPath(storyId, "chronicle", "versions")}
+            onClick={done}
             className={styles.word}
             title="Versions of this story"
           >
