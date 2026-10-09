@@ -12,11 +12,14 @@ import { SHORTCUTS, yieldsToTyping, matchesCombo } from "../../lib/keyboard/shor
 import { startAISync } from "../../lib/ai/aiSync";
 import { startPanelSync } from "../../lib/panel/panelSync";
 import { usePanelStore } from "../../stores/panelStore";
+import { useFocusExitHost } from "../../lib/focusExit";
 import styles from "./GlobalLayout.module.css";
 
 export default function GlobalLayout() {
   const { viewState } = useUIStore();
   const isFocused = viewState !== "normal";
+  // The prose's status corner holds the way out itself (doc 24): one, never two.
+  const exitHosted = useFocusExitHost((s) => s.hosts > 0);
   const aiAvailable = useAIAvailable();
 
   // Keep this window's panel in step with one opened in its own window (doc 06 §2.2).
@@ -85,7 +88,7 @@ export default function GlobalLayout() {
       <div className={`${styles.content} ${isFocused ? styles.contentFocused : styles.contentNormal}`}>
         <Outlet />
       </div>
-      {isFocused && <FocusExit />}
+      {isFocused && !exitHosted && <FocusExit />}
       <KeyboardShortcutsModal isOpen={shortcutsOpen} onClose={closeShortcuts} />
     </div>
   );

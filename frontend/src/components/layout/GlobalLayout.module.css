@@ -16,9 +16,9 @@
   padding-top: var(--header-height);
 }
 
-/* No space reservation in focus/fullscreen — content fills full viewport */
+/* Focus mode: no header to make room for; a gutter, so the page plane floats (doc 24). */
 .contentFocused {
-  padding-top: 0;
+  padding-top: 0.8rem;
 }
 
 /* Focus mode's way out (doc 13 P2): quiet in the corner until reached. */
@@ -32,28 +32,51 @@
   gap: 0.4rem;
   height: 2rem;
   padding: 0 0.7rem;
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: 999px;
   background: var(--color-surface);
+  /* It floats over the page, so it is lifted off the desk; never outlined (doc 24). */
+  box-shadow: var(--shadow);
   /* Quiet by colour, not by fading: subtle text still reads at AA (doc 17). */
   color: var(--color-text-subtle);
   font: inherit;
   font-size: var(--text-xs);
   cursor: pointer;
-  transition:
-    opacity var(--transition),
-    color var(--transition),
-    border-color var(--transition);
+  transition: color var(--transition);
 }
 
 .focusExit:hover,
 .focusExit:focus-visible {
-  opacity: 1;
   color: var(--color-text);
-  border-color: var(--color-border-hover);
 }
 
 .focusExit:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* In the prose's status corner (doc 24): a ghost beside the save light. */
+.focusExitInline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 1.867rem;
+  padding: 0 0.6rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-subtle);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.focusExitInline:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.focusExitInline:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }

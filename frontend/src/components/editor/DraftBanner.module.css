@@ -1,0 +1,41 @@
+/* The draft-recovery banner (DraftBanner.tsx). The save status itself is the status
+   corner's light (StatusCorner.tsx, doc 24). */
+
+.btn {
+  padding: 0.15rem 0.6rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--color-surface-3);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0.75rem auto 0;
+  max-width: 44rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-warning) 10%, var(--color-surface));
+  color: var(--color-text);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.banner span {
+  flex: 1 1 18rem;
+}

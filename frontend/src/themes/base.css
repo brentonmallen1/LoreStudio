@@ -13,7 +13,7 @@
   /* The interface size (doc 17); uiStore overwrites it on <html>. 1 is the 15px default. */
   --ui-scale: 1;
   /* The global header's height: everything fixed below it starts here (doc 17). */
-  --header-height: 2.667rem;
+  --header-height: 3.733rem;
   /* Native checkboxes, radios and ranges in the palette's accent, not the browser's blue. */
   accent-color: var(--color-accent);
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);

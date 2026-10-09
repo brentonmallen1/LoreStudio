@@ -1,19 +1,24 @@
 /* The side panel (doc 11): one column of tabs beside the page. */
 
+/* Docked, a paper plane on the page ground beside the prose (doc 24, the "planes"
+   ground): a small gutter, no border and no shadow; the change of tone is the edge. */
 .panel {
   position: relative;
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   min-width: 0;
-  height: 100%;
-  border-left: 1px solid var(--color-border);
+  min-height: 0;
+  align-self: stretch;
+  margin: 0 0 12px 6px;
+  border-radius: var(--radius-xl);
   background: var(--color-surface);
 }
 
+/* In the gutter between the page and the panel. */
 .resizeHandle {
   position: absolute;
-  left: -3px;
+  left: -6px;
   top: 0;
   bottom: 0;
   width: 0.4rem;
@@ -33,9 +38,7 @@
   align-items: flex-end;
   gap: 2px;
   flex-shrink: 0;
-  padding: 0.4rem 0.4rem 0;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface-2);
+  padding: 0.5rem 0.5rem 0.25rem;
 }
 
 /* As wide as the name, up to --tab-max; shrinking to --tab-min (the name truncates, the full
@@ -46,20 +49,24 @@
   flex: 0 1 auto;
   min-width: var(--tab-min, auto);
   max-width: var(--tab-max, none);
-  height: 2.267rem;
+  height: 2.133rem;
   padding: 0 0.2rem 0 0.25rem;
   box-sizing: border-box;
-  border-radius: var(--radius) var(--radius) 0 0;
+  border-radius: 8px;
   color: var(--color-text-muted);
 }
 
-.tabActive {
-  background: var(--color-surface);
+.tab:hover {
+  background: var(--color-hover);
   color: var(--color-text);
-  box-shadow:
-    0 -1px 0 var(--color-border),
-    1px 0 0 var(--color-border),
-    -1px 0 0 var(--color-border);
+}
+
+/* The tab showing sits in a tone box, set apart by weight and tone, not a folder's edge. */
+.tabActive,
+.tabActive:hover {
+  background: var(--color-tone);
+  color: var(--color-text);
+  font-weight: 600;
 }
 
 .tabLabel {
@@ -538,6 +545,7 @@
   position: fixed;
   z-index: var(--z-popover);
   height: auto;
+  margin: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
@@ -546,7 +554,8 @@
 
 .panelFill {
   width: 100% !important;
-  border-left: none;
+  margin: 0;
+  border-radius: 0;
 }
 
 .dragStrip {
@@ -622,8 +631,6 @@
   width: 2.4rem;
   height: 100%;
   padding: 0.35rem 0;
-  border-left: 1px solid var(--color-border);
-  background: var(--color-surface);
 }
 
 .railTabs {
@@ -636,7 +643,6 @@
   overflow-y: auto;
   padding-top: 0.35rem;
   margin-top: 0.35rem;
-  border-top: 1px solid var(--color-border-light);
 }
 
 .railBtn {
@@ -655,7 +661,7 @@
 }
 
 .railBtn:hover {
-  background: var(--color-surface-3);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -664,11 +670,11 @@
   color: var(--color-text);
 }
 
+/* Groups on the rail are told apart by space, not a rule (doc 24). */
 .railRule {
   flex-shrink: 0;
   width: 1.2rem;
-  margin: 0.2rem 0;
-  border-top: 1px solid var(--color-border-light);
+  height: 0.5rem;
 }
 
 .railBtnOn {
@@ -686,12 +692,7 @@
 
 .railAi {
   color: var(--color-ai);
-  margin-top: 0.35rem;
-  padding-top: 0.35rem;
-  border-top: 1px solid var(--color-border-light);
-  border-radius: 0;
-  height: auto;
-  padding-bottom: 2px;
+  margin-top: 0.7rem;
 }
 
 .railAi.railBtnOn {

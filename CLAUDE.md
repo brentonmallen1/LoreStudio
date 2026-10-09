@@ -105,7 +105,10 @@ api/client.ts     — Single fetch wrapper + every API method
 stores/           — Zustand: authStore, uiStore, storyStore
 pages/            — Login, Dashboard, StoryWorkspace, Settings
 components/       — Feature components organized by domain
-  layout/         — GlobalHeader, breadcrumb navigator, PageHeader, ModeGate
+  layout/         — GlobalHeader (floating: jobs, undo/redo, scratch pad, focus, Search or jump),
+                    LogoMenu (the logo: every page and section, Guides, Settings, colour mode,
+                    backup, mode, account; hooks/useBackupStatus), breadcrumb navigator,
+                    PageHeader, ModeGate
   strip/          — The story strip down the left edge (transit line, chapter rows, full tree)
   panel/          — The tabbed side panel beside the page (This scene, entity and tool tabs)
   findings/       — The findings feed: FindingRow, Run checks, the scene and sheet cards
@@ -227,7 +230,7 @@ local job. The settings are app-wide (`app_settings`), changed by an admin; one 
 `user.settings.ui.mode` is `"writer"` or `"studio"` (`frontend/src/lib/mode.ts`: `useMode()`,
 `getMode()`, `setMode()`; saved through `PATCH /api/auth/me`). **Writer mode renders no AI
 affordance at all**, not even disabled: guard every AI surface with `useMode() === "studio"`
-(header Assistant button, AI panel, selection-toolbar AI entries, `AIFeatureInfoTrigger`,
+(the rail's Assistant Feather, AI panel, selection-toolbar AI entries, `AIFeatureInfoTrigger`,
 AI fields in panels). Palette commands in the `"AI"` group are hidden by a registry filter.
 Non-AI tools (consistency Checks, quote normalisation, NLP analyses) use `--color-nlp` and
 stay available in both modes.
@@ -235,20 +238,22 @@ stay available in both modes.
 ### Manuscript editor
 `frontend/src/components/editor/` — `SceneEditor.tsx` is a thin shell over hooks
 (`useSceneAutosave`, `useMentionDropdown`, `useSlashCommands`, `useInlineNotes`,
-`useMentionHoverCard`) and components (`EditorTopbar`, `DialogueIsolationView`, `panels/*`).
-Autosave sends `expected_updated_at`; a 409 means the scene changed elsewhere and the pill
-offers Keep mine / Take theirs. Every edit is mirrored to an IndexedDB draft buffer
+`useMentionHoverCard`) and components (`EditorTopbar`, the floating sub header whose ⋯ is
+`EditorMoreMenu`; `StatusCorner`, the save light and word count at the page's bottom right;
+`DialogueIsolationView`, `panels/*`).
+Autosave sends `expected_updated_at`; a 409 means the scene changed elsewhere and the status
+corner opens on Keep mine / Take theirs. Every edit is mirrored to an IndexedDB draft buffer
 (`lib/draftBuffer.ts`). `purpose` and `inline_notes` are columns on StructureNode, not
 metadata keys.
 
 ### Unified AI assistant
-All AI tools (interview, what-if, panel, writing coach, etc.) are accessed through a single place: the **Assistant tab** of the side panel (`components/panel/AssistantTab.tsx`, body in `components/ai/AssistantTabBody.tsx`), icon-only with a session count (doc 11 P5): beside the page it is the Feather at the foot of the panel's rail (`PanelRail`, which also holds the collapse, float/dock and pop-out controls); in the pop-out window, which has no rail, it is a tab docked past a divider at the end of the tab strip. The header's Feather button, ⌘J and the palette all open that tab. No redundant AI entry points in sub-components (scene editor topbar, etc.). Each session runs as a sub-tab there, preserving conversation history; the whole side panel can dock, float or pop out to its own window (`/panel-window`).
+All AI tools (interview, what-if, panel, writing coach, etc.) are accessed through a single place: the **Assistant tab** of the side panel (`components/panel/AssistantTab.tsx`, body in `components/ai/AssistantTabBody.tsx`), icon-only with a session count (doc 11 P5): beside the page it is the Feather at the foot of the panel's rail (`PanelRail`, which also holds the collapse, float/dock and pop-out controls); in the pop-out window, which has no rail, it is a tab docked past a divider at the end of the tab strip. The rail's Feather, ⌘J (⌘/ too) and the palette open that tab; the header has no Assistant button (doc 24). No redundant AI entry points in sub-components (scene editor topbar, etc.). Each session runs as a sub-tab there, preserving conversation history; the whole side panel can dock, float or pop out to its own window (`/panel-window`).
 
 To add a new AI session type: (1) register it in `frontend/src/lib/ai/sessions.ts` via `registerSessionType`, (2) add a `case` in `frontend/src/components/ai/SessionView.tsx`, (3) create a mode component using `AIModeWrapper` as the shell.
 
 ### AI UI component patterns
 
-**Never use the `Sparkles` icon for AI buttons.** ESLint enforces this (`no-restricted-imports` in `frontend/eslint.config.js`). `Compass` is not an AI icon either: it is the Guides (help) icon in the header and palette. The app has established conventions — use them everywhere, without exception.
+**Never use the `Sparkles` icon for AI buttons.** ESLint enforces this (`no-restricted-imports` in `frontend/eslint.config.js`). `Compass` is not an AI icon either: it is the Guides (help) icon in the logo menu and palette. The app has established conventions — use them everywhere, without exception.
 
 | Element | Icon | When to use |
 |---------|------|-------------|

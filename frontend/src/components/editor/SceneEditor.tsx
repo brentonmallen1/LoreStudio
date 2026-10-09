@@ -55,7 +55,8 @@ import MentionHoverCard from "./MentionHoverCard";
 import { removeSpeakerTags, retagSpeakers, unlinkMentions } from "../../lib/mentions/unlink";
 import MentionGutter from "./MentionGutter";
 import EditorTopbar from "./EditorTopbar";
-import { DraftBanner } from "./SaveStatusPill";
+import DraftBanner from "./DraftBanner";
+import StatusCorner from "./StatusCorner";
 import { useAIAvailable } from "../../lib/mode";
 import { SHORTCUTS, matchesCombo } from "../../lib/keyboard/shortcuts";
 import DialogueIsolationView from "./DialogueIsolationView";
@@ -285,7 +286,6 @@ export default function SceneEditor() {
       <EditorTopbar
         activeNode={activeNode}
         wordCount={autosave.wordCount}
-        autosave={autosave}
         notesView={notesView}
         noteCount={notes.sceneNotes.filter((n) => !n.done).length}
         onNotesView={(v) => setNotesView(saveNotesView(v))}
@@ -371,6 +371,8 @@ export default function SceneEditor() {
           <BrainstormPanel storyId={activeStory.id} nodeId={activeNode.id} />
         )}
       </div>
+
+      <StatusCorner node={activeNode} autosave={autosave} wordCount={autosave.wordCount} />
 
       <WritingGuidesModal
         isOpen={!!writingGuidesTab}

@@ -1,14 +1,12 @@
-/* ── Global Header Shell ── */
+/* ── The header (doc 24): floating chrome on the page ground. No background, no rule; what
+   it holds is type, space and one quiet tier of buttons. ── */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1rem;
+  gap: 1rem;
+  padding: 0 0.9rem 0 0.6rem;
   height: var(--header-height);
-  /* The frame (doc 13 P7): header, strip and the panel's tab bar are one vellum L that the
-     pages sit inside, on paper and parchment. */
-  background: var(--color-surface-2);
-  border-bottom: 1px solid var(--color-border);
   position: fixed;
   top: 0;
   left: 0;
@@ -27,6 +25,13 @@
   box-shadow: none;
 }
 
+/* Focus mode, called back by the pointer: it now lies over the prose, so it is lifted off
+   the desk like anything else that floats over the page. */
+.headerRevealed {
+  background: var(--color-bg);
+  box-shadow: var(--shadow);
+}
+
 /* Hover zone — invisible 8px strip that reveals the header */
 .hoverZone {
   position: fixed;
@@ -39,7 +44,7 @@
 }
 
 /* The title side gives way and the controls never do: at 1100px the controls were pushed
-   off the edge, the account menu with them (doc 14 review). */
+   off the edge (doc 14 review). */
 .left {
   display: flex;
   align-items: center;
@@ -50,16 +55,17 @@
 .right {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 2px;
   flex-shrink: 0;
 }
 
-/* ── Wordmark ── */
+/* ── Outside a story: the logo menu and the name ── */
 .wordmark {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: var(--radius);
+  font-size: var(--text-md);
   font-weight: 600;
   color: var(--color-text);
   text-decoration: none;
@@ -67,33 +73,15 @@
 }
 
 .wordmark:hover {
-  color: var(--color-accent);
+  background: var(--color-hover);
 }
 
-/* ── Inside a story: back, title, sidebar toggle (HeaderTitle.tsx) ── */
+/* ── Inside a story: the logo menu, title and where you are (HeaderTitle.tsx) ── */
 .storyTitleRow {
   display: flex;
   align-items: center;
   gap: 0.35rem;
   min-width: 0;
-}
-
-.backToStories {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
-}
-
-.backToStories:hover {
-  background: var(--color-surface-3);
-  color: var(--color-text);
 }
 
 .pageName {
@@ -112,9 +100,9 @@
   height: 2rem;
   margin-left: 0.4rem;
   padding: 0 0.65rem;
-  border: 1px solid var(--color-border);
-  border-radius: 13px;
-  background: var(--color-surface);
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
   color: var(--color-text-muted);
   font: inherit;
   font-size: var(--text-sm);
@@ -122,8 +110,8 @@
 }
 
 .backToScene:hover {
+  background: var(--color-hover);
   color: var(--color-text);
-  border-color: var(--color-text-subtle);
 }
 
 .backToScene:focus-visible {
@@ -144,7 +132,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.85rem;
+  font-size: var(--text-md);
   font-weight: 600;
   color: var(--color-text);
 }
@@ -158,72 +146,9 @@
   white-space: nowrap;
 }
 
-/* ── Assistant button ── */
-/* At rest, AI text on the bar itself (the contrast test holds --color-ai there); open, the
-   canonical AI fill. A tinted ground under AI text measured under 4.5:1 (doc 17). */
-.assistantBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.25rem 0.65rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--color-ai-border);
-  background: transparent;
-  color: var(--color-ai);
-  font-size: var(--text-sm);
-  font-family: inherit;
-  cursor: pointer;
-  margin-right: 0.35rem;
-  transition:
-    background var(--transition),
-    color var(--transition),
-    border-color var(--transition);
-}
-
-.assistantBtn:hover {
-  border-color: var(--color-ai);
-}
-
-.assistantBtnActive,
-.assistantBtnActive:hover {
-  background: var(--color-ai);
-  border-color: var(--color-ai);
-  color: var(--color-ai-fg);
-}
-
-/* ── Search button ── */
-.searchBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.25rem 0.65rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  font-family: inherit;
-  cursor: pointer;
-  margin-right: 0.5rem;
-  transition:
-    background var(--transition),
-    color var(--transition),
-    border-color var(--transition);
-}
-
-.searchBtn:hover {
-  background: var(--color-surface-3);
-  color: var(--color-text);
-}
-
-.searchBtn kbd {
-  font-family: inherit;
-  font-size: var(--text-xs);
-  color: var(--color-text-subtle);
-}
-
-/* ── Icon buttons ── */
+/* ── One quiet tier (Language rule): no ground or outline until the pointer is on it ── */
 .iconBtn {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -240,14 +165,20 @@
     color var(--transition);
 }
 
-.iconBtn:hover {
-  background: var(--color-surface-3);
+.iconBtn:hover:not(:disabled) {
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
 .iconBtnActive {
   background: var(--color-surface-3);
   color: var(--color-text);
+}
+
+.iconBtn:focus-visible,
+.searchBtn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 .scratchDot {
@@ -260,377 +191,50 @@
   background: var(--color-accent);
 }
 
-/* ── User button ── */
-.userBtn {
+/* "Search or jump ⌘K": the same quiet tier, with its words. */
+.searchBtn {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.2rem 0.4rem 0.2rem 0.25rem;
+  gap: 0.45rem;
+  height: 2.133rem;
+  margin-left: 0.4rem;
+  padding: 0 0.7rem;
   border-radius: var(--radius);
   border: none;
   background: transparent;
   color: var(--color-text-muted);
-  cursor: pointer;
-  transition:
-    background var(--transition),
-    color var(--transition);
-}
-
-.userBtn:hover {
-  background: var(--color-surface-3);
-}
-
-.userBtnActive {
-  background: var(--color-surface-3);
-}
-
-.userAvatar {
-  width: 1.6rem;
-  height: 1.6rem;
-  border-radius: 50%;
-  background: var(--color-accent);
-  color: var(--color-accent-fg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-xs);
-  font-weight: 600;
-}
-
-/* ── Dropdown wrapper ── */
-.dropdownWrap {
-  position: relative;
-}
-
-/* ── Dropdown panel (shared by settings and user menu) ── */
-.dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 200;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  min-width: 220px;
-  padding: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.dropdownSection {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding: 0.35rem 0.1rem;
-}
-
-.dropdownLabel {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-section-title);
-  padding: 0 0.3rem;
-}
-
-.dropdownDivider {
-  height: 1px;
-  background: var(--color-border-light);
-  margin: 0.1rem 0;
-}
-
-/* ── Theme grid ── */
-.themeGrid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 0.25rem;
-}
-
-.themeBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.2rem;
-  border: 2px solid transparent;
-  border-radius: var(--radius);
-  background: transparent;
-  cursor: pointer;
-  transition:
-    border-color var(--transition),
-    background var(--transition);
-}
-
-.themeBtn:hover {
-  background: var(--color-surface-2);
-}
-
-.themeBtn.active {
-  border-color: var(--color-accent);
-}
-
-.themeSwatch {
-  display: flex;
-  gap: 1px;
-  border-radius: 3px;
-  overflow: hidden;
-  width: 1.6rem;
-  height: 1.6rem;
-}
-
-.themeSwatch span {
-  flex: 1;
-  display: block;
-}
-
-/* ── Option button rows (color mode, font, size, width) ── */
-.btnRow {
-  display: flex;
-  gap: 0.25rem;
-  flex-wrap: wrap;
-}
-
-.fontSelect {
-  width: 100%;
-  padding: 0.3rem 0.5rem;
-  border: 1px solid var(--color-control-border);
-  border-radius: var(--radius);
-  background: var(--color-surface-2);
-  color: var(--color-text);
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-family: inherit;
   cursor: pointer;
-  transition: border-color var(--transition);
-}
-
-.fontSelect:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
-  border-color: var(--color-accent);
-}
-
-.optionBtn {
-  flex: 1;
-  min-width: 0;
-  padding: 0.3rem 0.4rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: 0.73rem;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: center;
   white-space: nowrap;
   transition:
     background var(--transition),
-    color var(--transition),
-    border-color var(--transition);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.3rem;
-}
-
-.optionBtn:hover {
-  background: var(--color-surface-2);
-  color: var(--color-text);
-}
-
-.optionBtn.active {
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-  color: var(--color-accent);
-  border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
-}
-
-.optionBtn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-/* ── All Settings link ── */
-.allSettingsBtn {
-  width: 100%;
-  padding: 0.4rem 0.5rem;
-  border: none;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: 0.77rem;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: left;
-  transition:
-    background var(--transition),
     color var(--transition);
 }
 
-.allSettingsBtn:hover {
-  background: var(--color-surface-2);
+.searchBtn:hover {
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
-/* ── User info ── */
-.userInfo {
-  padding: 0.4rem 0.5rem 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.userName {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--color-text);
-}
-
-.userEmail {
+.searchBtn kbd {
+  margin-left: 0.35rem;
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
   color: var(--color-text-subtle);
-}
-
-/* ── Menu item ── */
-.menuItem {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.4rem 0.5rem;
-  border: none;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: 0.77rem;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: left;
-  transition:
-    background var(--transition),
-    color var(--transition);
-}
-
-.menuItem:hover {
-  background: var(--color-surface-2);
-  color: var(--color-text);
-}
-
-/* ── Backup indicator ── */
-.backupIndicator {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-subtle);
-  font-size: var(--text-xs);
-  font-family: inherit;
-  cursor: pointer;
-  transition:
-    background var(--transition),
-    color var(--transition);
-  margin-right: 0.5rem;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-/* A narrow window keeps the icon and its dot; the words are in the tooltip. */
-@media (max-width: 1100px) {
-  .backupIndicator > span:not([class]) {
-    display: none;
-  }
-}
-
-.backupIndicator:hover {
-  background: var(--color-surface-3);
-  color: var(--color-text);
-}
-
-.backupFresh {
-  color: var(--color-text-subtle);
-}
-.backupStale {
-  color: var(--color-warning);
-}
-.backupOverdue {
-  color: var(--color-danger);
-}
-
-.backupDot {
-  width: 0.4rem;
-  height: 0.4rem;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-/* A fresh backup is the normal state and needs no colour (doc 13 P7). */
-.dotFresh {
-  display: none;
-}
-.dotStale {
-  background: var(--color-warning);
-}
-.dotOverdue {
-  background: var(--color-danger);
-}
-
-/* Never backed up: a brand-new story, not an emergency. */
-.dotNone {
-  background: var(--color-text-subtle);
-}
-
-/* ── Responsive adaptations ── */
-@media (max-width: 640px) {
-  .header {
-    padding: 0 0.5rem;
-  }
-
-  /* Hide "Search" text + kbd hint, keep just the icon */
-  .searchBtn span,
-  .searchBtn kbd {
-    display: none;
-  }
-  .searchBtn {
-    padding: 0.25rem 0.4rem;
-    margin-right: 0.25rem;
-  }
-
-  /* Hide "Assistant" text label, keep icon */
-  .assistantBtn span {
-    display: none;
-  }
-  .assistantBtn {
-    padding: 0.25rem 0.4rem;
-    margin-right: 0.15rem;
-  }
-
-  /* Hide backup text, keep dot indicator */
-  .backupIndicator span {
-    display: none;
-  }
-  .backupIndicator {
-    padding: 0.2rem 0.4rem;
-    margin-right: 0.25rem;
-  }
-}
-
-@media (max-width: 480px) {
-  /* Hide focus mode toggle on very small screens */
-  .focusToggle {
-    display: none;
-  }
 }
 
 .undoGroup {
   display: inline-flex;
   align-items: center;
-  gap: 0.15rem;
-  margin-right: 0.35rem;
+  gap: 2px;
 }
+
 .undoGroup .iconBtn:disabled {
   opacity: 0.35;
   cursor: default;
 }
+
 .undoError {
   font: inherit;
   font-size: var(--text-sm);
@@ -640,47 +244,26 @@
   white-space: nowrap;
   padding: 0.1rem 0.45rem;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--color-warning) 45%, transparent);
-  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  border: none;
+  background: color-mix(in srgb, var(--color-warning) 12%, var(--color-bg));
   color: var(--color-text);
   cursor: pointer;
 }
 
-/* ── Mode pill ── */
-/* Writer mode hides AI entirely, so the mode has to be visible or the app reads as
-   broken rather than configured. */
-.modePill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.22rem 0.5rem;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-}
+/* ── Responsive adaptations ── */
+@media (max-width: 640px) {
+  .header {
+    padding: 0 0.5rem;
+  }
 
-.modePill:hover:not(:disabled) {
-  border-color: var(--color-text-muted);
-  color: var(--color-text);
-}
-
-.modePill:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.modePill[data-mode="studio"] {
-  border-color: color-mix(in srgb, var(--color-ai) 45%, transparent);
-  color: var(--color-ai);
-}
-
-@media (max-width: 900px) {
-  .modePillLabel {
+  /* The words go; the magnifier stays. */
+  .searchBtn span,
+  .searchBtn kbd {
     display: none;
+  }
+
+  .searchBtn {
+    padding: 0 0.5rem;
+    margin-left: 0;
   }
 }
