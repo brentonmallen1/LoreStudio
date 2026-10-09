@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronsRight, ExternalLink, Menu, PanelRight, PictureInPicture2, X } from "lucide-react";
+import { ExternalLink, Menu, PanelRight, PictureInPicture2, X } from "lucide-react";
 import { useAIAvailable } from "../../lib/mode";
-import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
 import { AI_WINDOW_PATH } from "../../lib/ai/panelChannel";
 import AssistantTab from "./AssistantTab";
 import { fitTabs } from "../../lib/panel/overflow";
@@ -19,7 +18,7 @@ import styles from "./Panel.module.css";
 const TAB_WIDTH = 96;
 const SCENE_TAB_WIDTH = 92;
 const OVERFLOW_RESERVE = 58;
-const CONTROLS_RESERVE = 78;
+const CONTROLS_RESERVE = 56;
 const ASSISTANT_RESERVE = 70;
 const OPEN_RESERVE = 32;
 
@@ -28,7 +27,7 @@ const OPEN_RESERVE = 32;
  * arithmetic (lib/panel/overflow.ts) rather than measurement; the rest fold into ☰.
  */
 export default function TabStrip({ inWindow = false }: { inWindow?: boolean }) {
-  const { tabs, activeTabId, activate, close, setHighlight, frame, toggleFloating, setOpen, setFrame } =
+  const { tabs, activeTabId, activate, close, setHighlight, frame, toggleFloating, setFrame } =
     usePanelStore();
   const aiAvailable = useAIAvailable();
   const storyId = useStoryStore((s) => s.activeStory?.id);
@@ -144,14 +143,6 @@ export default function TabStrip({ inWindow = false }: { inWindow?: boolean }) {
             aria-label="Open the side panel in its own window"
           >
             <ExternalLink size={13} />
-          </button>
-          <button
-            className={styles.controlBtn}
-            onClick={() => setOpen(false)}
-            title={`Collapse the side panel (${formatCombo(SHORTCUTS.togglePanel.combo)})`}
-            aria-label="Collapse the side panel"
-          >
-            <ChevronsRight size={13} />
           </button>
         </div>
       )}
