@@ -108,8 +108,8 @@ components:
     backgroundColor: "{colors.paper}"
     rounded: "{rounded.lg}"
     padding: "12px 14px"
-  page-plane:
-    backgroundColor: "{colors.paper}"
+  side-panel:
+    backgroundColor: "{colors.tone}"
     rounded: "{rounded.xl}"
   page-header:
     backgroundColor: "transparent"
@@ -130,9 +130,9 @@ pulled out to look at. Everything that is not the prose is reference: legible at
 then gone.
 
 Density is moderate and calm. Type and space first, a tone box second, a line almost never.
-The chrome (the header, the strip, the panel's rail) floats on the page ground with no
-background and no border of its own; the prose page and the side panel are paper planes
-set on that ground. Colour is rare and always means something. Seven palettes (Zen, Nord, Catppuccin,
+The chrome (the header, the strip, the panel's rail) floats on one ground with no
+background and no border of its own, and the prose sits on that same ground, so nothing
+frames the page; the side panel is a faint tone box beside it. Colour is rare and always means something. Seven palettes (Zen, Nord, Catppuccin,
 Gruvbox, Solarized, Dracula, E-ink), each in light and dark, share one set of token names;
 Zen light is the canonical design and dark is an intentional inversion, not the default.
 
@@ -145,8 +145,8 @@ screenshot that shows every feature at once.
 - Warm tinted neutrals; one accent (forest) for the author's own actions.
 - Meaning colours with fixed jobs: violet is the Assistant, teal is local analysis.
 - Entities carry a palette slot (`--cat-1` to `--cat-8`), scenes a status colour and shape.
-- Floating chrome on the page ground, the page and panel as quiet planes; shadows only for
-  things lifted off the desk.
+- One ground under the chrome and the prose alike, the side panel a faint tone box; shadows
+  only for things lifted off the desk.
 - What you can press gets a ground under the pointer; what you read never does.
 
 ## 2. Colors: The Parchment Palette
@@ -167,12 +167,13 @@ Warm, low-chroma neutrals with a handful of signal colours, each assigned one jo
   normalisation, prose metrics). Present in both modes.
 
 ### Neutral
-- **Parchment** (#f7f6f3): the page ground, behind everything. The header, the strip and
-  the panel's rail sit on it directly.
-- **Paper** (#ffffff): the planes the author works on: the prose page, the side panel,
-  menus, sheets.
+- **Paper** (#ffffff, `--color-surface`): the ground (`--color-ground`, doc 24 D18) under
+  the header, the strip, the prose and the rail alike; also menus and sheets.
+- **Parchment** (#f7f6f3, `--color-bg`): the old page ground. Pages that still paint it
+  themselves move to the ground in doc 24 P8.
 - **Tone** (#f5f4f0, `--color-tone`): the tone box, a quiet ground that groups things on
-  a plane ("In this scene", a menu's footer) where a rule or a card used to.
+  the paper ("In this scene", a menu's footer) where a rule or a card used to, and the side
+  panel's ground.
 - **Vellum** (#f0efe9) and **Vellum Deep** (#e8e7e0): the hover ground (`--color-hover`
   is the vellum), chips and segmented controls; deep vellum for what is pressed or
   selected.
@@ -204,7 +205,7 @@ by `contrast.test.ts`. `scripts/check-tokens.py` fails on a hex or named colour 
 component (the theme swatches and diagrams are the locked exceptions).
 
 **The AA Rule.** All text reaches 4.5:1 on every ground it sits on: the page ground and
-the chrome on it, the paper planes and cards, tone boxes, hover grounds, and a 12% tint of
+the chrome on it, the prose, cards, tone boxes, hover grounds, and a 12% tint of
 its own colour (badges and pills). Slots, control edges and the focus ring reach 3:1. Quiet
 comes from colour, never from `opacity` on text.
 
@@ -243,11 +244,14 @@ the graph zooms.
 ## 4. Elevation and Separation
 
 Flat by default, and quiet. The chrome (the header, the story strip, the panel's rail)
-floats on the parchment ground: no background of its own, no border, no rule under it.
-The prose page and the side panel are paper planes set on that ground, with a 14px radius
-and a small gutter between them, and no border or shadow: the change of tone is the edge.
+floats on the ground (`--color-ground`, the paper): no background of its own, no border, no
+rule under it. The prose sits on that same ground, so nothing frames it (doc 24 D18: paper
+planes on parchment read as a frame, not as floating). The side panel is a faint tone box
+with a 14px radius and a small gutter, no border or shadow: the change of tone is the edge.
+Pointing `--color-ground` at `--color-bg` and giving the page and panel `--color-surface`
+brings the planes back.
 
-Inside a plane, separation comes in this order:
+On the ground, separation comes in this order:
 1. **Type and space.** A label in the section-title colour, then the value; a heading set
    bolder; more space between groups than within them. This does most of the work.
 2. **A tone box.** When a few things belong together and space alone does not say so, they
@@ -300,7 +304,7 @@ One look per tier, everywhere:
 - **State:** pressed chips invert (ink background, parchment text) like the view switch.
 
 ### Cards / Containers
-- **Tone boxes** group a few things on a plane (In this scene, a menu's footer, the
+- **Tone boxes** group a few things on the ground (In this scene, a menu's footer, the
   Overview's sections): tone ground, 10px radius, 12px by 14px padding, no border. Never
   nested.
 - **Sheet cards**, where something is still a card (a Lorebook entry in a grid): paper,
@@ -323,9 +327,10 @@ One look per tier, everywhere:
   undo and redo, the scratch pad, focus and "Search or jump", all ghost icons.
 - **Story strip** (left): the transit line. Chapters are stations with progress rings,
   scenes are stops shaped by status, and the colour-by key shows only while you hover.
-  The colour-by picker sits at the top, so the line runs the strip's full height. Widths:
-  line, chapter rows, full tree.
-- **Side panel** (right): a paper plane of tabs for This scene, open entities and tools;
+  The colour-by picker sits at the top, so the line runs the strip's full height. Two
+  states: the line, or the outline, whose scene rows carry the same dots and whose folded
+  chapters show their scenes as coloured bars.
+- **Side panel** (right): a tone box of tabs for This scene, open entities and tools;
   the rail beside it launches them, with the Assistant's Feather and the one collapse.
 - **Sub header** (top of the page): the scene's icon, title, status and threads, and ⋯.
   Floating, like the header; in focus mode it is quiet (subtle text) until hovered.
@@ -344,8 +349,8 @@ filled marker. Colour by who is on the page, threads, status, beat or findings.
 ### Do:
 - **Do** separate things with type and space first, a tone box second, and a line almost
   never.
-- **Do** let the chrome float on the page ground, and set the page and panel on it as
-  paper planes.
+- **Do** let the chrome and the prose share one ground, with the side panel a faint tone
+  box beside them.
 - **Do** give everything pressable a hover ground, and nothing else.
 - **Do** give every colour one job (forest is the author, violet the Assistant, teal local
   analysis), and pair status colour with shape.

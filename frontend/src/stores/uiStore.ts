@@ -3,7 +3,6 @@ import {
   EXPANDED_DEFAULT_PX,
   clampStripPx,
   type ColourMode,
-  type StripDepth,
   type StripWidth,
 } from "../lib/strip/stripModel";
 import { create } from "zustand";
@@ -160,10 +159,9 @@ interface UIState {
   // The story strip (doc 11 P3): how wide the book is drawn, and what colours its stops.
   stripWidth: StripWidth;
   setStripWidth: (width: StripWidth) => void;
-  /** The expanded strip's width, and the view it last showed (doc 14 strip). */
+  /** The expanded strip's width (doc 14 strip). */
   stripPx: number;
   setStripPx: (px: number) => void;
-  stripDepth: StripDepth;
   stripColourMode: ColourMode;
   setStripColourMode: (mode: ColourMode) => void;
 
@@ -356,8 +354,9 @@ for (const stale of [
   // Story Health's action toolbar (retired, doc 12 P4).
   "ls_health_actions_collapsed",
   "ls_health_actions_tab",
-  // The strip's "1 of 7 / 5%" readout (retired, doc 24).
+  // The strip's "1 of 7 / 5%" readout and its Chapters/Scenes choice (retired, doc 24).
   "ls_strip_readout",
+  "ls_strip_depth",
 ]) {
   try {
     localStorage.removeItem(stale);
@@ -429,17 +428,17 @@ export const useUIStore = create<UIState>((set) => ({
   viewState: "normal",
   setViewState: (state) => set({ viewState: state }),
 
-  stripWidth: (["strip", "chapters", "scenes"].includes(localStorage.getItem("ls_strip_width") ?? "")
-    ? localStorage.getItem("ls_strip_width")
+  // "chapters" was the second expanded view (retired, doc 24): it opens as the outline now.
+  stripWidth: (["chapters", "scenes"].includes(localStorage.getItem("ls_strip_width") ?? "")
+    ? "scenes"
     : "strip") as StripWidth,
   setStripWidth: (width) => {
     try {
       localStorage.setItem("ls_strip_width", width);
-      if (width !== "strip") localStorage.setItem("ls_strip_depth", width);
     } catch {
       // Site data blocked: the strip still works, it just forgets between visits.
     }
-    set(width === "strip" ? { stripWidth: width } : { stripWidth: width, stripDepth: width });
+    set({ stripWidth: width });
   },
   stripPx: clampStripPx(Number(localStorage.getItem("ls_strip_px") ?? EXPANDED_DEFAULT_PX)),
   setStripPx: (px) => {
@@ -451,7 +450,6 @@ export const useUIStore = create<UIState>((set) => ({
     }
     set({ stripPx: clamped });
   },
-  stripDepth: localStorage.getItem("ls_strip_depth") === "scenes" ? "scenes" : "chapters",
   // Read against the mode table, so a mode added there (Findings, doc 12 P4) survives a reload.
   stripColourMode: (COLOUR_MODES.some((m) => m.id === localStorage.getItem("ls_strip_colour"))
     ? localStorage.getItem("ls_strip_colour")

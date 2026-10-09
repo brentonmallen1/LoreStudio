@@ -6,6 +6,9 @@ import { useStoryStore } from "../../stores/storyStore";
 import type { StructureNode } from "../../types";
 import { getSegmentIcon, segmentColor } from "./structureTreeMeta";
 import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
+import { stopClick } from "../../lib/panel/openScene";
+import type { TreeMarks } from "../../lib/strip/treeMarks";
+import { ChapterBars, StopMark } from "../strip/StopMark";
 import styles from "../strip/Tree.module.css";
 
 // Shared across every row so a drop knows what was picked up.
@@ -22,6 +25,7 @@ export default function NodeItem({
   toggleCollapsed,
   onRename,
   onKeyNav,
+  marks,
 }: {
   node: StructureNode;
   depth?: number;
@@ -31,6 +35,8 @@ export default function NodeItem({
   toggleCollapsed: (id: string) => void;
   onRename: (id: string, title: string) => void;
   onKeyNav: (e: React.KeyboardEvent, id: string) => void;
+  /** The strip's colours (doc 24): a scene shows the line's dot, a folded chapter its bars. */
+  marks?: TreeMarks;
 }) {
   const expanded = !collapsed.has(node.id);
   const [renaming, setRenaming] = useState(false);
@@ -43,6 +49,8 @@ export default function NodeItem({
   const navigate = useNavigate();
   const hasChildren = node.children && node.children.length > 0;
   const isActive = activeNode?.id === node.id;
+  const stop = marks?.stops.get(node.id);
+  const chapterStops = marks?.chapters.get(node.id);
 
   const childLevel = depth + 1;
   const childLevelDef = activeTemplate?.levels[childLevel];
@@ -199,11 +207,15 @@ export default function NodeItem({
           >
             {hasChildren ? expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} /> : null}
           </span>
-          {createElement(getSegmentIcon(node.level_type), {
-            size: 12,
-            className: styles.nodeTypeIcon,
-            style: isActive ? undefined : { color: segmentColor(node.level_type) },
-          })}
+          {stop && marks ? (
+            <StopMark stop={stop} marks={marks} />
+          ) : (
+            createElement(getSegmentIcon(node.level_type), {
+              size: 12,
+              className: styles.nodeTypeIcon,
+              style: isActive ? undefined : { color: segmentColor(node.level_type) },
+            })
+          )}
           {renaming ? (
             <input
               autoFocus
@@ -242,7 +254,8 @@ export default function NodeItem({
               {node.word_count >= 1000 ? `${(node.word_count / 1000).toFixed(1)}k` : node.word_count}
             </span>
           )}
-          {(node.status === "revised" || node.status === "final") && (
+          {/* A scene's mark already says revised or final by its shape. */}
+          {!stop && (node.status === "revised" || node.status === "final") && (
             <span
               className={`${styles.nodeStatus} ${node.status === "final" ? styles.statusFinal : styles.statusRevised}`}
             >
@@ -280,6 +293,16 @@ export default function NodeItem({
         )}
       </div>
 
+      {!expanded && chapterStops && marks && (
+        <ChapterBars
+          stops={chapterStops}
+          marks={marks}
+          // Under where the chapter's scene rows put their marks (indent, handle, chevron).
+          indent={6 + (depth + 1) * 14 + 40}
+          open={(e, id) => stopClick(e, id, (sceneId) => navigate(`/stories/${storyId}/write/${sceneId}`))}
+        />
+      )}
+
       {addingChild && (
         <div style={{ paddingLeft: `${6 + (depth + 1) * 14}px` }} className={styles.childAddRow}>
           <input
@@ -312,6 +335,7 @@ export default function NodeItem({
               toggleCollapsed={toggleCollapsed}
               onRename={onRename}
               onKeyNav={onKeyNav}
+              marks={marks}
             />
           ))}
         </div>

@@ -6,7 +6,6 @@ import { stripPx, toggleStrip, type StripWidth } from "../../lib/strip/stripMode
 import { useColourContext, useStripLine } from "../../lib/strip/useColourContext";
 import { useUIStore } from "../../stores/uiStore";
 import { scaledPx } from "../../lib/appearance/uiScale";
-import ChapterRows from "./ChapterRows";
 import ColourModePicker from "./ColourModePicker";
 import FullTree from "./FullTree";
 import StripEdge from "./StripEdge";
@@ -16,8 +15,8 @@ import styles from "./Strip.module.css";
 
 /**
  * The book down the left edge of every story page (refactor doc 11, phase 3). Collapsed, a
- * transit line of chapters and scenes; expanded, chapter rows or the full tree at the width
- * the author dragged it to (doc 14). Either way it says where you are.
+ * transit line of chapters and scenes; expanded, the outline at the width the author dragged
+ * it to (doc 14). Either way it says where you are.
  */
 export default function StoryStrip() {
   const { storyId } = useParams<{ storyId: string }>();
@@ -28,7 +27,6 @@ export default function StoryStrip() {
     setStripColourMode,
     stripPx: expandedPx,
     setStripPx,
-    stripDepth,
     uiScale,
   } = useUIStore();
   const [hovering, setHovering] = useState(false);
@@ -36,10 +34,9 @@ export default function StoryStrip() {
   const [dragPx, setDragPx] = useState<number | null>(null);
 
   const line = useStripLine();
-  // A flat outline has no chapters to show: that width falls through to the tree.
-  const width: StripWidth = !line.hasStations && stripWidth === "chapters" ? "scenes" : stripWidth;
+  const width: StripWidth = stripWidth;
   const ctx = useColourContext();
-  const cycle = () => setStripWidth(toggleStrip(width, stripDepth, line.hasStations));
+  const cycle = () => setStripWidth(toggleStrip(width));
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -88,24 +85,6 @@ export default function StoryStrip() {
       ) : (
         <div className={styles.head}>
           {picker}
-          {line.hasStations && (
-            <div className={styles.seg} role="group" aria-label="Show down to">
-              <button
-                className={`${styles.segBtn} ${width === "chapters" ? styles.segBtnOn : ""}`}
-                aria-pressed={width === "chapters"}
-                onClick={() => setStripWidth("chapters")}
-              >
-                Chapters
-              </button>
-              <button
-                className={`${styles.segBtn} ${width === "scenes" ? styles.segBtnOn : ""}`}
-                aria-pressed={width === "scenes"}
-                onClick={() => setStripWidth("scenes")}
-              >
-                Scenes
-              </button>
-            </div>
-          )}
           <span className={styles.headSpacer} />
           <button
             className={styles.iconBtn}
@@ -126,9 +105,6 @@ export default function StoryStrip() {
       >
         {width === "strip" && (
           <TransitStrip line={line} mode={stripColourMode} ctx={ctx} storyId={storyId!} />
-        )}
-        {width === "chapters" && (
-          <ChapterRows line={line} mode={stripColourMode} ctx={ctx} storyId={storyId!} />
         )}
         {width === "scenes" && <FullTree storyId={storyId} />}
       </div>

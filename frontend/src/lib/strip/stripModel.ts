@@ -11,7 +11,7 @@ import { sceneLeaves } from "../planning/methods";
  * story's template so a flat outline is a line of stops and a three-level one has both.
  * Pure, so the drawing components stay thin and this can be tested without a DOM.
  */
-export const STRIP_WIDTHS = ["strip", "chapters", "scenes"] as const;
+export const STRIP_WIDTHS = ["strip", "scenes"] as const;
 export type StripWidth = (typeof STRIP_WIDTHS)[number];
 
 export const COLOUR_MODES = [
@@ -282,16 +282,14 @@ export function legendFor(mode: ColourMode, stops: Stop[], ctx: ColourContext): 
 }
 
 /**
- * Two states (doc 14 strip): collapsed to the line of dots, or expanded to the width the
- * author dragged it to. Chapters or scenes is what the expanded strip shows, not how wide
- * it is, so switching between them never moves the page.
+ * Two states (doc 14 strip): collapsed to the line of dots, or expanded to the outline at
+ * the width the author dragged it to. The outline is the one expanded view (doc 24: the
+ * chapter rows it once had beside it showed the same book twice).
  */
 export const COLLAPSED_PX = 64;
 export const EXPANDED_MIN_PX = 288;
 export const EXPANDED_MAX_PX = 460;
 export const EXPANDED_DEFAULT_PX = 304;
-
-export type StripDepth = Exclude<StripWidth, "strip">;
 
 export function clampStripPx(px: number): number {
   if (!Number.isFinite(px)) return EXPANDED_DEFAULT_PX;
@@ -303,8 +301,7 @@ export function stripPx(width: StripWidth, expandedPx: number): number {
   return width === "strip" ? COLLAPSED_PX : clampStripPx(expandedPx);
 }
 
-/** Collapse, or expand back to the view it had; a flat outline has no chapters view. */
-export function toggleStrip(width: StripWidth, lastDepth: StripDepth, hasStations: boolean): StripWidth {
-  if (width !== "strip") return "strip";
-  return hasStations ? lastDepth : "scenes";
+/** Collapse to the line, or expand to the outline. */
+export function toggleStrip(width: StripWidth): StripWidth {
+  return width === "strip" ? "scenes" : "strip";
 }

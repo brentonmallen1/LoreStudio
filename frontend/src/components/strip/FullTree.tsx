@@ -17,17 +17,19 @@ import {
   visibleIds,
 } from "../layout/structureTreeMeta";
 import { filterTree } from "../../lib/strip/filterTree";
+import { useTreeMarks } from "../../lib/strip/treeMarks";
 import tree from "./Tree.module.css";
 import styles from "./Strip.module.css";
 
 /**
- * The widest width: the whole editable tree. What the old structure panel did (add,
+ * The expanded strip: the whole editable outline. What the old structure panel did (add,
  * rename, reorder by drag, fold, arrow keys) with a filter box on top; the rows are the
- * same `StructureTreeNode`.
+ * same `StructureTreeNode`, marked in the strip's colours (doc 24: the one expanded view).
  */
 export default function FullTree({ storyId }: { storyId: string | undefined }) {
   const navigate = useNavigate();
   const { structure, setStructure, activeTemplate, activeNode } = useStoryStore();
+  const marks = useTreeMarks();
   const [filter, setFilter] = useState("");
   const [addingLevel, setAddingLevel] = useState<number | null>(null);
   const [newTitle, setNewTitle] = useState("");
@@ -249,6 +251,7 @@ export default function FullTree({ storyId }: { storyId: string | undefined }) {
             toggleCollapsed={toggleCollapsed}
             onRename={renameNode}
             onKeyNav={handleKeyNav}
+            marks={marks}
           />
         ))}
       </div>

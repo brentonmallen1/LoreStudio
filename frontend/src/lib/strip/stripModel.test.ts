@@ -93,18 +93,12 @@ describe("buildLine", () => {
 });
 
 describe("collapsed or expanded", () => {
-  it("collapses to the line and expands back to the view it had", () => {
-    expect(toggleStrip("chapters", "chapters", true)).toBe("strip");
-    expect(toggleStrip("strip", "scenes", true)).toBe("scenes");
-    expect(toggleStrip("strip", "chapters", true)).toBe("chapters");
+  it("collapses to the line and expands to the outline", () => {
+    expect(toggleStrip("scenes")).toBe("strip");
+    expect(toggleStrip("strip")).toBe("scenes");
   });
 
-  it("expands a flat outline to its scenes", () => {
-    expect(toggleStrip("strip", "chapters", false)).toBe("scenes");
-  });
-
-  it("keeps one expanded width whatever it shows, within its limits", () => {
-    expect(stripPx("chapters", 340)).toBe(340);
+  it("keeps the expanded width the author set, within its limits", () => {
     expect(stripPx("scenes", 340)).toBe(340);
     expect(stripPx("strip", 340)).toBe(COLLAPSED_PX);
     expect(clampStripPx(10)).toBe(EXPANDED_MIN_PX);
