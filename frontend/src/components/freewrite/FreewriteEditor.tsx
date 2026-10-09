@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
+import { Placeholder } from "@tiptap/extensions";
+import { proseStarterKit } from "../editor/starterKit";
 import { freewriteApi } from "../../api/freewrite";
 import { dayLabel, lastDay, trimEmptyDay } from "../../lib/freewrite/day";
 import { MadeMark } from "./MadeMark";
@@ -26,7 +26,7 @@ function openToday(editor: Editor) {
   if (lastDay(editor.getHTML()) === today) return editor.commands.focus("end");
   const empty = editor.isEmpty;
   const day = `<h3>${today}</h3><p></p>`;
-  if (empty) editor.commands.setContent(day);
+  if (empty) editor.commands.setContent(day, { emitUpdate: false });
   else editor.chain().focus("end").insertContentAt(editor.state.doc.content.size, day).run();
   editor.commands.focus("end");
 }
@@ -70,9 +70,10 @@ export default function FreewriteEditor({
   }
 
   const editor = useEditor({
+    shouldRerenderOnTransaction: true,
     editorProps: { attributes: { "aria-label": "Freewrite" } },
     extensions: [
-      StarterKit.configure({ heading: { levels: [3] } }),
+      proseStarterKit({ heading: { levels: [3] } }),
       Placeholder.configure({ placeholder: "Type whatever comes. Select a sentence to make it something." }),
       MadeMark,
     ],
@@ -92,7 +93,7 @@ export default function FreewriteEditor({
       .get(storyId)
       .then(({ html }) => {
         if (gone) return;
-        editor.commands.setContent(html || "", false);
+        editor.commands.setContent(html || "", { emitUpdate: false });
         editor.setEditable(true);
         onRefsRef.current?.(refsIn(editor));
         openToday(editor);

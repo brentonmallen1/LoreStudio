@@ -41,6 +41,12 @@ function getMatches(
   return results;
 }
 
+declare module "@tiptap/core" {
+  interface Storage {
+    lorestudioSearch: SearchStorage;
+  }
+}
+
 export const SearchAndReplaceExtension = Extension.create<object, SearchStorage>({
   name: "lorestudioSearch",
 

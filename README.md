@@ -185,7 +185,7 @@ and [docs/CONFIGURATION.md](docs/CONFIGURATION.md). Updating: [docs/upgrading.md
 
 ### Develop it
 
-Requires [uv](https://docs.astral.sh/uv/), Node 22 and [just](https://github.com/casey/just).
+Requires [uv](https://docs.astral.sh/uv/), Node 26 and [just](https://github.com/casey/just).
 
 ```bash
 git clone https://github.com/brentonmallen1/LoreStudio.git && cd LoreStudio

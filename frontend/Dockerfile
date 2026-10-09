@@ -1,6 +1,6 @@
 # The web image: the built SPA behind nginx, which proxies /api to the API (API_UPSTREAM).
 # Built from the repository root (compose and CI pass `context: .`).
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci

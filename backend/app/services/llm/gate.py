@@ -29,7 +29,7 @@ from __future__ import annotations
 import asyncio
 import time
 import uuid
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -147,7 +147,7 @@ class ModelGate:
         session_id: str | None = None,
         can_stop: bool = False,
         exclusive: bool = True,
-    ) -> AsyncIterator[LiveCall]:
+    ) -> AsyncGenerator[LiveCall]:
         """A reply: it goes now, and on a model that answers one at a time makes any job's call
         in flight give way, and starts the cool-down when it ends."""
         from ..job_queue import interrupt
@@ -167,7 +167,7 @@ class ModelGate:
                 self.cooldown = float(cooldown)
 
     @asynccontextmanager
-    async def job(self, job_id: str, *, exclusive: bool = True) -> AsyncIterator[None]:
+    async def job(self, job_id: str, *, exclusive: bool = True) -> AsyncGenerator[None]:
         """A job's call: it waits its turn, then is marked in flight so a reply can stop it
         (on a model that answers several at once, no reply needs to)."""
         await self.wait_turn(job_id, exclusive=exclusive)
