@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
-import { ChevronRight, Orbit, PenLine } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
+import { ChevronRight, Orbit } from "lucide-react";
 import { api } from "../api/client";
 import FindingsCard from "../components/findings/FindingsCard";
 import { findNode } from "../components/layout/structureTreeMeta";
@@ -14,8 +14,8 @@ import StoryPlanPanel from "../components/editor/panels/StoryPlanPanel";
 import WhoIsHereField from "../components/editor/panels/WhoIsHereField";
 import { flattenStructure } from "../components/editor/segmentMeta";
 import ScenePromises from "../components/promises/ScenePromises";
+import SceneCard from "../components/scene/SceneCard";
 import SceneFacts from "../components/scene/SceneFacts";
-import SceneSides from "../components/scene/SceneSides";
 import SheetField from "../components/scene/SheetField";
 import { findingsForNode } from "../lib/findings/group";
 import { useAIAvailable } from "../lib/mode";
@@ -27,21 +27,30 @@ import { useStoryStore } from "../stores/storyStore";
 import type { DiagramSummary, StructureNode } from "../types";
 import styles from "../components/scene/SceneSheet.module.css";
 
-const STATUS_LABEL: Record<string, string> = {
-  planned: "Planned",
-  draft: "Draft",
-  revised: "Revised",
-  final: "Final",
-};
-
 type Field = "synopsis" | "purpose" | "entry_state" | "exit_state" | "key_events";
+type Page = "plan" | "promises" | "notes" | "findings" | "facts" | "assistant";
+
+/** The page an address names: `#links` is on Promises; anything unknown is The plan. */
+function pageOf(hash: string, studio: boolean): Page {
+  const id = hash.replace(/^#/, "");
+  if (id === "links") return "promises";
+  const pages: Page[] = [
+    "plan",
+    "promises",
+    "notes",
+    "findings",
+    "facts",
+    ...(studio ? ["assistant" as const] : []),
+  ];
+  return (pages as string[]).includes(id) ? (id as Page) : "plan";
+}
 
 /**
- * `/write/:nodeId/sheet` (doc 24 D19): every field of one scene on one page, where the This
- * scene tab sends you for more than a glance. One column of parts, each named in the bar under
- * the title so any of them is a click away: the plan (what happens, why, the turn), who, where
- * and when, findings, promises, notes and pictures, the Assistant; the story around it folded
- * at the foot, then the scenes either side. "Write this scene" goes back to the prose.
+ * `/write/:nodeId/sheet` (doc 24 D19, canvas 8d): every field of one scene. A third of the
+ * page is the scene's index card, always in view (what happens, the turn, who, where, beat,
+ * when, Write, the scenes either side); two thirds are its pages, as on a character's sheet:
+ * The plan, Promises, Notes, Findings, Who, where and when, and in Studio mode the Assistant.
+ * The page is in the address (`#promises`), so a line in the This scene tab opens on it.
  */
 export default function SceneSheetPage() {
   const { storyId, nodeId } = useParams<{ storyId: string; nodeId: string }>();
@@ -55,6 +64,7 @@ export default function SceneSheetPage() {
   const [diagrams, setDiagrams] = useState<DiagramSummary[]>([]);
   const listed = nodeId ? findNode(structure, nodeId) : undefined;
   const node = activeNode?.id === nodeId && activeNode?.content !== undefined ? activeNode : null;
+  const page = pageOf(hash, studio);
 
   // The sheet is about the open node: the strip, the crumbs and the panel follow it.
   useEffect(() => {
@@ -74,38 +84,12 @@ export default function SceneSheetPage() {
       .catch(() => {});
   }, [storyId, nodeId]);
 
-  const jump = (id: string, smooth = true) =>
-    document.getElementById(id)?.scrollIntoView({ block: "start", behavior: smooth ? "smooth" : "auto" });
-
-  // Arriving from a line in the This scene tab: go to its part, and hold it there while the
-  // parts above it finish loading and grow, until the author scrolls or two seconds pass.
-  const pageRef = useRef<HTMLDivElement>(null);
-  const ready = !!node;
-  useEffect(() => {
-    const page = pageRef.current;
-    if (!ready || !hash || !page) return;
-    const id = hash.slice(1);
-    const align = () => jump(id, false);
-    align();
-    const watch = new ResizeObserver(align);
-    watch.observe(page);
-    const quit = () => watch.disconnect();
-    const timer = setTimeout(quit, 2000);
-    const events = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
-    events.forEach((e) => window.addEventListener(e, quit, { once: true }));
-    return () => {
-      quit();
-      clearTimeout(timer);
-      events.forEach((e) => window.removeEventListener(e, quit));
-    };
-  }, [ready, hash]);
-
   if (!listed) return <Navigate to={`/stories/${storyId}/write`} replace />;
   if (!node || !activeStory) return <div className={styles.loading}>Loading…</div>;
 
   const sequence = sceneSequence(structure, activeTemplate, node.id);
-  const words = node.word_count ?? 0;
   const pov = characters.find((c) => c.id === (node.pov_character_id ?? activeStory.pov_character_id));
+  const go = (to: Page) => navigate({ hash: to === "plan" ? "" : to }, { replace: true });
 
   async function patch(fields: Parameters<typeof api.updateNode>[1]) {
     const saved = await api.updateNode(node!.id, fields);
@@ -114,208 +98,168 @@ export default function SceneSheetPage() {
   }
   const save = (field: Field) => (value: string) => patch({ [field]: value });
 
-  const parts = [
+  const tabs: { id: Page; label: string; count?: number }[] = [
     { id: "plan", label: "The plan" },
-    { id: "facts", label: "Who, where, when" },
-    { id: "findings", label: findings.length ? `Findings · ${findings.length}` : "Findings" },
     { id: "promises", label: "Promises" },
-    { id: "notes", label: "Notes and images" },
-    ...(studio ? [{ id: "assistant", label: "Assistant" }] : []),
+    { id: "notes", label: "Notes" },
+    { id: "findings", label: "Findings", count: findings.length || undefined },
+    { id: "facts", label: "Who, where, when" },
+    ...(studio ? [{ id: "assistant" as const, label: "Assistant" }] : []),
   ];
 
   return (
     <div className={styles.scroller}>
-      <div className={styles.page} ref={pageRef}>
-        <header className={styles.header}>
-          <div className={styles.headText}>
-            {sequence && (
-              <p className={styles.kicker}>
-                Scene {sequence.position} of {sequence.total}
-                {sequence.chapter ? ` · ${sequence.chapter}` : ""}
-              </p>
-            )}
-            <h1 className={styles.title}>{node.title}</h1>
-            <p className={styles.meta}>
-              <span className={styles[`status_${node.status}`]}>
-                {STATUS_LABEL[node.status] ?? node.status}
-              </span>
-              {` · ${words.toLocaleString()} ${words === 1 ? "word" : "words"}`}
-              {pov ? ` · seen by ${pov.name}` : ""}
-            </p>
-          </div>
-          <Link to={`/stories/${activeStory.id}/write/${node.id}`} className={styles.write}>
-            <PenLine size={14} aria-hidden /> Write this scene
-          </Link>
-        </header>
+      <div className={styles.layout}>
+        <SceneCard
+          node={node}
+          story={activeStory}
+          sequence={sequence}
+          povName={pov?.name}
+          save={save}
+          onFacts={() => go("facts")}
+          refresh={page}
+        />
 
-        <nav className={styles.jumps} aria-label="Parts of this sheet">
-          {parts.map((p) => (
-            <button key={p.id} type="button" className={styles.jump} onClick={() => jump(p.id)}>
-              {p.label}
-            </button>
-          ))}
-        </nav>
-
-        <section id="plan" className={styles.section} aria-labelledby="sheet-plan">
-          <h2 id="sheet-plan" className={styles.h2}>
-            The plan
-          </h2>
-          <div className={styles.plan}>
-            <div className={styles.stack}>
-              <SheetField
-                key={`${node.id}:synopsis`}
-                label="Synopsis"
-                prose
-                initial={node.synopsis ?? ""}
-                placeholder="What happens in this scene, in a sentence or two…"
-                save={save("synopsis")}
-              />
-              <SheetField
-                key={`${node.id}:purpose`}
-                label="Purpose"
-                initial={node.purpose ?? ""}
-                placeholder="Why does this scene exist? What does it do that nothing else does?"
-                save={save("purpose")}
-              />
-              <SheetField
-                key={`${node.id}:events`}
-                label="Key events"
-                initial={node.key_events ?? ""}
-                placeholder="What must happen in this scene? The pivotal moments or turning points."
-                save={save("key_events")}
-              />
-            </div>
-            <div className={styles.stack}>
-              <div className={styles.box}>
-                <SheetField
-                  key={`${node.id}:entry`}
-                  label="Coming in"
-                  initial={node.entry_state ?? ""}
-                  placeholder={`Who is ${pov?.name ?? "your point-of-view character"} before this scene begins? What do they believe?`}
-                  save={save("entry_state")}
-                />
-              </div>
-              <div className={styles.box}>
-                <SheetField
-                  key={`${node.id}:exit`}
-                  label="Going out"
-                  initial={node.exit_state ?? ""}
-                  placeholder="How has the character or situation changed by the end?"
-                  save={save("exit_state")}
-                />
-              </div>
-            </div>
-          </div>
-          {studio ? (
-            <div className={styles.onPage}>
-              <SceneSummaryField key={node.id} activeNode={node} setActiveNode={setActiveNode} />
-            </div>
-          ) : (
-            node.content_summary && (
-              <div className={`${styles.field} ${styles.onPage}`}>
-                <span className={styles.label}>What’s on the page · from the prose</span>
-                <p className={styles.summary}>{node.content_summary}</p>
-              </div>
-            )
-          )}
-        </section>
-
-        <section id="facts" className={styles.section} aria-labelledby="sheet-facts">
-          <h2 id="sheet-facts" className={styles.h2}>
-            Who, where and when
-          </h2>
-          <SceneFacts node={node} story={activeStory} patch={patch} />
-        </section>
-
-        <section id="findings" className={styles.section} aria-labelledby="sheet-findings">
-          <h2 id="sheet-findings" className={styles.h2}>
-            Findings{findings.length ? ` · ${findings.length}` : ""}
-          </h2>
-          <FindingsCard
-            findings={findings}
-            storyId={activeStory.id}
-            empty="Nothing needs your eye in this scene."
-          />
-          <QuotesField activeNode={node} />
-        </section>
-
-        <section id="promises" className={styles.section} aria-labelledby="sheet-promises">
-          <h2 id="sheet-promises" className={styles.h2}>
-            Promises
-          </h2>
-          <ScenePromises storyId={activeStory.id} nodeId={node.id} />
-          <div id="links">
-            <SceneLinksField
-              activeNode={node}
-              activeStory={activeStory}
-              flatNodes={flattenStructure(structure)}
-              onNavigate={(n: StructureNode) => openScene(n.id)}
-            />
-          </div>
-        </section>
-
-        <div className={styles.pair}>
-          <section id="notes" className={styles.section} aria-labelledby="sheet-notes">
-            <h2 id="sheet-notes" className={styles.h2}>
-              Notes
-            </h2>
-            <SubjectNotes storyId={activeStory.id} aboutType="scene" aboutId={node.id} name="this scene" />
-          </section>
-          <section id="images" className={styles.section} aria-labelledby="sheet-images">
-            <h2 id="sheet-images" className={styles.h2}>
-              Images and diagrams
-            </h2>
-            {diagrams.length > 0 && (
-              <div className={styles.diagrams}>
-                {diagrams.map((d) => (
-                  <DiagramThumbnail
-                    key={d.id}
-                    diagram={d}
-                    onClick={() => navigate(`/stories/${activeStory.id}/lorebook/places`)}
-                  />
-                ))}
-              </div>
-            )}
-            <AssetPicker
-              storyId={activeStory.id}
-              objectType="structure_node"
-              objectId={node.id}
-              label="Images & references"
-            />
-          </section>
-        </div>
-
-        {studio && (
-          <section id="assistant" className={`${styles.section} ${styles.ai}`} aria-labelledby="sheet-ai">
-            <h2 id="sheet-ai" className={styles.h2}>
-              Assistant
-            </h2>
-            <WhoIsHereField activeNode={node} storyId={activeStory.id} />
-            {activeStory.discovery_enabled && (
+        <div className={styles.pages}>
+          <div className={styles.tabs} role="tablist" aria-label="The scene's pages">
+            {tabs.map((t) => (
               <button
+                key={t.id}
                 type="button"
-                className={styles.aiBtn}
-                onClick={() => discoverIn(node.story_id, node.id).catch(() => {})}
-                disabled={discovering}
-                title="Analyze this scene for new characters, settings, and other story elements"
+                role="tab"
+                aria-selected={page === t.id}
+                className={`${styles.tab} ${page === t.id ? styles.tabOn : ""} ${t.id === "assistant" ? styles.tabAi : ""}`}
+                onClick={() => go(t.id)}
               >
-                <Orbit size={12} aria-hidden />
-                {discovering ? "Analyzing…" : "Analyze for discoveries"}
+                {t.label}
+                {t.count && <span className={styles.count}>{t.count}</span>}
               </button>
+            ))}
+          </div>
+
+          <div className={styles.pane} role="tabpanel">
+            {page === "plan" && (
+              <>
+                <SheetField
+                  key={`${node.id}:purpose`}
+                  label="Purpose"
+                  initial={node.purpose ?? ""}
+                  placeholder="Why does this scene exist? What does it do that nothing else does?"
+                  save={save("purpose")}
+                />
+                <SheetField
+                  key={`${node.id}:events`}
+                  label="Key events"
+                  initial={node.key_events ?? ""}
+                  placeholder="What must happen in this scene? The pivotal moments or turning points."
+                  save={save("key_events")}
+                />
+                {studio ? (
+                  <div className={styles.box}>
+                    <SceneSummaryField key={node.id} activeNode={node} setActiveNode={setActiveNode} />
+                  </div>
+                ) : (
+                  node.content_summary && (
+                    <div className={`${styles.box} ${styles.field}`}>
+                      <span className={styles.label}>What’s on the page · from the prose</span>
+                      <p className={styles.summary}>{node.content_summary}</p>
+                    </div>
+                  )
+                )}
+                <details className={styles.around}>
+                  <summary className={styles.aroundHead}>
+                    <ChevronRight size={14} className={styles.aroundChevron} aria-hidden />
+                    The story around it
+                    <span className={styles.aroundHint}>
+                      the logline, the conflict, what the people here want
+                    </span>
+                  </summary>
+                  <StoryPlanPanel node={node} story={activeStory} characters={characters} />
+                </details>
+              </>
             )}
-          </section>
-        )}
 
-        <details className={styles.around}>
-          <summary className={styles.aroundHead}>
-            <ChevronRight size={14} className={styles.aroundChevron} aria-hidden />
-            The story around it
-            <span className={styles.aroundHint}>the logline, the conflict, what the people here want</span>
-          </summary>
-          <StoryPlanPanel node={node} story={activeStory} characters={characters} />
-        </details>
+            {page === "promises" && (
+              <>
+                <ScenePromises storyId={activeStory.id} nodeId={node.id} />
+                <SceneLinksField
+                  activeNode={node}
+                  activeStory={activeStory}
+                  flatNodes={flattenStructure(structure)}
+                  onNavigate={(n: StructureNode) => openScene(n.id)}
+                />
+              </>
+            )}
 
-        {sequence && <SceneSides sequence={sequence} />}
+            {page === "notes" && (
+              <div className={styles.pair}>
+                <section className={styles.part} aria-label="Notes">
+                  <SubjectNotes
+                    storyId={activeStory.id}
+                    aboutType="scene"
+                    aboutId={node.id}
+                    name="this scene"
+                  />
+                </section>
+                <section className={styles.part} aria-labelledby="sheet-images">
+                  <h2 id="sheet-images" className={styles.label}>
+                    Images and diagrams
+                  </h2>
+                  {diagrams.length > 0 && (
+                    <div className={styles.diagrams}>
+                      {diagrams.map((d) => (
+                        <DiagramThumbnail
+                          key={d.id}
+                          diagram={d}
+                          onClick={() => navigate(`/stories/${activeStory.id}/lorebook/places`)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  <AssetPicker
+                    storyId={activeStory.id}
+                    objectType="structure_node"
+                    objectId={node.id}
+                    label="Images & references"
+                  />
+                </section>
+              </div>
+            )}
+
+            {page === "findings" && (
+              <>
+                <FindingsCard
+                  findings={findings}
+                  storyId={activeStory.id}
+                  empty="Nothing needs your eye in this scene."
+                />
+                <div className={styles.box}>
+                  <QuotesField activeNode={node} />
+                </div>
+              </>
+            )}
+
+            {page === "facts" && <SceneFacts node={node} story={activeStory} patch={patch} />}
+
+            {page === "assistant" && studio && (
+              <div className={styles.ai}>
+                <WhoIsHereField activeNode={node} storyId={activeStory.id} />
+                {activeStory.discovery_enabled && (
+                  <button
+                    type="button"
+                    className={styles.aiBtn}
+                    onClick={() => discoverIn(node.story_id, node.id).catch(() => {})}
+                    disabled={discovering}
+                    title="Analyze this scene for new characters, settings, and other story elements"
+                  >
+                    <Orbit size={12} aria-hidden />
+                    {discovering ? "Analyzing…" : "Analyze for discoveries"}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

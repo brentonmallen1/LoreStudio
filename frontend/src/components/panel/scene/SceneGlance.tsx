@@ -8,12 +8,12 @@ import { openScene } from "../../../lib/panel/openScene";
 import type { Sequence } from "../../../lib/panel/sequence";
 import { useFullNode } from "../../../lib/panel/useFullNode";
 import { usePromises } from "../../../lib/promises/usePromises";
-import { neighbourLine, sceneSheetPath, whoIsHere } from "../../../lib/scene/glance";
+import { neighbourLine, sceneSheetPath } from "../../../lib/scene/glance";
+import { useSceneFacts } from "../../../lib/scene/useSceneFacts";
 import { roleLabel } from "../../../lib/threads/roles";
 import { useEditorBridge } from "../../../stores/editorBridge";
 import { useOpenFindings } from "../../../stores/findingsStore";
-import { useStoryStore } from "../../../stores/storyStore";
-import type { SceneSetting, Story, StructureNode } from "../../../types";
+import type { Story, StructureNode } from "../../../types";
 import { useStoryNotes } from "../../notes/useStoryNotes";
 import styles from "./SceneGlance.module.css";
 
@@ -39,32 +39,18 @@ export default function SceneGlance({
   story: Story;
   sequence: Sequence;
 }) {
-  const { characters, locations, sceneCast, beatSheets } = useStoryStore();
   const findings = findingsForNode(useOpenFindings(), node.id);
   const sheet = sceneSheetPath(story.id, node.id);
   const onSheet = useLocation().pathname === sheet;
   const words = node.word_count ?? 0;
-
-  const pov = node.pov_character_id ?? story.pov_character_id;
-  const castIds = sceneCast?.scenes.find((s) => s.node_id === node.id)?.character_ids ?? [];
-  const who = whoIsHere(pov, castIds, characters);
-  const [places, setPlaces] = useState<SceneSetting[]>([]);
+  const { who, where, beat } = useSceneFacts(node, story);
   const [links, setLinks] = useState(0);
   useEffect(() => {
-    api
-      .getSceneSettingsForNode(node.id)
-      .then(setPlaces)
-      .catch(() => setPlaces([]));
     api
       .getSceneLinks({ node_id: node.id })
       .then((l) => setLinks(l.length))
       .catch(() => setLinks(0));
   }, [node.id]);
-  const where = places.flatMap((s) => {
-    const loc = locations.find((l) => l.id === s.location_id);
-    return loc ? [{ name: loc.name, role: s.role }] : [];
-  });
-  const beat = beatSheets.find((b) => b.id === story.beat_sheet_id)?.beats.find((b) => b.id === node.beat_id);
 
   // The editor's live notes while it is open; the saved ones otherwise.
   const live = useEditorBridge((s) => s.notes);
