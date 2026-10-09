@@ -3,7 +3,7 @@
   position: fixed;
   inset: 0;
   display: flex;
-  background: var(--color-bg);
+  background: var(--color-ground);
   color: var(--color-text);
 }
 

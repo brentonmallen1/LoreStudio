@@ -169,8 +169,8 @@ Warm, low-chroma neutrals with a handful of signal colours, each assigned one jo
 ### Neutral
 - **Paper** (#ffffff, `--color-surface`): the ground (`--color-ground`, doc 24 D18) under
   the header, the strip, the prose and the rail alike; also menus and sheets.
-- **Parchment** (#f7f6f3, `--color-bg`): the old page ground. Pages that still paint it
-  themselves move to the ground in doc 24 P8.
+- **Parchment** (#f7f6f3, `--color-bg`): the old page ground. No page paints it now (doc 24
+  P8); it stays for wells inside a box, such as a field or a message bubble, a step down from the tone.
 - **Tone** (#f5f4f0, `--color-tone`): the tone box, a quiet ground that groups things on
   the paper ("In this scene", a menu's footer) where a rule or a card used to, and the side
   panel's ground.
