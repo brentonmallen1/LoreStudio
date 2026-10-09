@@ -23,22 +23,22 @@
   gap: 0.35rem;
   height: 1.867rem;
   padding: 0 0.75rem;
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: 999px;
-  background: var(--color-surface);
-  color: var(--color-text);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
   font: inherit;
   font-size: 0.78rem;
   cursor: pointer;
 }
 
 .filterTab:hover {
+  background: var(--color-surface-3);
   color: var(--color-text);
 }
 
 .filterTabActive,
 .filterTabActive:hover {
-  border-color: var(--color-text);
   background: var(--color-text);
   color: var(--color-bg);
 }
@@ -191,14 +191,16 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--color-border-light);
 }
 
 .row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border-bottom: 1px solid var(--color-border-light);
+}
+
+.row + .row {
+  border-top: 1px solid var(--color-border-light);
 }
 
 .rowMain {

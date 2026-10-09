@@ -61,10 +61,10 @@
   gap: 0.35rem;
   height: 1.867rem;
   padding: 0 0.75rem;
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: 999px;
-  background: var(--color-surface);
-  color: var(--color-text);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
   font: inherit;
   font-size: 0.8rem;
   cursor: pointer;
@@ -75,12 +75,12 @@
 }
 
 .chip:hover {
-  border-color: var(--color-border-hover);
+  background: var(--color-surface-3);
+  color: var(--color-text);
 }
 
 .chip[aria-pressed="true"] {
   background: var(--color-text);
-  border-color: var(--color-text);
   color: var(--color-bg);
 }
 
@@ -94,11 +94,11 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--color-border-light);
 }
 
-.list li {
-  border-bottom: 1px solid var(--color-border-light);
+/* A feed: a hairline between rows, none above or below the list (DESIGN.md). */
+.list li + li {
+  border-top: 1px solid var(--color-border-light);
 }
 
 .row {
