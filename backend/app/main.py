@@ -80,7 +80,7 @@ from .routers.worldbuilding_ai import router as worldbuilding_ai_router
 from .services.automatic import at_start, automatic_loop
 from .services.change_headers import EXPOSED as CHANGE_HEADERS
 from .services.change_headers import ChangeHeaders
-from .services.db_migrate import run_migrations
+from .services.db_migrate import NewerDatabaseError, run_migrations
 from .services.job_queue import LANES, worker_loop
 from .services.llm.gateway import AIDisabledError
 from .services.seed import (
@@ -128,7 +128,12 @@ def seed_all() -> None:
 async def lifespan(app: FastAPI):
     refuse_insecure_defaults()
     if settings.auto_migrate:
-        run_migrations(engine)
+        try:
+            run_migrations(engine)
+        except NewerDatabaseError as exc:
+            # Starting would mean stamping a newer schema back to this one (docs/upgrading.md).
+            logger.critical("%s", exc)
+            sys.exit(1)
     else:
         Base.metadata.create_all(bind=engine)
     seed_all()
@@ -237,5 +242,6 @@ def ai_disabled_handler(request: Request, exc: AIDisabledError) -> JSONResponse:
 @app.get("/health")
 @app.get("/api/health")
 def health():
-    """Up and answering. `/api/health` is the one a proxy in front of the app can reach."""
-    return {"status": "ok"}
+    """Up and answering, and which LoreStudio (the sign-in page shows it). `/api/health` is the
+    one a proxy in front of the app can reach."""
+    return {"status": "ok", "version": settings.app_version}

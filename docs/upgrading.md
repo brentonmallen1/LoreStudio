@@ -6,6 +6,7 @@ Releases are tagged `vYYYY.MM.N` (calendar version, N counts releases within the
 month). Container images carry the version without the `v` (`2026.10.1`), the month
 (`2026.10`) and `latest`. *Settings › System* shows the version running. Breaking
 changes are listed at the bottom of this page under the release that introduced them.
+The sign-in page shows the version too, at its foot.
 
 ## What happens on start
 
@@ -17,7 +18,13 @@ Every backend start runs the database migrations before serving requests:
    version, or a version from the pre-2026.09 migration chain): missing tables
    are created, the schema is stamped at the new baseline, and later migrations
    apply on top. Nothing is dropped.
-3. **Database already on the new chain**: `alembic upgrade head`.
+3. **Database already on the new chain**: `alembic upgrade head`. Before the first
+   migration runs, the database is copied whole to
+   `backups/before-upgrade-<date>-<revision>.db`. The three newest copies are kept, apart
+   from the rotating backups, which never prune them.
+4. **Database saved by a newer LoreStudio** (a migration this version doesn't know):
+   the backend refuses to start and logs which version the data needs. Nothing is
+   changed. Install that version or a newer one.
 
 The result is logged as a System entry in Chronicle and in the backend log
 (`migrations: fresh|adopted|upgraded|current`). Set `AUTO_MIGRATE=false` to skip
@@ -50,11 +57,13 @@ Click **Update**, wait for the container to restart, and check its log for the
 ## Rolling back
 
 1. Stop the container.
-2. Restore `lorestudio.db` from `backups/` (delete `lorestudio.db-wal` and
-   `-shm` beside it), or the whole data folder from your copy.
+2. Restore `lorestudio.db` from `backups/`: the `before-upgrade-…` copy is the database
+   exactly as the previous version left it. Delete `lorestudio.db-wal` and `-shm` beside
+   it. Or restore the whole data folder from your copy.
 3. Pin the previous image (`ghcr.io/brentonmallen1/lorestudio:2026.09.1`, or
    `LORESTUDIO_TAG=2026.09.1` with the compose files) and start again.
-   Migrations never downgrade automatically.
+   Migrations never downgrade. An older version refuses a database a newer one has
+   upgraded, which is why step 2 comes first.
 
 ## Breaking changes
 

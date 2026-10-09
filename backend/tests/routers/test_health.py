@@ -71,7 +71,10 @@ def test_the_dashboard_endpoint_is_gone(client: TestClient, db_session: Session,
 
 
 def test_the_app_answers_health_at_both_paths(client: TestClient):
-    """The container healthchecks call /api/health (the path nginx proxies); /health stays."""
+    """The container healthchecks call /api/health (the path nginx proxies); /health stays.
+    It names the version, without signing in: the sign-in page shows it."""
+    from app.config import settings
+
     for path in ("/health", "/api/health"):
         r = client.get(path)
-        assert r.status_code == 200 and r.json() == {"status": "ok"}
+        assert r.status_code == 200 and r.json() == {"status": "ok", "version": settings.app_version}

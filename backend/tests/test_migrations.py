@@ -239,3 +239,47 @@ def test_0031_gives_an_existing_series_an_empty_plan(tmp_path):
         book = conn.execute(text("SELECT role, slots, arc_beats FROM series_stories")).one()
     assert tuple(series) == ("[]", "[]")
     assert tuple(book) == ("", "{}", "[]")
+
+
+def test_a_database_from_a_newer_lorestudio_is_refused_untouched(tmp_path):
+    """Stamping a newer schema back to this version's head would make the newer version replay
+    its own migrations on the next start. Refuse, and change nothing."""
+    import pytest
+
+    from app.services.db_migrate import NewerDatabaseError
+
+    engine = _engine(tmp_path, "newer.db")
+    run_migrations(engine)
+    with engine.begin() as conn:
+        conn.execute(text("UPDATE alembic_version SET version_num = '9999_from_the_future'"))
+    with pytest.raises(NewerDatabaseError, match="newer LoreStudio"):
+        run_migrations(engine)
+    assert _head(engine) == "9999_from_the_future"
+
+
+def test_an_upgrade_keeps_a_copy_of_the_database_as_it_was(tmp_path, monkeypatch):
+    """Before migrations change anything, the database goes to the backups folder whole, under
+    a name the rotating backups never prune."""
+    from alembic import command
+    from app.services import db_backup
+    from app.services.db_migrate import _alembic_config
+
+    backups = tmp_path / "backups"
+    monkeypatch.setattr(db_backup.settings, "backups_path", str(backups))
+    engine = _engine(tmp_path, "older.db")
+    with engine.connect() as conn:
+        command.upgrade(_alembic_config(conn), "0036_app_settings")
+        conn.commit()
+        conn.execute(
+            text("INSERT INTO app_settings (key, value, updated_at) VALUES ('marker', '\"kept\"', CURRENT_TIMESTAMP)")
+        )
+        conn.commit()
+
+    assert run_migrations(engine) == "upgraded"
+    (copy,) = backups.glob("before-upgrade-*-0036_app_settings.db")
+    old = create_engine(f"sqlite:///{copy}")
+    with old.connect() as conn:
+        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0036_app_settings"
+        assert conn.execute(text("SELECT value FROM app_settings WHERE key = 'marker'")).scalar() == '"kept"'
+    old.dispose()
+    assert db_backup.list_backups(backups) == []  # not one of the rotating backups
