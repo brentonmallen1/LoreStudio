@@ -120,6 +120,30 @@
   padding: 0.5rem 0.25rem;
 }
 
+/* The whole tree at the strip's widest (FullTree): the header and filter stay put and only the
+   rows scroll, so the header's + menu hangs over the rows instead of inside a scroller that
+   clipped it. */
+.full {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.fullHead {
+  flex-shrink: 0;
+}
+
+.fullRows {
+  min-height: 0;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.fullRows::-webkit-scrollbar {
+  display: none;
+}
+
 .emptyHint {
   padding: 0.75rem 0.875rem;
   font-size: 0.75rem;
@@ -306,19 +330,20 @@
   color: var(--color-accent);
 }
 
-/* Opens rightward, over the editor: right-aligned it hung off the panel's left edge. */
+/* Opens inward from the + at the strip's right end. Opening outward it ran past the strip's
+   edge and was cut off; the strip is never narrower than the menu (EXPANDED_MIN_PX). */
 .addMenu {
   position: absolute;
   top: calc(100% + 4px);
-  left: 0;
+  right: 0;
   width: max-content;
   min-width: 190px;
   max-width: 280px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  z-index: 50;
+  box-shadow: var(--shadow);
+  z-index: var(--z-popover);
   overflow: hidden;
   padding: 3px;
 }

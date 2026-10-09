@@ -162,7 +162,7 @@ export default function StoryStrip() {
       {/* The key shows while the pointer is over the line itself, not the foot: open the
           More menu there and the key would sit on top of it. */}
       <div
-        className={styles.body}
+        className={`${styles.body} ${width === "scenes" ? styles.bodyTree : ""}`}
         onMouseEnter={() => setHovering(true)}
         onMouseLeave={() => setHovering(false)}
       >

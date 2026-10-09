@@ -151,8 +151,8 @@ export default function FullTree({ storyId }: { storyId: string | undefined }) {
   const shown = filterTree(structure, filter);
 
   return (
-    <div>
-      <div className={tree.header} style={{ padding: "0.35rem 0.5rem" }}>
+    <div className={tree.full}>
+      <div className={`${tree.header} ${tree.fullHead}`} style={{ padding: "0.35rem 0.5rem" }}>
         <label className={tree.viewPicker} style={{ margin: 0, flex: 1 }}>
           <span className={tree.viewPickerLabel}>View</span>
           <select
@@ -222,7 +222,7 @@ export default function FullTree({ storyId }: { storyId: string | undefined }) {
           )}
         </div>
       </div>
-      <div className={styles.filterWrap}>
+      <div className={`${styles.filterWrap} ${tree.fullHead}`}>
         <input
           className={styles.filter}
           value={filter}
@@ -231,7 +231,7 @@ export default function FullTree({ storyId }: { storyId: string | undefined }) {
           aria-label="Filter scenes"
         />
       </div>
-      <div className={tree.tree}>
+      <div className={`${tree.tree} ${tree.fullRows}`}>
         {addingLevel !== null && (
           <div className={tree.addInlineRow}>
             <input
