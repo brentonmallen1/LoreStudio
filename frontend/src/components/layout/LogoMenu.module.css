@@ -171,14 +171,77 @@
 }
 
 /* Sections as quiet words under their page, aligned with its label. */
-.sections {
+/* A page with sections: the row, and a › that fans them out beside the menu (doc 24). */
+.rowWrap {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0 2px;
-  padding: 0 0.5rem 0.25rem 2.15rem;
+  align-items: center;
+  border-radius: 8px;
 }
 
-/* A quiet word you can press: no ground until the pointer is on it. */
+.rowWrap .row {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowWrap:hover,
+.rowFanned {
+  background: var(--color-hover);
+}
+
+.rowWrap .row:hover {
+  background: transparent;
+}
+
+.fanBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-right: 0.25rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+}
+
+.fanBtn:hover,
+.rowFanned .fanBtn {
+  color: var(--color-text);
+}
+
+.fan {
+  position: fixed;
+  z-index: var(--z-popover);
+  display: flex;
+  flex-direction: column;
+  min-width: 12rem;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.fanItem {
+  display: flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 0.65rem;
+  border-radius: 8px;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.fanItem:hover,
+.fanItem:focus-visible {
+  background: var(--color-hover);
+  outline: none;
+}
+
 .word {
   display: inline-flex;
   align-items: center;

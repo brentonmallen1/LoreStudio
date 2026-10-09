@@ -2,15 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { Compass, Monitor, Moon, Settings, Sun, type LucideIcon } from "lucide-react";
 import LogoMark from "../common/LogoMark";
-import {
-  routesFor,
-  sectionModes,
-  sectionPath,
-  storyPath,
-  type Domain,
-  type StoryRoute,
-} from "../../lib/routes";
-import { setMode, useAIAvailable, useMode } from "../../lib/mode";
+import { sectionPath } from "../../lib/routes";
+import { setMode, useMode } from "../../lib/mode";
 import { useOpenFindings } from "../../stores/findingsStore";
 import { useOpenProposals } from "../../stores/proposalsStore";
 import { useStoryStore } from "../../stores/storyStore";
@@ -19,15 +12,8 @@ import { THEME_META, useUIStore, type ColorMode } from "../../stores/uiStore";
 import { toast } from "../../stores/toastStore";
 import { backupNeedsEye, useBackupStatus } from "../../hooks/useBackupStatus";
 import { relativeTime } from "../../utils/relativeTime";
+import LogoMenuPages from "./LogoMenuPages";
 import styles from "./LogoMenu.module.css";
-
-/** The menu's groups, each a run of domains from `lib/routes.ts`, in the table's order. */
-const GROUPS: { label: string; domains: Domain[] }[] = [
-  { label: "Write", domains: ["home", "manuscript"] },
-  { label: "Canon", domains: ["lorebook", "codex"] },
-  { label: "Research", domains: ["compendium"] },
-  { label: "Review", domains: ["system", "chronicle"] },
-];
 
 const COLOUR_MODES: { value: ColorMode; label: string; Icon: LucideIcon }[] = [
   { value: "light", label: "Light", Icon: Sun },
@@ -36,8 +22,8 @@ const COLOUR_MODES: { value: ColorMode; label: string; Icon: LucideIcon }[] = [
 ];
 
 /**
- * The logo, and the one place to go from (doc 24 D9, D14): the story's pages by domain with
- * their sections as quiet words under them, a count beside what is waiting on you, and a
+ * The logo, and the one place to go from (doc 24 D9, D14): the story's pages by domain, the
+ * sections of a grouped page fanned out beside it, a count beside what is waiting on you, and a
  * footer with Guides, Settings, the colour mode, the backup, the mode and the account.
  * The badge on the logo is open findings plus pending proposals (D5); a warning dot only
  * when a backup is overdue (D7). Outside a story it holds the footer alone.
@@ -132,7 +118,7 @@ export default function LogoMenu() {
               All stories
             </Link>
           </div>
-          {inStory && <Pages storyId={storyId!} pathname={pathname} counts={counts} done={done} />}
+          {inStory && <LogoMenuPages storyId={storyId!} pathname={pathname} counts={counts} done={done} />}
           <Footer storyId={inStory ? storyId : undefined} backup={backup} done={done} />
         </div>
       )}
@@ -141,91 +127,9 @@ export default function LogoMenu() {
 }
 
 function focusables(root: HTMLElement | null): HTMLElement[] {
-  return [...(root?.querySelectorAll<HTMLElement>("a[href], button:not(:disabled)") ?? [])];
-}
-
-/** The story's pages, grouped, with their sections as words under them. */
-function Pages({
-  storyId,
-  pathname,
-  counts,
-  done,
-}: {
-  storyId: string;
-  pathname: string;
-  counts: Record<string, number>;
-  done: () => void;
-}) {
-  const mode = useMode();
-  const aiAvailable = useAIAvailable();
-  const activeNode = useStoryStore((s) => s.activeNode);
-  const routes = routesFor(mode).filter((r) => !r.ai || aiAvailable);
-  const isHere = (r: StoryRoute) =>
-    r.path === "" ? /^\/stories\/[^/]+\/?$/.test(pathname) : pathname.startsWith(storyPath(storyId, r));
-  const openScene = activeNode?.story_id === storyId ? activeNode.title : undefined;
-
-  return (
-    <nav aria-label="The story's pages">
-      {GROUPS.map((g) => {
-        const rows = routes.filter((r) => g.domains.includes(r.domain));
-        if (!rows.length) return null;
-        return (
-          <div key={g.label} role="group" aria-labelledby={`logo-menu-${g.label}`}>
-            <div className={styles.group} id={`logo-menu-${g.label}`}>
-              {g.label}
-            </div>
-            {rows.map((r) => {
-              const Icon = r.icon;
-              const here = isHere(r);
-              const count = counts[r.id];
-              const sections = (r.sections ?? []).filter((sec) => {
-                const m = sectionModes(r, sec);
-                return m.modes.includes(mode) && (!m.ai || aiAvailable);
-              });
-              return (
-                <div key={r.id}>
-                  <Link
-                    to={storyPath(storyId, r)}
-                    onClick={done}
-                    className={`${styles.row} ${here ? styles.rowOn : ""}`}
-                    aria-current={here ? "page" : undefined}
-                  >
-                    <Icon size={16} className={styles.rowIcon} aria-hidden />
-                    <span className={styles.rowLabel}>{r.label}</span>
-                    {count ? (
-                      <span className={styles.count} aria-label={`${count} open`}>
-                        {count}
-                      </span>
-                    ) : r.id === "write" && openScene ? (
-                      <span className={styles.hint}>{openScene}</span>
-                    ) : null}
-                  </Link>
-                  {sections.length > 0 && (
-                    <div className={styles.sections}>
-                      {sections.map((sec) => {
-                        const to = sectionPath(storyId, r.id, sec.id);
-                        const on = sec.path === "" ? pathname === to : pathname.startsWith(to);
-                        return (
-                          <Link
-                            key={sec.id}
-                            to={to}
-                            onClick={done}
-                            className={`${styles.word} ${on ? styles.wordOn : ""}`}
-                            aria-current={on ? "page" : undefined}
-                          >
-                            {sec.label}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        );
-      })}
-    </nav>
+  // The sections fanned out beside a row move by their own keys.
+  return [...(root?.querySelectorAll<HTMLElement>("a[href], button:not(:disabled)") ?? [])].filter(
+    (el) => !el.closest("[data-fan]") && el.tabIndex !== -1,
   );
 }
 
