@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { proseChecksApi } from "../../api/tools";
-import type { PassageFinding } from "../../types";
+import { proseChecksApi } from "../../../api/tools";
+import type { PassageFinding } from "../../../types";
 import styles from "./AttributionChecks.module.css";
 
 /** A dialogue tag with an adverb on it: "said quietly", "softly asked". */

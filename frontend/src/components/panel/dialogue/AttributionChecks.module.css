@@ -1,7 +1,7 @@
+/* A tint box under the Dialogue tool's title, no edge (doc 24: tone, not a line). */
 .checks {
-  margin: 0 0 1rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-nlp-border);
+  margin: 0.35rem 1rem 0.25rem;
+  padding: 0.4rem 0.65rem;
   border-radius: var(--radius);
   background: var(--color-nlp-subtle);
   font-size: 0.78rem;

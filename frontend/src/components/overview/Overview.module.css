@@ -380,6 +380,13 @@
   }
 }
 
+/* Beside the prose (doc 24 D2), the side panel is the container: one column there too. */
+@container (max-width: 900px) {
+  .desk {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .card {
   display: flex;
   flex-direction: column;

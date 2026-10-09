@@ -19,8 +19,6 @@ interface Props {
   notesView: NotesView;
   noteCount: number;
   onNotesView: (view: NotesView) => void;
-  dialogueIsolation: boolean;
-  onToggleDialogue: () => void;
   onOpenImagePicker: () => void;
   onOpenAutoTag: () => void;
   onOpenAutoLink: () => void;
@@ -39,7 +37,8 @@ const STATUS_LABEL: Record<string, string> = {
  * The page's sub header (doc 24): what the scene is and the ⋯ for what you can do with it.
  * It floats on the page with no ground or rule of its own: the type as its icon (a menu of
  * the template's types), the title, the status as a shape and a word, its threads, and ⋯.
- * The words and the save light are in the status corner; Notes and Dialogue are under ⋯.
+ * The words and the save light are in the status corner; Notes are under ⋯ and the
+ * Dialogue is a tool on the side panel's rail.
  * In focus mode it goes quiet in colour, and comes back under the pointer or the keyboard.
  */
 export default function EditorTopbar(p: Props) {
@@ -204,8 +203,6 @@ export default function EditorTopbar(p: Props) {
           notesView={p.notesView}
           noteCount={p.noteCount}
           onNotesView={p.onNotesView}
-          dialogueIsolation={p.dialogueIsolation}
-          onToggleDialogue={p.onToggleDialogue}
         />
       </div>
     </div>

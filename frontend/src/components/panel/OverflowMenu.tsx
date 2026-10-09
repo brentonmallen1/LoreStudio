@@ -6,7 +6,6 @@ import { useAIStore } from "../../stores/aiStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { sessionLabel } from "../../lib/ai/sessionLabel";
 import { tabLabel } from "../../lib/panel/tabLabel";
-import { tabColor } from "./entityColor";
 import styles from "./Panel.module.css";
 
 interface Props {
@@ -44,17 +43,7 @@ export default function OverflowMenu({ hidden, onPick, onClose, onDismiss }: Pro
       {hidden.length > 0 && <div className={styles.menuHeader}>Story</div>}
       {hidden.map((tab) => (
         <div key={tab.id} className={styles.menuRow}>
-          <button
-            role="menuitem"
-            className={styles.menuItem}
-            onClick={() => onPick(tab.id)}
-            style={
-              {
-                "--tab-color": tabColor(tab),
-              } as React.CSSProperties
-            }
-          >
-            <span className={`${styles.tabDot} ${tab.kind === "tool" ? styles.tabDotSquare : ""}`} />
+          <button role="menuitem" className={styles.menuItem} onClick={() => onPick(tab.id)}>
             <span>{tabLabel(tab)}</span>
           </button>
           <button

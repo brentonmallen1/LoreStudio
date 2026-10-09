@@ -76,7 +76,10 @@ export default function LogoMenu() {
     if (!keys.includes(e.key) || !panel.current?.contains(document.activeElement)) return;
     e.preventDefault();
     const items = focusables(panel.current);
-    const at = items.indexOf(document.activeElement as HTMLElement);
+    // A row's "beside the prose" button is reached with Tab; the arrows go on from its row.
+    const current = document.activeElement as HTMLElement;
+    const from = current.dataset.beside ? (current.parentElement?.querySelector("a") ?? current) : current;
+    const at = items.indexOf(from);
     const next =
       e.key === "Home"
         ? 0
@@ -129,7 +132,7 @@ export default function LogoMenu() {
 function focusables(root: HTMLElement | null): HTMLElement[] {
   // The sections fanned out beside a row move by their own keys.
   return [...(root?.querySelectorAll<HTMLElement>("a[href], button:not(:disabled)") ?? [])].filter(
-    (el) => !el.closest("[data-fan]") && el.tabIndex !== -1,
+    (el) => !el.closest("[data-fan]") && el.tabIndex !== -1 && !el.dataset.beside,
   );
 }
 

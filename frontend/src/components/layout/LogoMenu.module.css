@@ -212,6 +212,39 @@
   color: var(--color-text);
 }
 
+/* "Open beside the prose" (doc 24 D2): there on the row under the pointer or the keyboard. */
+.besideBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-right: 0.15rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  /* Not hidden from the keyboard: Tab still lands on it, and it shows when it does. */
+  opacity: 0;
+}
+
+.rowWrap:hover .besideBtn,
+.rowWrap:focus-within .besideBtn {
+  opacity: 1;
+}
+
+.besideBtn:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}
+
+.besideBtn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
 .fan {
   position: fixed;
   z-index: var(--z-popover);

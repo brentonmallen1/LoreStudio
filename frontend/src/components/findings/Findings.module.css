@@ -612,6 +612,20 @@ button.runItem:focus-visible {
   }
 }
 
+/* The same beside the prose (doc 24 D2): there the side panel is the container. */
+@container (max-width: 720px) {
+  .row {
+    flex-wrap: wrap;
+  }
+  /* The words take the row; the actions wrap under them instead of squeezing them. */
+  .body {
+    flex-basis: calc(100% - 2rem);
+  }
+  .verb {
+    margin-left: calc(9px + 0.75rem);
+  }
+}
+
 /* ── Proposals (doc 12 P5): the same rows, with a yes and a no ── */
 
 .kindIcon {
@@ -698,6 +712,14 @@ button.runItem:focus-visible {
 }
 
 @media (max-width: 720px) {
+  .yes,
+  .no {
+    margin-left: calc(14px + 0.75rem);
+  }
+}
+
+/* The same beside the prose (doc 24 D2): there the side panel is the container. */
+@container (max-width: 720px) {
   .yes,
   .no {
     margin-left: calc(14px + 0.75rem);

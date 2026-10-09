@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, PanelRightOpen } from "lucide-react";
 import {
   routesFor,
   sectionModes,
@@ -12,6 +12,8 @@ import {
 } from "../../lib/routes";
 import { useAIAvailable, useMode } from "../../lib/mode";
 import { useStoryStore } from "../../stores/storyStore";
+import { openBesideTheProse } from "../../lib/panel/openBeside";
+import { canOpenBeside } from "../../lib/panel/pages";
 import styles from "./LogoMenu.module.css";
 
 /** The menu's groups, each a run of domains from `lib/routes.ts`, in the table's order. */
@@ -35,7 +37,8 @@ interface Fan {
 /**
  * The story's pages, grouped (doc 24 D14). A page with sections (Lorebook, Promises,
  * Compendium, Chronicle) fans them out to the right: point at the row, press →, or press its
- * ›. The row itself still opens the page, so the menu stays one screen tall.
+ * ›. The row itself still opens the page, so the menu stays one screen tall. Pointing at a
+ * row (or Tab onto it) shows the page's "Open beside the prose" (doc 24 D2).
  */
 export default function LogoMenuPages({
   storyId,
@@ -167,6 +170,21 @@ export default function LogoMenuPages({
                       <span className={styles.hint}>{current.label}</span>
                     ) : null}
                   </Link>
+                  {canOpenBeside(r) && (
+                    <button
+                      type="button"
+                      data-beside
+                      className={styles.besideBtn}
+                      aria-label={`Open ${r.label} beside the prose`}
+                      title={`Open ${r.label} beside the prose`}
+                      onClick={() => {
+                        done();
+                        openBesideTheProse(r.id);
+                      }}
+                    >
+                      <PanelRightOpen size={14} aria-hidden />
+                    </button>
+                  )}
                   {sections.length > 0 && (
                     <button
                       type="button"

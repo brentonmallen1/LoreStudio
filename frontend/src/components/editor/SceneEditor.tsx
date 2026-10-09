@@ -59,7 +59,6 @@ import DraftBanner from "./DraftBanner";
 import StatusCorner from "./StatusCorner";
 import { useAIAvailable } from "../../lib/mode";
 import { SHORTCUTS, matchesCombo } from "../../lib/keyboard/shortcuts";
-import DialogueIsolationView from "./DialogueIsolationView";
 import EmptyManuscript from "./EmptyManuscript";
 import ScenePlanCard from "./ScenePlanCard";
 import styles from "./SceneEditor.module.css";
@@ -90,13 +89,12 @@ export default function SceneEditor() {
   const aiAvailable = useAIAvailable();
   // Notes sit in the prose's left margin (doc 13 P2); the topbar button shows or hides it.
   const [notesView, setNotesView] = useState(readNotesView);
-  const activateTab = usePanelStore((s) => s.activate);
+  const launch = usePanelStore((s) => s.launch);
   const openEntity = usePanelStore((s) => s.openEntity);
   const setBridgeNotes = useEditorBridge((s) => s.setNotes);
   const [guidesTab, setGuidesTab] = useState<WritingGuideTab>("dialogue");
   const [showAutoTag, setShowAutoTag] = useState(false);
   const [showAutoLink, setShowAutoLink] = useState(false);
-  const [dialogueIsolation, setDialogueIsolation] = useState(false);
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [selectionRect, setSelectionRect] = useState<DOMRect | null>(null);
   const selectionDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -289,8 +287,6 @@ export default function SceneEditor() {
         notesView={notesView}
         noteCount={notes.sceneNotes.filter((n) => !n.done).length}
         onNotesView={(v) => setNotesView(saveNotesView(v))}
-        dialogueIsolation={dialogueIsolation}
-        onToggleDialogue={() => setDialogueIsolation((v) => !v)}
         onOpenImagePicker={() => setImagePickerOpen(true)}
         onOpenAutoTag={() => setShowAutoTag(true)}
         onOpenAutoLink={() => setShowAutoLink(true)}
@@ -323,44 +319,30 @@ export default function SceneEditor() {
             className={styles.scrollArea}
             ref={scrollAreaRef}
             onClick={(e) => {
-              if (!dialogueIsolation && editor && !(e.target as HTMLElement).closest(".ProseMirror")) {
+              if (editor && !(e.target as HTMLElement).closest(".ProseMirror")) {
                 editor.commands.focus("end");
               }
             }}
           >
-            {dialogueIsolation ? (
-              <DialogueIsolationView
-                activeNode={activeNode}
-                activeStory={activeStory}
-                characters={characters}
-                editor={editor}
-                setActiveNode={setActiveNode}
-                onExit={() => setDialogueIsolation(false)}
-                onOpenAutoTag={() => setShowAutoTag(true)}
-              />
-            ) : (
-              <div
-                className={`${styles.editorWrap}${notes.hideEditorial ? ` ${styles.hideEditorialNotes}` : ""}`}
-              >
-                {editor?.isEmpty && (
-                  <ScenePlanCard
-                    node={activeNode}
-                    story={activeStory}
-                    characters={characters}
-                    onOpenNotes={() => activateTab("scene")}
-                  />
-                )}
-                <EditorContent editor={editor} />
-              </div>
-            )}
-            {!dialogueIsolation && (
-              <NoteMargin
-                notes={notes}
-                scrollAreaRef={scrollAreaRef}
-                marginRef={notePopoverRef}
-                view={notesView}
-              />
-            )}
+            <div
+              className={`${styles.editorWrap}${notes.hideEditorial ? ` ${styles.hideEditorialNotes}` : ""}`}
+            >
+              {editor?.isEmpty && (
+                <ScenePlanCard
+                  node={activeNode}
+                  story={activeStory}
+                  characters={characters}
+                  onOpenNotes={() => launch("scene")}
+                />
+              )}
+              <EditorContent editor={editor} />
+            </div>
+            <NoteMargin
+              notes={notes}
+              scrollAreaRef={scrollAreaRef}
+              marginRef={notePopoverRef}
+              view={notesView}
+            />
             <MentionGutter scrollAreaRef={scrollAreaRef} />
           </div>
         </div>

@@ -10,35 +10,32 @@ import {
 import { AI_WINDOW_PATH } from "../../lib/ai/panelChannel";
 import { useAIAvailable } from "../../lib/mode";
 import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
-import { tabLabel } from "../../lib/panel/tabLabel";
+import { sceneTabLabel } from "../../lib/panel/tabLabel";
 import { useAIStore } from "../../stores/aiStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
-import { TOOL_LABELS, toolTabId, type ToolId } from "../../types/panel";
+import { TOOLS, TOOL_LABELS, launcherId, type Launcher } from "../../types/panel";
 import { TOOL_ICONS } from "./toolIcons";
 import styles from "./Panel.module.css";
 
-/** The tools the rail opens, in the order they sit down it. */
-const TOOLS: ToolId[] = ["characters", "places", "threads", "notes", "freewrite"];
-
 /**
  * The side panel's rail down the right edge, mirroring the story strip on the left and there
- * whether the panel is open or not: everything that opens beside the page starts here. This
- * scene and each tool, then, a little apart, the Assistant as the one filled button (doc 24:
- * its colour is its own, so it reads apart from the tools). What you opened (characters,
- * places, threads) is in the tab strip, not repeated here. Choosing the one already showing
- * folds the panel away.
+ * whether the panel is open or not. The rail launches and the tabs hold (doc 24 D11): This
+ * scene and each tool show in the panel from here without becoming tabs, then, a little
+ * apart, the Assistant as the one filled button (its colour is its own, so it reads apart
+ * from the tools). Choosing the one already showing folds the panel away.
  * While the panel is open its own controls sit at the top under the chevron (float or dock,
- * pop out), which leaves the tab strip to the tabs.
+ * pop out), which leaves the tab strip to the tabs. In the pop-out window, which has no page
+ * beside it, the rail is only the launchers.
  */
-export default function PanelRail() {
-  const { tabs, activeTabId, open, activate, openTool, setOpen, frame, toggleFloating, setFrame } =
-    usePanelStore();
+export default function PanelRail({ inWindow = false }: { inWindow?: boolean }) {
+  const { showing, open, launch, setOpen, frame, toggleFloating, setFrame } = usePanelStore();
   const aiAvailable = useAIAvailable();
   const sessionCount = useAIStore((s) => s.sessions.length);
   const storyId = useStoryStore((s) => s.activeStory?.id);
-  // Re-render when the open node changes: the scene tab is named for its level.
+  // Re-render when the open node changes: This scene is named for its level.
   useStoryStore((s) => s.activeNode?.id);
+  const shown = (l: Launcher) => (open || inWindow) && showing === launcherId(l);
 
   function popOut() {
     const story = storyId ? `?story=${encodeURIComponent(storyId)}` : "";
@@ -46,34 +43,31 @@ export default function PanelRail() {
     const opened = window.open(`${AI_WINDOW_PATH}${story}`, "lorestudio-panel", "width=520,height=800");
     if (opened) setFrame("window");
   }
-  const openIds = new Set(tabs.map((t) => t.id));
   const shortcut = formatCombo(SHORTCUTS.togglePanel.combo);
 
-  /** Show this tab, or fold the panel away if it is the one already showing. */
-  function choose(id: string, show: () => void) {
-    if (open && activeTabId === id) setOpen(false);
-    else show();
+  /** Show it, or fold the panel away if it is the one already showing. */
+  function choose(l: Launcher) {
+    if (shown(l) && !inWindow) setOpen(false);
+    else launch(l);
   }
-  const cls = (id: string, extra = "") =>
-    [
-      styles.railBtn,
-      openIds.has(id) && id !== "scene" ? styles.railBtnOpen : "",
-      open && activeTabId === id ? styles.railBtnOn : "",
-      extra,
-    ].join(" ");
+  const cls = (l: Launcher, extra = "") =>
+    [styles.railBtn, shown(l) ? styles.railBtnOn : "", extra].join(" ");
+  const sceneLabel = sceneTabLabel();
 
   return (
-    <aside className={styles.rail} aria-label="Side panel tools">
-      <button
-        className={styles.railBtn}
-        onClick={() => setOpen(!open)}
-        title={`${open ? "Collapse" : "Expand"} the side panel (${shortcut})`}
-        aria-label={`${open ? "Collapse" : "Expand"} the side panel`}
-        aria-expanded={open}
-      >
-        {open ? <ChevronsRight size={14} /> : <ChevronsLeft size={14} />}
-      </button>
-      {open && (
+    <aside className={`${styles.rail} ${inWindow ? styles.railInWindow : ""}`} aria-label="Side panel tools">
+      {!inWindow && (
+        <button
+          className={styles.railBtn}
+          onClick={() => setOpen(!open)}
+          title={`${open ? "Collapse" : "Expand"} the side panel (${shortcut})`}
+          aria-label={`${open ? "Collapse" : "Expand"} the side panel`}
+          aria-expanded={open}
+        >
+          {open ? <ChevronsRight size={14} /> : <ChevronsLeft size={14} />}
+        </button>
+      )}
+      {open && !inWindow && (
         <>
           <button
             className={styles.railBtn}
@@ -96,24 +90,23 @@ export default function PanelRail() {
       <div className={styles.railTabs}>
         <button
           className={cls("scene")}
-          onClick={() => choose("scene", () => activate("scene"))}
-          title={tabLabel({ id: "scene", kind: "scene" })}
-          aria-label={tabLabel({ id: "scene", kind: "scene" })}
-          aria-pressed={open && activeTabId === "scene"}
+          onClick={() => choose("scene")}
+          title={sceneLabel}
+          aria-label={sceneLabel}
+          aria-pressed={shown("scene")}
         >
           <FileText size={15} />
         </button>
         {TOOLS.map((tool) => {
-          const id = toolTabId(tool);
           const Icon = TOOL_ICONS[tool];
           return (
             <button
               key={tool}
-              className={cls(id)}
-              onClick={() => choose(id, () => openTool(tool))}
-              title={`${TOOL_LABELS[tool]}: open beside the page`}
+              className={cls(tool)}
+              onClick={() => choose(tool)}
+              title={`${TOOL_LABELS[tool]}: beside the page`}
               aria-label={TOOL_LABELS[tool]}
-              aria-pressed={open && activeTabId === id}
+              aria-pressed={shown(tool)}
             >
               <Icon size={15} />
             </button>
@@ -123,10 +116,10 @@ export default function PanelRail() {
         {aiAvailable && (
           <button
             className={cls("assistant", styles.railAi)}
-            onClick={() => choose("assistant", () => activate("assistant"))}
+            onClick={() => choose("assistant")}
             title="Assistant"
             aria-label={`Assistant, ${sessionCount} ${sessionCount === 1 ? "session" : "sessions"}`}
-            aria-pressed={open && activeTabId === "assistant"}
+            aria-pressed={shown("assistant")}
           >
             <Feather size={15} />
             {sessionCount > 0 && <span className={styles.railCount}>{sessionCount}</span>}

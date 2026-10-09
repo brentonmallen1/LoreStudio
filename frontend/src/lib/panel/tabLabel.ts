@@ -1,6 +1,7 @@
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
-import { TOOL_LABELS, type PanelTab } from "../../types/panel";
+import type { PanelTab } from "../../types/panel";
+import { pageTabLabel } from "./pages";
 
 /**
  * "This scene", or "This chapter" when a chapter's page is open: the tab follows the level.
@@ -18,7 +19,5 @@ export function sceneTabLabel(): string {
 
 /** What a tab is called in the strip and the ☰ menu. */
 export function tabLabel(tab: PanelTab): string {
-  if (tab.kind === "scene") return sceneTabLabel();
-  if (tab.kind === "tool") return TOOL_LABELS[tab.tool];
-  return tab.label;
+  return tab.kind === "page" ? pageTabLabel(tab.routeId, tab.path).label : tab.label;
 }
