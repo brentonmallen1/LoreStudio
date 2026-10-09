@@ -197,6 +197,32 @@ release VERSION NOTES:
     gh release create "$version" --target main --notes-file "{{NOTES}}" --latest
     echo "✓ Released $version: the images build in Actions › Release images"
 
+# ── Desktop app ─────────────────────────────────
+# LoreStudio as a desktop app for the platform you are on: the web app, the backend frozen by
+# PyInstaller (WeasyPrint's libraries, spaCy and pandoc inside) and a Tauri window. Needs Rust,
+# and on macOS `brew install pango`. Installers land in build/desktop/out/. See desktop/README.md.
+desktop *ARGS:
+    python3 desktop/build.py {{ARGS}}
+
+# Only the frozen backend (build/desktop/dist/lorestudio-backend/)
+desktop-backend:
+    python3 desktop/build.py --backend-only
+
+# The Linux app from any machine with Docker, on a copy of the tree (your node_modules and .venv
+# stay as they are). Installers land in build/desktop/out/.
+desktop-linux *ARGS:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    docker build --load -q -t lorestudio-desktop-linux -f desktop/linux.Dockerfile desktop >/dev/null
+    src=build/desktop/linux-src
+    mkdir -p "$src" build/desktop/out
+    rsync -a --delete --exclude node_modules --exclude .venv --exclude target --exclude /build \
+        --exclude frontend/dist --exclude .git --exclude .claude --exclude backend/data --exclude /notes ./ "$src/"
+    docker run --rm -v "$PWD/$src:/src" -v lorestudio-cargo:/root/.cargo/registry -w /src lorestudio-desktop-linux \
+        bash -c 'set -e; (cd frontend && npm ci --no-audit --no-fund --loglevel=error); python3 desktop/build.py {{ARGS}}'
+    cp "$src"/build/desktop/out/* build/desktop/out/
+    ls -lh build/desktop/out/
+
 # ── Utilities ──────────────────────────────────
 # Copy .env.example to .env if it doesn't exist
 init-env:

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>LoreStudio</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        margin: 0; height: 100vh; display: grid; place-items: center;
+        font: 15px/1.5 -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #f7f4ee; color: #5b544a;
+      }
+      @media (prefers-color-scheme: dark) { body { background: #1f1d1a; color: #b8b0a3; } }
+      main { text-align: center; }
+      h1 { font: 500 22px Georgia, serif; margin: 0 0 6px; }
+      p { margin: 0; }
+      #problem { display: none; max-width: 28rem; margin-top: 12px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>LoreStudio</h1>
+      <p id="status">Opening your writing room…</p>
+      <p id="problem"></p>
+    </main>
+  </body>
+</html>

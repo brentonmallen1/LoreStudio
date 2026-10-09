@@ -109,3 +109,7 @@ jobs:
         with:
           fail-on-severity: moderate
           comment-summary-in-pr: on-failure
+          # glib 0.18 (desktop/src-tauri, Linux only): Tauri 2 is built on gtk-rs 0.18, and the
+          # fix is in glib 0.20. Unsound VariantStrIter, which LoreStudio never touches, in a
+          # build not yet published. Remove when Tauri moves to gtk-rs 0.20 or newer.
+          allow-ghsas: GHSA-wrw7-89jp-8q8g
