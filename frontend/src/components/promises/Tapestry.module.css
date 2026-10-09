@@ -1,9 +1,8 @@
 /* The tapestry (doc 18 C4): a row per promise, a column per scene, in reading order. */
+/* On the page's ground with no frame (doc 24 P8): the chart's own lanes are its structure. */
 .tapestry {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 1rem 1.15rem 0.85rem;
+  background: var(--color-ground);
+  padding: 0.5rem 0 0.85rem;
 }
 
 .scroll {
@@ -290,9 +289,8 @@ button.name:hover .nameText {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1.1rem;
-  margin: 0.85rem 0 0;
-  padding: 0.65rem 0 0;
-  border-top: 1px solid var(--color-border-light);
+  margin: 1.25rem 0 0;
+  padding: 0;
   font-size: var(--text-xs);
   color: var(--color-text-muted);
 }

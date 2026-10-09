@@ -25,9 +25,9 @@
 }
 
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  /* A tone box (doc 24 P8): the tone is the group's edge. */
+  background: var(--color-tone);
+  border-radius: var(--radius-lg);
   padding: 1rem 1.15rem;
   display: flex;
   flex-direction: column;
@@ -157,8 +157,8 @@
   font-size: var(--text-sm);
   color: var(--color-accent-fg);
   background: var(--color-accent);
-  border: 1px solid var(--color-accent);
-  border-radius: var(--radius-sm);
+  border: none;
+  border-radius: var(--radius);
   padding: 0.3rem 0.8rem;
   min-height: 1.9rem;
   cursor: pointer;
@@ -189,20 +189,21 @@
   text-align: left;
   font: inherit;
   padding: 0.5rem 0.65rem;
-  border: 1px solid var(--color-border-light);
+  border: none;
   border-radius: var(--radius);
-  background: var(--color-surface);
+  background: transparent;
   color: var(--color-text);
   cursor: pointer;
 }
 
 .kindCard:hover {
-  border-color: var(--color-control-border);
+  background: var(--color-hover);
 }
 
-.kindCardOn {
-  border-color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+/* The kind chosen: the accent's tint, as a pressed choice, with no outline (DESIGN.md). */
+.kindCardOn,
+.kindCardOn:hover {
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
 }
 
 .kindLabel {
