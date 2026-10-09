@@ -102,7 +102,7 @@ jobs:
           digest="${{ steps.build.outputs.digest }}"
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: digests-${{ matrix.image }}-${{ env.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/digests/*
@@ -116,7 +116,7 @@ jobs:
       matrix:
         image: [lorestudio, lorestudio-backend, lorestudio-frontend]
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           path: ${{ runner.temp }}/digests
           # -linux-*, not -*: "digests-lorestudio-*" also matched lorestudio-backend's and

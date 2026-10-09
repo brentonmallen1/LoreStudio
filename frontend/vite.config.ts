@@ -5,7 +5,7 @@ import path from "path";
 // PORT/FRONTEND_PORT live in the repo-root .env (shared with docker-compose.yml),
 // not frontend/.env, so load that one explicitly and fall back to the documented defaults.
 export default defineConfig(({ mode }) => {
-  const rootEnv = loadEnv(mode, path.resolve(__dirname, ".."), "");
+  const rootEnv = loadEnv(mode, path.resolve(import.meta.dirname, ".."), "");
   const backendPort = rootEnv.PORT || "8000";
   const frontendPort = Number(rootEnv.FRONTEND_PORT) || 5173;
 
@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src"),
+        "@": path.resolve(import.meta.dirname, "./src"),
       },
     },
     server: {

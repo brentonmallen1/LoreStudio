@@ -54,7 +54,7 @@ that neither records nor sits in `NOT_UNDOABLE` with its reason.
 
 ## Auth
 
-JWT (PyJWT, HS256), 7-day tokens; passwords hashed with `bcrypt` directly (kept below 5).
+JWT (PyJWT, HS256), 7-day tokens; passwords hashed with `bcrypt` directly, cut to its 72 bytes (`auth/utils.py`).
 
 ## Tests
 
