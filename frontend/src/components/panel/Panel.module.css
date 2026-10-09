@@ -475,10 +475,6 @@
   content: "▾ ";
 }
 
-.overviewWrap :global(.overviewPanel) {
-  border-bottom: none;
-}
-
 /* ── The assistant's tab (doc 11 P5, A2) ── */
 .aiDivider {
   width: 1px;

@@ -111,6 +111,8 @@ components/       — Feature components organized by domain
                     lib/crumbs/trail: each › a menu of what is inside), PageHeader, ModeGate
   strip/          — The story strip down the left edge: the transit line, or the outline (marked in the line's colours)
   panel/          — The tabbed side panel beside the page (This scene, entity and tool tabs)
+  scene/          — The Scene sheet (pages/SceneSheetPage, /write/:nodeId/sheet): every field of a scene.
+                    The panel's This scene tab is only its glance (panel/scene/SceneGlance, doc 24 D19)
   findings/       — The findings feed: FindingRow, Run checks, the scene and sheet cards
                     (data in stores/findingsStore; the server computes every finding)
   proposals/      — The Proposals inbox row (stores/proposalsStore; gathered server-side)

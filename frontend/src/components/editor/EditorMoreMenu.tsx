@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   BookMarked,
+  ClipboardList,
   Cpu,
   ImageIcon,
   Info,
@@ -19,6 +20,9 @@ import {
 import { useAIAvailable, useMode } from "../../lib/mode";
 import { visibleFeatures } from "../../lib/ai/featureRegistry";
 import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
+import { navigateTo } from "../../lib/navigation";
+import { sceneSheetPath } from "../../lib/scene/glance";
+import { useStoryStore } from "../../stores/storyStore";
 import type { WritingGuideTab } from "../help/WritingGuidesModal";
 import AIFeatureInfoModal from "../ai/AIFeatureInfoModal";
 import FontSettings from "../story/FontSettings";
@@ -134,6 +138,15 @@ export default function EditorMoreMenu(p: Props) {
           />
           {!p.sprintRunning && <Item label="Start a sprint…" icon={Zap} onSelect={() => setPane("sprint")} />}
           <div className={styles.label}>This scene</div>
+          <Item
+            label="Open the scene sheet"
+            icon={ClipboardList}
+            title="Every field of this scene, on one page"
+            onSelect={then(() => {
+              const { activeStory, activeNode } = useStoryStore.getState();
+              if (activeStory && activeNode) navigateTo(sceneSheetPath(activeStory.id, activeNode.id));
+            })}
+          />
           <Item
             label="Tag the dialogue"
             icon={Tag}

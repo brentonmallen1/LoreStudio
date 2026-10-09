@@ -1,4 +1,4 @@
-import { type ComponentType, type LazyExoticComponent } from "react";
+import { lazy, Suspense, type ComponentType, type LazyExoticComponent } from "react";
 import { ROUTE_ELEMENTS } from "./routeElements";
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import ModeGate from "../components/layout/ModeGate";
@@ -9,6 +9,9 @@ import { useStoryStore } from "../stores/storyStore";
 import SectionedPage from "./SectionedPage";
 import WriteNodePage from "./WriteNodePage";
 import styles from "./StoryWorkspace.module.css";
+
+// Every field of one scene (doc 24 D19), loaded when first opened.
+const SceneSheetPage = lazy(() => import("./SceneSheetPage"));
 
 /**
  * The story's pages, generated from `lib/routes.ts` (refactor doc 11, phase 4). One list
@@ -72,6 +75,14 @@ export default function StoryRoutes() {
         <Route key={from} path={`${from}/*`} element={<Moved storyId={storyId} to={to} />} />
       ))}
       <Route path="/write/:nodeId" element={<WriteNodePage />} />
+      <Route
+        path="/write/:nodeId/sheet"
+        element={
+          <Suspense fallback={<div className={styles.loading}>Loading…</div>}>
+            <SceneSheetPage />
+          </Suspense>
+        }
+      />
       <Route path="*" element={<div className={styles.loading}>There is no page here.</div>} />
     </Routes>
   );

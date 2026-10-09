@@ -49,7 +49,7 @@ export default function SceneSettingsField({
   return (
     <div className={styles.overviewField}>
       <div className={styles.linkedHeader}>
-        <label className={styles.overviewLabel}>Settings</label>
+        <label className={styles.overviewLabel}>Where</label>
         <div style={{ display: "flex", gap: "0.375rem", alignItems: "center" }}>
           <select
             aria-label="How the place is used"

@@ -21,6 +21,7 @@ import {
   NotepadText,
   Download,
   PanelRight,
+  ClipboardList,
 } from "lucide-react";
 import { commandRegistry } from "./registry";
 import "./planning";
@@ -37,6 +38,7 @@ import { toolsApi } from "../../api/tools";
 import { STORY_ROUTES, sectionModes, sectionPath, storyPath } from "../routes";
 import { SETTINGS_SECTIONS, settingsPath } from "../../pages/settings/sections";
 import { navigateTo } from "../navigation";
+import { sceneSheetPath } from "../scene/glance";
 import { getAIAvailable, getMode } from "../mode";
 import { GUIDES } from "../../guides";
 import { useUIStore } from "../../stores/uiStore";
@@ -266,6 +268,34 @@ commandRegistry.register({
   when: () => !!useStoryStore.getState().activeNode,
   action: () => {
     useUIStore.getState().openSceneSearch();
+  },
+});
+
+// Every field of the open scene on one page (doc 24 D19): the This scene tab is a glance.
+commandRegistry.register({
+  id: "scene-sheet",
+  label: "Open the scene sheet",
+  keywords: [
+    "scene",
+    "sheet",
+    "plan",
+    "synopsis",
+    "purpose",
+    "entry",
+    "exit",
+    "key events",
+    "details",
+    "fields",
+  ],
+  icon: ClipboardList,
+  group: "Editor",
+  when: () => {
+    const { activeStory, activeNode } = useStoryStore.getState();
+    return !!activeStory && !!activeNode && !activeNode.children?.length;
+  },
+  action: () => {
+    const { activeStory, activeNode } = useStoryStore.getState();
+    if (activeStory && activeNode) navigateTo(sceneSheetPath(activeStory.id, activeNode.id));
   },
 });
 
