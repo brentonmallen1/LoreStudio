@@ -27,6 +27,7 @@ import ImportWizard from "../components/import/ImportWizard";
 import StoryListRow from "../components/story/StoryListRow";
 import list from "../components/story/StoryList.module.css";
 import type { Story } from "../types";
+import { isScript } from "../lib/storyFormat";
 import styles from "./Dashboard.module.css";
 
 type Layout = "cards" | "list";
@@ -152,6 +153,7 @@ export default function DashboardPage() {
           <div className={styles.storymeta}>
             <Clock size={11} />
             {formatRelative(story.updated_at)}
+            {isScript(story) && <span>· Screenplay</span>}
           </div>
         </button>
         {progress[story.id]?.last_scene_id && (

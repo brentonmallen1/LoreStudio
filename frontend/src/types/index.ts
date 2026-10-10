@@ -18,6 +18,9 @@ export interface StoryGoal {
   completed: boolean;
 }
 
+/** What a story is written as (doc 25, lib/storyFormat.ts). */
+export type StoryFormat = "prose" | "screenplay";
+
 export interface Story {
   id: string;
   user_id: string;
@@ -25,6 +28,7 @@ export interface Story {
   description: string;
   intent: string;
   structure_template_id: string;
+  story_format: StoryFormat;
   genre: string;
   tone: string;
   themes: string[];
@@ -82,6 +86,8 @@ export interface StoryStructureTemplate {
   starter_outline: string[];
   /** Levels are kinds of beat side by side (Single MICE), all at the top level. */
   flat: boolean;
+  /** The story format it was written for, or "" when it fits any (doc 25). */
+  format: "" | StoryFormat;
 }
 
 /** A margin note as the margin draws it: a note row (types/notes) tied to a passage. */

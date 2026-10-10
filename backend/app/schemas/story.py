@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from ..services.story_format import StoryFormat
+
 
 class StoryGoal(BaseModel):
     id: str
@@ -14,6 +16,7 @@ class StoryCreate(BaseModel):
     description: str = ""
     intent: str = ""
     structure_template_id: str = "freeform"
+    story_format: StoryFormat = "prose"
     #: Lay out the template's first outline (services/structure_scaffold.py).
     scaffold: bool = True
 
@@ -23,6 +26,7 @@ class StoryUpdate(BaseModel):
     description: str | None = None
     intent: str | None = None
     structure_template_id: str | None = None
+    story_format: StoryFormat | None = None
     genre: str | None = None
     tone: str | None = None
     themes: list[str] | None = None
@@ -52,6 +56,7 @@ class StoryOut(BaseModel):
     description: str
     intent: str
     structure_template_id: str
+    story_format: str = "prose"
     genre: str
     tone: str
     themes: list[str]

@@ -383,6 +383,7 @@ def unlift(db: Session, series: Series, element: SeriesElement) -> None:
 
 #: What a sequel takes from the book before it: how the books are told, not what happens.
 INHERITED_STORY_FIELDS = (
+    "story_format",
     "structure_template_id",
     "genre",
     "tone",

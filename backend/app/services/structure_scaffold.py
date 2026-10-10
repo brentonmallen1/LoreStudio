@@ -19,6 +19,8 @@ from ..models.structure import StoryStructureTemplate, StructureNode
 #: author's own, and the ones with no natural names) start with one numbered node.
 TOP_LEVEL: dict[str, list[str]] = {
     "three-act": ["Act 1: Setup", "Act 2: Confrontation", "Act 3: Resolution"],
+    "screenplay": ["Act One", "Act Two", "Act Three"],
+    "screenplay-sequences": ["Act One", "Act Two", "Act Three"],
     "seven-point": [
         "Hook",
         "Plot Turn 1",

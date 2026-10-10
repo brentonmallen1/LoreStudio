@@ -100,6 +100,25 @@ STRUCTURE_TEMPLATES = [
             {"name": "Beat", "plural": "Beats"},
         ],
     },
+    {
+        "id": "screenplay",
+        "name": "Screenplay",
+        "description": "Three acts of scenes, each scene opening on its heading (INT. or EXT., where, when). For films, shorts and TV.",
+        "levels": [
+            {"name": "Act", "plural": "Acts"},
+            {"name": "Scene", "plural": "Scenes"},
+        ],
+    },
+    {
+        "id": "screenplay-sequences",
+        "name": "Screenplay with Sequences",
+        "description": "Acts made of sequences: runs of scenes that carry one goal through, eight or so to a feature film.",
+        "levels": [
+            {"name": "Act", "plural": "Acts"},
+            {"name": "Sequence", "plural": "Sequences"},
+            {"name": "Scene", "plural": "Scenes"},
+        ],
+    },
 ]
 
 

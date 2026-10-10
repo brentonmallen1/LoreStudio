@@ -46,6 +46,8 @@ class Story(Base):
     description: Mapped[str] = mapped_column(Text, default="")
     intent: Mapped[str] = mapped_column(Text, default="")  # System-level LLM context
     structure_template_id: Mapped[str] = mapped_column(String, default="freeform")
+    #: What the story is written as: "prose" or "screenplay" (services/story_format.py, doc 25).
+    story_format: Mapped[str] = mapped_column(String, default="prose", server_default="prose")
 
     # Lorebook fields
     genre: Mapped[str] = mapped_column(String, default="")

@@ -9,7 +9,9 @@ import BeatSheetSelector from "./BeatSheetSelector";
 import { SectionCard } from "../common";
 import PageHeader from "../layout/PageHeader";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
-import type { StoryGoal } from "../../types";
+import { formatOf } from "../../lib/storyFormat";
+import { FormatField, PerspectiveField } from "./StoryFormFields";
+import type { StoryFormat, StoryGoal } from "../../types";
 import { CharCount, CompletionDots, GroupLabel, HeroStats, SeriesCard } from "./StoryIdentityBits";
 import { useWorkshopMenu } from "./useWorkshopMenu";
 import styles from "./StoryIdentityPanel.module.css";
@@ -254,6 +256,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
     genre: "",
     tone: "",
     intended_length: "",
+    story_format: "prose" as StoryFormat,
     narrative_perspective: "",
     pov_character_id: "" as string,
     themes: [] as string[],
@@ -271,6 +274,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
       genre: activeStory.genre ?? "",
       tone: activeStory.tone ?? "",
       intended_length: activeStory.intended_length ?? "",
+      story_format: formatOf(activeStory),
       narrative_perspective: activeStory.narrative_perspective ?? "",
       pov_character_id: activeStory.pov_character_id ?? "",
       themes: activeStory.themes ?? [],
@@ -434,48 +438,22 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
               />
             </div>
           </div>
-          <div>
-            <p className={styles.subFieldLabel}>Narrative perspective</p>
-            <p className={styles.fieldHint}>
-              Point of view for the story. Guides AI tools on voice and perspective.
-            </p>
-            <select
-              value={fields.narrative_perspective}
-              onChange={(e) => update("narrative_perspective", e.target.value)}
-              className={styles.input}
-            >
-              <option value="">Not specified</option>
-              <option value="first_person">First person</option>
-              <option value="third_limited">Third person limited</option>
-              <option value="third_omniscient">Third person omniscient</option>
-              <option value="second_person">Second person</option>
-              <option value="multiple_pov">Multiple POV</option>
-            </select>
-            {(fields.narrative_perspective === "first_person" ||
-              fields.narrative_perspective === "third_limited") && (
-              <div className={styles.subField}>
-                <p className={styles.subFieldLabel}>POV character</p>
-                <select
-                  value={fields.pov_character_id}
-                  onChange={(e) => updatePovCharacter(e.target.value)}
-                  className={styles.input}
-                >
-                  <option value="">Not specified</option>
-                  {characters.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
+          {fields.story_format === "prose" && (
+            <PerspectiveField
+              perspective={fields.narrative_perspective}
+              povCharacterId={fields.pov_character_id}
+              characters={characters}
+              onPerspective={(v) => update("narrative_perspective", v)}
+              onPovCharacter={updatePovCharacter}
+            />
+          )}
         </SectionCard>
 
         {/* ── Form ── */}
         <GroupLabel label="Form" description="What shape does it take?" />
 
         <SectionCard title="Structure" collapsed={!!collapsed.structure} onToggle={() => toggle("structure")}>
+          <FormatField value={fields.story_format} onChange={(v) => update("story_format", v)} />
           <div>
             <p className={styles.subFieldLabel}>Intended length</p>
             <p className={styles.fieldHint}>
