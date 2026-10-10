@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { useAIAvailable, useMode } from "../../lib/mode";
 import { visibleFeatures } from "../../lib/ai/featureRegistry";
-import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
 import { navigateTo } from "../../lib/navigation";
 import { sceneSheetPath } from "../../lib/scene/glance";
 import { useStoryStore } from "../../stores/storyStore";
@@ -126,12 +125,7 @@ export default function EditorMoreMenu(p: Props) {
           {/* Grouped by what each does (doc 24): things to do, the scene's tools, what the
               page shows, the guides, and the one setting last. */}
           <div className={styles.label}>Write</div>
-          <Item
-            label="Insert image"
-            icon={ImageIcon}
-            hint={formatCombo(SHORTCUTS.insertImage.combo)}
-            onSelect={then(p.onInsertImage)}
-          />
+          <Item label="Insert image" icon={ImageIcon} onSelect={then(p.onInsertImage)} />
           {!p.sprintRunning && <Item label="Start a sprint…" icon={Zap} onSelect={() => setPane("sprint")} />}
           <div className={styles.label}>This scene</div>
           <Item

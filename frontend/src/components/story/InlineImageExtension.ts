@@ -1,14 +1,6 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import type { NodeViewRendererProps } from "@tiptap/core";
 import { api } from "../../api/client";
-import { SHORTCUTS, editorKey } from "../../lib/keyboard/shortcuts";
-
-// Module-level callback for showing the asset picker to insert an image.
-let _onInsertImage: (() => void) | null = null;
-
-export function setInlineImageInsertCallback(cb: () => void) {
-  _onInsertImage = cb;
-}
 
 /**
  * TipTap Node that stores an asset ID and renders as an authenticated image block.
@@ -82,15 +74,6 @@ export const InlineImageExtension = Node.create({
           return true;
         },
       };
-    };
-  },
-
-  addKeyboardShortcuts() {
-    return {
-      [editorKey(SHORTCUTS.insertImage.combo)]: () => {
-        _onInsertImage?.();
-        return true;
-      },
     };
   },
 });

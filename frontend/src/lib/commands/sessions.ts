@@ -8,7 +8,6 @@ import "../ai/sessions";
 import { commandRegistry } from "./registry";
 import { getAllSessionTypes, type SessionTypeConfig } from "../ai/sessionTypes";
 import { AI_FEATURE_CLASS_LABELS, AI_FEATURES_BY_ID } from "../ai/features.generated";
-import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
 import { useAIStore } from "../../stores/aiStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { Users } from "lucide-react";
@@ -30,11 +29,6 @@ const WORDS: Record<string, string[]> = {
   "book-description": ["blurb", "back cover", "description", "marketing"],
   "query-letter": ["agent", "pitch", "submission"],
   "attribute-generator": ["attributes", "suggest", "fields", "character"],
-};
-
-/** Tools with a keyboard shortcut of their own. */
-const SHORTCUT: Record<string, string> = {
-  "writing-coach": formatCombo(SHORTCUTS.writingCoach.combo),
 };
 
 /** In a story, not on the dashboard or a series: the Assistant works on one book. */
@@ -62,7 +56,6 @@ for (const type of getAllSessionTypes().filter((t) => t.id !== "assistant")) {
     ],
     icon: type.icon,
     group: "AI",
-    shortcut: SHORTCUT[type.id],
     when: () => inStory() && (!type.requiresNode || !!useStoryStore.getState().activeNode),
     ...(type.requiresCharacter
       ? {

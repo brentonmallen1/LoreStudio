@@ -104,9 +104,9 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--color-border);
+  /* A tone box (doc 24 P8): the tone is the list's edge; hairlines only between its rows. */
   border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  background: var(--color-tone);
   overflow: hidden;
 }
 
@@ -168,7 +168,7 @@
 }
 
 .iconBtn:hover:not(:disabled) {
-  background: var(--color-surface-3);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -183,10 +183,12 @@
   gap: 0.3rem;
   min-height: 1.6rem;
   padding: 0.2rem 0.55rem;
-  border: 1px solid var(--color-border);
+  /* Ghost tier (DESIGN.md §5): no border at rest, the hover ground under the pointer. */
+  border: none;
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  background: transparent;
   color: var(--color-text-muted);
+  text-decoration: none;
   font: inherit;
   font-size: var(--text-xs);
   cursor: pointer;
@@ -194,8 +196,8 @@
 }
 
 .textBtn:hover:not(:disabled) {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
 .textBtn:disabled {
@@ -216,14 +218,9 @@
   color: var(--color-text-muted);
 }
 
-.element {
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius);
-  background: var(--color-surface);
-}
-
-.elementOpen {
-  border-color: var(--color-border);
+/* Rows of a list: a hairline between them, no card per row (DESIGN.md §5, Lists). */
+.element + .element {
+  border-top: 1px solid var(--color-border-light);
 }
 
 .elementRow {
@@ -297,7 +294,6 @@ a.inBook:hover {
   flex-direction: column;
   gap: 0.9rem;
   padding: 0.4rem 0.9rem 0.9rem 2.1rem;
-  border-top: 1px solid var(--color-border-light);
 }
 
 .fieldBlock {
@@ -320,13 +316,12 @@ a.inBook:hover {
   font-size: 0.73rem;
   padding: 0 0.4rem;
   border-radius: 999px;
-  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
   color: var(--color-text-muted);
 }
 
 .differs {
   color: var(--color-warning);
-  border-color: color-mix(in srgb, var(--color-warning) 50%, var(--color-border));
 }
 
 .steps {
@@ -431,7 +426,6 @@ a.inBook:hover {
 
 .provenance .progression {
   padding-left: 0.2rem;
-  border-top: none;
 }
 
 .provenanceRow {
@@ -458,7 +452,7 @@ a.inBook:hover {
 }
 
 .foldBtn:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -467,15 +461,16 @@ a.inBook:hover {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
-  padding: 0.5rem 0.5rem 0.25rem;
-  border-top: 1px dashed var(--color-border);
+  /* Space, not a rule, sets the series' own apart from the book's list. */
+  margin-top: 0.75rem;
+  padding: 0 0.5rem 0.25rem;
 }
 
 .ghostsHead {
   margin: 0 0 0.15rem;
   font-size: 0.73rem;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-section-title);
 }
 
 .ghost {
@@ -562,10 +557,10 @@ a.inBook:hover {
   align-items: center;
   gap: 0.6rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border-light);
+  /* The warning bar carries the meaning; the row itself has no outline. */
   border-left: 3px solid var(--color-warning);
   border-radius: var(--radius);
-  background: var(--color-surface);
+  background: var(--color-tone);
 }
 
 .eyeText {

@@ -1,6 +1,5 @@
 .result {
-  padding: 0.5rem 0.7rem;
-  border-bottom: 1px solid var(--color-border-light);
+  padding: 0.5rem 0.7rem 0.9rem;
   font-size: 0.8rem;
   line-height: 1.5;
   color: var(--color-text);

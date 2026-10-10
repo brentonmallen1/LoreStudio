@@ -4,7 +4,6 @@
   right: 0;
   bottom: 0;
   background: var(--color-surface);
-  border-left: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   z-index: 200;
@@ -43,8 +42,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.6rem 1rem;
-  border-bottom: 1px solid var(--color-border);
+  padding: 0.75rem 1rem 0.25rem;
   gap: 0.5rem;
   flex-shrink: 0;
 }
@@ -83,7 +81,7 @@
 
 .closeBtn:hover {
   color: var(--color-text);
-  background: var(--color-surface-2);
+  background: var(--color-hover);
 }
 
 .body {
@@ -154,16 +152,24 @@
   padding: 0.3rem 0.7rem;
   border-radius: var(--radius);
   font-size: 0.78rem;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
+  font-family: inherit;
+  border: none;
+  background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
-.visBtnActive {
+.visBtn:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.visBtnActive,
+.visBtnActive:hover {
   background: var(--color-surface-3);
-  border-color: var(--color-accent);
   color: var(--color-text);
 }
 
@@ -179,7 +185,7 @@
   border-radius: var(--radius);
   font-size: 0.82rem;
   background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-control-border);
   color: var(--color-text);
   resize: vertical;
   font-family: inherit;
@@ -209,26 +215,23 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  border-top: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
 .deleteBtn {
   font-size: 0.78rem;
   padding: 0.35rem 0.7rem;
+  font-family: inherit;
   background: none;
-  border: 1px solid var(--color-danger);
+  border: none;
   color: var(--color-danger);
   border-radius: var(--radius);
   cursor: pointer;
-  transition:
-    background var(--transition),
-    color var(--transition);
+  transition: background var(--transition);
 }
 
 .deleteBtn:hover {
-  background: var(--color-danger);
-  color: var(--color-accent-fg);
+  background: var(--color-danger-bg);
 }
 
 .deleteConfirm {
@@ -242,7 +245,7 @@
   font-size: 0.75rem;
   font-weight: 500;
   border-radius: var(--radius-sm);
-  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
+  border: none;
   background: var(--color-danger-bg);
   color: var(--color-danger);
   cursor: pointer;
@@ -254,18 +257,24 @@
   font-size: 0.75rem;
   font-weight: 500;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
+  border: none;
+  background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
   font-family: inherit;
 }
 
+.deleteConfirmNo:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
 .cancelBtn {
   font-size: 0.82rem;
   padding: 0.35rem 0.8rem;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  font-family: inherit;
+  background: transparent;
+  border: none;
   border-radius: var(--radius);
   cursor: pointer;
   color: var(--color-text-muted);
@@ -273,7 +282,8 @@
 }
 
 .cancelBtn:hover {
-  background: var(--color-surface-3);
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
 .saveBtn {
@@ -290,7 +300,6 @@
 
 .saveBtn:hover:not(:disabled) {
   background: var(--color-accent-hover);
-  opacity: 0.9;
 }
 
 .saveBtn:disabled {

@@ -7,8 +7,8 @@
 .portrait {
   border-radius: 6px;
   overflow: hidden;
+  /* The vellum is the frame; no outline round a picture you only look at. */
   background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
   position: relative;
 }
 
@@ -66,11 +66,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 0.65rem;
-  border-bottom: 1px solid var(--color-border-light);
+  padding: 0.5rem 0.65rem 0.15rem;
   font-size: 0.78rem;
-  font-weight: 500;
-  color: var(--color-text-muted);
+  font-weight: 600;
+  color: var(--color-section-title);
 }
 
 .closeBtn {
@@ -87,7 +86,7 @@
 }
 .closeBtn:hover {
   color: var(--color-text);
-  background: var(--color-surface-2);
+  background: var(--color-hover);
 }
 
 .panelActions {
@@ -116,7 +115,7 @@
     color var(--transition);
 }
 .actionBtn:hover:not(:disabled) {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 .actionBtn:disabled {
@@ -178,8 +177,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.4rem 0.6rem;
-  border-bottom: 1px solid var(--color-border-light);
+  padding: 0.4rem 0.6rem 0.15rem;
   font-size: 0.75rem;
   color: var(--color-text-muted);
 }

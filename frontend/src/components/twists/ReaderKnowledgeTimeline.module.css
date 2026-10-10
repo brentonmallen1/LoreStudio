@@ -17,7 +17,6 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.75rem 0.75rem;
-  border-bottom: 1px solid var(--color-border);
 }
 
 .headerLeft {
@@ -42,9 +41,9 @@
   font-weight: 700;
   padding: 1px 7px;
   border-radius: 100px;
-  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
-  color: var(--color-accent);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
+  /* A count is read, not pressed: a vellum pill, no outline and no accent. */
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
 }
 
 .headerRight {
@@ -59,7 +58,7 @@
   gap: 5px;
   padding: 5px 12px;
   border-radius: 5px;
-  border: 1px solid color-mix(in srgb, var(--color-ai) 30%, transparent);
+  border: none;
   background: color-mix(in srgb, var(--color-ai) 8%, transparent);
   color: var(--color-ai);
   font-size: 0.78rem;
@@ -92,8 +91,9 @@
   gap: 5px;
   padding: 5px 12px;
   border-radius: 5px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-raised);
+  /* Ghost tier (DESIGN.md §5): no border at rest, the hover ground under the pointer. */
+  border: none;
+  background: transparent;
   color: var(--color-text-muted);
   font-size: 0.78rem;
   cursor: pointer;
@@ -101,7 +101,7 @@
 }
 
 .addBtn:hover {
-  background: var(--color-surface);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -112,7 +112,6 @@
   padding: 10px 1.75rem;
   font-size: 0.8rem;
   color: var(--color-text-muted);
-  border-bottom: 1px solid var(--color-border);
   line-height: 1.5;
 }
 
@@ -212,7 +211,7 @@
 
 .groupAddBtn:hover {
   color: var(--color-text);
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
 }
 
 .groupEvents {
@@ -224,32 +223,28 @@
 
 /* --- Event cards --- */
 
+/* A tone box per entry (doc 24 P8), no outline; its kind is a bar down the left edge in the
+   kind's colour, the one line that carries meaning. */
 .eventCard {
-  border: 1px solid var(--color-border);
   border-radius: 6px;
   overflow: hidden;
-  background: var(--color-surface);
+  background: var(--color-tone);
 }
 
 .type_truth {
-  border: 1px solid color-mix(in srgb, var(--color-success) 45%, var(--color-border));
-  background: color-mix(in srgb, var(--color-success) 6%, transparent);
+  border-left: 3px solid var(--color-success);
 }
 .type_misdirect {
-  border: 1px solid color-mix(in srgb, var(--color-danger) 45%, var(--color-border));
-  background: color-mix(in srgb, var(--color-danger) 6%, transparent);
+  border-left: 3px solid var(--color-danger);
 }
 .type_clue {
-  border: 1px solid color-mix(in srgb, var(--color-warning) 45%, var(--color-border));
-  background: color-mix(in srgb, var(--color-warning) 6%, transparent);
+  border-left: 3px solid var(--color-warning);
 }
 .type_char {
-  border: 1px solid color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
-  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+  border-left: 3px solid var(--color-accent);
 }
 .type_reader {
-  border: 1px solid color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
-  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+  border-left: 3px solid var(--color-accent);
 }
 
 /* The row's toggle and its Edit and Delete are siblings (a button inside a button was invalid). */
@@ -266,7 +261,7 @@
 }
 
 .eventCardHeader:hover {
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
 }
 
 .typeBadge {
@@ -358,7 +353,6 @@
 
 .eventCardBody {
   padding: 0 10px 10px;
-  border-top: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -381,15 +375,12 @@
   font-size: var(--text-xs);
   padding: 2px 8px;
   border-radius: 100px;
-  background: var(--color-surface-raised);
+  background: var(--color-surface-2);
   color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
 }
 
 .chipReaderYes {
   color: var(--color-success);
-  background: rgba(74, 156, 110, 0.08);
-  border-color: rgba(74, 156, 110, 0.25);
 }
 
 .chipReaderNo {
@@ -401,9 +392,9 @@
 .addForm {
   margin: 4px 0 8px;
   padding: 12px 14px;
-  border: 1px solid var(--color-accent);
-  border-radius: 8px;
-  background: var(--color-surface);
+  /* A tone box (doc 24 P8): the tone holds the form, the fields keep their outlines. */
+  border-radius: var(--radius-lg);
+  background: var(--color-tone);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -491,7 +482,7 @@
 
 .formCloseBtn:hover {
   color: var(--color-text);
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
 }
 
 .addFormActions {
@@ -503,8 +494,8 @@
 .cancelBtn {
   padding: 5px 12px;
   border-radius: 5px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  border: none;
+  background: transparent;
   color: var(--color-text-muted);
   font-size: 0.8rem;
   cursor: pointer;
@@ -512,7 +503,8 @@
 }
 
 .cancelBtn:hover {
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
 .saveBtn {
@@ -568,19 +560,24 @@
   margin-right: 0.2rem;
 }
 
+/* A vellum pill (DESIGN.md §5, Chips), no outline; deep vellum when chosen. */
 .whoChip {
   padding: 0.15rem 0.55rem;
-  border: 1px solid var(--color-control-border);
+  border: none;
   border-radius: 999px;
-  background: var(--color-surface);
+  background: var(--color-surface-2);
   color: var(--color-text-muted);
   font: inherit;
   font-size: var(--text-xs);
   cursor: pointer;
 }
 
-.whoChipOn {
-  border-color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+.whoChip:hover {
   color: var(--color-text);
+}
+
+.whoChipOn {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+  font-weight: 600;
 }

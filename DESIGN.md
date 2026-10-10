@@ -204,6 +204,8 @@ meaning, use a different device.
 by `contrast.test.ts`. `scripts/check-tokens.py` fails on a hex or named colour in a
 component (the theme swatches and diagrams are the locked exceptions).
 
+**The Reading Rule.** Body text and the prose reach 12:1 on the page and 11:1 in the side panel, in every palette: AA alone read faint. Palettes darken their grounds before their text turns white.
+
 **The AA Rule.** All text reaches 4.5:1 on every ground it sits on: the page ground and
 the chrome on it, the prose, cards, tone boxes, hover grounds, and a 12% tint of
 its own colour (badges and pills). Slots, control edges and the focus ring reach 3:1. Quiet

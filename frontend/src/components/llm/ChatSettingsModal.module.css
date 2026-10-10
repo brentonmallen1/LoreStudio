@@ -129,10 +129,11 @@
   border-color: var(--color-accent);
 }
 
+/* Space, not a rule, parts the groups (DESIGN.md §4). */
 .divider {
   border: none;
-  border-top: 1px solid var(--color-border);
-  margin: 0;
+  height: 0;
+  margin: 0.25rem 0;
 }
 
 .footer {

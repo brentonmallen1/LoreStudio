@@ -21,11 +21,10 @@
   flex-wrap: wrap;
 }
 
+/* Ghost view buttons, deep vellum on the one that is on (the Press Rule). */
 .viewToggle {
   display: flex;
-  border: 1px solid var(--color-control-border);
-  border-radius: var(--radius);
-  overflow: hidden;
+  gap: 2px;
 }
 
 .viewBtn {
@@ -34,17 +33,14 @@
   justify-content: center;
   width: 2.133rem;
   height: 1.867rem;
-  background: var(--color-surface-2);
+  background: transparent;
   border: none;
+  border-radius: var(--radius);
   cursor: pointer;
   color: var(--color-text-muted);
   transition:
     background var(--transition),
     color var(--transition);
-}
-
-.viewBtn:not(:last-child) {
-  border-right: 1px solid var(--color-border);
 }
 
 .viewBtnActive {
@@ -53,7 +49,7 @@
 }
 
 .viewBtn:hover:not(.viewBtnActive) {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -80,16 +76,17 @@
   gap: 0.35rem;
   padding: 0.35rem 0.8rem;
   font-size: 0.78rem;
-  background: var(--color-ai-subtle);
+  font-family: inherit;
+  background: transparent;
   color: var(--color-ai);
-  border: 1px solid var(--color-ai-border);
+  border: none;
   border-radius: var(--radius);
   cursor: pointer;
   transition: background var(--transition);
 }
 
 .discoverBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-ai) 18%, transparent);
+  background: var(--color-hover);
 }
 
 .discoverBtn:disabled {
@@ -115,11 +112,11 @@
   border-radius: var(--radius);
   cursor: pointer;
   font-weight: 500;
-  transition: opacity var(--transition);
+  transition: background var(--transition);
 }
 
 .addBtn:hover {
-  opacity: 0.88;
+  background: var(--color-accent-hover);
 }
 
 .suggestionBanner {
@@ -127,8 +124,7 @@
   align-items: center;
   padding: 0.5rem 0.9rem;
   background: var(--color-ai-subtle);
-  border: 1px solid var(--color-ai-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
 }
 
 .suggestionText {

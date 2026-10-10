@@ -179,7 +179,6 @@
   padding: 8px 12px;
   border-radius: 6px;
   background: color-mix(in srgb, var(--color-warning) 10%, var(--color-surface));
-  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, transparent);
 }
 
 .errorText {
@@ -235,7 +234,6 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 14px;
-  border-bottom: 1px solid var(--color-border);
 }
 
 .resultLabel {
@@ -257,7 +255,7 @@
 
 .iconBtn:hover {
   color: var(--color-text);
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
 }
 
 .resultBody {
@@ -299,7 +297,6 @@
   align-items: center;
   gap: 8px;
   padding: 8px 14px 10px;
-  border-top: 1px solid var(--color-border);
 }
 
 .copyBtn {
@@ -308,8 +305,8 @@
   gap: 5px;
   padding: 5px 12px;
   border-radius: 5px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  border: none;
+  background: transparent;
   color: var(--color-text-muted);
   font-size: 0.78rem;
   cursor: pointer;
@@ -317,12 +314,12 @@
 }
 
 .copyBtn:hover:not(:disabled) {
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
 .copyBtnDone {
   color: var(--color-success);
-  border-color: var(--color-success);
 }
 
 .regenBtn {
@@ -331,7 +328,7 @@
   gap: 5px;
   padding: 5px 12px;
   border-radius: 5px;
-  border: 1px solid var(--color-ai-border);
+  border: none;
   background: var(--color-ai-subtle);
   color: var(--color-ai);
   font-size: 0.78rem;
@@ -339,8 +336,7 @@
 }
 
 .regenBtn:hover:not(:disabled) {
-  background: var(--color-ai-subtle);
-  opacity: 0.8;
+  background: color-mix(in srgb, var(--color-ai) 18%, transparent);
 }
 
 .regenBtn:disabled {

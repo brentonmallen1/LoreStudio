@@ -8,7 +8,7 @@
   --color-tone: #eedfb6;
   --color-border: #c9b98a;
   --color-border-light: #d8c9a0;
-  --color-text: #3c3836;
+  --color-text: #221f1e;
   --color-text-muted: #504945;
   --color-text-subtle: #6b5e53;
   --color-section-title: #504945;
@@ -97,15 +97,15 @@
 /* ── Gruvbox theme · dark mode ─────────────────── */
 [data-theme="gruvbox"].dark {
   color-scheme: dark;
-  --color-bg: #282828;
-  --color-surface: #3c3836;
-  --color-surface-2: #504945;
-  --color-surface-3: #665c54;
+  --color-bg: #1d2021;
+  --color-surface: #282828;
+  --color-surface-2: #3c3836;
+  --color-surface-3: #504945;
   --color-surface-raised: #575250;
-  --color-tone: #48423f;
+  --color-tone: #32302f;
   --color-border: #605850;
   --color-border-light: #46423d;
-  --color-text: #ebdbb2;
+  --color-text: #f7f1e0;
   --color-text-muted: #e7d6b3;
   --color-text-subtle: #c8b9a3;
   --color-section-title: #d5c4a1;

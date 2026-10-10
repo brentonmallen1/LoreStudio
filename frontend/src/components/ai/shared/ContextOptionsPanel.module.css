@@ -5,9 +5,8 @@
   z-index: 200;
   width: 260px;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow);
   padding: 0.5rem 0;
 }
 
@@ -16,7 +15,6 @@
   font-weight: 600;
   color: var(--color-section-title);
   padding: 0.25rem 0.75rem 0.5rem;
-  border-bottom: 1px solid var(--color-border-light);
   margin-bottom: 0.25rem;
 }
 
@@ -30,7 +28,7 @@
 }
 
 .row:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
 }
 
 .rowLabel {

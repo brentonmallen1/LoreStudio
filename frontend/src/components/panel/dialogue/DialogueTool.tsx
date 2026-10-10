@@ -5,7 +5,7 @@ import type { DialogueBlock, ProposedDialogueTag, StructureNode } from "../../..
 import { useAIAvailable } from "../../../lib/mode";
 import { assignSides } from "../../../lib/dialogue/sides";
 import { speakerChoices } from "../../../lib/dialogue/speakerChoices";
-import { liveScene, patchScene } from "../../../lib/undo/sceneHistory";
+import { layInRewrite, saveOpenScene } from "../../../lib/panel/panelSync";
 import { useStoryStore } from "../../../stores/storyStore";
 import { toast } from "../../../stores/toastStore";
 import AIFeatureInfoTrigger from "../../ai/AIFeatureInfoTrigger";
@@ -38,7 +38,7 @@ export default function DialogueTool() {
 
 function SceneDialogue({ node, storyId }: { node: StructureNode; storyId: string }) {
   const studio = useAIAvailable();
-  const { activeStory, characters, sceneCast, setActiveNode } = useStoryStore();
+  const { activeStory, characters, sceneCast } = useStoryStore();
   const [blocks, setBlocks] = useState<DialogueBlock[] | null>(null);
   const [suggestions, setSuggestions] = useState<ProposedDialogueTag[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
@@ -60,12 +60,13 @@ function SceneDialogue({ node, storyId }: { node: StructureNode; storyId: string
   }, [node.id, node.updated_at]);
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  /** The scene with the server's rewrite in it: the store, and the open editor outside its history. */
+  /**
+   * The scene with the server's rewrite in it: the store, and the open editor outside its
+   * history, in whichever window has it (the editor stays in the main one when the panel is
+   * popped out).
+   */
   function applyUpdated(updated: Partial<StructureNode>) {
-    const latest = useStoryStore.getState().activeNode;
-    if (latest?.id === node.id) setActiveNode({ ...latest, ...updated });
-    const live = liveScene();
-    if (live && live.nodeId === node.id && updated.content) patchScene(live.editor, updated.content);
+    layInRewrite({ ...updated, id: node.id });
   }
 
   /**
@@ -76,8 +77,7 @@ function SceneDialogue({ node, storyId }: { node: StructureNode; storyId: string
   async function tagLine(block: DialogueBlock, speaker: string): Promise<boolean> {
     setTagging(true);
     try {
-      const live = liveScene();
-      if (live?.nodeId === node.id) await live.flush();
+      await saveOpenScene(node.id);
       const updated = await api.applyDialogueTags(node.id, [
         { quote_content: block.content, speaker_name: speaker },
       ]);

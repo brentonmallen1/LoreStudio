@@ -26,27 +26,22 @@
 
 .typeCard {
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  padding: 0.875rem 1rem;
-  background: var(--color-surface-2);
+  padding: 0.75rem 0.875rem;
+  background: var(--color-tone);
 }
 
-/* Per-type accent border */
+/* Per type: a breath of its colour in the tone, never a coloured edge */
 .milieu {
-  border: 1px solid color-mix(in srgb, var(--mice-milieu) 45%, var(--color-border));
-  background: color-mix(in srgb, var(--mice-milieu) 6%, transparent);
+  background: color-mix(in srgb, var(--mice-milieu) 6%, var(--color-tone));
 }
 .idea {
-  border: 1px solid color-mix(in srgb, var(--mice-idea) 45%, var(--color-border));
-  background: color-mix(in srgb, var(--mice-idea) 6%, transparent);
+  background: color-mix(in srgb, var(--mice-idea) 6%, var(--color-tone));
 }
 .character {
-  border: 1px solid color-mix(in srgb, var(--mice-character) 45%, var(--color-border));
-  background: color-mix(in srgb, var(--mice-character) 6%, transparent);
+  background: color-mix(in srgb, var(--mice-character) 6%, var(--color-tone));
 }
 .event {
-  border: 1px solid color-mix(in srgb, var(--mice-event) 45%, var(--color-border));
-  background: color-mix(in srgb, var(--mice-event) 6%, transparent);
+  background: color-mix(in srgb, var(--mice-event) 6%, var(--color-tone));
 }
 
 .typeHeader {
@@ -137,7 +132,6 @@
   border-radius: 99px;
   background: var(--color-surface-3);
   color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
 }
 
 .typeNote {
@@ -170,10 +164,9 @@
 
 /* ── LIFO nesting diagram ── */
 .nestingDiagram {
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 0.875rem 1rem;
+  background: var(--color-tone);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 0.875rem;
 }
 
 .diagramLabel {
@@ -220,7 +213,6 @@
 .tip {
   font-size: 0.78rem !important;
   background: color-mix(in srgb, var(--color-accent) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
   border-radius: var(--radius);
   padding: 0.5rem 0.75rem;
   color: var(--color-text-muted) !important;
@@ -236,11 +228,9 @@
 .economyTable th {
   text-align: left;
   padding: 0.4rem 0.6rem;
-  background: var(--color-surface-2);
-  color: var(--color-text-muted);
+  color: var(--color-section-title);
   font-weight: 600;
   font-size: var(--text-xs);
-  border-bottom: 1px solid var(--color-border);
 }
 
 .economyTable td {
@@ -262,10 +252,9 @@
 }
 
 .outcomeCard {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: 0.6rem 0.75rem;
-  background: var(--color-surface-2);
+  background: var(--color-tone);
 }
 
 .outcomeCard p {
@@ -304,10 +293,11 @@
   margin-left: auto;
   padding: 0.45rem 1rem;
   border-radius: var(--radius);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
+  border: none;
+  background: transparent;
   color: var(--color-text-muted);
   font-size: 0.8rem;
+  font-family: inherit;
   cursor: pointer;
   transition:
     background var(--transition),
@@ -315,6 +305,6 @@
 }
 
 .closeBtn:hover {
-  background: var(--color-surface-3);
+  background: var(--color-hover);
   color: var(--color-text);
 }

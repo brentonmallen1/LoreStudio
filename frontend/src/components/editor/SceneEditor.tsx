@@ -12,11 +12,7 @@ import { useAIStore } from "../../stores/aiStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { useEditorBridge } from "../../stores/editorBridge";
 import { InlineNoteExtension } from "../story/InlineNoteExtension";
-import {
-  InlineImageExtension,
-  setInlineImageInsertCallback,
-  insertInlineImage,
-} from "../story/InlineImageExtension";
+import { InlineImageExtension, insertInlineImage } from "../story/InlineImageExtension";
 import {
   MentionDropdownExtension,
   FORCE_MENTION_KEY,
@@ -209,8 +205,11 @@ export default function SceneEditor() {
     return () => cancelAnimationFrame(frame);
   }, [editor, activeNode?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // The palette's Insert image, while this editor is open.
   useEffect(() => {
-    setInlineImageInsertCallback(() => setImagePickerOpen(true));
+    const { setInsertImage } = useEditorBridge.getState();
+    setInsertImage(() => setImagePickerOpen(true));
+    return () => setInsertImage(null);
   }, []);
 
   // Command palette → dialogue insert trigger (same as pressing ^)
@@ -257,10 +256,6 @@ export default function SceneEditor() {
       if (matchesCombo(e, SHORTCUTS.find.combo)) {
         e.preventDefault();
         openSceneSearch();
-      }
-      if (aiAvailable && matchesCombo(e, SHORTCUTS.writingCoach.combo)) {
-        e.preventDefault();
-        openSelectionSession("writing-coach", true);
       }
       if (matchesCombo(e, SHORTCUTS.attributeDialogue.combo)) {
         e.preventDefault();

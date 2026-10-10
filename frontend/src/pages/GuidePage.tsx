@@ -2,7 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Compass } from "lucide-react";
-import { GUIDES, guidesFor } from "../guides";
+import { GUIDES, forMode, guidesFor } from "../guides";
 import { useMode } from "../lib/mode";
 import { formatCombo } from "../lib/keyboard/shortcuts";
 import styles from "./GuidePage.module.css";
@@ -38,7 +38,22 @@ export default function GuidePage() {
       </nav>
       <article className={styles.article}>
         {guide ? (
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{guide.body}</ReactMarkdown>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              // A link to another guide or page stays in the app; anything else opens apart.
+              a: ({ href = "", children }) =>
+                href.startsWith("/") ? (
+                  <Link to={href}>{children}</Link>
+                ) : (
+                  <a href={href} target="_blank" rel="noreferrer">
+                    {children}
+                  </a>
+                ),
+            }}
+          >
+            {forMode(guide.body, mode)}
+          </ReactMarkdown>
         ) : (
           <p>No guide selected.</p>
         )}

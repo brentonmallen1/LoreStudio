@@ -1,12 +1,12 @@
 /* ── Dracula theme · dark only ─────────────────── */
 [data-theme="dracula"] {
   color-scheme: dark;
-  --color-bg: #282a36;
-  --color-surface: #313342;
-  --color-surface-2: #3a3c4e;
-  --color-surface-3: #44475a;
+  --color-bg: #21222c;
+  --color-surface: #282a36;
+  --color-surface-2: #313342;
+  --color-surface-3: #3a3c4e;
   --color-surface-raised: #424455;
-  --color-tone: #363849;
+  --color-tone: #2d2f3d;
   --color-border: #484b5d;
   --color-border-light: #3d3f52;
   --color-text: #f8f8f2;

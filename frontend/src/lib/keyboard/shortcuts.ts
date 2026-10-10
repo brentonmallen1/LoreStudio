@@ -78,8 +78,9 @@ export const SHORTCUTS = {
     commandId: "view-focus",
   },
   cycleStrip: {
-    // ⌘, beside ⌘. (the side panel): the strip on the left, the panel on the right.
-    combo: "mod+,",
+    // Beside ⌘. (the side panel): the strip on the left, the panel on the right. Not ⌘,
+    // alone: every browser keeps that for its own settings.
+    combo: "mod+alt+,",
     label: "Collapse or expand the story strip",
     group: "Navigation",
     scope: "global",
@@ -154,7 +155,8 @@ export const SHORTCUTS = {
     commandId: "editor-prev-note",
   },
   attributeDialogue: {
-    combo: "mod+shift+d",
+    // T for tag. Not ⇧⌘D (browsers bookmark every tab) or ⌥⌘D (macOS shows the Dock).
+    combo: "mod+alt+t",
     label: "Attribute selected dialogue",
     group: "Editor",
     scope: "editor",
@@ -167,14 +169,9 @@ export const SHORTCUTS = {
     scope: "global",
     modes: BOTH,
   },
-  insertImage: { combo: "mod+shift+i", label: "Insert image", group: "Editor", scope: "editor", modes: BOTH },
-  writingCoach: {
-    combo: "mod+shift+r",
-    label: "Writing coach for selection",
-    group: "AI",
-    scope: "editor",
-    modes: ["studio"],
-  },
+  // No shortcut for Insert image (the editor's ⋯ menu) or the Writing coach (the selection
+  // toolbar): ⇧⌘I and ⇧⌘R belong to browsers (developer tools, a hard reload), and so do
+  // the ⌥⌘ forms.
 } as const satisfies Record<string, ShortcutDef>;
 
 export type ShortcutId = keyof typeof SHORTCUTS;

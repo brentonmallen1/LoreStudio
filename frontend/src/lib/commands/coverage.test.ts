@@ -133,4 +133,12 @@ describe("command palette coverage", () => {
     expect(new Set(STORY_ROUTES.map((r) => r.id)).size).toBe(STORY_ROUTES.length);
     expect(new Set(SETTINGS_SECTIONS.map((s) => s.id)).size).toBe(SETTINGS_SECTIONS.length);
   });
+
+  it("shows every shortcut as keys (⌘[), never as a combo string (mod+[)", () => {
+    const raw = commandRegistry
+      .getAll()
+      .filter((a) => a.shortcut && /\b(mod|alt|shift)\+/.test(a.shortcut))
+      .map((a) => `${a.id}: ${a.shortcut}`);
+    expect(raw).toEqual([]);
+  });
 });

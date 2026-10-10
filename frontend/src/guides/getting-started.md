@@ -1,40 +1,65 @@
 # Getting started
 
-LoreStudio is a thinking space for writers. You write; it keeps the threads straight.
+A short tour: what LoreStudio is for, a first session, and how to find your way around.
 
-## Two modes
+## What LoreStudio is for
 
-- **Writer** shows the manuscript, structure, notes, dialogue tools, checks, export and backups. No AI features appear anywhere.
-- **Studio** adds the AI assistant, analyses and worldbuilding depth.
+LoreStudio is a writing app that helps you plan, organise and understand your story. You write every word. LoreStudio keeps track of who is in it, what you have promised the reader and where it is going, so your mind can stay on the page.
 
-Switch in **Settings › Appearance › Mode**. Everything in Writer mode works with no model installed.
+It has two modes: **Writer** keeps to your story and the tools around it, and **Studio** adds more. Switch at the bottom of the logo menu, or in **Settings › Appearance › Mode**.
+
+<!-- studio -->
+
+Studio adds the **Assistant** and the other AI tools. They answer questions and point things out; they never write your prose. Set up a model in **Settings › AI / LLM**.
+<!-- /studio -->
+
+## Your first session
+
+1. Choose **New story** on your stories page (logo menu › **All stories**). Give it a title and pick a **Story structure**: **Three-Act Structure** gives you acts, chapters and scenes; **Freeform** gives you sections and scenes.
+2. Under **How do you want to begin?**, choose one. New to writing a long story? **My first story** walks you from an idea in a sentence to your first scene in seven short steps. **Just write** opens the first scene.
+3. Write. The light at the bottom right turns green a moment after you pause: your words are saved.
+4. Open **This scene** in the side panel to see the scene at a glance. Choose **Scene sheet** there to fill in what happens, who is there and why the scene matters.
+5. Add your next chapter or scene from the story strip: press {{key:cycleStrip}} to open it out, then use **+**.
+
+Already have a draft? **Import** on your stories page brings it in. See [Import and export](/guides/import-and-export).
+
+> **Tip:** If _The Last Lighthouse_ is on your stories page, open it. It is a demo story with every part of LoreStudio filled in, so you can see what each page looks like in use.
+
+## Finding your way around
+
+- **Logo menu** (top left): every page of the story and its sections, then **Guides**, **Settings**, light and dark, the mode, your last backup and your account.
+- **Command palette** ({{key:palette}}): type a few letters to reach any page or action.
+- **Breadcrumbs** (along the top): click a crumb to open that page; the › after it lists what is inside.
+- **Story strip** (down the left): your book's scenes as a line, so you always know where you are. {{key:cycleStrip}} opens it out into the full outline.
+- **Side panel** (on the right): a rail of buttons for **This scene**, **Characters**, **Places**, **Threads**, **Notes**, **Freewrite** and **Dialogue**. Choose the one already showing to fold the panel away. {{key:togglePanel}} shows or hides it.
+- **Tabs** in the side panel: whatever you opened beside your prose, such as a character or a place. Choose **Open beside the prose** on any page's ⋯ menu to keep that page in a tab while you write.
+- **Status corner** (bottom right): the save light (green saved, yellow saving, red offline or a conflict) and the scene's word count. Click it for the chapter, the book, today and your goal.
+- **The scene's ⋯ menu**: type and width, notes in the margin, a writing sprint, images and the scene's tools.
+
+<!-- studio -->
+
+In Studio mode the rail also has the **Assistant**.
+<!-- /studio -->
+
+A few keys worth learning early:
+
+- {{key:back}} and {{key:forward}} go back and forward through where you have been, as in a browser.
+- {{key:prevScene}} and {{key:nextScene}} step through the book's scenes in order.
+- {{key:focusMode}} hides everything but the page.
+- {{key:help}} lists every shortcut.
 
 ## Make it comfortable
 
-**Settings › Typography** has two sizes. **Interface size** (Small, Default, Large, Larger) scales the menus, buttons, labels and icons; the palette has **Larger interface** and **Smaller interface**. **Writing size** is the prose alone, and **Line width** is counted in characters, so a larger writing size keeps the same words per line. Writing size and line width are also under the scene's ⋯ › **Type and width**; light, dark or the system's colours are in the logo menu. Every theme, light and dark, keeps its text readable on every surface.
+**Settings › Typography** sets the **Interface size**, the **Writing size** and the **Line width**; the scene's ⋯ menu › **Type and width** changes the last two without leaving the page. Your settings follow your account to every device you sign in from.
 
-## Where things live
+LoreStudio also runs as an app on Macs with Apple silicon. **Settings › About and updates** shows your version and checks for a new one.
 
-| Place                | What is there                                                       |
-| -------------------- | ------------------------------------------------------------------- |
-| **Manuscript**       | Scenes and chapters (the structure tree), the editor, the Plan page |
-| **Lorebook**         | Story identity, characters, places, world systems                   |
-| **Promises**         | Threads, twists, setups and payoffs, what the reader knows          |
-| **Compendium**       | Research, references, media and diagrams                            |
-| **Codex** _(Studio)_ | What-if explorations, group interviews, discoveries the AI proposes |
-| **Chronicle**        | Snapshots, the change history, AI activity                          |
+## Where to go next
 
-## A first session
-
-1. **New Story** from the dashboard, or **Import** a manuscript (DOCX, Markdown, text). New to writing a story? Choose **My first story** under _How do you want to begin?_: seven short steps, from an idea in a sentence to the first scene, each saying what it becomes.
-2. Pick a structure template (Act → Chapter → Scene, or freeform). Add a chapter and a scene in the tree.
-3. Write. The pill in the top bar says _Saved_ within a second of each pause.
-4. The side panel's **This scene** tab is the scene at a glance: where it starts and ends, what happens, who and where, a line each for its findings, promises, notes and linked scenes, and the scenes either side. Everything else about the scene is on its **Scene sheet**: choose _Scene sheet_ on the tab, in the scene's › in the breadcrumb, in the scene's ⋯ menu or in the palette, or double-click its card on the Storyboard. The sheet keeps the scene's card in view on the left (what happens, the turn, who, where, beat and when, **Write this scene**) and its pages on the right: the plan, promises, notes, findings, images and who, where and when. Hold **Option** (Alt on Windows and Linux) and click a scene on the strip to read it on top of the tab without leaving yours. Notes on passages sit in the margin beside the prose. The rail down the right edge opens everything beside the page: this scene, characters, places, threads, notes, freewrite, the dialogue (the scene's lines as a conversation, each speaker on a side, a line with no speaker in the middle to name) and the Assistant; choose the one already showing to fold the panel away. A rail button shows its tool without adding a tab: the tabs hold only what you opened, a character or a place, or a page opened beside the prose (_Open beside the prose_ on a page's ⋯, on its row in the logo menu, or in the palette). The logo at the top left opens every page of the story with its sections (Plan, Storyboard, Summaries, Manuscript, Lorebook, Promises, Compendium, Findings and the rest), with Guides, Settings and your account below them. **{{key:togglePanel}}** shows or hides the side panel, and **{{key:cycleStrip}}** folds the story strip to its line; the scene's ⋯ menu holds the type, the notes in the margin, a writing sprint, images, the guides and the scene tools. The words and whether the scene is saved sit at the page's bottom right; click them for the chapter, the book and today.
-5. Press **{{key:palette}}** at any time: every page and action is in the command palette. Press **?** for shortcuts. **{{key:back}}** and **{{key:forward}}** go back and forward through where you have been, as in a browser; **{{key:prevScene}}** and **{{key:nextScene}}** step through the book's scenes in order; **{{key:focusMode}}** hides everything but the page.
-6. Finished a book and the story isn't done? **Write a sequel** on its card starts the next one, carrying over whoever you choose. The _Writing a series_ guide has the rest.
-
-## Where to look when something feels off
-
-- **Checks** in the scene Notes panel: misspelt names, unknown speakers, point-of-view drift.
-- **Chronicle › Changes**: every edit to the story's data, with undo.
-- **Versions**: snapshots you took and automatic backups.
+- [Structure and templates](/guides/structure): chapters, scenes and the outline.
+- [Planning a story](/guides/planning): from an idea to a list of scenes.
+- [Threads, twists and what the reader knows](/guides/promises): keep every promise you make the reader.
+- [Dialogue and quotes](/guides/dialogue-and-quotes): tag who is speaking.
+- [Notes, Freewrite and the scratch pad](/guides/notes-and-freewrite): somewhere for every loose thought.
+- [Snapshots, backups and undo](/guides/snapshots-and-backups): keep your work safe.
+- [Glossary](/guides/glossary): what each word in LoreStudio means.

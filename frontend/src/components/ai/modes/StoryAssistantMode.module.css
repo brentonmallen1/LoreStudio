@@ -60,8 +60,8 @@
   border-radius: var(--radius);
   font-size: 0.78rem;
   font-family: inherit;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  background: transparent;
+  border: none;
   color: var(--color-text-muted);
   cursor: pointer;
   transition:
@@ -70,7 +70,7 @@
   line-height: 1.4;
 }
 .starterBtn:hover:not(:disabled) {
-  background: var(--color-surface-3);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -129,15 +129,15 @@
   border-radius: var(--radius);
   font-size: 0.78rem;
   font-family: inherit;
-  background: var(--color-surface-2);
+  background: transparent;
   color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
+  border: none;
   cursor: pointer;
   transition:
     background var(--transition),
     color var(--transition);
 }
 .resumeFreshBtn:hover {
-  background: var(--color-surface-3);
+  background: var(--color-hover);
   color: var(--color-text);
 }

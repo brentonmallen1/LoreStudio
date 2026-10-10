@@ -15,16 +15,18 @@
   gap: 0.35rem;
   padding: 0.3rem 0.7rem;
   border-radius: var(--radius);
-  border: 1px solid var(--color-nlp);
-  background: color-mix(in srgb, var(--color-nlp) 8%, transparent);
+  border: none;
+  background: transparent;
   color: var(--color-nlp);
+  font-family: inherit;
   font-size: 0.78rem;
   cursor: pointer;
   transition: background var(--transition);
 }
 
+/* Ghost (the Press Rule): teal text says local analysis; the hover ground says pressable. */
 .checkBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-nlp) 16%, transparent);
+  background: var(--color-hover);
 }
 
 .checkBtn:disabled {
@@ -64,7 +66,7 @@
   display: flex;
   align-items: center;
   background: none;
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: var(--radius-sm);
   padding: 0.2rem 0.3rem;
   cursor: pointer;
@@ -73,7 +75,8 @@
 }
 
 .navBtn:hover:not(:disabled) {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
 .navBtn:disabled {
@@ -128,20 +131,20 @@
   gap: 0.4rem;
   padding: 0.3rem 0.5rem;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: transparent;
   cursor: pointer;
   transition: background var(--transition);
   flex-wrap: wrap;
 }
 
 .proposalRow:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
 }
 
-.proposalSelected {
-  border-color: var(--color-nlp);
-  background: color-mix(in srgb, var(--color-nlp) 6%, transparent);
+/* Ticked: deep vellum, the pressed ground. */
+.proposalSelected,
+.proposalSelected:hover {
+  background: var(--color-surface-3);
 }
 
 .checkbox {

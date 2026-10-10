@@ -173,6 +173,32 @@
   color: var(--color-text-subtle);
 }
 
+/* Beside the prose (the side panel is a container): the kind and date go under the title,
+   so the title keeps the width. */
+@container (max-width: 36rem) {
+  .row {
+    flex-wrap: wrap;
+    row-gap: 0.15rem;
+  }
+
+  .meta {
+    flex-basis: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.5rem;
+    min-width: 0;
+    padding-left: calc(2.4rem + 0.85rem); /* under the title, past the icon */
+  }
+
+  .meta > * {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+}
+
 .empty {
   margin: 1.5rem 0;
   color: var(--color-text-muted);

@@ -35,8 +35,6 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.4rem 0.75rem;
-  border-bottom: 1px solid var(--color-border);
-  background: color-mix(in srgb, var(--color-accent) 4%, var(--color-surface));
   flex-shrink: 0;
   flex-wrap: wrap;
   min-height: 2.4rem;
@@ -96,7 +94,6 @@
   font-weight: 600;
   color: var(--color-warning);
   background: color-mix(in srgb, var(--color-warning) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-warning) 28%, transparent);
   border-radius: var(--radius-sm);
   padding: 0.05rem 0.3rem;
 }
@@ -110,7 +107,7 @@
   font-family: inherit;
   font-weight: 500;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-ai-border);
+  border: none;
   background: transparent;
   color: var(--color-ai);
   cursor: pointer;
@@ -137,7 +134,6 @@
 /* ── Suggested prompts ── */
 .prompts {
   padding: 0.75rem;
-  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 .promptsLabel {
@@ -158,8 +154,8 @@
   border-radius: var(--radius);
   font-size: 0.78rem;
   font-family: inherit;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  background: transparent;
+  border: none;
   color: var(--color-text-muted);
   cursor: pointer;
   transition:
@@ -168,13 +164,12 @@
   line-height: 1.4;
 }
 .promptBtn:hover {
-  background: var(--color-surface-3);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
 /* ── Notes ── */
 .notesArea {
-  border-top: 1px solid var(--color-border);
   padding: 0.625rem 0.75rem;
   background: color-mix(in srgb, var(--color-ai) 4%, var(--color-surface));
   flex-shrink: 0;
@@ -235,7 +230,7 @@
   font-family: inherit;
   padding: 0.15rem 0.5rem;
   border-radius: 99px;
-  border: 1px solid var(--color-ai-border);
+  border: none;
   color: var(--color-ai);
   background: var(--color-ai-subtle);
   cursor: pointer;
@@ -248,7 +243,6 @@
 .applyPanel {
   margin-top: 0.5rem;
   padding-top: 0.5rem;
-  border-top: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -264,17 +258,15 @@
   font-family: inherit;
   padding: 0.3rem 0.5rem;
   border-radius: var(--radius);
-  border: 1px solid var(--color-control-border);
-  background: var(--color-surface);
+  border: none;
+  background: transparent;
   color: var(--color-text);
   cursor: pointer;
   transition: background var(--transition);
   text-transform: capitalize;
 }
 .applyField:hover {
-  background: var(--color-surface-2);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  background: var(--color-hover);
 }
 
 /* ── Compact bar ── */
@@ -284,7 +276,6 @@
   gap: 0.5rem;
   padding: 0.35rem 0.75rem;
   background: color-mix(in srgb, var(--color-warning) 8%, transparent);
-  border-top: 1px solid color-mix(in srgb, var(--color-warning) 20%, transparent);
   flex-shrink: 0;
 }
 
@@ -301,7 +292,6 @@
   padding: 0.15rem 0.4rem;
   border-radius: 99px;
   background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
 }
 
 /* ── Capture btn ── */

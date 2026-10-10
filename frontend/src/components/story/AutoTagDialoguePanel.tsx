@@ -3,6 +3,7 @@ import { X, Tag, User, AlertCircle, CheckSquare, Square, BrainCircuit, Loader } 
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { ProposedDialogueTag, StructureNode } from "../../types";
+import { saveOpenScene } from "../../lib/panel/panelSync";
 import styles from "./AutoTagDialoguePanel.module.css";
 
 interface Props {
@@ -200,6 +201,7 @@ export default function AutoTagDialoguePanel({
 
     setApplying(true);
     try {
+      await saveOpenScene(sceneId); // the rewrite is of the current text, typing included
       const updated = await api.applyDialogueTags(sceneId, tags);
       onApplied(updated);
       // Rescan so the panel shows remaining untagged dialogue

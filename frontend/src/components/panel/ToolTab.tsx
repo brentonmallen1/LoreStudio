@@ -4,7 +4,6 @@ import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
 import type { ToolId } from "../../types/panel";
 import { TOOL_LABELS } from "../../types/panel";
-import FreewriteEditor from "../freewrite/FreewriteEditor";
 import NotesBoard from "../notes/NotesBoard";
 import DialogueTool from "./dialogue/DialogueTool";
 import { entityColor } from "./entityColor";
@@ -17,7 +16,6 @@ import styles from "./Panel.module.css";
 export default function ToolTab({ tool }: { tool: ToolId }) {
   const { activeStory } = useStoryStore();
   if (!activeStory) return null;
-  if (tool === "freewrite") return <FreewriteEditor storyId={activeStory.id} compact />;
   if (tool === "notes") return <NotesBoard compact />;
   if (tool === "dialogue") return <DialogueTool />;
   return <EntityList tool={tool} />;

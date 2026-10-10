@@ -11,11 +11,11 @@ import {
 import { findRoute } from "../routes";
 
 describe("pages beside the prose", () => {
-  it("offers every page but the prose and Freewrite, and Studio's only in Studio", () => {
+  it("offers every page but the prose, and Studio's only in Studio", () => {
     const writer = besideRoutes("writer", false).map((r) => r.id);
     const studio = besideRoutes("studio", true).map((r) => r.id);
     expect(writer).not.toContain("write");
-    expect(writer).not.toContain("freewrite");
+    expect(writer).toContain("freewrite"); // the rail opens it as a tab
     expect(writer).toContain("storyboard");
     expect(writer).not.toContain("publish");
     expect(studio).toContain("publish");

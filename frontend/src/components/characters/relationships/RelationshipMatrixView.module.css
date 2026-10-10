@@ -29,26 +29,29 @@
   font-size: var(--text-xs);
   padding: 0.2rem 0.65rem;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
+  border: none;
+  background: transparent;
   color: var(--color-text-muted);
+  font-family: inherit;
   cursor: pointer;
-  transition: all var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
+/* Ghost mode buttons (the Press Rule): the hover ground, deep vellum on the one that is on. */
 .modeBtn:hover:not(.modeBtnActive) {
-  background: var(--color-surface-3);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
 .modeBtnActive {
   background: var(--color-surface-3);
-  border-color: var(--color-accent);
   color: var(--color-text);
   font-weight: 500;
 }
 
-/* ── Table ── */
+/* ── Table: the cells' light grid is the matrix itself; the headings need no rule of their own ── */
 .tableWrapper {
   overflow: auto;
 }
@@ -69,7 +72,6 @@
   text-align: center;
   font-weight: 500;
   color: var(--color-text-muted);
-  border-bottom: 1px solid var(--color-border);
   min-width: 80px;
   max-width: 120px;
   vertical-align: bottom;
@@ -89,7 +91,6 @@
   text-align: right;
   font-weight: 500;
   color: var(--color-text-muted);
-  border-right: 1px solid var(--color-border);
   white-space: nowrap;
   max-width: 130px;
 }
@@ -103,12 +104,12 @@
 
 .selfCell {
   background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-light);
   opacity: 0.4;
 }
 
 .emptyCell {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-light);
   text-align: center;
   cursor: pointer;
   transition: background var(--transition);
@@ -116,7 +117,7 @@
 }
 
 .emptyCell:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
 }
 
 .emptyCell:hover .addHint {
@@ -131,7 +132,7 @@
 }
 
 .filledCell {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-light);
   cursor: pointer;
   transition: background var(--transition);
   padding: 0.25rem;
@@ -140,7 +141,7 @@
 }
 
 .filledCell:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
 }
 
 /* ── Cell inner layouts ── */
@@ -224,8 +225,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem 0.9rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--color-border);
+  padding-top: 0.25rem;
 }
 
 .legendItem {

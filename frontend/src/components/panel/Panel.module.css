@@ -36,7 +36,7 @@
   position: relative;
   display: flex;
   align-items: flex-end;
-  gap: 2px;
+  gap: 4px;
   flex-shrink: 0;
   padding: 0.5rem 0.5rem 0.25rem;
 }
@@ -53,21 +53,30 @@
   padding: 0 0.2rem 0 0.25rem;
   box-sizing: border-box;
   border-radius: 8px;
+  /* Every tab has a ground at rest, a deep-vellum chip (vellum is too near the panel's tone
+     to show), so a row of them reads as tabs and not as loose words. */
+  background: var(--color-surface-3);
   color: var(--color-text-muted);
 }
 
 .tab:hover {
-  background: var(--color-hover);
+  background: color-mix(in srgb, var(--color-surface-3) 88%, var(--color-text));
   color: var(--color-text);
 }
 
-/* The tab showing is the ground inside the panel's tone box, set apart by weight and tone,
-   not a folder's edge. */
+/* The tab showing is lifted out of the row: the paper ground with a hairline lift, its name
+   in weight. Not a folder's edge. */
 .tabActive,
 .tabActive:hover {
   background: var(--color-ground);
+  box-shadow: var(--shadow-sm);
   color: var(--color-text);
   font-weight: 600;
+}
+
+/* On a tab at rest the close button's hover ground is the paper, a step off deep vellum. */
+.tab:not(.tabActive) .tabClose:hover {
+  background: var(--color-ground);
 }
 
 .tabLabel {
@@ -160,14 +169,19 @@
   height: 1.867rem;
   margin-bottom: 3px;
   padding: 0 0.5rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  border: none;
+  border-radius: 8px;
+  /* The tabs that did not fit: a chip like theirs. */
+  background: var(--color-surface-3);
   color: var(--color-text);
   font: inherit;
   font-size: 0.75rem;
   cursor: pointer;
   flex-shrink: 0;
+}
+
+.overflowBtn:hover {
+  background: color-mix(in srgb, var(--color-surface-3) 88%, var(--color-text));
 }
 
 .menu {

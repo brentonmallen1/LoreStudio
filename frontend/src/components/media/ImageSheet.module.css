@@ -39,9 +39,10 @@
   position: relative;
   display: block;
   padding: 0;
-  border: 1px solid var(--color-border-light);
+  /* A tone box round the image (doc 24 P8), no edge. */
+  border: none;
   border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  background: var(--color-tone);
   overflow: hidden;
   cursor: zoom-in;
 }
@@ -131,8 +132,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+  /* Space, not a rule, sets the actions apart from the fields. */
   padding-top: 0.6rem;
-  border-top: 1px solid var(--color-border-light);
 }
 
 .actions .meta {
@@ -152,15 +153,16 @@
   cursor: pointer;
 }
 
+/* Ghost tier (DESIGN.md §5): no border at rest, the hover ground under the pointer. */
 .quiet {
-  border: 1px solid var(--color-border);
+  border: none;
   background: transparent;
   color: var(--color-text-muted);
 }
 
 .quiet:hover {
   color: var(--color-text);
-  background: var(--color-surface-2);
+  background: var(--color-hover);
 }
 
 .danger {
