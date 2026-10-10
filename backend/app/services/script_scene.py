@@ -29,7 +29,7 @@ from . import change_log
 from .dialogue_service import plan_scene
 from .prose_html import paragraphs
 from .prose_syntax import fold, reader_text
-from .script_syntax import Slug, parse_slugline, scene_blocks
+from .script_syntax import Slug, heading_at, parse_slugline, scene_blocks
 from .story_format import is_script
 from .word_count import count_lines, count_words
 
@@ -39,21 +39,30 @@ _NOTE_ID = re.compile(r"""data-note-id=["']([^"']+)["']""")
 def heading_of(html: str | None) -> Slug | None:
     """The scene's heading, read, when its first line is one."""
     blocks = scene_blocks(html or "")
-    if blocks and blocks[0][0] == "heading":
-        return parse_slugline(blocks[0][1])
+    at = heading_at(blocks)
+    if at < len(blocks) and blocks[at][0] == "heading":
+        return parse_slugline(blocks[at][1])
     return None
+
+
+def _below(html: str) -> list:
+    """The headings below the scene's own, as paragraphs."""
+    paras = paragraphs(html)
+    return [p for p in paras[heading_at([(p.element, p.text) for p in paras]) + 1 :] if p.element == "heading"]
+
+
+def _cut(html: str, para) -> tuple[str, str] | None:
+    at = html.rfind("<", 0, para.spans[0][0])
+    while at > 0 and not re.match(r"<p[\s>]", html[at:]):
+        at = html.rfind("<", 0, at)
+    return (html[:at], html[at:]) if at > 0 else None
 
 
 def cut_at_heading(html: str, heading: str) -> tuple[str, str] | None:
     """The scene's HTML cut just before the block holding `heading`, when that is a heading
     further down than the first line: (the words before it, it and the words after)."""
-    for para in paragraphs(html)[1:]:
-        if para.element == "heading" and reader_text(para.text) == heading:
-            at = html.rfind("<", 0, para.spans[0][0])
-            while at > 0 and not re.match(r"<p[\s>]", html[at:]):
-                at = html.rfind("<", 0, at)
-            return (html[:at], html[at:]) if at > 0 else None
-    return None
+    para = next((p for p in _below(html) if reader_text(p.text) == heading), None)
+    return _cut(html, para) if para else None
 
 
 def _key(name: str) -> str:
@@ -93,7 +102,8 @@ def derive_heading(node: StructureNode, story: Story | None, db: Session) -> Non
         db.add(SceneSetting(location_id=place.id, node_id=node.id, role="primary", notes="From the scene heading."))
 
 
-def _title(slug: Slug | None) -> str:
+def scene_title(slug: Slug | None) -> str:
+    """A scene named for its place, "Keeper's Cottage"."""
     if not slug or not slug.place:
         return "New scene"
     words = slug.place.lower().split()
@@ -108,14 +118,16 @@ def split_scene(
     *,
     actor_id: str | None,
     client_id: str | None,
+    batch: str | None = None,
+    label: str | None = None,
 ) -> StructureNode:
     """Keep `before` in the scene and make `after` (which opens on its heading) the scene that
     follows it, as one change ⌘Z takes back whole. Does not commit."""
     story = db.get(Story, node.story_id)
-    batch = str(uuid.uuid4())
+    batch = batch or str(uuid.uuid4())
     slug = heading_of(after)
     record = {"story_id": node.story_id, "actor_id": actor_id, "client_id": client_id, "batch_id": batch}
-    label = f"Start a new scene after “{node.title or 'Untitled'}”"
+    label = label or f"Start a new scene after “{node.title or 'Untitled'}”"
 
     # The scenes after this one move down to make room.
     later = (
@@ -138,7 +150,7 @@ def split_scene(
         parent_id=node.parent_id,
         level=node.level,
         level_type=node.level_type,
-        title=_title(slug),
+        title=scene_title(slug),
         position=node.position + 1,
         status="draft",
         content=after,
@@ -178,3 +190,16 @@ def split_scene(
     derive_heading(node, story, db)
     derive_heading(new, story, db)
     return new
+
+
+def split_at_headings(
+    db: Session, node: StructureNode, *, actor_id: str | None, client_id: str | None
+) -> list[StructureNode]:
+    """Start a scene at every heading below the scene's own (several scenes pasted at once), as
+    one change ⌘Z takes back whole. Cut from the last up, so each lands in order. Does not commit."""
+    batch = str(uuid.uuid4())
+    label = f"Start new scenes after “{node.title or 'Untitled'}”"
+    made: list[StructureNode] = []
+    while (below := _below(node.content or "")) and (cut := _cut(node.content or "", below[-1])):
+        made.append(split_scene(db, node, *cut, actor_id=actor_id, client_id=client_id, batch=batch, label=label))
+    return made[::-1]

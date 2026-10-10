@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { Editor, getHTMLFromFragment } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
 import { proseStarterKit } from "../starterKit";
-import { headingBelowTop, ScriptElementAttribute } from "./ScriptElementExtension";
+import { headingBelowTop, headingsBelowTop, ScriptElementAttribute } from "./ScriptElementExtension";
 
 /**
  * A script scene is one heading (doc 25, D3): a heading below the first line is where the
@@ -17,8 +17,8 @@ afterEach(() => {
 const TOP = '<p data-el="heading">INT. COTTAGE - NIGHT</p><p data-el="action">Rain.</p>';
 const NEXT = '<p data-el="heading">EXT. LIGHTHOUSE - CONTINUOUS</p><p data-el="action">She runs.</p>';
 
-function cursorIn(needle: string): Editor {
-  editor = new Editor({ extensions: [proseStarterKit(), ScriptElementAttribute], content: TOP + NEXT });
+function cursorIn(needle: string, content = TOP + NEXT): Editor {
+  editor = new Editor({ extensions: [proseStarterKit(), ScriptElementAttribute], content });
   let at = -1;
   editor.state.doc.descendants((node, pos) => {
     if (at < 0 && node.isText && node.text!.includes(needle)) at = pos + 1;
@@ -42,5 +42,18 @@ describe("headingBelowTop", () => {
     expect(headingBelowTop(cursorIn("COTTAGE"))).toBeNull();
     editor?.destroy();
     expect(headingBelowTop(cursorIn("runs"))).toBeNull();
+  });
+
+  it("takes the heading under a script's opening FADE IN: as the scene's own", () => {
+    const fade = '<p data-el="action">FADE IN:</p>';
+    expect(headingBelowTop(cursorIn("COTTAGE", fade + TOP + NEXT))).toBeNull();
+    expect(headingsBelowTop(editor!.state.doc)).toHaveLength(1);
+  });
+
+  it("finds every heading below the scene's own, where several scenes were pasted", () => {
+    const ed = cursorIn("Rain", TOP + NEXT + NEXT);
+    const below = headingsBelowTop(ed.state.doc);
+    expect(below).toHaveLength(2);
+    expect(getHTMLFromFragment(ed.state.doc.content.cut(0, below[0]), ed.state.schema)).toBe(TOP);
   });
 });

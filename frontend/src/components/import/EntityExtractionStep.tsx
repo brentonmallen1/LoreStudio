@@ -17,6 +17,7 @@ import { jobsApi, type AIJob } from "../../api/jobs";
 import { useJobs, useOnJobFinished } from "../../hooks/useJobs";
 import { plainError } from "../../lib/jobs/jobs";
 import { useAIAvailable } from "../../lib/mode";
+import { isScriptImport } from "../../lib/storyFormat";
 import { useJobsStore } from "../../stores/jobsStore";
 import type {
   AIEnrichOptions,
@@ -263,6 +264,12 @@ export default function EntityExtractionStep({ uploadResponse, preview, onComple
           </span>
           {nlpDone && <span className={styles.phaseDone}>✓ {nlpCandidates.length} found</span>}
         </div>
+        {isScriptImport(uploadResponse.source_format) && (
+          <p className={styles.subtitle}>
+            A script names them for you: its characters are the names in its cues (anyone who speaks twice or
+            more), its places the ones its scene headings name.
+          </p>
+        )}
 
         {!nlpDone && (
           <div className={styles.phaseOptions}>

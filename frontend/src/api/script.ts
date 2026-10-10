@@ -10,6 +10,13 @@ export const scriptApi = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+  /** Start a scene at every heading below a scene's own (several pasted at once, doc 25 P6):
+   *  one undoable change. Returns the scene as it now reads. */
+  splitAtHeadings: (nodeId: string, expected_updated_at?: string) =>
+    request<StructureNode>(`/structure/${nodeId}/split-headings`, {
+      method: "POST",
+      body: JSON.stringify({ expected_updated_at }),
+    }),
   /** A screenplay's printed pages, line by line: the PDF's own layout (doc 25, P3). */
   getScriptLayout: (storyId: string, choices: ScriptExportChoices, statusFilter?: string) => {
     const q = new URLSearchParams(Object.entries(choices).map(([k, v]) => [k, String(v)]));

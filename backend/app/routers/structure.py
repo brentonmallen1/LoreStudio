@@ -18,7 +18,7 @@ from ..services.linking_service import apply_entity_links, suggest_entity_links
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
 from ..services.llm.prompts.summaries import build_scene_summary_prompt, build_structure_section_summary_prompt
 from ..services.llm.sse import sse_message, sse_stream
-from ..services.script_scene import derive_heading, split_scene
+from ..services.script_scene import derive_heading, split_at_headings, split_scene
 from ..services.word_count import count_lines
 
 router = APIRouter()
@@ -157,6 +157,17 @@ def update_node(
     return node
 
 
+def _unchanged_since(node: StructureNode, expected: datetime | None) -> None:
+    if expected and node.updated_at is not None and _differs(expected, node.updated_at):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "This segment changed since you loaded it.",
+                "node": StructureNodeOut.model_validate(node).model_dump(mode="json"),
+            },
+        )
+
+
 class SplitBody(BaseModel):
     """The scene's words up to the new heading, and from it on (doc 25, D3)."""
 
@@ -176,14 +187,7 @@ def split_node(
     """Start a new scene where a script scene's second heading is: the scene keeps what came
     before it, the new scene after it takes the rest, and ⌘Z puts them back together."""
     node = _verify_node_access(node_id, db, current_user)
-    if body.expected_updated_at and node.updated_at is not None and _differs(body.expected_updated_at, node.updated_at):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail={
-                "message": "This segment changed since you loaded it.",
-                "node": StructureNodeOut.model_validate(node).model_dump(mode="json"),
-            },
-        )
+    _unchanged_since(node, body.expected_updated_at)
     if not body.new_content.strip():
         raise HTTPException(status_code=400, detail="Nothing to start the new scene with.")
     new = split_scene(db, node, body.content, body.new_content, actor_id=current_user.id, client_id=client_id)
@@ -192,6 +196,32 @@ def split_node(
     sync_scene_dialogue(node, db)
     sync_scene_dialogue(new, db)
     return new
+
+
+class SplitHeadingsBody(BaseModel):
+    expected_updated_at: datetime | None = None
+
+
+@router.post("/{node_id}/split-headings", response_model=StructureNodeOut)
+def split_at_every_heading(
+    node_id: str,
+    body: SplitHeadingsBody,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
+):
+    """Start a scene at every heading below a script scene's own, as several scenes pasted at
+    once ask (doc 25, P6). One change ⌘Z takes back whole; returns the scene as it now reads."""
+    node = _verify_node_access(node_id, db, current_user)
+    _unchanged_since(node, body.expected_updated_at)
+    made = split_at_headings(db, node, actor_id=current_user.id, client_id=client_id)
+    if not made:
+        raise HTTPException(status_code=400, detail="There is no other heading in this scene.")
+    db.commit()
+    for scene in (node, *made):
+        sync_scene_dialogue(scene, db)
+    db.refresh(node)
+    return node
 
 
 @router.post("/{node_id}/summarize")

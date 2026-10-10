@@ -63,6 +63,11 @@
   },
   "classify": [
     [
+      "People lie.",
+      "dialogue",
+      "dialogue"
+    ],
+    [
       "INT. LIGHTHOUSE - NIGHT",
       null,
       "heading"
@@ -171,11 +176,6 @@
       "> FADE OUT.",
       null,
       "transition"
-    ],
-    [
-      "Eleanor climbs the stairs.",
-      "dialogue",
-      "action"
     ],
     [
       "",
@@ -298,6 +298,24 @@
         [
           "action",
           "CLOSED"
+        ]
+      ]
+    },
+    {
+      "_why": "A speech runs on, line after line, until a blank line.",
+      "text": "ELEANOR\nThe glass doesn't lie.\nPeople lie.\n\nShe turns away.",
+      "expect": [
+        [
+          "cue",
+          "ELEANOR"
+        ],
+        [
+          "dialogue",
+          "The glass doesn't lie.\nPeople lie."
+        ],
+        [
+          "action",
+          "She turns away."
         ]
       ]
     },
@@ -662,6 +680,61 @@
     [
       "Mrs.  Hale",
       "MRS. HALE"
+    ]
+  ],
+  "_heading_at": "Where a scene's own heading is: after the lines that open a script.",
+  "heading_at": [
+    [
+      [
+        [
+          "heading",
+          "INT. LAMP ROOM - DUSK"
+        ],
+        [
+          "action",
+          "Rain."
+        ]
+      ],
+      0
+    ],
+    [
+      [
+        [
+          "action",
+          "FADE IN:"
+        ],
+        [
+          "heading",
+          "INT. LAMP ROOM - DUSK"
+        ]
+      ],
+      1
+    ],
+    [
+      [
+        [
+          "transition",
+          "SMASH CUT TO:"
+        ],
+        [
+          "heading",
+          "EXT. CLIFF - NIGHT"
+        ]
+      ],
+      1
+    ],
+    [
+      [
+        [
+          "action",
+          "She fades in and out."
+        ],
+        [
+          "heading",
+          "INT. LAMP ROOM - DUSK"
+        ]
+      ],
+      0
     ]
   ]
 }

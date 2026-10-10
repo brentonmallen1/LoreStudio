@@ -194,3 +194,55 @@ def test_the_cut_falls_on_the_heading_block():
     assert cut_at_heading(html, "EXT. LIGHTHOUSE - CONTINUOUS") == (BEFORE, AFTER)
     assert cut_at_heading(html, "INT. KEEPER'S COTTAGE - NIGHT") is None  # the scene's own heading
     assert cut_at_heading(html, "EXT. MOON - DAY") is None
+
+
+def test_a_scene_may_open_on_a_transition(client, db_session):
+    # Most scripts open "FADE IN:" above the first heading: the heading is still the scene's own.
+    story = _script(client, db_session)
+    node_id = story["start_node_id"]
+    fade = '<p data-el="action">FADE IN:</p>'
+    out = client.patch(f"/api/structure/{node_id}", json={"content": fade + BEFORE}).json()
+    assert (out["interior"], out["time_of_day"]) == ("INT", "NIGHT")
+    assert _second_headings(client, story) == []
+    assert cut_at_heading(fade + BEFORE, "INT. KEEPER'S COTTAGE - NIGHT") is None
+
+
+THIRD = '<p data-el="heading">INT. LAMP ROOM - LATER</p><p data-el="action">The lamp turns.</p>'
+
+
+def test_scenes_pasted_at_once_each_start_at_their_heading_and_undo_whole(client, db_session):
+    story = _script(client, db_session, "The Lighthouse")
+    node_id = story["start_node_id"]
+    client.patch(f"/api/structure/{node_id}", json={"content": BEFORE + AFTER + THIRD})
+
+    r = client.post(f"/api/structure/{node_id}/split-headings", json={})
+    assert r.status_code == 200, r.text
+    assert r.json()["content"] == BEFORE
+    db_session.expire_all()
+    node = db_session.get(StructureNode, node_id)
+    scenes = (
+        db_session.query(StructureNode)
+        .filter_by(story_id=story["id"], parent_id=node.parent_id)
+        .order_by(StructureNode.position)
+        .all()
+    )
+    assert [(s.title, s.content) for s in scenes] == [
+        (node.title, BEFORE),
+        ("Lighthouse", AFTER),
+        ("Lamp Room", THIRD),
+    ]
+    assert _primary(db_session, scenes[1].id) == "The Lighthouse"
+
+    assert client.post(f"/api/stories/{story['id']}/undo").status_code == 200
+    db_session.expire_all()
+    assert db_session.get(StructureNode, node_id).content == BEFORE + AFTER + THIRD
+    assert db_session.query(StructureNode).filter_by(story_id=story["id"], level=node.level).count() == 1
+
+    assert (
+        client.post(
+            f"/api/structure/{node_id}/split-headings", json={"expected_updated_at": "2001-01-01T00:00:00"}
+        ).status_code
+        == 409
+    )
+    client.patch(f"/api/structure/{node_id}", json={"content": BEFORE})
+    assert client.post(f"/api/structure/{node_id}/split-headings", json={}).status_code == 400

@@ -52,6 +52,11 @@ def test_slugline(text, interior, place, time, printed):
     assert ss.format_slugline(slug) == printed
 
 
+@pytest.mark.parametrize(("blocks", "at"), CASES["heading_at"])
+def test_heading_at(blocks, at):
+    assert ss.heading_at([tuple(b) for b in blocks]) == at
+
+
 @pytest.mark.parametrize(("text", "width", "hang", "lines"), CASES["wrap"], ids=lambda v: str(v)[:30])
 def test_wrap(text, width, hang, lines):
     assert ss.wrap(text, width, hang=hang) == lines

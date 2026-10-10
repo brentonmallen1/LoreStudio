@@ -35,13 +35,15 @@ You never have to set an element by hand. If you know Final Draft, these work to
 - Typing `INT. ` or `EXT. ` at the start of a line starts a scene heading. A name in capitals followed by Enter becomes a cue (`BOOM!` stays action). A line in capitals ending `TO:` is a transition.
 - Headings, cues and transitions are typed in capitals for you.
 - In a cue, the characters in your Lorebook are offered as you type. A new name makes a new character: `MRS. HALE` becomes _Mrs. Hale_.
-- Pasting Fountain text (the plain-text screenplay format) brings it in as elements.
+- Pasting Fountain text (the plain-text screenplay format) brings it in as elements. A whole script opens as a new story through **Import** on the dashboard.
 
 ## Scenes and their headings
 
 Each scene in your structure opens on one heading, typed as its first line. LoreStudio reads it as you write: inside or out (`INT.`, `EXT.`, `INT./EXT.`), the place, and the time of day. The scene's glance and the Timeline show them, and a place your Lorebook already has becomes the scene's place, unless you have chosen one yourself.
 
-A heading typed further down a scene starts another scene. A bar above the page offers **Start a new scene here**: everything from the heading on becomes the next scene, and its lines of dialogue and margin notes go with it. **Keep as a line** turns the heading into action instead. Splitting is one step, and {{key:undo}} puts the scene back together. Findings lists any scene with a second heading, with the same fix.
+A heading typed further down a scene starts another scene. A bar above the page offers **Start a new scene here**: everything from the heading on becomes the next scene, and its lines of dialogue and margin notes go with it. **Keep as a line** turns the heading into action instead. Splitting is one step, and {{key:undo}} puts the scene back together. Findings lists any scene with a second heading, with the same fix. Paste several scenes at once and the bar offers **Start each as a scene**, which makes a scene at every heading in one step.
+
+A script may open on `FADE IN:` above the first heading; that heading is still the scene's own.
 
 ## The page
 

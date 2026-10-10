@@ -16,6 +16,7 @@ six lines to the inch, 55 lines to a Letter page under a one-inch top margin.
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 from .prose_html import paragraphs
@@ -148,7 +149,7 @@ def classify_line(text: str, prev: str | None) -> str:
         return "transition"
     if prev in ("cue", "dialogue", "paren") and t.startswith("(") and t.endswith(")"):
         return "paren"
-    if prev in ("cue", "paren"):
+    if prev in ("cue", "paren", "dialogue"):
         return "dialogue"
     if is_capitals(t) and t.endswith("TO:"):
         return "transition"
@@ -207,7 +208,8 @@ def parse_lines(text: str) -> list[tuple[str, str]]:
 #: How a heading says where the camera is, as stored ("INT/EXT"), and as printed ("INT./EXT.").
 INTERIORS = {"INT": "INT.", "EXT": "EXT.", "INT/EXT": "INT./EXT.", "EXT/INT": "EXT./INT.", "EST": "EST."}
 _SLUG_PREFIX = re.compile(r"^(INT\.?/EXT|EXT\.?/INT|I/E|INT|EXT|EST)\.?\s+", re.I)
-_SCENE_NUMBER = re.compile(r"\s*#[^#]*#\s*$")
+#: A scene number written after a heading, "#12#".
+SCENE_NUMBER = re.compile(r"\s*#[^#]*#\s*$")
 
 
 @dataclass(frozen=True)
@@ -221,7 +223,7 @@ class Slug:
 
 def parse_slugline(text: str) -> Slug:
     """A heading's parts. The time is what follows the last " - "; what is between is the place."""
-    t = _SCENE_NUMBER.sub("", text.strip())
+    t = SCENE_NUMBER.sub("", text.strip())
     if _FORCED_HEADING.match(t):
         t = t[1:]
     interior = ""
@@ -240,6 +242,19 @@ def format_slugline(slug: Slug) -> str:
     """A heading from its parts, the way it prints."""
     head = " ".join(p for p in (INTERIORS.get(slug.interior, slug.interior), slug.place.upper()) if p)
     return f"{head} - {slug.time.upper()}" if slug.time else head
+
+
+_OPENING = re.compile(r"^FADE IN\W*$", re.I)
+
+
+def heading_at(blocks: Sequence[tuple[str | None, str]]) -> int:
+    """Where a scene's own heading is, among its (element, text) blocks: its first line, or the
+    first after the lines that open a script ("FADE IN:", a transition). A heading further down
+    starts another scene."""
+    i = 0
+    while i < len(blocks) and (blocks[i][0] == "transition" or _OPENING.match(blocks[i][1].strip())):
+        i += 1
+    return i
 
 
 def scene_blocks(html: str) -> list[tuple[str, str]]:

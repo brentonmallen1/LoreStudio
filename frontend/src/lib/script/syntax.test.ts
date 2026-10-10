@@ -7,6 +7,7 @@ import {
   cueName,
   eighths,
   formatSlugline,
+  headingAt,
   ENTER_NEXT,
   formatEighths,
   LAYOUT,
@@ -41,6 +42,7 @@ const CASES = JSON.parse(
   paginate: { _why: string; blocks: Block[]; pages: string[][] }[];
   scene_lines: [Block[], number, number][];
   slugline: [string, string, string, string, string][];
+  heading_at: [Block[], number][];
 };
 
 const show = (pages: Page[]) => pages.map((p) => p.map((l) => (l ? `${l.element}|${l.x}|${l.text}` : "")));
@@ -71,6 +73,10 @@ describe("script grammar (shared cases)", () => {
     const slug = parseSlugline(text);
     expect(slug).toEqual({ interior, place, time });
     expect(formatSlugline(slug)).toBe(printed);
+  });
+
+  it.each(CASES.heading_at)("finds the scene's own heading in %j", (blocks, at) => {
+    expect(headingAt(blocks)).toBe(at);
   });
 
   it.each(CASES.wrap)("wraps %j at %i", (text, width, hang, lines) => {

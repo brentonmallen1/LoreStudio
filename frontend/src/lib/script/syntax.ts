@@ -135,7 +135,7 @@ export function classifyLine(text: string, prev: ScriptElement | null): ScriptEl
   if (t.startsWith(">") && !t.endsWith("<")) return "transition";
   if ((prev === "cue" || prev === "dialogue" || prev === "paren") && t.startsWith("(") && t.endsWith(")"))
     return "paren";
-  if (prev === "cue" || prev === "paren") return "dialogue";
+  if (prev === "cue" || prev === "paren" || prev === "dialogue") return "dialogue";
   if (isCapitals(t) && t.endsWith("TO:")) return "transition";
   if (t.startsWith("@") || looksLikeCue(t)) return "cue";
   return "action";
@@ -199,6 +199,17 @@ export function formatSlugline(slug: Slug): string {
 export function shotOf(node: { interior?: string; time_of_day?: string }): string | null {
   const parts = [node.interior ? (INTERIORS[node.interior] ?? node.interior) : "", node.time_of_day ?? ""];
   return parts.filter(Boolean).join(" · ") || null;
+}
+
+const OPENING = /^FADE IN\W*$/i;
+
+/** Where a scene's own heading is, among its blocks: its first line, or the first after the
+ *  lines that open a script ("FADE IN:", a transition). A heading further down starts another
+ *  scene. The server's `heading_at`. */
+export function headingAt(blocks: [string | null, string][]): number {
+  let i = 0;
+  while (i < blocks.length && (blocks[i][0] === "transition" || OPENING.test(blocks[i][1].trim()))) i++;
+  return i;
 }
 
 /** Fountain-style text, pasted or imported, as blocks (see the server's `parse_lines`). */

@@ -19,6 +19,10 @@ Your prose comes in exactly as you wrote it.
 In Studio mode, the importer can also ask the AI to find scene breaks (**Auto-segment**) and to fill in details for the characters it found. It only suggests; you choose what to keep.
 <!-- /studio -->
 
+### Scripts
+
+A script in **Fountain** (`.fountain`, `.spmd`) or **Final Draft** (`.fdx`) comes in as a screenplay, with nothing guessed: a scene starts at each scene heading and is named for its place, `#` sections (Final Draft's New Act) become acts, and an opening `FADE IN:` stays with the first scene. Its title page, each scene's synopsis (`=` in Fountain, the scene summary in Final Draft) and its notes come with it, a note beside the line it was written on. The characters it suggests are the names in its cues, for anyone who speaks twice or more, and its places are the ones its headings name. Italics and bold are kept. Dual dialogue comes in as two speeches one after the other, and the Fountain boneyard (`/* … */`) is left out.
+
 ## Export your manuscript
 
 Open the **Manuscript** page and choose **Export**, or choose **Export manuscript…** in the command palette ({{key:palette}}). Pick a format and your options, then choose **Download**.

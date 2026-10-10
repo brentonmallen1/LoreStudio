@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Upload, FileText } from "lucide-react";
 import { api } from "../../api/client";
+import { isScriptFile, SCRIPT_FILES, templatesFor } from "../../lib/storyFormat";
 import type { ImportUploadResponse, StoryStructureTemplate } from "../../types";
 import styles from "./UploadStep.module.css";
 
@@ -8,8 +9,8 @@ interface Props {
   onUploaded: (resp: ImportUploadResponse) => void;
 }
 
-const ACCEPTED = ".docx,.doc,.rtf,.md,.markdown,.txt,.epub";
-const ACCEPTED_LABEL = "DOCX, DOC, RTF, Markdown, plain text, ePub";
+const ACCEPTED = [".docx", ".doc", ".rtf", ".md", ".markdown", ".txt", ".epub", ...SCRIPT_FILES].join(",");
+const ACCEPTED_LABEL = "DOCX, DOC, RTF, Markdown, plain text, ePub; scripts in Fountain or Final Draft";
 
 export default function UploadStep({ onUploaded }: Props) {
   const [file, setFile] = useState<File | null>(null);
@@ -27,9 +28,15 @@ export default function UploadStep({ onUploaded }: Props) {
       .catch(() => {});
   }, []);
 
+  // A script file comes in as a screenplay: its structures are the ones offered (doc 25, P6).
+  const script = file !== null && isScriptFile(file.name);
+  const offered = templatesFor(templates, script ? "screenplay" : "prose");
+
   function handleFile(f: File) {
     setFile(f);
     setError(null);
+    if (isScriptFile(f.name)) setTemplateId("screenplay");
+    else if (templates.find((t) => t.id === templateId)?.format === "screenplay") setTemplateId("freeform");
   }
 
   function handleDrop(e: React.DragEvent) {
@@ -59,7 +66,8 @@ export default function UploadStep({ onUploaded }: Props) {
     <div className={styles.root}>
       <p className={styles.hint}>
         Import a document and map it to your story's structure. Your writing is never altered; the import
-        wizard only decides where the breaks go.
+        wizard only decides where the breaks go. A Fountain or Final Draft script comes in as a screenplay, a
+        scene at each heading.
       </p>
 
       {/* Drop zone */}
@@ -101,7 +109,7 @@ export default function UploadStep({ onUploaded }: Props) {
       <div className={styles.field}>
         <label className={styles.label}>Target structure template</label>
         <select value={templateId} onChange={(e) => setTemplateId(e.target.value)} className={styles.select}>
-          {templates.map((t) => (
+          {offered.map((t) => (
             <option key={t.id} value={t.id}>
               {t.name}
               {!t.is_system ? " (custom)" : ""}

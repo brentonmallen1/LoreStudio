@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight, Orbit, AlertTriangle, ArrowLeft, ArrowRight } from "lucide-react";
 import { api } from "../../api/client";
+import { isScriptImport } from "../../lib/storyFormat";
 import type { ImportPreviewTree, ImportPreviewNode, ImportUploadResponse } from "../../types";
 import styles from "./StructureReviewStep.module.css";
 import { MODIFIER } from "../../lib/keyboard/shortcuts";
@@ -243,7 +244,7 @@ export default function StructureReviewStep({
             )}
             {aiError && <p className={styles.aiError}>{aiError}</p>}
           </div>
-          {uploadResponse.ai_available && (
+          {uploadResponse.ai_available && !isScriptImport(preview.source_format) && (
             <button
               onClick={handleAiAnalyze}
               disabled={aiLoading}

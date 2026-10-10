@@ -11,6 +11,7 @@ import {
   CAPITALS,
   classifyLine,
   ENTER_NEXT,
+  headingAt,
   isElement,
   parseLines,
   SHIFT_TAB_NEXT,
@@ -83,11 +84,28 @@ function capitalise(tr: Transaction, pos: number, node: PMNode): void {
   }
 }
 
-/** Where the cursor's heading starts, when it is a heading below the scene's first line. */
+/** The index of the scene's own heading: its first line, or the first after "FADE IN:". */
+function ownHeading(doc: PMNode): number {
+  const blocks: [string | null, string][] = [];
+  doc.forEach((node) => blocks.push([(node.attrs.el as string | null) ?? null, node.textContent]));
+  return headingAt(blocks);
+}
+
+/** Where the cursor's heading starts, when it is a heading below the scene's own. */
 export function headingBelowTop(editor: Editor): number | null {
   const { $from } = editor.state.selection;
-  if ($from.depth < 1 || $from.index(0) === 0) return null;
+  if ($from.depth < 1 || $from.index(0) <= ownHeading(editor.state.doc)) return null;
   return $from.node(1).attrs.el === "heading" ? $from.before(1) : null;
+}
+
+/** Where each heading below the scene's own starts: each starts another scene (several pasted). */
+export function headingsBelowTop(doc: PMNode): number[] {
+  const own = ownHeading(doc);
+  const out: number[] = [];
+  doc.forEach((node, offset, index) => {
+    if (index > own && node.attrs.el === "heading") out.push(offset);
+  });
+  return out;
 }
 
 /** Set the element of the block the cursor is in (the palette, ⌥⌘1–6, Tab). */

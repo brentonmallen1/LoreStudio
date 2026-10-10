@@ -46,3 +46,17 @@ export function templatesFor(
   const any = templates.filter((t) => !t.format);
   return [...own, ...any];
 }
+
+/** Script files the import wizard opens as a screenplay (doc 25, P6): the server's
+ *  `import_script.SCRIPT_EXTENSIONS`. */
+export const SCRIPT_FILES = [".fountain", ".spmd", ".fdx"];
+
+export function isScriptFile(name: string): boolean {
+  const lower = name.toLowerCase();
+  return SCRIPT_FILES.some((ext) => lower.endsWith(ext));
+}
+
+/** Whether an import came from a script file, by the format the server read it as. */
+export function isScriptImport(sourceFormat: string): boolean {
+  return sourceFormat === "fountain" || sourceFormat === "fdx";
+}

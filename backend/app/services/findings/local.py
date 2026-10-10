@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from ...models.activity_log import ActivityLog
 from ...schemas.findings import Finding, FindingAnchor, FindingFix
 from ..consistency import name_drift, unknown_speakers
-from ..script_syntax import scene_blocks
+from ..script_syntax import heading_at, scene_blocks
 from ..story_format import is_script
 from .make import make
 from .runs import result_of
@@ -79,7 +79,9 @@ def _second_headings(view: StoryView) -> list[Finding]:
         return []
     out: list[Finding] = []
     for node in view.written:
-        headings = [text for el, text in scene_blocks(node.content or "")[1:] if el == "heading"]
+        blocks = scene_blocks(node.content or "")
+        below = blocks[heading_at(blocks) + 1 :]
+        headings = [text for el, text in below if el == "heading"]
         for text in headings:
             out.append(
                 make(
