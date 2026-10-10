@@ -110,6 +110,10 @@ const PAIRS: [string, string, number, string][] = [
   ...TEXT.flatMap(([fg, what]) =>
     GROUNDS.map(([bg, where]): [string, string, number, string] => [fg, bg, 4.5, `${what} on ${where}`]),
   ),
+  // Reading text well past AA (2026-10-09: AA alone read faint): the prose and body text on the
+  // page, and in the side panel's tone box. A floor for every palette, light and dark.
+  ["--color-text", "--color-surface", 12, "body text on the page, for easy reading"],
+  ["--color-text", "--color-tone", 11, "body text in the side panel, for easy reading"],
   // Hover grounds and raised cards carry body and muted text; subtle text appears there on hover.
   ["--color-text", "--color-surface-3", 4.5, "body text on hover"],
   ["--color-text", "--color-surface-raised", 4.5, "body text on raised cards"],

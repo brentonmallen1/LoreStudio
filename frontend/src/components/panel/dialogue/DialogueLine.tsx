@@ -48,17 +48,23 @@ export default function DialogueLine({
     return (
       <div className={`${styles.line} ${styles.centre}`}>
         <div className={`${styles.bubble} ${styles.bubbleOpen} ${thought ? styles.thought : ""}`}>{text}</div>
-        <div className={styles.noSpeaker}>
-          No speaker yet ·{" "}
-          <SpeakerPicker
-            label="No speaker yet: choose who says this line"
-            trigger={<span className={styles.pick}>Who says this?</span>}
-            choices={choices}
-            align="start"
-            disabled={tagging}
-            onPick={(c) => onTag(c.name)}
-          />
-        </div>
+        {thought ? (
+          // A thought has no speaker tag in the prose's grammar, so there is nothing to choose:
+          // it is the point-of-view character's in a first-person story, and unmarked otherwise.
+          <div className={styles.noSpeaker}>A thought</div>
+        ) : (
+          <div className={styles.noSpeaker}>
+            No speaker yet ·{" "}
+            <SpeakerPicker
+              label="No speaker yet: choose who says this line"
+              trigger={<span className={styles.pick}>Who says this?</span>}
+              choices={choices}
+              align="start"
+              disabled={tagging}
+              onPick={(c) => onTag(c.name)}
+            />
+          </div>
+        )}
         {suggestion?.inferred_speaker && (
           <div className={styles.suggestion}>
             <Orbit size={12} aria-hidden className={styles.suggestionIcon} />

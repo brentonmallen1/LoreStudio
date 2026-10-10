@@ -3,7 +3,6 @@
   display: flex;
   gap: 2px;
   margin-bottom: 1.5rem;
-  border-bottom: 1px solid var(--color-border-light);
 }
 
 .tab {
@@ -13,24 +12,28 @@
   padding: 6px 14px;
   background: none;
   border: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
+  border-radius: var(--radius);
   font-size: 0.78rem;
   font-family: inherit;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: color 0.15s;
+  transition:
+    background var(--transition),
+    color var(--transition);
   white-space: nowrap;
 }
 
+/* Ghost tabs (the Press Rule): the hover ground, deep vellum on the open one; no underline. */
 .tab:hover {
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
-.tabActive {
-  color: var(--color-accent);
-  border-bottom-color: var(--color-accent);
-  font-weight: 500;
+.tabActive,
+.tabActive:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+  font-weight: 600;
 }
 
 .tabIcon {
@@ -41,7 +44,6 @@
 
 .tabActive .tabIcon {
   opacity: 1;
-  color: var(--color-accent);
 }
 
 /* ── Tab body ── */
@@ -53,15 +55,18 @@
 .closeBtn {
   padding: 0.5rem 1.25rem;
   border-radius: var(--radius);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
   font-size: 0.875rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .closeBtn:hover {
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
+  color: var(--color-text);
 }

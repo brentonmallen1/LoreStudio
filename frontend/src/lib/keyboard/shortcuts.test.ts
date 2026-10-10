@@ -71,9 +71,15 @@ describe("SHORTCUTS", () => {
     expect(matchesCombo(ev({ ...mod, key: "Z", shiftKey: true }), "mod+shift+z")).toBe(true);
     expect(matchesCombo(ev({ key: "?" }), "?")).toBe(true);
     expect(matchesCombo(ev({ key: "/" }), "?")).toBe(false);
-    // The strip and the panel sit side by side: ⌘, and ⌘.
-    expect(matchesCombo(ev({ ...mod, key: "," }), SHORTCUTS.cycleStrip.combo)).toBe(true);
-    expect(matchesCombo(ev({ ...mod, key: "." }), SHORTCUTS.cycleStrip.combo)).toBe(false);
+    // The strip and the panel sit side by side: ⌥⌘, and ⌘. (⌘, alone is the browser's settings).
+    // ⌥ changes the character on macOS (⌥, is "≤"), so the physical key matches too.
+    expect(
+      matchesCombo(ev({ ...mod, altKey: true, key: "≤", code: "Comma" }), SHORTCUTS.cycleStrip.combo),
+    ).toBe(true);
+    expect(matchesCombo(ev({ ...mod, key: "," }), SHORTCUTS.cycleStrip.combo)).toBe(false);
+    expect(
+      matchesCombo(ev({ ...mod, altKey: true, key: "†", code: "KeyT" }), SHORTCUTS.attributeDialogue.combo),
+    ).toBe(true);
   });
 
   it("formats combos for display", () => {

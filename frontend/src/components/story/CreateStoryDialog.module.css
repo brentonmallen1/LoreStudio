@@ -77,8 +77,8 @@
   font-size: 0.82rem;
   font-weight: 500;
   font-family: inherit;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  background: transparent;
+  border: none;
   color: var(--color-text-muted);
   cursor: pointer;
   transition:
@@ -87,7 +87,7 @@
 }
 
 .cancelBtn:hover {
-  background: var(--color-surface-3);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -156,9 +156,14 @@
   align-items: flex-start;
   gap: 0.6rem;
   padding: 0.5rem 0.65rem;
-  border: 1px solid var(--color-border);
   border-radius: var(--radius);
   cursor: pointer;
+  transition: background var(--transition);
+}
+
+/* Ghost options (the Press Rule): the hover ground, deep vellum on the chosen one. */
+.beginOption:hover {
+  background: var(--color-hover);
 }
 
 .beginOption input {
@@ -166,9 +171,9 @@
   accent-color: var(--color-accent);
 }
 
-.beginChosen {
-  border-color: var(--color-accent);
-  background: var(--color-surface-2);
+.beginChosen,
+.beginChosen:hover {
+  background: var(--color-surface-3);
 }
 
 .beginName {

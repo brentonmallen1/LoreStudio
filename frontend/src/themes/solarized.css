@@ -8,7 +8,7 @@
   --color-tone: #e8e2d1;
   --color-border: #cdc5b0;
   --color-border-light: #d8d2bf;
-  --color-text: #4a5c63;
+  --color-text: #1c2326;
   --color-text-muted: #4f5b5d;
   --color-text-subtle: #596565;
   --color-section-title: #50666d;
@@ -97,15 +97,15 @@
 /* ── Solarized theme · dark mode ───────────────── */
 [data-theme="solarized"].dark {
   color-scheme: dark;
-  --color-bg: #002b36;
-  --color-surface: #073642;
-  --color-surface-2: #0d3f4c;
-  --color-surface-3: #1a4b57;
+  --color-bg: #00222b;
+  --color-surface: #002b36;
+  --color-surface-2: #073642;
+  --color-surface-3: #0d3f4c;
   --color-surface-raised: #0b3a46;
-  --color-tone: #0b3b48;
+  --color-tone: #04313c;
   --color-border: #1f4e5a;
   --color-border-light: #0f4250;
-  --color-text: #a7b6b8;
+  --color-text: #edf0f0;
   --color-text-muted: #a5b5b9;
   --color-text-subtle: #8aa9b3;
   --color-section-title: #99a7a7;

@@ -26,11 +26,14 @@ export default function KeyboardShortcutsModal({ isOpen, onClose }: Props) {
   if (!isOpen) return null;
 
   const rows: Record<string, { label: string; keys: string }[]> = {};
-  for (const s of shortcutsFor(mode)) {
+  const shortcuts = shortcutsFor(mode);
+  for (const s of shortcuts) {
     (rows[s.group] ??= []).push({ label: s.label, keys: formatCombo(s.combo) });
   }
+  // Commands whose key is in the table above are listed once, from the table.
+  const listed = new Set(shortcuts.map((s) => s.commandId).filter(Boolean));
   for (const action of commandRegistry.getAll()) {
-    if (!action.shortcut) continue;
+    if (!action.shortcut || listed.has(action.id)) continue;
     if (action.when && !action.when()) continue;
     (rows[action.group] ??= []).push({ label: action.label, keys: action.shortcut });
   }

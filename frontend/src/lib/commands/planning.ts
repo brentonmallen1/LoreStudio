@@ -1,5 +1,5 @@
 /**
- * Planning commands (refactor doc 10): Freewrite and the Notes tab (doc 15), and the side
+ * Planning commands (refactor doc 10): the Notes tab (doc 15; Freewrite opens as a page), and the side
  * panel's scene tab. Kept apart from index.ts, which is at its size budget.
  */
 import {
@@ -9,8 +9,8 @@ import {
   ArrowRight,
   CalendarClock,
   FileText,
+  ImageIcon,
   MapIcon,
-  NotebookPen,
   StickyNote,
 } from "lucide-react";
 import { goToAdjacentScene, openSceneId } from "../story/adjacentScene";
@@ -20,7 +20,7 @@ import { sceneSheetPath } from "../scene/glance";
 import { useStoryStore } from "../../stores/storyStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { useEditorBridge } from "../../stores/editorBridge";
-import { SHORTCUTS } from "../keyboard/shortcuts";
+import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
 
 /** Show the scene's notes in the side panel, going to the Write page first if need be. */
 /** The open scene's sheet, on one of its pages (doc 24 D19): its notes or its plan. */
@@ -29,16 +29,6 @@ function showSheet(page: "notes" | "plan") {
   if (!activeStory || !activeNode) return;
   navigateTo(`${sceneSheetPath(activeStory.id, activeNode.id)}${page === "plan" ? "" : `#${page}`}`);
 }
-
-commandRegistry.register({
-  id: "panel-freewrite",
-  label: "Freewrite beside the page",
-  keywords: ["idea", "brain dump", "note", "thought", "loose", "capture", "stream of consciousness"],
-  icon: NotebookPen,
-  group: "Manuscript",
-  when: () => !!useStoryStore.getState().activeStory,
-  action: () => usePanelStore.getState().openTool("freewrite"),
-});
 
 commandRegistry.register({
   id: "panel-notes",
@@ -60,6 +50,16 @@ commandRegistry.register({
   action: () => showSheet("notes"),
 });
 
+commandRegistry.register({
+  id: "editor-insert-image",
+  label: "Insert image",
+  keywords: ["image", "picture", "photo", "figure", "map", "media"],
+  icon: ImageIcon,
+  group: "Editor",
+  when: () => !!useEditorBridge.getState().insertImage,
+  action: () => useEditorBridge.getState().insertImage?.(),
+});
+
 for (const [id, dir, key] of [
   ["editor-next-note", 1, "nextNote"],
   ["editor-prev-note", -1, "prevNote"],
@@ -70,7 +70,7 @@ for (const [id, dir, key] of [
     keywords: ["note", "margin", "question", "to-do", dir === 1 ? "next" : "previous"],
     icon: StickyNote,
     group: "Editor",
-    shortcut: SHORTCUTS[key].combo,
+    shortcut: formatCombo(SHORTCUTS[key].combo),
     when: () => !!useEditorBridge.getState().notes?.notes.length,
     action: () => useEditorBridge.getState().notes?.step(dir),
   });
@@ -87,7 +87,7 @@ for (const [id, dir, key] of [
     keywords: ["back", "forward", "history", "previous page", "where I was", "return"],
     icon: dir === 1 ? ArrowRight : ArrowLeft,
     group: "Navigation",
-    shortcut: SHORTCUTS[key].combo,
+    shortcut: formatCombo(SHORTCUTS[key].combo),
     action: dir === 1 ? goForward : goBack,
   });
 }
@@ -102,7 +102,7 @@ for (const [id, dir, key] of [
     keywords: ["scene", "chapter", "go", dir === 1 ? "next" : "previous", dir === 1 ? "forward" : "back"],
     icon: dir === 1 ? ArrowDown : ArrowUp,
     group: "Navigation",
-    shortcut: SHORTCUTS[key].combo,
+    shortcut: formatCombo(SHORTCUTS[key].combo),
     when: () => !!openSceneId(),
     action: () => void goToAdjacentScene(dir),
   });

@@ -69,7 +69,7 @@ export default function SelectionToolbar({
           <button
             className={`${styles.btn} ${styles.coachBtn}`}
             onClick={onOpenCoach}
-            title={`Writing Coach: feedback and alternative directions (${formatCombo(SHORTCUTS.writingCoach.combo)})`}
+            title="Writing Coach: feedback and alternative directions"
           >
             <Feather size={12} />
             Writing Coach

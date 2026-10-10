@@ -40,11 +40,11 @@
 }
 
 /* ── Journey Preview ── */
+/* A tone box: the journey and its controls belong together; no edge. */
 .journeyPreview {
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 0.75rem;
+  background: var(--color-tone);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 0.875rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -80,7 +80,7 @@
   font-family: inherit;
   font-weight: 500;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-ai-border);
+  border: none;
   background: transparent;
   color: var(--color-ai);
   cursor: pointer;
@@ -89,7 +89,7 @@
 }
 
 .refreshBtn:hover:not(:disabled) {
-  background: var(--color-ai-subtle);
+  background: var(--color-hover);
 }
 
 .refreshBtn:disabled {
@@ -114,7 +114,6 @@
   font-size: 0.75rem;
   color: var(--color-warning);
   background: color-mix(in srgb, var(--color-warning) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-warning) 25%, transparent);
   border-radius: var(--radius-sm);
   padding: 0.4rem 0.6rem;
   line-height: 1.4;
@@ -169,7 +168,7 @@
   font-size: 0.84rem;
   font-family: inherit;
   border-radius: var(--radius);
-  border: 1px solid var(--color-border);
+  border: none;
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -177,7 +176,8 @@
 }
 
 .cancelBtn:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
 .startBtn {
@@ -223,5 +223,5 @@
 }
 
 .generateLink:hover {
-  opacity: 0.8;
+  color: var(--color-accent-hover);
 }

@@ -8,7 +8,7 @@
 <h1 align="center">LoreStudio</h1>
 
 <p align="center">
-  <strong>Begin with an idea, forge an adventure.<br/>A self-hosted workspace for writing your story, organising its pieces and building the world it lives in.</strong>
+  <strong>Begin with an idea, forge an adventure.<br/>A private workspace for writing your story, organising its pieces and building the world it lives in. A Mac app, or self-hosted on your own server.</strong>
 </p>
 
 <p align="center">
@@ -25,7 +25,7 @@
   <img src="https://img.shields.io/badge/FastAPI-SQLite-3a6c49" alt="FastAPI and SQLite" />
   <img src="https://img.shields.io/badge/React-19-3a6c49" alt="React 19" />
   <img src="https://img.shields.io/badge/AI-Ollama%2C%20optional-765783" alt="Ollama, optional" />
-  <img src="https://img.shields.io/badge/deploy-Docker%20%7C%20Unraid-3a6c49" alt="Docker and Unraid" />
+  <img src="https://img.shields.io/badge/runs%20on-macOS%20%7C%20Docker%20%7C%20Unraid-3a6c49" alt="macOS, Docker and Unraid" />
   <img src="https://img.shields.io/badge/license-AGPL--3.0-6a675f" alt="AGPL-3.0" />
 </p>
 
@@ -53,8 +53,8 @@ who they are. The words, and every choice behind them, are yours.
 
 ### Self-hosted, private, yours.
 
-- **Self-hosted.** One container on your own computer or server. No account anywhere else, no
-  subscription, no telemetry.
+- **On your own machine.** An app on your Mac, or one container on your own computer or server.
+  No account anywhere else, no subscription, no telemetry.
 - **Private.** The optional AI runs on your own [Ollama](https://ollama.com), so nothing you write
   is sent to anyone else's servers. Every AI call is logged in the Chronicle with exactly what was
   sent and what came back, and everything LoreStudio does by itself is listed, scheduled and
@@ -162,9 +162,27 @@ One switch turns it off, and Writer mode removes it entirely.
 
 ## Getting started
 
-### Run it
+### On a Mac
 
-The all-in-one image needs one port and one folder. With Docker:
+Download **`LoreStudio_<version>_macos-arm64.dmg`** from the
+[latest release](https://github.com/brentonmallen1/LoreStudio/releases/latest), open it and drag
+LoreStudio into Applications. It runs as an app in its own window, with no server to set up and
+nothing else to install: exports, the writing checks and the demo story are all inside. Only
+[Ollama](https://ollama.com), for the optional AI, is separate.
+
+The first time, macOS says it can't verify LoreStudio, because it isn't signed with an Apple
+Developer ID. Open **System Settings › Privacy & Security** and click **Open Anyway**
+([step by step](desktop/README.md#installing-a-downloaded-build)). After that it opens like any
+other app, and new versions install from inside it: *Settings › About and updates › Install and
+restart*. Your stories stay in `~/Library/Application Support/app.lorestudio.desktop`.
+
+The app is for Macs with Apple silicon (M1 and later). Windows, Linux and Intel Mac builds exist
+but aren't published yet; [desktop/README.md](desktop/README.md) has how to build one.
+
+### On a server
+
+To reach LoreStudio from any browser, or share one install, run it on your own server. The
+all-in-one image needs one port and one folder. With Docker:
 
 ```bash
 docker run -d --name lorestudio -p 8080:8080 \

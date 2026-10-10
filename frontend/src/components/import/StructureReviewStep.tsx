@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import type { ImportPreviewTree, ImportPreviewNode, ImportUploadResponse } from "../../types";
 import styles from "./StructureReviewStep.module.css";
 import { MODIFIER } from "../../lib/keyboard/shortcuts";
+import { useAIAvailable } from "../../lib/mode";
 
 interface Props {
   uploadResponse: ImportUploadResponse;
@@ -26,6 +27,8 @@ export default function StructureReviewStep({
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
+  // Studio only (Writer mode shows no AI), and only with a model the server can reach.
+  const studio = useAIAvailable();
 
   async function handleAiAnalyze() {
     setAiLoading(true);
@@ -228,29 +231,31 @@ export default function StructureReviewStep({
         </div>
       )}
 
-      {/* AI suggestion bar */}
-      <div className={styles.aiBar}>
-        <div className={styles.aiBarLeft}>
-          {aiReasoning && (
-            <p className={styles.aiReasoning}>
-              <Orbit size={11} style={{ color: "var(--color-ai)" }} />
-              {aiReasoning}
-            </p>
+      {/* AI suggestion bar: Studio only */}
+      {studio && (
+        <div className={styles.aiBar}>
+          <div className={styles.aiBarLeft}>
+            {aiReasoning && (
+              <p className={styles.aiReasoning}>
+                <Orbit size={11} style={{ color: "var(--color-ai)" }} />
+                {aiReasoning}
+              </p>
+            )}
+            {aiError && <p className={styles.aiError}>{aiError}</p>}
+          </div>
+          {uploadResponse.ai_available && (
+            <button
+              onClick={handleAiAnalyze}
+              disabled={aiLoading}
+              className={styles.aiBtn}
+              title="Ask AI to detect scene breaks (positions only; your text is never changed)"
+            >
+              <Orbit size={12} />
+              {aiLoading ? "Analyzing…" : "Auto-segment"}
+            </button>
           )}
-          {aiError && <p className={styles.aiError}>{aiError}</p>}
         </div>
-        {uploadResponse.ai_available && (uploadResponse.has_unstructured_blocks || true) && (
-          <button
-            onClick={handleAiAnalyze}
-            disabled={aiLoading}
-            className={styles.aiBtn}
-            title="Ask AI to detect scene breaks (positions only; your text is never changed)"
-          >
-            <Orbit size={12} />
-            {aiLoading ? "Analyzing…" : "Auto-segment"}
-          </button>
-        )}
-      </div>
+      )}
 
       {/* Stats row */}
       <div className={styles.stats}>

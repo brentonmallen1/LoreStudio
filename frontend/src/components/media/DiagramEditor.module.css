@@ -10,8 +10,8 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  /* Chrome floats on the ground: no band and no rule under it (DESIGN.md §4). */
+  background: transparent;
   flex-shrink: 0;
 }
 
@@ -24,14 +24,13 @@
   font-weight: 500;
   color: var(--color-text);
   background: none;
-  border: 1px solid transparent;
+  border: none;
   border-radius: 4px;
   cursor: pointer;
 }
 
 .titleBtn:hover {
-  border-color: var(--color-border);
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
 }
 
 .titleInput {
@@ -58,7 +57,8 @@
   gap: 4px;
   padding: 5px 10px;
   font-size: var(--text-sm);
-  border: 1px solid var(--color-border);
+  /* Ghost tier (DESIGN.md §5): no border at rest, the hover ground under the pointer. */
+  border: none;
   border-radius: 5px;
   background: none;
   color: var(--color-text-subtle);
@@ -67,7 +67,7 @@
 }
 
 .toolBtn:hover:not(:disabled) {
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -77,19 +77,17 @@
 }
 
 .toolBtnDanger:hover {
-  border-color: var(--color-danger);
   color: var(--color-danger) !important;
 }
 
 .toolBtnSave {
   background: var(--color-accent) !important;
   color: var(--color-bg) !important;
-  border-color: var(--color-accent) !important;
   font-weight: 500;
 }
 
 .toolBtnSave:hover:not(:disabled) {
-  opacity: 0.85;
+  background: var(--color-accent-hover) !important;
 }
 
 .canvas {
@@ -102,21 +100,23 @@
   background: var(--color-ground);
 }
 
+/* The zoom controls: a tone box of ghost buttons, no outline and no rules between them. */
 .canvas :global(.react-flow__controls) {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--color-tone);
+  border: none;
   border-radius: 6px;
   box-shadow: none;
+  overflow: hidden;
 }
 
 .canvas :global(.react-flow__controls-button) {
-  background: var(--color-surface);
-  border-color: var(--color-border);
+  background: transparent;
+  border: none;
   color: var(--color-text-subtle);
 }
 
 .canvas :global(.react-flow__controls-button:hover) {
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -138,8 +138,6 @@
   padding: 5px 12px;
   font-size: var(--text-xs);
   color: var(--color-text-muted);
-  border-top: 1px solid var(--color-border);
-  background: var(--color-surface);
   flex-shrink: 0;
 }
 
@@ -175,7 +173,7 @@
 }
 
 .exportMenu button:hover {
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
 }
 
 /* Color picker dropdown */
@@ -208,7 +206,7 @@
 }
 
 .colorOption:hover {
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
 }
 
 .colorSwatch {

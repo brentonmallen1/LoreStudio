@@ -46,7 +46,7 @@
 .charChip {
   padding: 0.3rem 0.7rem;
   border-radius: 99px;
-  border: 1px solid var(--color-border);
+  border: none;
   background: var(--color-surface-2);
   color: var(--color-text-muted);
   font-size: 0.78rem;
@@ -54,7 +54,6 @@
   cursor: pointer;
   transition:
     background var(--transition),
-    border-color var(--transition),
     color var(--transition);
 }
 
@@ -72,20 +71,17 @@
   margin-top: 0.5rem;
   padding: 0.45rem 1rem;
   border-radius: var(--radius);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
+  border: none;
   background: var(--color-ai-subtle);
   color: var(--color-ai);
   font-size: 0.8rem;
   font-family: inherit;
   cursor: pointer;
-  transition:
-    background var(--transition),
-    border-color var(--transition);
+  transition: background var(--transition);
 }
 
 .createBtn:hover:not(:disabled) {
   background: color-mix(in srgb, var(--color-ai) 18%, transparent);
-  border-color: color-mix(in srgb, var(--color-ai) 50%, transparent);
 }
 
 .createBtn:disabled {
@@ -128,7 +124,6 @@
 
 .userText {
   background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
   border-radius: var(--radius);
   padding: 0.5rem 0.75rem;
   font-size: 0.82rem;
@@ -209,8 +204,6 @@
   display: flex;
   gap: 2px;
   padding: 4px 0.75rem;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
 }
 
 .lengthBtn {
@@ -228,11 +221,14 @@
 }
 
 .lengthBtn:hover {
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
-.lengthBtnActive {
-  background: var(--color-surface-2);
+/* Selected: deep vellum (DESIGN.md, the Press Rule). */
+.lengthBtnActive,
+.lengthBtnActive:hover {
+  background: var(--color-surface-3);
   color: var(--color-text);
   font-weight: 500;
 }
@@ -243,9 +239,9 @@
   flex-direction: column;
   gap: 0.2rem;
   padding: 0.6rem 0.75rem;
-  border: 1px dashed var(--color-border);
   border-radius: var(--radius);
-  background: var(--color-surface-2);
+  /* A well of the page colour inside the side panel, no edge. */
+  background: var(--color-bg);
 }
 
 .historyBtn {
@@ -254,7 +250,7 @@
   gap: 0.3rem;
   height: 1.6rem;
   padding: 0 0.5rem;
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: var(--radius);
   background: transparent;
   color: var(--color-text-muted);
@@ -264,7 +260,7 @@
 }
 
 .historyBtn:hover:not(:disabled) {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 

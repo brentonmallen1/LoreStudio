@@ -8,7 +8,7 @@ import { commandRegistry } from "./registry";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { launcherOf, type ToolId } from "../../types/panel";
-import { SHORTCUTS } from "../keyboard/shortcuts";
+import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
 import { STORY_ROUTES } from "../routes";
 import { getAIAvailable, getMode } from "../mode";
 import { canOpenBeside } from "../panel/pages";
@@ -62,7 +62,7 @@ commandRegistry.register({
   keywords: ["panel", "notes", "sidebar", "tabs", "hide", "show"],
   icon: PanelRight,
   group: "View",
-  shortcut: SHORTCUTS.togglePanel.combo,
+  shortcut: formatCombo(SHORTCUTS.togglePanel.combo),
   when: inStory,
   action: () => usePanelStore.getState().toggle(),
 });

@@ -52,10 +52,10 @@ body {
 }
 
 /* The interface size (doc 17): uiStore sets --ui-scale; the prose is sized in px and stays put. */
+/* No -webkit-font-smoothing: antialiased. On macOS it switches off the system's own
+   thickening of glyphs, and every word drew 12-16% lighter: text that did not stand out. */
 html {
   font-size: calc(15px * var(--ui-scale));
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 body {

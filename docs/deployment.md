@@ -4,6 +4,10 @@ LoreStudio is one person's (or a household's) writing room on their own hardware
 SQLite database and, for the AI features, an [Ollama](https://ollama.com) server you run. There
 are two ways to deploy it with Docker. On Unraid, see [unraid.md](unraid.md).
 
+For one person on a Mac with Apple silicon, there is nothing to deploy: the desktop app is
+LoreStudio in its own window, with its own backend inside
+([desktop/README.md](../desktop/README.md)).
+
 ## The all-in-one (recommended)
 
 One container serves the app and its API on one port, with everything it keeps in one folder.

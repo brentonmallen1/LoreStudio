@@ -554,10 +554,12 @@ button.runItem:focus-visible {
 
 /* ── Cards (This scene, a sheet's Health) ── */
 
+/* Its own container: in a sheet's side column the rows fold (below) as they do beside the prose. */
 .card {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  container-type: inline-size;
 }
 
 .card .row {

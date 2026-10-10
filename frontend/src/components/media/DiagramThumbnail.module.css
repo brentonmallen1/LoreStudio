@@ -3,20 +3,19 @@
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 7px;
-  background: var(--color-bg);
+  /* A tone box you can press, like the scene's image tiles beside it: no edge, no lift,
+     the hover ground under the pointer. */
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--color-tone);
   cursor: pointer;
   text-align: left;
   width: 100%;
-  transition:
-    border-color 0.15s,
-    box-shadow 0.15s;
+  transition: background 0.15s;
 }
 
 .card:hover {
-  border-color: var(--color-accent);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  background: var(--color-hover);
 }
 
 .preview {

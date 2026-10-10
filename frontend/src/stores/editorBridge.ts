@@ -23,6 +23,9 @@ interface EditorBridge {
   setNotes: (notes: InlineNotesState | null) => void;
   pendingPassage: PendingPassage | null;
   showPassage: (pending: PendingPassage | null) => void;
+  /** Open the image picker in the open scene (the palette's Insert image); null with no editor. */
+  insertImage: (() => void) | null;
+  setInsertImage: (open: (() => void) | null) => void;
 }
 
 export const useEditorBridge = create<EditorBridge>((set) => ({
@@ -30,4 +33,6 @@ export const useEditorBridge = create<EditorBridge>((set) => ({
   setNotes: (notes) => set({ notes }),
   pendingPassage: null,
   showPassage: (pending) => set({ pendingPassage: pending && { ...pending, at: Date.now() } }),
+  insertImage: null,
+  setInsertImage: (insertImage) => set({ insertImage }),
 }));

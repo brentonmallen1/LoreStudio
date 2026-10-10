@@ -17,7 +17,7 @@ export const STRIP_PX = {
   /** The × the tab showing carries. */
   close: 24,
   /** Between the strip's items (`gap` on .strip). */
-  gap: 2,
+  gap: 4,
   /** + Open… after the tabs. */
   open: 26,
   /** ☰ n, once something has folded away. */

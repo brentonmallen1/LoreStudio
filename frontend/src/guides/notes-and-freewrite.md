@@ -1,38 +1,36 @@
 # Notes, Freewrite and the scratch pad
 
-## A note has a kind
+Keep every thought you want to come back to, without leaving the page.
 
-Everything you want to come back to is a note, and a note is one of four kinds:
+## Four kinds of note
 
 - **Note**: a thought to keep.
-- **Question**: something you haven't decided. **Answer** it to settle it; the answer stays with it, so you can see later why you decided.
-- **To-do**: work to do. Tick it off when it's done.
-- **Idea**: a loose thought that hasn't found its place yet.
+- **Question**: something undecided. **Answer it**, and the answer stays, so you can see later why you decided.
+- **To-do**: work to do. Tick it off when it is done.
+- **Idea**: a loose thought that has not found its place yet.
 
-A note can be tied to a passage of prose, a scene, a character or a place, or to nothing yet.
+## Add a note while you write
 
-## In the margin
+1. Select some words in the scene.
+2. Choose **Note**, **Question** or **To-do** in the toolbar, or press {{key:inlineNote}}.
+3. Type it. The note sits in the margin, level with its words.
 
-Select words in the editor and choose **Note**, **Question** or **To-do** in the selection toolbar, or press **{{key:inlineNote}}** for a note. Type `/todo` for a to-do on the sentence at the cursor. The words are marked in the note's colour and the note sits in the margin to the left of the prose, level with them. Click the words or the note to open it: answer a question, tick a to-do, edit, delete, or change what kind it is. Esc closes it. **{{key:nextNote}}** and **{{key:prevNote}}** move from one note to the next.
+Type `/todo` for a to-do on the current sentence. {{key:nextNote}} and {{key:prevNote}} move between notes.
 
-**Notes** in the top bar switches between cards **beside the text** and **dots**: a dot in the note's colour beside its line (point at it to read the note, click to open it). When the window is too narrow for cards, notes show as dots.
+**Resolve** a note when you are done with it. It leaves the margin but stays on the Notes page, where you can reopen it.
 
-**Resolve** a note when you're done with it: it leaves the margin and its highlight goes, and it stays on the Notes page under _Resolved_, where you can reopen it. Ticking a to-do or answering a question resolves it too. Any note can also be deleted; **Undo** in the message that follows brings it back.
-
-The Scene sheet's **Notes** page lists every note on the scene, questions and to-dos first, and adds one to the scene as a whole; the _This scene_ tab shows how many are open and the first of them. Editorial notes left by an editorial pass (Studio) can be hidden with one toggle.
+> **Tip:** Short of room? The scene's ⋯ menu › **Notes in the margin** shows notes as dots instead of cards.
 
 ## Every note in one place
 
-**Compendium › Notes** lists them all in story order: what isn't tied to anything yet, then each scene, then the characters and places they're about. Filter by kind, or show what's answered and done. A loose note has **Tie to…**; a passage note opens beside its words. The same list opens in the side panel from the **Notes** button on its rail, with the scene you're in first. Character and place sheets keep the notes about them.
+Logo menu › **Compendium** › **Notes** lists them all in story order. **Tie to…** gives a loose note a scene, character or place. You also find notes under **Notes** on the side panel's rail, on the Scene sheet, and on each character's and place's sheet.
 
 ## Freewrite
 
-The **Freewrite** page is for thinking on paper: type whatever comes, in any order, under a heading for each day. When a sentence turns out to be something, select it and **Make it** a note, a question, a to-do, an idea, a character or a place (under **More**: a planned scene, a theme, or the logline, premise or central conflict). The words stay where you wrote them, dotted, and the list beside the page links to what they became. Freewrite also opens in the side panel, from the button on its rail.
+**Freewrite** is a page for thinking on paper, under a heading for each day. When a sentence turns out to be something, select it and choose from **Make it**: a note, a character, a place, or under **More** a planned scene or the logline. The words stay where you wrote them, linked to what they became.
+
+Open it from the logo menu as a full page, or from **Freewrite** on the side panel's rail as a tab beside your prose. The tab's **Full page** switches to the whole page.
 
 ## Scratch pad
 
-**{{key:scratchPad}}** opens a pad that belongs to no story: anything at all, kept with your account. **Send to a story** puts the selected words, or the paragraph at the cursor, at the end of that story's Freewrite page. It never appears in exports.
-
-## Purpose vs. notes
-
-_Purpose_ is what a segment is for; notes are what you want to remember about it. Revision goes faster when purpose is filled in first.
+The scratch pad belongs to no story; it is kept with your account. Open it from the header or with {{key:scratchPad}}. **Send to a story** moves the selected words to the end of that story's Freewrite page.

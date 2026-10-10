@@ -1,7 +1,7 @@
+/* Inside the side panel (already a tone box), so a well of the page colour, no edge. */
 .drawer {
-  border: 1px solid var(--color-border-light);
   border-radius: var(--radius);
-  background: var(--color-surface);
+  background: var(--color-bg);
   padding: 0.6rem 0.7rem;
   margin: 0.4rem 0.6rem;
   max-height: 20rem;
@@ -36,6 +36,7 @@
 }
 
 .close:hover {
+  background: var(--color-hover);
   color: var(--color-text);
 }
 

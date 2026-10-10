@@ -37,7 +37,7 @@
   font-family: inherit;
   font-weight: 500;
   border-radius: var(--radius);
-  border: 1px solid var(--color-border);
+  border: none;
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -47,7 +47,7 @@
 }
 
 .newBtn:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -57,12 +57,11 @@
   padding: 0.5rem 0;
 }
 
-/* ── Template card ── */
+/* ── Template card: a tone box, no edge ── */
 .templateCard {
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 0.75rem 1rem;
+  background: var(--color-tone);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 0.875rem;
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
@@ -108,7 +107,6 @@
   padding: 0.1rem 0.4rem;
   border-radius: 99px;
   background: var(--color-surface-3);
-  border: 1px solid var(--color-border);
   color: var(--color-text-subtle);
   flex-shrink: 0;
   align-self: flex-start;
@@ -116,10 +114,9 @@
 
 /* ── Edit card ── */
 .editCard {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 0.875rem;
+  background: var(--color-tone);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 0.875rem;
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
@@ -206,7 +203,7 @@
   font-size: 0.75rem;
   font-family: inherit;
   border-radius: var(--radius);
-  border: 1px dashed var(--color-border);
+  border: none;
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -215,7 +212,8 @@
 }
 
 .addLevelBtn:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
 .editActions {
@@ -242,7 +240,7 @@
 }
 
 .iconBtn:hover {
-  background: var(--color-surface-3);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -262,7 +260,7 @@
   font-size: var(--text-xs);
   font-weight: 500;
   border-radius: var(--radius-sm);
-  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
+  border: none;
   background: var(--color-danger-bg);
   color: var(--color-danger);
   cursor: pointer;
@@ -274,11 +272,16 @@
   font-size: var(--text-xs);
   font-weight: 500;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
+  border: none;
+  background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
   font-family: inherit;
+}
+
+.deleteConfirmNo:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
 .cancelBtn {
@@ -287,14 +290,15 @@
   font-family: inherit;
   font-weight: 500;
   border-radius: var(--radius);
-  border: 1px solid var(--color-border);
+  border: none;
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
 }
 
 .cancelBtn:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
 .saveBtn {

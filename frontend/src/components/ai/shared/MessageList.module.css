@@ -143,7 +143,6 @@
 
 /* Summary blocks — same pattern as thinking blocks, AI accent */
 .summaryBlock {
-  border: 1px solid color-mix(in srgb, var(--color-ai) 25%, transparent);
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--color-ai) 5%, var(--color-surface));
   overflow: hidden;
@@ -167,12 +166,11 @@
   display: none;
 }
 .summarySummary:hover {
-  opacity: 0.8;
+  background: var(--color-hover);
 }
 
 .summaryContent {
-  padding: 0.6rem 0.75rem;
-  border-top: 1px solid color-mix(in srgb, var(--color-ai) 15%, transparent);
+  padding: 0 0.75rem 0.6rem;
   font-size: 0.8rem;
   color: var(--color-text);
   line-height: 1.6;
@@ -208,8 +206,8 @@
 .thinkingContent {
   margin-top: 0.35rem;
   padding: 0.4rem 0.6rem;
-  background: var(--color-surface-2);
-  border-left: 1px solid var(--color-border);
+  /* A well of the page colour inside the reply, no edge. */
+  background: var(--color-bg);
   border-radius: var(--radius);
   color: var(--color-text-muted);
   font-size: var(--text-xs);

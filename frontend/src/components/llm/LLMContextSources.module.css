@@ -1,6 +1,5 @@
 .root {
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  padding-bottom: 0.25rem;
 }
 
 .loading {
@@ -25,7 +24,7 @@
 }
 
 .toggle:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
 }
 
 .toggleLabel {

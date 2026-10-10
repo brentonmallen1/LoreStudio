@@ -38,23 +38,27 @@
   gap: 0.2rem;
   padding: 0.625rem 0.75rem;
   border-radius: var(--radius);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
+  border: none;
+  background: transparent;
   cursor: pointer;
+  font-family: inherit;
   text-align: left;
-  transition:
-    border-color var(--transition),
-    background var(--transition);
+  transition: background var(--transition);
 }
 
+/* Ghost options (the Press Rule): the hover ground under the pointer, deep vellum when chosen. */
 .typeBtn:hover {
-  border-color: var(--color-ai-border);
-  background: color-mix(in srgb, var(--color-ai) 5%, var(--color-surface));
+  background: var(--color-hover);
 }
 
-.typeBtnActive {
-  border-color: var(--color-ai);
-  background: color-mix(in srgb, var(--color-ai) 10%, var(--color-surface));
+.typeBtn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.typeBtnActive,
+.typeBtnActive:hover {
+  background: var(--color-surface-3);
 }
 
 .typeLabel {
@@ -79,7 +83,7 @@
   font-size: 0.84rem;
   font-family: inherit;
   border-radius: var(--radius);
-  border: 1px solid var(--color-border);
+  border: none;
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -87,7 +91,8 @@
 }
 
 .cancelBtn:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
 .generateBtn {

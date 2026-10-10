@@ -31,6 +31,16 @@
   }
 }
 
+/* As a tab beside the prose (the side panel is a container): one column, what was made from
+   the page under the writing. */
+@container (max-width: 40rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    padding: 0.75rem 1rem 3rem;
+  }
+}
+
 /* ── The writing ── */
 
 .surface {

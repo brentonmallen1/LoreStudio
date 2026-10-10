@@ -1,23 +1,46 @@
 # Structure and templates
 
-A story is a tree. The **structure template** names the levels (Act → Chapter → Scene, Part → Chapter, or freeform sections); each node is a segment with its own prose, synopsis and purpose.
+How your story is built from parts, and how to add, move and plan them.
 
-## Working in the tree
+## Your story is an outline
 
-- **↑ ↓** move between rows, **→ ←** expand and collapse, **Enter** opens a segment.
-- **F2** or double-click renames. **Esc** cancels.
-- Drag a row to reorder or nest it. Every move is undoable (**{{key:undo}}**).
-- The **+** on a row adds a child of the next level; the **+** in the header adds at any level.
-- Badges show word counts and status (~ revised, ✓ final). Collapsed chapters stay collapsed per story.
+Every story is an outline of parts inside parts: scenes inside chapters, chapters inside acts. The story's **structure template** names those levels. You pick one under **Story structure** when you choose **New story**.
 
-## Segment fields (Notes panel)
+- **Three-Act Structure**: acts, chapters and scenes.
+- **Freeform**: sections and scenes, for a story that doesn't fit a shape yet.
+- Others follow a known method, such as **Snowflake Method**, **Hero's Journey** or **Save the Cat**.
 
-- **Synopsis**: what happens.
-- **Purpose**: why the segment exists. The single most useful field for revision.
-- **Entry / exit state**: where the character or situation stands before and after.
-- **Key events**: the beats that must land.
-- **Beat** and **POV character** when the template or narrative perspective calls for them.
+Tick **Start with an outline** to begin with the template's parts already in place and a first scene ready to write in. **Manage**, beside **Story structure**, lets you make a template of your own with whatever levels you need.
 
-## Status
+## Work in the outline
 
-The status badge in the top bar opens a short menu: planned, draft, revised or final. A scene added from the Plan page starts as **planned** (italic in the tree) and becomes a draft when you write in it. Exports can filter by status.
+The story strip down the left is your outline. Press {{key:cycleStrip}} to open it out into the full list, and again to fold it back to a line.
+
+- Click a row, or press **Enter** on it, to open it.
+- The **+** on a row adds a part inside it. The **+** at the top adds a part at any level.
+- Drag a row to move it, or to put it inside another.
+- Double-click a row, or press **F2**, to rename it.
+- The arrow keys move between rows and fold or unfold them.
+- **Filter scenes** at the top finds a scene by its title.
+
+Every change can be undone with {{key:undo}}.
+
+> **Tip:** A row shows its word count, with **~** for a revised scene and **✓** for a final one.
+
+## Plan a chapter
+
+Open a chapter, or any part with parts inside it, to see its page. Write a **Synopsis** (what happens across it) and **Why it's here** (what it does for the story that nothing else does). Its scenes sit below as cards; add one there.
+
+## Plan a scene
+
+Open the scene's **Scene sheet**: choose **Scene sheet** in the side panel's **This scene**, or **Open the scene sheet** in the scene's ⋯ menu.
+
+- **What happens**: the scene in a sentence or two.
+- **Coming in** and **Going out**: where your character or the situation stands before the scene and after it. A scene where nothing changes is worth a second look.
+- **Purpose** (under **The plan**): why the scene exists. It is the most useful field when you revise.
+- **Key events**: the moments that must land.
+- **Who**, **Where**, **Beat** and **When**: click them to change who is in the scene, where and when it happens, and which beat of the plan it serves.
+
+## Scene status
+
+Every scene is **Planned**, **Draft**, **Revised** or **Final**. Change it from the status beside the scene's title. A planned scene shows in italics in the outline, and becomes a draft as soon as you write in it. When you export, you can include only the scenes at a given status.

@@ -1149,14 +1149,27 @@ button.cardRow:hover {
   color: var(--color-text-muted);
 }
 
-/* A milestone's scene picker stays out of sight until the row is pointed at or focused. */
+/* A milestone's scene picker stays out of sight until the row is pointed at or focused, and
+   takes no width while hidden: it floats over the row's end, so the text keeps the line. */
+.milestone:not([data-linked]) {
+  position: relative;
+}
+
 .milestone:not([data-linked]) .quietSelect {
+  position: absolute;
+  top: 0.1rem;
+  right: 1.75rem;
+  max-width: 70%;
   opacity: 0;
+  pointer-events: none;
+  background: var(--color-surface);
+  box-shadow: var(--shadow);
 }
 
 .milestone:hover .quietSelect,
 .milestone:focus-within .quietSelect {
   opacity: 1;
+  pointer-events: auto;
 }
 
 /* A twist's mark (doc 18 D2) */

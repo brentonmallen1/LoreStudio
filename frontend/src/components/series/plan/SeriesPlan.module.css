@@ -69,8 +69,9 @@
   min-height: 1.75rem;
   padding: 0.3rem 0.75rem;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
+  /* Ghost tier (DESIGN.md §5): no border at rest, the hover ground under the pointer. */
+  border: none;
+  background: transparent;
   color: var(--color-text);
   font-size: var(--text-sm);
   cursor: pointer;
@@ -78,7 +79,7 @@
 }
 
 .btn:hover:not(:disabled) {
-  background: var(--color-surface-3);
+  background: var(--color-hover);
 }
 
 .btn:disabled {
@@ -116,7 +117,7 @@
 }
 
 .iconBtn:hover:not(:disabled) {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -145,21 +146,22 @@
   gap: 0.25rem;
   min-height: 1.5rem;
   padding: 0.1rem 0.55rem;
+  /* A vellum pill (DESIGN.md §5, Chips): no outline; deep vellum under the pointer. */
   border-radius: 999px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  border: none;
+  background: var(--color-surface-2);
   color: var(--color-text-muted);
   font-size: var(--text-xs);
   cursor: pointer;
 }
 
 .chip:hover {
+  background: var(--color-surface-3);
   color: var(--color-text);
 }
 
 .chipOn {
   background: var(--color-accent);
-  border-color: var(--color-accent);
   color: var(--color-accent-fg);
 }
 
@@ -173,10 +175,10 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius);
-  background: var(--color-surface);
+  /* A tone box per beat (doc 24 P8): the tone is its edge. */
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-tone);
 }
 
 .beatHead {
@@ -218,9 +220,9 @@
   display: grid;
   /* Fills the page; past its narrowest columns it scrolls sideways instead. */
   min-width: min-content;
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius);
-  background: var(--color-surface);
+  /* A tone box (doc 24 P8): the tone is the board's edge; hairlines only between its rows. */
+  border-radius: var(--radius-lg);
+  background: var(--color-tone);
 }
 
 .gridRow {
@@ -234,9 +236,14 @@
   flex-direction: column;
   gap: 0.3rem;
   padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid var(--color-border-light);
-  border-right: 1px solid var(--color-border-light);
   min-width: 0;
+}
+
+/* A hairline between the board's rows (the first row is its head, so none under that, and
+   none between its columns). */
+.gridRow + .gridRow + .gridRow > .rowHead,
+.gridRow + .gridRow + .gridRow > .cell {
+  border-top: 1px solid var(--color-border-light);
 }
 
 /* The row's name stays in view while the books scroll past it. */
@@ -244,7 +251,8 @@
   position: sticky;
   left: 0;
   z-index: 1;
-  background: var(--color-surface-2);
+  /* The board's own tone, so cells scrolling under it stay hidden. */
+  background: var(--color-tone);
 }
 
 .corner {
@@ -253,12 +261,6 @@
 
 .colHead {
   gap: 0.15rem;
-  background: var(--color-surface-2);
-}
-
-.gridRow:last-child > .rowHead,
-.gridRow:last-child > .cell {
-  border-bottom: none;
 }
 
 .rowHeadTop {
@@ -386,7 +388,7 @@ input.rowName:focus {
   font-size: var(--text-sm);
   color: var(--color-text);
   background: none;
-  border: 1px dashed var(--color-border);
+  border: none;
   border-radius: var(--radius-sm);
   padding: 0.35rem 0.55rem;
   min-height: 1.75rem;
@@ -394,8 +396,7 @@ input.rowName:focus {
 }
 
 .slotBtn:hover {
-  border-style: solid;
-  background: var(--color-surface-2);
+  background: var(--color-hover);
 }
 
 .slotGrid {

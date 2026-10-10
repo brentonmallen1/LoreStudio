@@ -1,45 +1,41 @@
 # Planning a story
 
-The **Plan** page walks you through a story's foundations one small step at a time. Nothing on it is required, and writing is always one click away.
+Work out what your story is, one small question at a time. Nothing here is required, and writing is always one click away.
 
-## Methods
+## Pick a method
 
-Pick a method the first time you open Plan:
+Open logo menu › **Plan** and choose a way in:
 
-- **The essentials**: the story in one sentence, the central conflict, who wants what, and the scene list.
-- **Snowflake Method**: grow the story outward from one sentence to a paragraph, character summaries, a one-page synopsis, each character's arc in their own words, and the scene list.
-- **MICE threads**: the threads your story opens (Milieu, Idea, Character, Event), the scene list, then where each thread opens and closes. Threads close in the reverse order they open; a crossing gets a gentle warning.
-- **Any beat sheet** (Save the Cat, Story Circle, Hero's Journey, Three-Act Beats, and ones you make under Story Identity → Manage): each beat is a step asking which scene carries it. "Plan a scene for this beat" places the new scene next to the scenes of the neighbouring beats, so you can plan beats in any order. Choosing a beat sheet here also makes it the story's beat sheet.
+- **The essentials**: the story in one sentence, the central conflict, who wants what, and the scenes.
+- **Snowflake Method**: grow one sentence into a paragraph, a page, each character's arc, then the scenes.
+- **MICE threads**: the threads your story opens, and where each opens and closes.
+- **A beat sheet**, such as Save the Cat: each beat asks which scene carries it.
 
-Every step writes into the story itself, not into the method. The one-sentence summary _is_ the logline on Story Identity; a character's goal, motivation, conflict and epiphany are the fields on their sheet. Switching methods keeps everything, and the steps you've already answered show as done.
+Every answer goes into the story itself: the one-sentence summary is the logline, a character's goal is on their sheet. So **Change method** loses nothing.
 
-## Start from an idea
+> **Tip:** Not ready for questions? **Start from an idea** opens Freewrite, where you write what you know and sort it later. See [Notes, Freewrite and the scratch pad](/guides/notes-and-freewrite).
 
-Not ready for questions? The **Freewrite** page takes everything you know, in any order, under a heading for each day. When a sentence turns out to be something, select it and make it a **character**, a **place**, a planned **scene**, a **question**, a **theme**, or part of the **logline**, **premise** or **central conflict**. The words stay on the page, dotted, linked to what they became.
+<!-- studio -->
 
-New Story asks how you want to begin: **Just write**, **Start from an idea**, or **Plan it out**.
-
-## Open questions
-
-Write down what you haven't decided yet instead of holding it in your head: a question is a kind of note. Ask it on a passage, a scene, a character's sheet or nowhere in particular; **Compendium › Notes** lists them all. **Answer** one to settle it; the answer stays with it, so you can see later why you decided.
+In Studio mode, the Snowflake steps offer **Get guidance on this answer**: the Assistant asks what your answer leaves open.
+<!-- /studio -->
 
 ## The scene list becomes the book
 
-Each line of the scene list is a real scene in the structure tree, marked **planned** until it has prose. Planned scenes show in italics in the tree. Open one and start typing; the first words make it a draft.
+Each line of the scene list is a real scene, marked **planned** until it has words. Press **Enter** at the end of the last line to add the next one.
 
-In the scene list, **Enter** in the last scene's line adds the next scene.
+On a beat sheet, **Plan a scene for this beat** places the scene beside its neighbouring beats, so you can plan in any order.
 
 ## The plan where you write
 
-- **Above an empty scene**, the editor shows its plan: what happens, why it's here, where it starts and ends, and what the point-of-view character wants. The first words tuck it away.
-- **The scene's plan** is the first page of its **Scene sheet** ("Show story plan" in the palette): its purpose, its key events as numbered steps, what is on the page so far, and, folded under _The story around it_, the logline and conflict, where the scene sits and what each character in it wants and what stands against them.
-- **Hovering a character's name** in the prose shows their goal and conflict.
-- The **Overview** shows the method's progress and the next step.
+- **An empty scene** shows its plan above the page. Your first words tuck it away.
+- **The Scene sheet** opens on **The plan**: the scene's purpose and key events, with the story around it.
+- **Pointing at a character's @mention** shows their goal and conflict.
+- **The Overview** shows the next step of your method.
 
-## Beat boards
+## Beat boards and the timeline
 
-**Beat boards** are loose outlines for brainstorming: jot beats, nest and reorder them, then use **Make scene** on a beat to add it to the end of the story as a planned scene, linked back to the beat.
+The Plan page has two more views:
 
-## Progress
-
-The Overview shows the method's next step. It opens straight on the Plan page.
+- **Beat boards**: loose outlines for brainstorming. Turn any beat into a planned scene with **Make this beat a scene**.
+- **Timeline**: the scenes in the order they happen, against the order the reader meets them.

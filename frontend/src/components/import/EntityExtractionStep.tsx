@@ -16,6 +16,7 @@ import { api } from "../../api/client";
 import { jobsApi, type AIJob } from "../../api/jobs";
 import { useJobs, useOnJobFinished } from "../../hooks/useJobs";
 import { plainError } from "../../lib/jobs/jobs";
+import { useAIAvailable } from "../../lib/mode";
 import { useJobsStore } from "../../stores/jobsStore";
 import type {
   AIEnrichOptions,
@@ -101,6 +102,8 @@ export default function EntityExtractionStep({ uploadResponse, preview, onComple
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const aiAvailable = uploadResponse.ai_available;
+  // Writer mode shows no AI: no Phase 2, no AI info.
+  const studio = useAIAvailable();
   const approvedNlpCandidates = nlpCandidates.filter((c) => !removedIds.has(c.id));
 
   function toggleNlpOption(key: keyof ExtractionOptions) {
@@ -236,7 +239,7 @@ export default function EntityExtractionStep({ uploadResponse, preview, onComple
           <h3 className={styles.title}>Extract entities</h3>
           <p className={styles.subtitle}>Populate your Lorebook from the imported manuscript</p>
         </div>
-        <AIFeatureInfoTrigger pageId="import" size="md" />
+        {studio && <AIFeatureInfoTrigger pageId="import" size="md" />}
       </div>
 
       {/* Color legend */}
@@ -255,7 +258,9 @@ export default function EntityExtractionStep({ uploadResponse, preview, onComple
       <div className={`${styles.phase} ${styles.phaseNlp}`}>
         <div className={styles.phaseHeader}>
           <span className={styles.phaseDot} style={{ background: "var(--color-nlp)" }} />
-          <span className={styles.phaseTitle}>Phase 1: Find Names with NLP</span>
+          <span className={styles.phaseTitle}>
+            {studio ? "Phase 1: Find names in the text" : "Find names in the text"}
+          </span>
           {nlpDone && <span className={styles.phaseDone}>✓ {nlpCandidates.length} found</span>}
         </div>
 
@@ -340,7 +345,7 @@ export default function EntityExtractionStep({ uploadResponse, preview, onComple
       </div>
 
       {/* ── Phase 2: AI Enrichment ── */}
-      {nlpDone && approvedCount > 0 && (
+      {studio && nlpDone && approvedCount > 0 && (
         <div className={`${styles.phase} ${styles.phaseAi} ${!aiAvailable ? styles.phaseDisabled : ""}`}>
           <div className={styles.phaseHeader}>
             <span className={styles.phaseDot} style={{ background: "var(--color-ai)" }} />

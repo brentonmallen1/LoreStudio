@@ -27,8 +27,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.25rem 0.75rem;
-  border-bottom: 1px solid var(--color-border);
+  padding: 1rem 1.25rem 0.5rem;
   flex-shrink: 0;
 }
 
@@ -57,13 +56,13 @@
   padding: 3px;
 }
 .closeBtn:hover {
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
 /* ── Controls bar ── */
 .controls {
-  padding: 0.65rem 1.25rem;
-  border-bottom: 1px solid var(--color-border);
+  padding: 0.25rem 1.25rem 0.5rem;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -124,22 +123,21 @@
   padding: 2rem;
 }
 
-/* ── Card ── */
+/* ── Card: a tone box per suggestion, a breath of violet once it is chosen; no edge ── */
 .card {
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 0.75rem 0.9rem;
+  background: var(--color-tone);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 0.875rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   transition:
-    border-color var(--transition),
+    background var(--transition),
     opacity var(--transition);
 }
 
 .cardSelected {
-  border-color: var(--color-ai-border);
-  background: var(--color-ai-subtle);
+  background: color-mix(in srgb, var(--color-ai) 8%, var(--color-tone));
 }
 .cardDimmed {
   opacity: 0.45;
@@ -156,8 +154,8 @@
   width: 1.333rem;
   height: 1.333rem;
   border-radius: 4px;
-  border: 1.5px solid var(--color-border);
-  background: var(--color-surface-2);
+  border: 1.5px solid var(--color-control-border);
+  background: var(--color-surface);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -186,7 +184,6 @@
   height: 1.6rem;
   border-radius: 50%;
   background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -213,7 +210,6 @@
   border-radius: 999px;
   background: color-mix(in srgb, var(--color-accent) 15%, transparent);
   color: var(--color-accent);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -230,6 +226,7 @@
   flex-shrink: 0;
 }
 .expandBtn:hover {
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -262,14 +259,13 @@
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
-  border-top: 1px solid var(--color-border);
-  padding-top: 0.65rem;
+  padding-top: 0.35rem;
 }
 
 .rationaleBox {
   font-size: 0.73rem;
   color: var(--color-text-subtle);
-  background: var(--color-surface-2);
+  background: var(--color-bg);
   border-radius: var(--radius-sm);
   padding: 0.4rem 0.6rem;
   margin: 0;
@@ -406,7 +402,6 @@
   border-radius: 999px;
   background: var(--color-surface-2);
   color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
 }
 .purposeChipAi {
   font-size: var(--text-xs);
@@ -414,7 +409,6 @@
   border-radius: 999px;
   background: color-mix(in srgb, var(--color-ai) 12%, transparent);
   color: var(--color-ai);
-  border: 1px solid color-mix(in srgb, var(--color-ai) 25%, transparent);
 }
 
 /* ── Strength sliders ── */
@@ -490,21 +484,25 @@
   justify-content: flex-end;
   gap: 0.6rem;
   padding: 0.85rem 1.25rem;
-  border-top: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
 .cancelBtn {
   padding: 0.4rem 1rem;
   font-size: 0.82rem;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  font-family: inherit;
+  background: transparent;
+  border: none;
   border-radius: var(--radius);
   color: var(--color-text-muted);
   cursor: pointer;
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 .cancelBtn:hover:not(:disabled) {
-  border-color: var(--color-text-muted);
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 .cancelBtn:disabled {
   opacity: 0.5;
@@ -522,7 +520,7 @@
   cursor: pointer;
 }
 .saveBtn:hover:not(:disabled) {
-  opacity: 0.88;
+  background: var(--color-ai-hover);
 }
 .saveBtn:disabled {
   opacity: 0.45;

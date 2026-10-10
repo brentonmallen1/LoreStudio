@@ -13,7 +13,7 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 10px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow-lg);
   width: min(600px, 95vw);
   max-height: 75vh;
   overflow: hidden;
@@ -25,8 +25,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--color-border);
+  padding: 14px 16px 6px;
   flex-shrink: 0;
   gap: 10px;
 }
@@ -50,15 +49,18 @@
   gap: 4px;
   padding: 4px 10px;
   font-size: var(--text-xs);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  background: var(--color-bg);
-  color: var(--color-text-subtle);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.1s;
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 .uploadBtn:hover {
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -75,7 +77,8 @@
   cursor: pointer;
 }
 .closeBtn:hover {
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
+  color: var(--color-text);
 }
 
 .body {
@@ -103,18 +106,21 @@
   align-items: center;
   gap: 5px;
   padding: 6px;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-bg);
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  font-family: inherit;
   cursor: pointer;
-  transition:
-    border-color 0.1s,
-    box-shadow 0.1s;
+  transition: background var(--transition);
   text-align: center;
 }
+/* Ghost tiles (the Press Rule): no edge at rest, the hover ground under the pointer. */
 .item:hover {
-  border-color: var(--color-accent);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  background: var(--color-hover);
+}
+.item:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 .thumb {

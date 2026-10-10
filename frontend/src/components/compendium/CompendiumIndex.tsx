@@ -128,9 +128,11 @@ export default function CompendiumIndex({ storyId }: { storyId: string }) {
                       {r.preview && <span className={styles.preview}>{r.preview}</span>}
                     </span>
                     <span className={styles.meta}>
-                      {KIND_LABELS[r.kind].replace(/s$/, "")}
-                      {elementForRow(series, storyId, r.id) && " · shared with the series"}
-                      {r.tags.length > 0 && ` · ${r.tags.slice(0, 3).join(", ")}`}
+                      <span>
+                        {KIND_LABELS[r.kind].replace(/s$/, "")}
+                        {elementForRow(series, storyId, r.id) && " · shared with the series"}
+                        {r.tags.length > 0 && ` · ${r.tags.slice(0, 3).join(", ")}`}
+                      </span>
                       <span className={styles.when}>{ago(r.updated_at)}</span>
                     </span>
                   </Link>

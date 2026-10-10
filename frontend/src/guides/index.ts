@@ -49,7 +49,19 @@ const GUIDE_LIST: Guide[] = [
     title: "Planning a story",
     body: planning,
     modes: BOTH,
-    keywords: ["plan", "snowflake", "outline", "logline", "synopsis", "method", "beat board", "planned"],
+    keywords: [
+      "plan",
+      "snowflake",
+      "outline",
+      "logline",
+      "synopsis",
+      "method",
+      "beat board",
+      "planned",
+      "beat sheet",
+      "timeline",
+      "mice",
+    ],
   },
   {
     id: "promises",
@@ -104,7 +116,7 @@ const GUIDE_LIST: Guide[] = [
     title: "Dialogue and quotes",
     body: dialogue,
     modes: BOTH,
-    keywords: ["speaker", "attribution", "curly", "straight"],
+    keywords: ["speaker", "attribution", "curly", "straight", "tag", "who says this", "thought", "highlight"],
   },
   {
     id: "notes-and-freewrite",
@@ -118,7 +130,7 @@ const GUIDE_LIST: Guide[] = [
     title: "Snapshots, backups and undo",
     body: snapshots,
     modes: BOTH,
-    keywords: ["versions", "restore", "undo", "history"],
+    keywords: ["versions", "restore", "undo", "history", "backup", "database", "redo", "draft"],
   },
   {
     id: "numbers",
@@ -129,7 +141,7 @@ const GUIDE_LIST: Guide[] = [
   },
   {
     id: "jobs",
-    title: "Jobs: work that runs while you write",
+    title: "Jobs and automatic work",
     body: jobs,
     modes: BOTH,
     keywords: [
@@ -174,14 +186,23 @@ const GUIDE_LIST: Guide[] = [
     title: "Search and replace",
     body: search,
     modes: BOTH,
-    keywords: ["find", "rename"],
+    keywords: ["find", "rename", "mentions", "other names", "also called"],
   },
   {
     id: "glossary",
     title: "Glossary",
     body: glossary,
     modes: BOTH,
-    keywords: ["lorebook", "manuscript", "compendium", "codex", "chronicle"],
+    keywords: [
+      "lorebook",
+      "manuscript",
+      "compendium",
+      "codex",
+      "chronicle",
+      "findings",
+      "promises",
+      "scene sheet",
+    ],
   },
 ];
 
@@ -193,6 +214,17 @@ export function withKeys(body: string): string {
 }
 
 export const GUIDES: Guide[] = GUIDE_LIST.map((g) => ({ ...g, body: withKeys(g.body) }));
+
+const STUDIO_BLOCK = /^<!-- studio -->\n([\s\S]*?)^<!-- \/studio -->\n?/gm;
+
+/**
+ * A guide as this mode reads it. What is only in Studio (the Assistant, the Codex) sits
+ * between `<!-- studio -->` and `<!-- /studio -->`, each on a line of its own: Writer mode
+ * shows no AI at all, guides included, so there the block is gone.
+ */
+export function forMode(body: string, mode: UIMode): string {
+  return body.replace(STUDIO_BLOCK, (_whole, inner: string) => (mode === "studio" ? inner : ""));
+}
 
 export function guidesFor(mode: UIMode): Guide[] {
   return GUIDES.filter((g) => g.modes.includes(mode));

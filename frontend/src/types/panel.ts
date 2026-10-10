@@ -20,7 +20,8 @@ export interface SceneCast {
 
 export type EntityKind = "character" | "location" | "thread" | "twist" | "compendium";
 
-export type ToolId = "characters" | "places" | "threads" | "notes" | "freewrite" | "dialogue";
+// Freewrite is not a tool: the rail opens its page as a tab (doc 24, 2026-10-09).
+export type ToolId = "characters" | "places" | "threads" | "notes" | "dialogue";
 
 /**
  * What the rail launches (doc 24 D11): This scene, each tool and the Assistant. A launcher
@@ -42,12 +43,11 @@ export const TOOL_LABELS: Record<ToolId, string> = {
   places: "Places",
   threads: "Threads",
   notes: "Notes",
-  freewrite: "Freewrite",
   dialogue: "Dialogue",
 };
 
 /** The tools down the rail, in order. */
-export const TOOLS: ToolId[] = ["characters", "places", "threads", "notes", "freewrite", "dialogue"];
+export const TOOLS: ToolId[] = ["characters", "places", "threads", "notes", "dialogue"];
 
 export function entityTabId(kind: EntityKind, id: string): string {
   return `entity:${kind}:${id}`;

@@ -6,7 +6,7 @@
 import { PanelLeft, Palette } from "lucide-react";
 import { commandRegistry } from "./registry";
 import { COLOUR_MODES, toggleStrip } from "../strip/stripModel";
-import { SHORTCUTS } from "../keyboard/shortcuts";
+import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 
@@ -18,7 +18,7 @@ commandRegistry.register({
   keywords: ["tree", "outline", "chapters", "scenes", "strip", "sidebar", "structure", "widen", "narrow"],
   icon: PanelLeft,
   group: "View",
-  shortcut: SHORTCUTS.cycleStrip.combo,
+  shortcut: formatCombo(SHORTCUTS.cycleStrip.combo),
   when: inStory,
   action: () => {
     const { stripWidth, setStripWidth } = useUIStore.getState();

@@ -1,9 +1,11 @@
+import { Fragment } from "react";
 import {
   ChevronsLeft,
   ChevronsRight,
   ExternalLink,
   Feather,
   FileText,
+  NotebookPen,
   PanelRight,
   PictureInPicture2,
 } from "lucide-react";
@@ -14,7 +16,7 @@ import { sceneTabLabel } from "../../lib/panel/tabLabel";
 import { useAIStore } from "../../stores/aiStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
-import { TOOLS, TOOL_LABELS, launcherId, type Launcher } from "../../types/panel";
+import { TOOLS, TOOL_LABELS, launcherId, pageTabId, type Launcher } from "../../types/panel";
 import { TOOL_ICONS } from "./toolIcons";
 import styles from "./Panel.module.css";
 
@@ -29,13 +31,15 @@ import styles from "./Panel.module.css";
  * beside it, the rail is only the launchers.
  */
 export default function PanelRail({ inWindow = false }: { inWindow?: boolean }) {
-  const { showing, open, launch, setOpen, frame, toggleFloating, setFrame } = usePanelStore();
+  const { showing, open, launch, openPage, setOpen, frame, toggleFloating, setFrame } = usePanelStore();
   const aiAvailable = useAIAvailable();
   const sessionCount = useAIStore((s) => s.sessions.length);
   const storyId = useStoryStore((s) => s.activeStory?.id);
   // Re-render when the open node changes: This scene is named for its level.
   useStoryStore((s) => s.activeNode?.id);
   const shown = (l: Launcher) => (open || inWindow) && showing === launcherId(l);
+  // Freewrite is a page, so the rail opens it as a tab like any page beside the prose.
+  const freewriteShown = (open || inWindow) && showing === pageTabId("freewrite");
 
   function popOut() {
     const story = storyId ? `?story=${encodeURIComponent(storyId)}` : "";
@@ -100,16 +104,28 @@ export default function PanelRail({ inWindow = false }: { inWindow?: boolean }) 
         {TOOLS.map((tool) => {
           const Icon = TOOL_ICONS[tool];
           return (
-            <button
-              key={tool}
-              className={cls(tool)}
-              onClick={() => choose(tool)}
-              title={`${TOOL_LABELS[tool]}: beside the page`}
-              aria-label={TOOL_LABELS[tool]}
-              aria-pressed={shown(tool)}
-            >
-              <Icon size={15} />
-            </button>
+            <Fragment key={tool}>
+              <button
+                className={cls(tool)}
+                onClick={() => choose(tool)}
+                title={`${TOOL_LABELS[tool]}: beside the page`}
+                aria-label={TOOL_LABELS[tool]}
+                aria-pressed={shown(tool)}
+              >
+                <Icon size={15} />
+              </button>
+              {tool === "notes" && (
+                <button
+                  className={[styles.railBtn, freewriteShown ? styles.railBtnOn : ""].join(" ")}
+                  onClick={() => (freewriteShown && !inWindow ? setOpen(false) : openPage("freewrite"))}
+                  title="Freewrite: a tab beside the page"
+                  aria-label="Freewrite"
+                  aria-pressed={freewriteShown}
+                >
+                  <NotebookPen size={15} />
+                </button>
+              )}
+            </Fragment>
           );
         })}
         {aiAvailable && <span className={styles.railRule} aria-hidden />}

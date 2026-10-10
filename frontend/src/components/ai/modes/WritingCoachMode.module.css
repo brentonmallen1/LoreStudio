@@ -13,7 +13,6 @@
 /* Tone / style section */
 .toneSection {
   padding: 0.75rem;
-  border-bottom: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -46,14 +45,13 @@
   border-radius: 12px;
   font-size: var(--text-xs);
   font-family: inherit;
-  border: 1px solid var(--color-border);
+  border: none;
   background: var(--color-surface-2);
   color: var(--color-text-muted);
   cursor: pointer;
   transition:
     background var(--transition),
-    color var(--transition),
-    border-color var(--transition);
+    color var(--transition);
 }
 
 .chip:hover {
@@ -63,7 +61,6 @@
 
 .chipActive {
   background: var(--color-ai-coach-subtle);
-  border-color: var(--color-ai-coach-border);
   color: var(--color-ai-coach);
 }
 

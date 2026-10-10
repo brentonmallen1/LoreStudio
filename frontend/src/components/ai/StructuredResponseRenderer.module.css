@@ -1,24 +1,21 @@
+/* Sections part by type and space alone: this renders in the side panel (a tone box
+   already) and on pages, so no box, edge or band. The icon carries the section colour. */
 .root {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 18px;
 }
 
-/* Section card */
 .section {
-  border: 1px solid color-mix(in srgb, var(--section-color, var(--color-accent)) 45%, var(--color-border));
-  background: var(--color-surface-2);
-  border-radius: 6px;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .sectionHeader {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 12px;
-  background: color-mix(in srgb, var(--section-color, var(--color-accent)) 10%, transparent);
-  border-bottom: 1px solid var(--color-border);
 }
 
 .sectionIcon {
@@ -34,7 +31,7 @@
 
 /* Body */
 .sectionBody {
-  padding: 10px 12px;
+  padding: 0;
 }
 
 .textValue {
@@ -88,12 +85,10 @@
 /* Details sub-list (AnalysisSection) */
 .detailsList {
   margin: 6px 0 0 0;
-  padding: 6px 12px 8px 28px;
+  padding: 0 0 0 28px;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  border-top: 1px solid var(--color-border);
-  background: color-mix(in srgb, var(--color-surface-2) 40%, transparent);
 }
 
 .detailsItem {
@@ -109,18 +104,15 @@
   font-size: var(--text-sm);
   font-weight: 500;
   border-radius: 4px;
-  border: 1px solid var(--section-color, var(--color-accent));
+  border: none;
   background: transparent;
   color: var(--section-color, var(--color-accent));
   cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s;
+  transition: background 0.15s;
 }
 
 .applyBtn:hover {
-  background: var(--section-color, var(--color-accent));
-  color: var(--color-surface);
+  background: var(--color-hover);
 }
 
 /* Fallback warning banner */
@@ -132,7 +124,6 @@
   font-size: var(--text-sm);
   color: var(--color-warning);
   background: color-mix(in srgb, var(--color-warning) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
   border-radius: 6px;
 }
 
