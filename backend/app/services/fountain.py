@@ -14,9 +14,10 @@ from __future__ import annotations
 
 import re
 
-from .script_export import ScriptDoc, ScriptOptions
+from ..schemas.story import TitlePage
+from .script_export import Block, ScriptDoc, ScriptOptions
 from .script_source import SceneNote, ScriptSource, Section, Synopsis
-from .script_syntax import SCENE_NUMBER, classify_line, looks_like_cue, parse_lines
+from .script_syntax import SCENE_NUMBER, classify_line, looks_like_cue, parse_lines, scene_blocks
 
 #: Fountain's own marks at the start of a line: a section, a synopsis, a lyric, a note, the boneyard.
 _MARK_START = ("#", "=", "~", "[[", "/*")
@@ -79,6 +80,13 @@ def to_fountain(doc: ScriptDoc, options: ScriptOptions) -> str:
         follows = i + 1 < len(blocks) and blocks[i + 1].element in ("paren", "dialogue")
         out += _block(block.element, block.text, block.number, options, follows)
     return "\n".join(out).strip() + "\n"
+
+
+def scene_fountain(html: str | None) -> str:
+    """A stored script scene as Fountain text: how the model reads a script (doc 25, P7), so a
+    cue, a parenthetical and a line of dialogue stay what they are."""
+    blocks = [Block(element, text) for element, text in scene_blocks(html or "") if text.strip()]
+    return to_fountain(ScriptDoc("", "", TitlePage(), blocks), ScriptOptions(title_page=False)) if blocks else ""
 
 
 # ── Reading a file (doc 25, P6) ──────────────────────────────────────────────────────────

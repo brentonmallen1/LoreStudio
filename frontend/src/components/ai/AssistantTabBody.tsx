@@ -3,7 +3,8 @@ import { Feather, Plus, ChevronLeft, User2, List } from "lucide-react";
 import AIFeatureInfoTrigger from "./AIFeatureInfoTrigger";
 import { useAIStore } from "../../stores/aiStore";
 import { useStoryStore } from "../../stores/storyStore";
-import { getSessionType, getAllSessionTypes } from "../../lib/ai/sessionTypes";
+import { getSessionType, sessionTypeLabel, sessionTypesFor } from "../../lib/ai/sessionTypes";
+import { useStoryFormat } from "../../lib/storyFormat";
 import SessionList from "./SessionList";
 import { sessionLabel } from "../../lib/ai/sessionLabel";
 import SessionView from "./SessionView";
@@ -63,7 +64,8 @@ export default function AssistantTabBody() {
     setPickingCharacterFor(null);
   }
 
-  const allTypes = getAllSessionTypes();
+  const format = useStoryFormat();
+  const allTypes = sessionTypesFor(format);
   const activeSession = sessions.find((s) => s.id === activeSessionId);
 
   return (
@@ -130,7 +132,7 @@ export default function AssistantTabBody() {
                       onClick={() => launchSession(type.id, true)}
                     >
                       <Icon size={13} className={styles.newMenuItemIcon} />
-                      <span>{type.label}</span>
+                      <span>{sessionTypeLabel(type, format)}</span>
                     </button>
                   );
                 })
@@ -210,7 +212,7 @@ export default function AssistantTabBody() {
               return (
                 <button key={type.id} className={styles.emptyModeBtn} onClick={() => launchSession(type.id)}>
                   <Icon size={13} className={styles.emptyModeIcon} />
-                  <span>{type.label}</span>
+                  <span>{sessionTypeLabel(type, format)}</span>
                 </button>
               );
             })}

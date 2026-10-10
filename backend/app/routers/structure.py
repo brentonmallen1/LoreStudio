@@ -19,6 +19,7 @@ from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
 from ..services.llm.prompts.summaries import build_scene_summary_prompt, build_structure_section_summary_prompt
 from ..services.llm.sse import sse_message, sse_stream
 from ..services.script_scene import derive_heading, split_at_headings, split_scene
+from ..services.text_utils import for_model
 from ..services.word_count import count_lines
 
 router = APIRouter()
@@ -240,7 +241,7 @@ async def summarize_node(
     # Leaf node: has direct prose content
     if node.content and node.content.strip():
         feature_prompt = build_scene_summary_prompt(node.title, node.content)
-        llm_messages = [{"role": "user", "content": f"Scene: {node.title}\n\n{node.content}"}]
+        llm_messages = [{"role": "user", "content": f"Scene: {node.title}\n\n{for_model(node.content)}"}]
         feature = "scene-summary"
     else:
         # Section node: gather all child content recursively
@@ -252,7 +253,7 @@ async def summarize_node(
         def gather_content(n: StructureNode) -> list[str]:
             pieces = []
             if n.content and n.content.strip():
-                pieces.append(f"[{n.title}]\n{n.content}")
+                pieces.append(f"[{n.title}]\n{for_model(n.content)}")
             for child in sorted(child_map.get(n.id, []), key=lambda c: c.position):
                 pieces.extend(gather_content(child))
             return pieces

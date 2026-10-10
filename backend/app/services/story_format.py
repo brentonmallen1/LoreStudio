@@ -41,6 +41,13 @@ def action_html(html: str | None) -> str:
     return "".join(f"<p>{escape(text)}</p>" for el, text in scene_blocks(html or "") if el == "action")
 
 
+def scene_action(html: str | None) -> str:
+    """A script scene's action lines as plain text, a paragraph each (doc 25, P7)."""
+    from .script_syntax import scene_blocks
+
+    return "\n\n".join(text for el, text in scene_blocks(html or "") if el == "action" and text.strip())
+
+
 def spoken_and_action_html(html: str | None) -> str:
     """A script scene's action and dialogue, without cues, headings or transitions (the
     name scan would take every ALL CAPS cue and heading for a stranger)."""

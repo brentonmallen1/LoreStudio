@@ -13,7 +13,6 @@ from .analysis import (
     build_character_arc_prompt,
     build_economy_analysis_prompt,
     build_session_recap_prompt,
-    build_show_dont_tell_prompt,
 )
 from .brainstorm import build_brainstorm_system_prompt
 from .chat import build_scene_chat_system_prompt, build_writing_coach_system_prompt
@@ -27,6 +26,7 @@ from .interviews import (
     build_interview_summary_prompt,
 )
 from .scene_planner import build_scene_planner_system_prompt
+from .show_dont_tell import build_show_dont_tell_prompt
 from .summaries import (
     build_scene_summary_prompt,
     build_story_summary_prompt,

@@ -55,12 +55,13 @@ export default function EditorMoreMenu(p: Props) {
   const [pane, setPane] = useState<Pane>("menu");
   const [about, setAbout] = useState(false);
   // A script's cues say who speaks (doc 25, P4): there are no quotes to tag.
-  const script = useStoryFormat() !== "prose";
+  const format = useStoryFormat();
+  const script = format !== "prose";
   const wrap = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const ai = useAIAvailable();
   const mode = useMode();
-  const hasAbout = visibleFeatures("scene-editor", mode).length > 0;
+  const hasAbout = visibleFeatures("scene-editor", mode, format).length > 0;
 
   function close() {
     setOpen(false);

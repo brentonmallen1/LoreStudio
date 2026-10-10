@@ -52,7 +52,7 @@ from .base import LLMProvider
 from .features import FEATURES_BY_ID, feature_budget, thinking_mode, thinks
 from .gate import cooldown_for, model_gate, parallel_for
 from .ollama import StreamMetrics, _strip_json_fencing, extract_thoughts, ollama_provider, strip_thoughts
-from .prompts.core import CORE_SYSTEM_PROMPT, class_contract
+from .prompts.core import CORE_SYSTEM_PROMPT, SCRIPT_RULES, class_contract
 from .prompts.who_they_are import CARE_RULES, MARKER
 
 logger = logging.getLogger(__name__)
@@ -75,6 +75,14 @@ class AICallContext:
     session_id: str | None = None
     tags: list[str] = field(default_factory=list)  # e.g. ["interview-panel", "user-initiated"]
     extra_metadata: dict = field(default_factory=dict)
+
+
+def _is_script(context: AICallContext, db: Session) -> bool:
+    """Whether the call is about a story written as a script (doc 25, P7)."""
+    from ...models.story import Story
+    from ..story_format import is_script
+
+    return bool(context.story_id) and is_script(db.get(Story, context.story_id))
 
 
 class AIDisabledError(RuntimeError):
@@ -245,6 +253,7 @@ class AIGateway:
         include_core: bool = True,
         feature_id: str = "",
         messages: list[dict] | None = None,
+        script: bool = False,
     ) -> str:
         """
         Merge the core prompt, the feature's co-author contract and the feature prompt.
@@ -262,6 +271,8 @@ class AIGateway:
         parts = [core] if include_core else []
         if contract:
             parts.append(contract)
+        if script:
+            parts.append(SCRIPT_RULES)
         # Who a person is (doc 20 P8): any call that carries those fields carries the rules.
         sent = [feature_prompt, *(str(m.get("content", "")) for m in messages or [])]
         if any(MARKER in text for text in sent):
@@ -292,7 +303,9 @@ class AIGateway:
         """
         self._refuse_if_disabled(user)
         params = self._get_effective_params(user, llm_params, context.feature)
-        system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt, context.feature, messages)
+        system_prompt = self.compose_prompt(
+            feature_prompt, user, include_core_prompt, context.feature, messages, _is_script(context, db)
+        )
         user_url, user_model = self._get_ollama_config(user)
         params.num_ctx = await self._resolve_num_ctx(
             context.feature, params, user, user_model or self.provider.model, user_url
@@ -393,7 +406,9 @@ class AIGateway:
         """
         self._refuse_if_disabled(user)
         params = self._get_effective_params(user, llm_params, context.feature)
-        system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt, context.feature, messages)
+        system_prompt = self.compose_prompt(
+            feature_prompt, user, include_core_prompt, context.feature, messages, _is_script(context, db)
+        )
         user_url, user_model = self._get_ollama_config(user)
         params.num_ctx = await self._resolve_num_ctx(
             context.feature, params, user, user_model or self.provider.model, user_url

@@ -271,7 +271,9 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
             </div>
             <div className={styles.pubPrepBody}>
               <p className={styles.pubPrepDesc}>
-                AI tools to help prepare your manuscript for submission or self-publishing.
+                {preview.script
+                  ? "AI tools to help prepare your script to send to managers, producers and contests."
+                  : "AI tools to help prepare your manuscript for submission or self-publishing."}
               </p>
               <div className={styles.pubPrepActions}>
                 <button
@@ -283,8 +285,14 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
                 >
                   <Feather size={14} className={styles.pubPrepBtnIcon} />
                   <div>
-                    <div className={styles.pubPrepBtnLabel}>Book Description</div>
-                    <div className={styles.pubPrepBtnDesc}>Draft and refine back-cover copy</div>
+                    <div className={styles.pubPrepBtnLabel}>
+                      {preview.script ? "Logline & Synopsis" : "Book Description"}
+                    </div>
+                    <div className={styles.pubPrepBtnDesc}>
+                      {preview.script
+                        ? "Draft and refine the pages that sell it"
+                        : "Draft and refine back-cover copy"}
+                    </div>
                   </div>
                 </button>
                 <button
@@ -297,7 +305,11 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
                   <Feather size={14} className={styles.pubPrepBtnIcon} />
                   <div>
                     <div className={styles.pubPrepBtnLabel}>Query Letter</div>
-                    <div className={styles.pubPrepBtnDesc}>Draft a professional query letter</div>
+                    <div className={styles.pubPrepBtnDesc}>
+                      {preview.script
+                        ? "Draft a query to a manager or producer"
+                        : "Draft a professional query letter"}
+                    </div>
                   </div>
                 </button>
                 <button
@@ -306,8 +318,14 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
                 >
                   <Orbit size={14} className={styles.pubPrepBtnIcon} />
                   <div>
-                    <div className={styles.pubPrepBtnLabel}>Comp Titles</div>
-                    <div className={styles.pubPrepBtnDesc}>Suggest comparable published books</div>
+                    <div className={styles.pubPrepBtnLabel}>
+                      {preview.script ? "Comparable Films" : "Comp Titles"}
+                    </div>
+                    <div className={styles.pubPrepBtnDesc}>
+                      {preview.script
+                        ? "Suggest films and series it sits beside"
+                        : "Suggest comparable published books"}
+                    </div>
                   </div>
                 </button>
               </div>

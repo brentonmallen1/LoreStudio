@@ -38,7 +38,7 @@ from ..services.llm.sse import sse_stream
 from ..services.series import service as series_service
 from ..services.story_format import is_script
 from ..services.structure_scaffold import scaffold_story
-from ..services.text_utils import last_paragraphs
+from ..services.text_utils import for_model, last_paragraphs
 from ..services.word_count import length_status, story_pages, story_target
 
 router = APIRouter()
@@ -337,7 +337,9 @@ async def summarize_story(
     all_nodes = (
         db.query(StructureNode).filter(StructureNode.story_id == story_id).order_by(StructureNode.position).all()
     )
-    nodes_content = [{"title": n.title, "content": n.content} for n in all_nodes if n.content and n.content.strip()]
+    nodes_content = [
+        {"title": n.title, "content": for_model(n.content)} for n in all_nodes if n.content and n.content.strip()
+    ]
 
     up_to_title = None
     if up_to_node_id:
@@ -347,7 +349,7 @@ async def summarize_story(
             # Only include nodes up to this one
             target_idx = next((i for i, n in enumerate(all_nodes) if n.id == up_to_node_id), len(all_nodes))
             nodes_content = [
-                {"title": n.title, "content": n.content}
+                {"title": n.title, "content": for_model(n.content)}
                 for n in all_nodes[: target_idx + 1]
                 if n.content and n.content.strip()
             ]

@@ -55,7 +55,7 @@ OVER_BUDGET: dict[str, int] = {
     "backend/app/routers/analysis.py": 1458,
     "frontend/src/types/index.ts": 1493,
     "frontend/src/api/client.ts": 1085,
-    "backend/app/services/llm/prompts/analysis.py": 1179,
+    "backend/app/services/llm/prompts/analysis.py": 1127,
     "backend/app/services/import_service.py": 878,
     "frontend/src/components/layout/CommandPalette.tsx": 587,
     "frontend/src/components/outline/OutlineManager.tsx": 680,

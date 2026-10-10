@@ -17,4 +17,7 @@ export interface AIFeatureInfo {
   contextSources: string[];
   /** The gateway feature id this surface calls (services/llm/features.py). */
   backendFeatureId?: string;
+  /** The story formats it serves, when not every one (doc 25, P7); a gateway feature's own
+   *  formats come from the feature table. */
+  formats?: ("prose" | "screenplay")[];
 }

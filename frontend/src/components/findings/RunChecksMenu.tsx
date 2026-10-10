@@ -149,7 +149,7 @@ export default function RunChecksMenu() {
                     onClick={() => void runCheck(c.id)}
                   >
                     <span className={styles.runDot} data-source="ai" />
-                    <RunText label={c.label} hint={c.hint} />
+                    <RunText label={c.label} hint={(local === "script" && c.scriptHint) || c.hint} />
                     <span className={styles.runWhen} data-failed={failed ? true : undefined}>
                       {active
                         ? job.status === "queued"

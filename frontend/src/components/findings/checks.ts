@@ -7,6 +7,8 @@ export interface AssistantCheck {
   id: string;
   label: string;
   hint: string;
+  /** The hint for a script, where it differs (doc 25, P7). */
+  scriptHint?: string;
 }
 
 /** The local checks, in a line each: what they look for (services/findings/local.py, data.py). */
@@ -61,6 +63,7 @@ export const ASSISTANT_CHECKS: AssistantCheck[] = [
     id: "first-pass",
     label: "First-pass editor",
     hint: "The prose against what you said you meant",
+    scriptHint: "The script against what you said you meant",
   },
   {
     id: "essential-questions",

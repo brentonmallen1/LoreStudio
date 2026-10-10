@@ -38,6 +38,8 @@ from ..prose_html import paragraphs
 from ..prose_syntax import Known, Lexicon, find_mentions
 from ..series.context import earlier_states, earlier_text
 from ..series.promises import earlier_lines
+from ..story_format import is_script
+from ..text_utils import for_model
 from ..thread_roles import role_label
 from .chunker import estimate_tokens
 from .embeddings import Hit, embed_base_url_for, embed_model_for, embed_texts, search
@@ -102,6 +104,7 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
         if pov_char:
             pov_char_name = pov_char.name
 
+    script = is_script(story)
     lorebook = {
         "title": story.title,
         "genre": story.genre or None,
@@ -111,15 +114,18 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
         "narrative_intent": story.narrative_intent or story.intent or None,
         "logline": story.logline or None,
         "premise": story.premise or None,
-        "narrative_perspective": story.narrative_perspective or None,
-        "pov_character": pov_char_name,
+        # A script has no narrator (doc 25): no perspective to keep to.
+        "narrative_perspective": None if script else story.narrative_perspective or None,
+        "pov_character": None if script else pov_char_name,
+        "script": script,
         "unresolved_goals": [g["text"] for g in (story.goals or []) if not g.get("completed")],
     }
 
     # ── Active scene (None for story-level / global assistant) ──
     if node is not None:
-        prose_preview = (node.content or "")[:PROSE_CONTEXT_LIMIT]
-        if len(node.content or "") > PROSE_CONTEXT_LIMIT:
+        text = for_model(node.content)
+        prose_preview = text[:PROSE_CONTEXT_LIMIT]
+        if len(text) > PROSE_CONTEXT_LIMIT:
             prose_preview += "…"
         scene = {
             "title": node.title,

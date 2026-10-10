@@ -98,6 +98,22 @@ def story_target(story, db, words: int) -> dict | None:
     return length_status("prose", story.intended_length or "", words)
 
 
+def length_line(story, db, words: int) -> str:
+    """The intended form and where the story stands, in its unit, for a prompt (doc 25, P7)."""
+    target = story_target(story, db, words)
+    if not target or not target.get("max"):
+        return ""
+    form, unit = (story.intended_length or "").replace("_", " "), target["unit"]
+    return f"Intended form: {form} (target: up to {target['max']:,} {unit}). Current: {target['current']:,} {unit}.\n"
+
+
+def scene_size(node, script: bool) -> str:
+    """A scene's length as the prompts give it: eighths of a page for a script, words for prose."""
+    from .script_syntax import eighths
+
+    return f"{eighths(node.line_count or 0)}/8 page" if script else f"{node.word_count or 0} words"
+
+
 def count_lines(story, html: str | None) -> int:
     """A script scene's length in lines of the printed page; 0 for prose (doc 25)."""
     from . import script_syntax

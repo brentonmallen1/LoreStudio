@@ -55,4 +55,10 @@ Choose the script's form under **Intended length** in **Story identity**: a shor
 
 **Publish** shows the script as its printed pages, and exports it as a screenplay PDF, a Final Draft file or Fountain, with a title page. See _Import and export_.
 
+## The Assistant (Studio)
+
+In Studio mode the Assistant knows it is reading a script. It sees each scene as a screenwriter would, with every heading, cue and line of dialogue in its place. It talks about pages rather than chapters, and like everywhere in LoreStudio it never writes a line of the script for you, dialogue included.
+
+Some tools change for a script. **Unfilmables** takes the place of Show, Don't Tell and points at action a camera could not film: a thought, a feeling stated, backstory. **Pacing**, **First-pass editor** and **Story economy** measure in pages and eighths of a page. **Clichés** also looks for lines heard in a thousand films. The editorial pass judges the voice of the action lines and how distinct each character sounds, since a script has no narrator. Under **Publish**, **Logline & Synopsis** replaces the book description, the query is written for a manager or producer, and **Comparable Films** suggests films and series. Dialogue attribution is not offered, because the cue above each line already says who speaks.
+
 The demo story _The Last Lighthouse: The Screenplay_ is the novel's first three scenes written for the screen.

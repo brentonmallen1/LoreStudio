@@ -4,6 +4,7 @@ Analysis prompts — character arc analysis, MICE economy, session recap, show-d
 
 from ....models.character import Character
 from ....models.story import Story
+from . import screen
 from .interviews import _ATTR_GUIDANCE, _ATTR_LABELS, _normalise
 
 TARGET_AUDIENCES: dict[str, dict[str, str]] = {
@@ -48,73 +49,6 @@ TARGET_AUDIENCES: dict[str, dict[str, str]] = {
         "pacing": "Genre-dependent.",
     },
 }
-
-
-def build_show_dont_tell_prompt(
-    prose_text: str,
-    story_title: str,
-    genre: str | None = None,
-    tone: str | None = None,
-) -> str:
-    """Structured JSON prompt to identify 'telling' passages and suggest 'showing' alternatives."""
-    context_parts = []
-    if genre:
-        context_parts.append(f"Genre: {genre}")
-    if tone:
-        context_parts.append(f"Tone: {tone}")
-    context_block = "\n".join(context_parts) if context_parts else ""
-
-    return f"""You are a fiction editor analyzing prose from "{story_title}" for "show don't tell" opportunities.
-
-{context_block}
-
-DEFINITIONS:
-- TELLING: Directly stating an emotion, internal state, or quality. ("She was angry." / "The room was dirty." / "He felt nervous.")
-- SHOWING: Demonstrating through observable action, dialogue, sensory detail, or physical manifestation. ("Her jaw clenched. She set down the cup with a click." / "Pizza boxes teetered in the corner, ringed with grease stains." / "He kept checking the door.")
-
-SEVERITY LEVELS:
-- strong: Clear, unambiguous statement of emotion/state/quality that would benefit significantly from showing
-- moderate: Telling that softens or flattens what could be more vivid
-- subtle: Borderline case — may be intentional for pacing; note but don't overweight
-
-ISSUE TYPES:
-- emotion: Direct labeling of an emotional state ("she was happy", "he felt sad")
-- state: Direct labeling of a condition or status ("the house was a mess", "he was tired")
-- quality: Direct assertion of a trait or judgment ("she was beautiful", "the food was delicious")
-- exposition: Narratorial information delivered flatly rather than shown through scene
-
-NOTE: Telling is not always wrong — it is valid for transitions, pacing, summary, and deliberate stylistic effect. Only flag passages where showing would meaningfully strengthen the prose.
-
-PROSE TO ANALYZE:
-{prose_text}
-
-Respond with a JSON object matching this exact schema:
-
-{{
-  "instances": [
-    {{
-      "passage": "the exact text from the prose that is telling (quote it precisely)",
-      "severity": "strong | moderate | subtle",
-      "issue_type": "emotion | state | quality | exposition",
-      "explanation": "1 sentence explaining why this is telling and what it flattens",
-      "question": "one short question that would lead the author to show it instead (e.g. 'what do her hands do while she says this?')"
-    }}
-  ],
-  "summary": "2-3 sentence overall assessment of the prose's showing vs telling balance",
-  "overall_rating": "needs_work | fair | good | excellent",
-  "strengths": [
-    "specific thing the prose does well in terms of showing"
-  ]
-}}
-
-Rules:
-- Output ONLY valid JSON. No markdown, no extra text.
-- instances: only flag passages worth revising — skip intentional stylistic telling
-- passage: must be a verbatim excerpt from the text above (keep it short — 10 words max)
-- question: a question only. Never a replacement sentence, never "try something like…", never
-  a rewritten version of the passage. The author writes the prose; you point at the gap
-- strengths: 1-3 items, specific to this text
-- overall_rating: needs_work = many strong instances, fair = several moderate, good = mostly showing with minor lapses, excellent = exemplary showing throughout"""
 
 
 def build_audience_adherence_prompt(
@@ -305,9 +239,10 @@ def build_economy_analysis_prompt(
     length_context: str,
     threads_summary: list[str],
     scenes_info: list[str],
+    script: bool = False,
 ) -> str:
     """Prompt to analyze story economy against MICE principles for short fiction."""
-    return f"""You are a short fiction editor analyzing story economy for "{story_title}".
+    prompt = f"""You are a short fiction editor analyzing story economy for "{story_title}".
 
 {length_context}Story intent: {story_intent or "Not specified"}
 
@@ -344,6 +279,7 @@ Rules:
 - Reference specific scene and thread names from the data above.
 - details arrays: 1-4 items each, concrete and specific.
 - recommendations: 3-5 items, each actionable."""
+    return screen.economy(prompt) if script else prompt
 
 
 def build_session_recap_prompt(
@@ -477,10 +413,11 @@ def build_pacing_analysis_prompt(
     intended_length: str | None,
     scenes_info: list[str],  # ["[Scene Title] (N words, status) — Act X"]
     total_words: int,
+    pages: int | None = None,
 ) -> str:
     """Prompt to analyze pacing, act balance, and tension curve."""
     length_note = f"Intended form: {intended_length.replace('_', ' ') if intended_length else 'unspecified'}"
-    return f"""You are a developmental editor analyzing the pacing and structure of "{story_title}".
+    prompt = f"""You are a developmental editor analyzing the pacing and structure of "{story_title}".
 
 {length_note}
 Total words written: {total_words:,}
@@ -518,6 +455,7 @@ Rules:
 - Base all observations on scene titles, positions, and word counts — not invented content.
 - slow_spots: 0-5 items. Only flag scenes that are clearly underweight for their story position.
 - overall_rating: needs_work = significant imbalance, fair = some concerns, good = mostly solid, excellent = well-paced."""
+    return prompt if pages is None else screen.pacing(prompt, total_words, pages)
 
 
 def build_continuity_check_prompt(
@@ -734,10 +672,11 @@ def build_first_pass_prompt(
     characters_summary: list[str],  # ["Name (role): arc description, pending milestones"]
     scenes_info: list[str],  # ["[Scene Title] (N words, status): synopsis"]
     total_words: int,
+    pages: int | None = None,
 ) -> str:
     """Prompt for the first-pass editor: compare prose against stated intent."""
     goals_block = "\n".join(f"- {g}" for g in story_goals) if story_goals else "No goals set."
-    return f"""You are a developmental editor performing a first-pass review of "{story_title}".
+    prompt = f"""You are a developmental editor performing a first-pass review of "{story_title}".
 
 Your job is NOT to give generic writing advice. Compare the story AS WRITTEN against the author's stated intentions and flag gaps between plan and execution.
 
@@ -798,6 +737,7 @@ Rules:
 - missed_setups: only include if a gap is clearly implied by the stated goals or arc milestones.
 - gaps: 0-6 items ranked by severity. Only flag genuine mismatches between intent and prose.
 - overall_rating: needs_work = intent not visible in prose, fair = partial alignment, good = mostly aligned, excellent = intent clearly realized."""
+    return prompt if pages is None else screen.first_pass(prompt, total_words, pages)
 
 
 def build_cliche_analysis_prompt(
@@ -806,6 +746,7 @@ def build_cliche_analysis_prompt(
     tone: str | None,
     scenes: list[dict],
     total_words: int,
+    pages: int | None = None,
 ) -> str:
     """Structured JSON prompt to identify clichés and overused patterns across all scenes."""
 
@@ -813,7 +754,7 @@ def build_cliche_analysis_prompt(
     tone_line = f"Tone: {tone}." if tone else ""
     scenes_block = "\n\n".join(f"[SCENE: {s['title']} | id: {s['id']}]\n{s['content'][:2000]}" for s in scenes)
 
-    return f"""You are a developmental editor analyzing prose from "{story_title}" for clichéd language and patterns.
+    prompt = f"""You are a developmental editor analyzing prose from "{story_title}" for clichéd language and patterns.
 
 {genre_line} {tone_line}
 Approximate word count: {total_words:,}
@@ -871,6 +812,7 @@ Rules:
 - If the prose is largely cliché-free, say so clearly with overall_rating "good" or "excellent"
 - total_count must equal the sum of all category counts
 - overall_rating: needs_work = many strong clichés, fair = several moderate, good = mostly fresh, excellent = consistently original"""
+    return prompt if pages is None else screen.cliche_analysis(prompt, total_words, pages)
 
 
 def build_cliche_coach_system_prompt(
@@ -878,12 +820,13 @@ def build_cliche_coach_system_prompt(
     scene_title: str,
     genre: str | None,
     selected_text: str,
+    script: bool = False,
 ) -> str:
     """System prompt for the inline Cliche Coach chat session."""
 
     genre_line = f"Genre: {genre}." if genre else ""
 
-    return f"""You are a thoughtful, encouraging writing coach helping an author examine a passage from their work-in-progress.
+    prompt = f"""You are a thoughtful, encouraging writing coach helping an author examine a passage from their work-in-progress.
 
 Story: "{story_title}"
 Scene: "{scene_title}"
@@ -906,6 +849,7 @@ IMPORTANT PRINCIPLES:
 - Respect genre conventions — what feels clichéd in literary fiction may be beloved convention in romance or cozy mystery.
 - If the passage contains no meaningful clichés, say so honestly and briefly, then offer what you do notice about the writing.
 - Be warm, specific, and respectful of the author's creative choices. Never be dismissive or condescending."""
+    return screen.cliche_coach(prompt) if script else prompt
 
 
 def _score_entity_richness(entity_data: dict) -> str:

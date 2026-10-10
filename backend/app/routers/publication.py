@@ -24,6 +24,8 @@ from ..services.llm.prompts.publication import (
     build_query_letter_system_prompt,
 )
 from ..services.llm.sse import sse_stream
+from ..services.story_format import is_script
+from ..services.word_count import story_pages
 
 router = APIRouter()
 
@@ -68,6 +70,9 @@ def _build_publication_context(story: Story, db: Session) -> dict:
         "characters": char_data[:6],
         "word_count": total_words or None,
         "intended_length": getattr(story, "intended_length", None),
+        # A script is sold on its pages (doc 25, P7).
+        "script": is_script(story),
+        "pages": story_pages(story, db) if is_script(story) else None,
     }
 
 
@@ -151,6 +156,7 @@ async def suggest_comp_titles(
         narrative_intent=story.narrative_intent or getattr(story, "intent", None),
         themes=story.themes or [],
         intended_length=getattr(story, "intended_length", None),
+        script=is_script(story),
     )
 
     call_ctx = AICallContext(

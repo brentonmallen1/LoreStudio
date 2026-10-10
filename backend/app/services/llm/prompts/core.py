@@ -59,6 +59,27 @@ CLASS_RULES: dict[str, str] = {
     ),
 }
 
+#: Said on every call about a script (doc 25, P7), after the contract: what a screenplay is, and
+#: that "manuscript prose" means every line of it, dialogue included.
+SCRIPT_MARKER = "— This story is a screenplay —"
+SCRIPT_RULES = f"""{SCRIPT_MARKER}
+The story is written as a screenplay, and its scenes are shown to you as Fountain text: a scene
+heading (INT. or EXT., the place, the time), action, a character's name in capitals with their
+dialogue under it (and a parenthetical in brackets), and transitions such as CUT TO:. Read it
+with a screenwriter's craft: a page runs about a minute on screen; action is in the present tense
+and says only what a camera can see and a microphone can hear; a character's dialogue is theirs to
+say however they say it. Say "script", "scene" and "page", not "novel", "chapter" or "prose".
+The author writes every line of the script: never write action, dialogue, a scene heading or any
+other line of it."""
+
+
+def for_script(prompt: str, swaps: dict[str, str]) -> str:
+    """A prose prompt reworded for a script (doc 25, P7): each phrase swapped where it stands."""
+    for old, new in swaps.items():
+        prompt = prompt.replace(old, new)
+    return prompt
+
+
 #: Line the class contract is introduced with. Prompt tests look for it.
 CONTRACT_MARKER = "— How to answer —"
 

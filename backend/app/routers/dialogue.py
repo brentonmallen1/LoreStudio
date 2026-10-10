@@ -32,6 +32,7 @@ from ..services.dialogue_service import (
     sync_story_dialogue,
 )
 from ..services.dialogue_tagging import ProposedDialogueTag, suggest_tags
+from ..services.llm.features import fits
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.analysis import build_dialogue_attribution_prompt
 from ..services.prose_rewrite import tag_lines
@@ -174,6 +175,8 @@ async def ai_suggest_dialogue_speakers(  # noqa: C901
     so the frontend can display and apply them with the same workflow.
     """
     node = _get_scene(scene_id, db, current_user)
+    if not fits("dialogue-attribution", db.get(Story, node.story_id)):
+        raise HTTPException(status_code=400, detail="In a script, the cue above each line says who speaks.")
     if not node.content:
         return []
 
