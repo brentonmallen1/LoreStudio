@@ -12,6 +12,8 @@ import type { Node as PMNode } from "@tiptap/pm/model";
  */
 export interface BlockText {
   text: string;
+  /** A screenplay block's element (`data-el`, doc 25); null in prose. */
+  element: string | null;
   /** Document range of text[start, end). */
   range: (start: number, end: number) => { from: number; to: number };
 }
@@ -33,6 +35,7 @@ export function blockText(block: PMNode, blockPos: number): BlockText {
   });
   return {
     text,
+    element: typeof block.attrs.el === "string" && block.attrs.el ? block.attrs.el : null,
     range: (start, end) => ({ from: at[start], to: at[end - 1] + 1 }),
   };
 }

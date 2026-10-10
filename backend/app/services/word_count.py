@@ -61,14 +61,26 @@ def get_word_count_status(intended_length: str, current_words: int) -> dict | No
     }
 
 
+def count_lines(story, html: str | None) -> int:
+    """A script scene's length in lines of the printed page; 0 for prose (doc 25)."""
+    from . import script_syntax
+    from .story_format import is_script
+
+    return script_syntax.scene_lines(script_syntax.scene_blocks(html or "")) if is_script(story) else 0
+
+
 def recount_story(story_id: str, db) -> int:
-    """Set every node's stored count from its content. Returns how many changed."""
+    """Set every node's stored counts from its content. Returns how many changed."""
+    from ..models.story import Story
     from ..models.structure import StructureNode
 
+    story = db.get(Story, story_id)
     changed = 0
     for node in db.query(StructureNode).filter(StructureNode.story_id == story_id):
         n = count_words(node.content)
-        if node.word_count != n:
+        lines = count_lines(story, node.content)
+        if node.word_count != n or (node.line_count or 0) != lines:
             node.word_count = n
+            node.line_count = lines
             changed += 1
     return changed

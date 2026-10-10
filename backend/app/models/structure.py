@@ -50,6 +50,8 @@ class StructureNode(Base):
     content: Mapped[str] = mapped_column(Text, default="")  # Prose for leaf nodes
     position: Mapped[int] = mapped_column(Integer, default=0)
     word_count: Mapped[int] = mapped_column(Integer, default=0)
+    #: A script scene's length in lines of the printed page (services/script_syntax.py); 0 in prose.
+    line_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     status: Mapped[str] = mapped_column(String, default="draft")  # draft, revised, final
     entry_state: Mapped[str] = mapped_column(Text, default="")
     exit_state: Mapped[str] = mapped_column(Text, default="")

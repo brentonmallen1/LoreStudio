@@ -9,12 +9,15 @@ import SprintTimer from "../story/SprintTimer";
 import type { AutosaveState } from "./useSceneAutosave";
 import { goalFor, ledFor, statusFigures } from "./statusFigures";
 import { useTodayWords } from "./useTodayWords";
+import { ELEMENT_LABELS, eighths, formatEighths, type ScriptElement } from "../../lib/script/syntax";
 import styles from "./StatusCorner.module.css";
 
 interface Props {
   node: StructureNode;
   autosave: AutosaveState;
   wordCount: number;
+  /** In a script (doc 25): the element the cursor is in, and the scene's length in lines. */
+  script?: { element: ScriptElement; lines: number } | null;
 }
 
 /**
@@ -24,7 +27,7 @@ interface Props {
  * with Keep mine and Take theirs. A running sprint shows beside it, and in focus mode so
  * does the way out, which GlobalLayout then leaves to it.
  */
-export default function StatusCorner({ node, autosave, wordCount }: Props) {
+export default function StatusCorner({ node, autosave, wordCount, script }: Props) {
   const { saveState, conflict } = autosave;
   const [open, setOpen] = useState(false);
   // A conflict opens the popover; closing it hides that conflict, not the next one.
@@ -61,6 +64,9 @@ export default function StatusCorner({ node, autosave, wordCount }: Props) {
   }, [shown, conflict]);
 
   const words = wordCount.toLocaleString();
+  // A script shows where the cursor is and how long the scene runs; the words are a click away.
+  const length = script ? formatEighths(eighths(script.lines)) || "no pages yet" : "";
+  const chipText = script ? `${ELEMENT_LABELS[script.element]} · ${length}` : `${words} words`;
   return (
     <div
       className={styles.corner}
@@ -79,13 +85,13 @@ export default function StatusCorner({ node, autosave, wordCount }: Props) {
         type="button"
         className={`${styles.chip} ${shown ? styles.chipOpen : ""}`}
         title={label}
-        aria-label={`${label}. ${words} words in this scene. Show the figures`}
+        aria-label={`${label}. ${chipText} in this scene. Show the figures`}
         aria-haspopup="dialog"
         aria-expanded={shown}
         onClick={() => (shown ? close() : setOpen(true))}
       >
         <span className={`${styles.led} ${styles[led]}`} aria-hidden />
-        <span className={styles.words}>{words} words</span>
+        <span className={styles.words}>{chipText}</span>
       </button>
       {shown && (
         <Figures

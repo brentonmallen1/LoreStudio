@@ -62,6 +62,7 @@ class StructureNodeOut(BaseModel):
     content: str
     position: int
     word_count: int
+    line_count: int = 0
     status: str
     entry_state: str = ""
     exit_state: str = ""
@@ -95,6 +96,7 @@ class StructureNodeMeta(BaseModel):
     synopsis: str
     position: int
     word_count: int
+    line_count: int = 0
     status: str
     entry_state: str = ""
     exit_state: str = ""

@@ -1,0 +1,49 @@
+/*
+ * A screenplay scene in the editor (doc 25). Courier Prime whatever the writing font, since a
+ * script's page is counted in its characters; every measure is in ch, so a character here is
+ * a column of the printed page (lib/script/syntax.ts LAYOUT: action 60 wide, dialogue from 10
+ * and 35 wide, a cue from 22, a parenthetical from 16 and 19 wide).
+ */
+.script {
+  --font-editor: "Courier Prime", "Courier New", monospace;
+  --editor-max-width: 61ch;
+}
+
+.script :global(.ProseMirror) {
+  line-height: 1.3;
+}
+
+.script :global(.ProseMirror p) {
+  margin: 0 0 1.5em;
+}
+
+.script :global(.ProseMirror p[data-el="heading"]) {
+  margin-top: 1.5em;
+  font-weight: 700;
+}
+
+.script :global(.ProseMirror p[data-el="cue"]) {
+  margin: 0 0 0 22ch;
+}
+
+.script :global(.ProseMirror p[data-el="paren"]) {
+  margin: 0 0 0 16ch;
+  max-width: 19ch;
+  padding-left: 1ch;
+  text-indent: -1ch;
+}
+
+.script :global(.ProseMirror p[data-el="dialogue"]) {
+  margin: 0 0 1.5em 10ch;
+  max-width: 35ch;
+}
+
+/* A cue or parenthetical still waiting for its speech keeps the gap a speech ends with. */
+.script :global(.ProseMirror p[data-el="cue"]:last-child),
+.script :global(.ProseMirror p[data-el="paren"]:last-child) {
+  margin-bottom: 1.5em;
+}
+
+.script :global(.ProseMirror p[data-el="transition"]) {
+  text-align: right;
+}

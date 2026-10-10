@@ -2,7 +2,13 @@ import type { MentionDropdownState } from "./useMentionDropdown";
 import { clampPopup } from "./segmentMeta";
 import styles from "./SceneEditor.module.css";
 
-const HEADING = { mention: null, place: "Place", speaker: "Who says it", line: "A line for" } as const;
+const HEADING = {
+  mention: null,
+  place: "Place",
+  speaker: "Who says it",
+  line: "A line for",
+  cue: "Who speaks",
+} as const;
 
 /** The suggestions of whichever picker is open (useMentionDropdown); Enter or Tab takes one. */
 export default function MentionDropdown({ mention }: { mention: MentionDropdownState }) {

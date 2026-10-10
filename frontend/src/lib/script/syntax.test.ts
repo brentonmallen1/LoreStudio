@@ -1,0 +1,99 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+import {
+  classifyLine,
+  clean,
+  cueName,
+  eighths,
+  ENTER_NEXT,
+  formatEighths,
+  LAYOUT,
+  LINES_PER_PAGE,
+  pageCount,
+  paginate,
+  parseCue,
+  parseLines,
+  sceneLines,
+  SHIFT_TAB_NEXT,
+  TAB_NEXT,
+  wrap,
+  type Block,
+  type Page,
+  type ScriptElement,
+} from "./syntax";
+
+// The same cases the server's tests run (backend/tests/services/test_script_syntax.py).
+const CASES = JSON.parse(
+  readFileSync(join(__dirname, "../../../../shared/script-syntax/cases.json"), "utf8"),
+) as {
+  layout: unknown;
+  next: unknown;
+  classify: [string, ScriptElement | null, ScriptElement][];
+  clean: [ScriptElement, string, string][];
+  cue: [string, string, string[], boolean][];
+  parse: { text: string; expect: Block[] }[];
+  wrap: [string, number, number, string[]][];
+  paginate: { _why: string; blocks: Block[]; pages: string[][] }[];
+  scene_lines: [Block[], number, number][];
+};
+
+const show = (pages: Page[]) => pages.map((p) => p.map((l) => (l ? `${l.element}|${l.x}|${l.text}` : "")));
+
+describe("script grammar (shared cases)", () => {
+  it("lays elements out where the server does", () => {
+    expect(CASES.layout).toEqual({ lines_per_page: LINES_PER_PAGE, elements: LAYOUT });
+    expect(CASES.next).toEqual({ enter: ENTER_NEXT, tab: TAB_NEXT, shift_tab: SHIFT_TAB_NEXT });
+  });
+
+  it.each(CASES.classify)("classifies %j after %s", (text, prev, expected) => {
+    expect(classifyLine(text, prev)).toBe(expected);
+  });
+
+  it.each(CASES.clean)("cleans a %s: %j", (element, text, expected) => {
+    expect(clean(element, text)).toBe(expected);
+  });
+
+  it.each(CASES.cue)("reads the cue %j", (text, name, extensions, dual) => {
+    expect(parseCue(text)).toEqual({ name, extensions, dual });
+  });
+
+  it.each(CASES.parse)("parses Fountain text %#", ({ text, expect: blocks }) => {
+    expect(parseLines(text)).toEqual(blocks);
+  });
+
+  it.each(CASES.wrap)("wraps %j at %i", (text, width, hang, lines) => {
+    expect(wrap(text, width, hang)).toEqual(lines);
+  });
+
+  it.each(CASES.paginate)("paginates: $_why", ({ blocks, pages }) => {
+    expect(show(paginate(blocks, 10))).toEqual(pages);
+  });
+
+  it.each(CASES.scene_lines)("measures a scene %#", (blocks, lines, n) => {
+    expect(sceneLines(blocks)).toBe(lines);
+    expect(eighths(lines)).toBe(n);
+  });
+
+  it("runs a long scene to its pages", () => {
+    expect(pageCount([])).toBe(0);
+    expect(pageCount([["action", "word ".repeat(3000)]])).toBe(5);
+  });
+
+  it.each([
+    ["Eleanor Vance", "ELEANOR"],
+    ["The Visitor (Calder)", "THE VISITOR"],
+    ["Dr. Priya Sharma", "DR. PRIYA SHARMA"],
+    ["Nell", "NELL"],
+    ["O'Brien", "O'BRIEN"],
+  ])("cues %s as %s", (name, cue) => {
+    expect(cueName(name)).toBe(cue);
+  });
+
+  it("writes a length the way a breakdown does", () => {
+    expect(formatEighths(3)).toBe("3/8 page");
+    expect(formatEighths(8)).toBe("1 page");
+    expect(formatEighths(13)).toBe("1 5/8 pages");
+    expect(formatEighths(0)).toBe("");
+  });
+});

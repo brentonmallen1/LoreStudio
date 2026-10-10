@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { InlineNotesState } from "../components/editor/useInlineNotes";
+import type { ScriptElement } from "../lib/script/syntax";
 
 /** Words to show in a scene once its prose is open (a finding's passages). */
 export interface PendingPassage {
@@ -26,6 +27,9 @@ interface EditorBridge {
   /** Open the image picker in the open scene (the palette's Insert image); null with no editor. */
   insertImage: (() => void) | null;
   setInsertImage: (open: (() => void) | null) => void;
+  /** Set the element of the line the cursor is in, while a script scene is open (doc 25). */
+  scriptElement: ((el: ScriptElement) => void) | null;
+  setScriptElement: (fn: ((el: ScriptElement) => void) | null) => void;
 }
 
 export const useEditorBridge = create<EditorBridge>((set) => ({
@@ -35,4 +39,6 @@ export const useEditorBridge = create<EditorBridge>((set) => ({
   showPassage: (pending) => set({ pendingPassage: pending && { ...pending, at: Date.now() } }),
   insertImage: null,
   setInsertImage: (insertImage) => set({ insertImage }),
+  scriptElement: null,
+  setScriptElement: (fn) => set({ scriptElement: fn }),
 }));

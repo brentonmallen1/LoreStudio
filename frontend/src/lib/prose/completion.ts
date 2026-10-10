@@ -7,11 +7,12 @@
  *     [[Kee        a place
  *     ”<Ca         who says the line just closed (a space before < is fine)
  *     ^            a new line of dialogue for someone
+ *     ELE          in a script's character cue: who speaks (doc 25)
  */
 
 import { foldName } from "./syntax";
 
-export type TriggerMode = "mention" | "place" | "speaker" | "line";
+export type TriggerMode = "mention" | "place" | "speaker" | "line" | "cue";
 
 export interface Trigger {
   mode: TriggerMode;
@@ -47,6 +48,23 @@ export function detectTrigger(before: string, hasMatch: (query: string) => boole
   return null;
 }
 
+/**
+ * In a script's character cue, what is typed is who speaks (doc 25): the whole cue up to the
+ * cursor, until its extensions start ("ELEANOR (V.O.)" is done being a name at the bracket).
+ */
+export function cueTrigger(before: string): Trigger | null {
+  if (!/\p{L}/u.test(before) || before.includes("(") || before.length > 38) return null;
+  const query = before.trimStart();
+  return { mode: "cue", query, start: before.length - query.length };
+}
+
+/** "MRS. HALE" as a character is called in the Lorebook: "Mrs. Hale". */
+export function titleCase(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/(^|[\s\-'.])(\p{L})/gu, (_, sep: string, ch: string) => sep + ch.toUpperCase());
+}
+
 export interface Entry {
   kind: "character" | "place";
   name: string;
@@ -78,6 +96,7 @@ const KINDS: Record<TriggerMode, Entry["kind"][]> = {
   place: ["place"],
   speaker: ["character"],
   line: ["character"],
+  cue: ["character"],
 };
 
 const LIMIT = 8;
@@ -150,7 +169,8 @@ export function suggest(
     (e) => kinds.includes(e.kind) && [e.name, ...(e.aliases ?? [])].some((n) => foldName(n) === q),
   );
   if (q && !exact) {
-    const name = query.trim();
+    // A cue is typed in capitals; the character it makes is named as people write names.
+    const name = mode === "cue" ? titleCase(query.trim()) : query.trim();
     shown.push({ kind: mode === "place" ? "place" : "character", name, words: name, create: true });
   }
   return shown;

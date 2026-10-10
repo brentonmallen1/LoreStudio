@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
-import { TextSelection } from "@tiptap/pm/state";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useSeriesStore } from "../../stores/seriesStore";
@@ -26,6 +25,8 @@ import {
   setMentionIsOpen,
 } from "../story/MentionDropdown";
 import { FORCE_DIALOGUE_KEY, likelySpeaker } from "../story/DialogueExtension";
+import { writeSpokenLine } from "../../lib/prose/writeLine";
+import { formatOf } from "../../lib/storyFormat";
 
 interface Args {
   editor: Editor | null;
@@ -136,7 +137,8 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
   }, [entries, editor]);
 
   // The faint rest of the chosen suggestion, redrawn when it changes.
-  const ghost = open && !wrapping ? ghostText(query, choices[selIdx]) : "";
+  const rest = open && !wrapping ? ghostText(query, choices[selIdx]) : "";
+  const ghost = mode === "cue" ? rest.toUpperCase() : rest;
   useEffect(() => {
     setMentionGhost(ghost);
     if (editor?.view && !editor.isDestroyed) editor.view.dispatch(editor.state.tr.setMeta(GHOST_KEY, true));
@@ -166,32 +168,41 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
       const after = editor.state.doc.textBetween(cursor, editor.state.doc.resolve(cursor).end(), "\n", "\0");
       const anchor = anchorRef.current;
       const wrap = wrapRef.current;
-      const [openQuote, closeQuote] = quotePair(editor.state.doc.textContent);
+      const quotes = quotePair(editor.state.doc.textContent);
+      // A spoken line is written the same way in prose and in a script (doc 25, D6).
+      const format = formatOf(useStoryStore.getState().activeStory);
+      const spoken = (kind: "line" | "wrap" | "tag", from: number, to: number) => ({
+        kind,
+        from,
+        to,
+        speaker: choice.words,
+        quotes,
+      });
       editor
         .chain()
         .focus()
         .command(({ tr, dispatch }) => {
           if (!dispatch) return true;
           if (wrap) {
-            // Attribute: quote marks go around the selection, so its italics stay.
-            const text = tr.doc.textBetween(wrap.from, wrap.to);
-            tr.insertText(`${/["”’']$/.test(text) ? "" : closeQuote}<${choice.words}>`, wrap.to);
-            if (!/^["“‘']/.test(text)) tr.insertText(openQuote, wrap.from);
+            writeSpokenLine(tr, format, spoken("wrap", wrap.from, wrap.to));
           } else if (mode === "mention") {
             tr.insertText(
               choice.kind === "character" ? `@${choice.words}` : `[[${choice.words}]]`,
               anchor,
               cursor,
             );
+          } else if (mode === "cue") {
+            // A script's cue: the name in capitals; extensions after it, "(V.O.)", stay.
+            const rest = /^[^(]*/.exec(after)?.[0].trimEnd().length ?? 0;
+            tr.insertText(choice.words.toUpperCase(), anchor, cursor + rest);
           } else if (mode === "place") {
             tr.insertText(`[[${choice.words}]]`, anchor, cursor + (after.startsWith("]]") ? 2 : 0));
           } else if (mode === "speaker") {
             // Editing a tag replaces the rest of it, rather than leaving a second ">".
             const rest = /^[^<>\n]*>/.exec(after)?.[0].length ?? 0;
-            tr.insertText(`${choice.words}>`, anchor, cursor + rest);
+            writeSpokenLine(tr, format, spoken("tag", anchor, cursor + rest));
           } else {
-            tr.insertText(`${openQuote}${closeQuote}<${choice.words}>`, anchor, cursor);
-            tr.setSelection(TextSelection.create(tr.doc, anchor + 1));
+            writeSpokenLine(tr, format, spoken("line", anchor, cursor));
           }
           return true;
         })

@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
-import { CharacterCount, Placeholder } from "@tiptap/extensions";
-import Typography from "@tiptap/extension-typography";
-import { proseStarterKit } from "./starterKit";
 import { X } from "lucide-react";
 import { api } from "../../api/client";
 import { noteWritingActivity } from "../../lib/writingToday";
@@ -11,18 +8,8 @@ import { useUIStore } from "../../stores/uiStore";
 import { useAIStore } from "../../stores/aiStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { useEditorBridge } from "../../stores/editorBridge";
-import { InlineNoteExtension } from "../story/InlineNoteExtension";
-import { InlineImageExtension, insertInlineImage } from "../story/InlineImageExtension";
-import {
-  MentionDropdownExtension,
-  FORCE_MENTION_KEY,
-  mentionLexicon,
-  setMentionHighlight,
-} from "../story/MentionDropdown";
-import { DialogueExtension } from "../story/DialogueExtension";
-import { SlashCommandExtension } from "../story/SlashCommandExtension";
-import { SearchAndReplaceExtension } from "../story/SearchAndReplaceExtension";
-import { PassageFlashExtension } from "../story/PassageFlashExtension";
+import { insertInlineImage } from "../story/InlineImageExtension";
+import { FORCE_MENTION_KEY, mentionLexicon, setMentionHighlight } from "../story/MentionDropdown";
 import ImageInsertModal from "../story/ImageInsertModal";
 import WritingGuidesModal, { type WritingGuideTab } from "../help/WritingGuidesModal";
 import AutoTagDialoguePanel from "../story/AutoTagDialoguePanel";
@@ -40,7 +27,11 @@ import { useInlineNotes } from "./useInlineNotes";
 import { useMentionHoverCard } from "./useMentionHoverCard";
 import { useSceneDialogue } from "./useSceneDialogue";
 import { usePassageJump } from "./usePassageJump";
-import { UnifiedUndoExtension } from "./UnifiedUndoExtension";
+import { editorExtensions } from "./editorExtensions";
+import { docBlocks, elementAt, setElement } from "./script/ScriptElementExtension";
+import { sceneLines } from "../../lib/script/syntax";
+import { useStoryFormat } from "../../lib/storyFormat";
+import scriptStyles from "./script/ScriptEditor.module.css";
 import { loadScene, patchScene, setLiveScene } from "../../lib/undo/sceneHistory";
 import MentionDropdown from "./MentionDropdown";
 import { SlashPicker } from "./SlashPicker";
@@ -98,41 +89,34 @@ export default function SceneEditor() {
   const notePopoverRef = useRef<HTMLDivElement>(null);
   const hoverCardRef = useRef<HTMLDivElement>(null);
 
-  const editor = useEditor({
-    shouldRerenderOnTransaction: true,
-    extensions: [
-      proseStarterKit(),
-      Placeholder.configure({ placeholder: "Begin writing…" }),
-      CharacterCount,
-      Typography,
-      InlineNoteExtension,
-      InlineImageExtension,
-      MentionDropdownExtension,
-      SlashCommandExtension,
-      DialogueExtension,
-      SearchAndReplaceExtension,
-      PassageFlashExtension,
-      UnifiedUndoExtension,
-    ],
-    content: activeNode?.content ?? "",
-    editorProps: { attributes: { "aria-label": "Scene text" } },
-    onSelectionUpdate: ({ editor }) => {
-      if (selectionDebounceRef.current) clearTimeout(selectionDebounceRef.current);
-      if (editor.state.selection.empty) {
-        setSelectionRect(null);
-        return;
-      }
-      selectionDebounceRef.current = setTimeout(() => {
-        const sel = window.getSelection();
-        const rect = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).getBoundingClientRect() : null;
-        setSelectionRect(rect && rect.width > 0 ? rect : null);
-      }, SELECTION_DEBOUNCE_MS);
+  // A script and prose write alike; the format decides what lands (doc 25, D6).
+  const format = useStoryFormat();
+  const script = format !== "prose";
+  const editor = useEditor(
+    {
+      shouldRerenderOnTransaction: true,
+      extensions: editorExtensions(format),
+      content: activeNode?.content ?? "",
+      editorProps: { attributes: { "aria-label": "Scene text" } },
+      onSelectionUpdate: ({ editor }) => {
+        if (selectionDebounceRef.current) clearTimeout(selectionDebounceRef.current);
+        if (editor.state.selection.empty) {
+          setSelectionRect(null);
+          return;
+        }
+        selectionDebounceRef.current = setTimeout(() => {
+          const sel = window.getSelection();
+          const rect = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).getBoundingClientRect() : null;
+          setSelectionRect(rect && rect.width > 0 ? rect : null);
+        }, SELECTION_DEBOUNCE_MS);
+      },
+      onUpdate: ({ editor }) => {
+        noteWritingActivity();
+        autosaveRef.current?.handleUpdate(editor);
+      },
     },
-    onUpdate: ({ editor }) => {
-      noteWritingActivity();
-      autosaveRef.current?.handleUpdate(editor);
-    },
-  });
+    [format],
+  );
   const autosave = useSceneAutosave(editor);
   const autosaveRef = useRef(autosave);
   useEffect(() => {
@@ -169,6 +153,12 @@ export default function SceneEditor() {
     setBridgeNotes(notes);
   });
   useEffect(() => () => setBridgeNotes(null), [setBridgeNotes]);
+  // The palette's Script commands set the element of the line the cursor is in.
+  const setBridgeElement = useEditorBridge((s) => s.setScriptElement);
+  useEffect(() => {
+    setBridgeElement(script && editor ? (el) => setElement(editor, el) : null);
+    return () => setBridgeElement(null);
+  }, [script, editor, setBridgeElement]);
 
   // Load the active node's content into the editor when the selection changes.
   // A node from the tree listing carries no prose (StructureNodeMeta), and resuming or
@@ -320,7 +310,13 @@ export default function SceneEditor() {
             }}
           >
             <div
-              className={`${styles.editorWrap}${notes.hideEditorial ? ` ${styles.hideEditorialNotes}` : ""}`}
+              className={[
+                styles.editorWrap,
+                notes.hideEditorial && styles.hideEditorialNotes,
+                script && scriptStyles.script,
+              ]
+                .filter(Boolean)
+                .join(" ")}
             >
               {editor?.isEmpty && (
                 <ScenePlanCard
@@ -349,7 +345,16 @@ export default function SceneEditor() {
         )}
       </div>
 
-      <StatusCorner node={activeNode} autosave={autosave} wordCount={autosave.wordCount} />
+      <StatusCorner
+        node={activeNode}
+        autosave={autosave}
+        wordCount={autosave.wordCount}
+        script={
+          script && editor
+            ? { element: elementAt(editor.state), lines: sceneLines(docBlocks(editor.state.doc)) }
+            : null
+        }
+      />
 
       <WritingGuidesModal
         isOpen={!!writingGuidesTab}

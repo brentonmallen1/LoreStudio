@@ -119,6 +119,8 @@ export interface StructureNode {
   content: string;
   position: number;
   word_count: number;
+  /** A script scene's length in lines of the printed page (doc 25); 0 in prose. */
+  line_count?: number;
   /** "planned": a scene in the plan with no prose yet; the first words make it a draft. */
   status: "planned" | "draft" | "revised" | "final";
   purpose: string;

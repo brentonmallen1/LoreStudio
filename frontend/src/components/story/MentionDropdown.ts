@@ -3,7 +3,13 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { Node as PMNode } from "@tiptap/pm/model";
 import { forEachBlockText } from "../../lib/prose/blockText";
-import { anyStartsWith, detectTrigger, type Entry, type Trigger } from "../../lib/prose/completion";
+import {
+  anyStartsWith,
+  cueTrigger,
+  detectTrigger,
+  type Entry,
+  type Trigger,
+} from "../../lib/prose/completion";
 import { findMentions, makeLexicon, type Lexicon } from "../../lib/prose/syntax";
 
 /**
@@ -228,9 +234,9 @@ export const MentionDropdownExtension = Extension.create({
               }
               const { from } = state.selection;
               const before = state.doc.textBetween(state.doc.resolve(from).start(), from, "\n", "\0");
-              const trigger = detectTrigger(before, (q) =>
-                anyStartsWith(q, _entries, ["character", "place"]),
-              );
+              const trigger =
+                detectTrigger(before, (q) => anyStartsWith(q, _entries, ["character", "place"])) ??
+                (state.selection.$from.parent.attrs.el === "cue" ? cueTrigger(before) : null);
               if (!trigger) {
                 _cb.onClose();
                 return;

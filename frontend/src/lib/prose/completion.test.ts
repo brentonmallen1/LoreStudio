@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { anyStartsWith, detectTrigger, ghostText, quotePair, suggest, type Entry } from "./completion";
+import {
+  anyStartsWith,
+  cueTrigger,
+  detectTrigger,
+  ghostText,
+  quotePair,
+  suggest,
+  titleCase,
+  type Entry,
+} from "./completion";
 
 const ENTRIES: Entry[] = [
   { kind: "character", name: "Eleanor Vance", role: "protagonist" },
@@ -119,5 +128,23 @@ describe("series elements in the picker", () => {
   it("are not offered as new when the name is the series' one", () => {
     const out = suggest("mention", "Margaret Holt", [...book, ...fromSeries]);
     expect(out.some((c) => c.create)).toBe(false);
+  });
+});
+
+describe("a script's character cue (doc 25)", () => {
+  it("asks who speaks, until the extensions start", () => {
+    expect(cueTrigger("ELE")).toEqual({ mode: "cue", query: "ELE", start: 0 });
+    expect(cueTrigger("ELEANOR (V")).toBeNull();
+    expect(cueTrigger("")).toBeNull();
+  });
+
+  it("offers the cast, matched whatever the case", () => {
+    expect(suggest("cue", "ELE", ENTRIES)[0].name).toBe("Eleanor Vance");
+    expect(suggest("cue", "THE L", ENTRIES).every((c) => c.kind === "character")).toBe(true);
+  });
+
+  it("names a new character the way names are written, not in the cue's capitals", () => {
+    expect(suggest("cue", "MRS. HALE", ENTRIES).at(-1)).toMatchObject({ create: true, name: "Mrs. Hale" });
+    expect(titleCase("O'BRIEN")).toBe("O'Brien");
   });
 });

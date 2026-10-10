@@ -1,0 +1,583 @@
+{
+  "_about": "A screenplay's elements as both sides read them (notes/refactor-2026-09/25-screenplays.md). backend/tests/services/test_script_syntax.py and frontend/src/lib/script/syntax.test.ts both run every case, so the editor's page count is the one the PDF prints. Paginate cases use 10-line pages so each break can be checked by hand; a line is 'element|x|text', a blank line is ''.",
+  "layout": {
+    "lines_per_page": 55,
+    "elements": {
+      "heading": {
+        "x": 0,
+        "width": 60,
+        "before": 1
+      },
+      "action": {
+        "x": 0,
+        "width": 60,
+        "before": 1
+      },
+      "cue": {
+        "x": 22,
+        "width": 38,
+        "before": 1
+      },
+      "paren": {
+        "x": 16,
+        "width": 19,
+        "before": 0
+      },
+      "dialogue": {
+        "x": 10,
+        "width": 35,
+        "before": 0
+      },
+      "transition": {
+        "x": 0,
+        "width": 60,
+        "before": 1
+      }
+    }
+  },
+  "next": {
+    "enter": {
+      "heading": "action",
+      "action": "action",
+      "cue": "dialogue",
+      "paren": "dialogue",
+      "dialogue": "action",
+      "transition": "heading"
+    },
+    "tab": {
+      "action": "cue",
+      "cue": "transition",
+      "transition": "heading",
+      "heading": "action",
+      "dialogue": "paren",
+      "paren": "dialogue"
+    },
+    "shift_tab": {
+      "action": "heading",
+      "heading": "transition",
+      "transition": "cue",
+      "cue": "action",
+      "dialogue": "cue",
+      "paren": "dialogue"
+    }
+  },
+  "classify": [
+    [
+      "INT. LIGHTHOUSE - NIGHT",
+      null,
+      "heading"
+    ],
+    [
+      "ext. cliff path - day",
+      "action",
+      "heading"
+    ],
+    [
+      "INT./EXT. CAR - MOVING",
+      null,
+      "heading"
+    ],
+    [
+      "I/E KITCHEN - CONTINUOUS",
+      null,
+      "heading"
+    ],
+    [
+      "EST. HARBOUR - DAWN",
+      null,
+      "heading"
+    ],
+    [
+      ".SNIPER SCOPE POV",
+      null,
+      "heading"
+    ],
+    [
+      "Internal affairs called.",
+      null,
+      "action"
+    ],
+    [
+      "ELEANOR",
+      "action",
+      "cue"
+    ],
+    [
+      "MRS. HALE (O.S.)",
+      "action",
+      "cue"
+    ],
+    [
+      "ELEANOR (V.O.) (CONT'D)",
+      null,
+      "cue"
+    ],
+    [
+      "@McCLANE",
+      null,
+      "cue"
+    ],
+    [
+      "BOOM!",
+      "action",
+      "action"
+    ],
+    [
+      "SILENCE.",
+      "action",
+      "action"
+    ],
+    [
+      "!LOUD NOISES",
+      null,
+      "action"
+    ],
+    [
+      "(quietly)",
+      "cue",
+      "paren"
+    ],
+    [
+      "(beat)",
+      "dialogue",
+      "paren"
+    ],
+    [
+      "(not a parenthetical)",
+      "action",
+      "action"
+    ],
+    [
+      "It's still burning.",
+      "cue",
+      "dialogue"
+    ],
+    [
+      "Then I'll go.",
+      "paren",
+      "dialogue"
+    ],
+    [
+      "CUT TO:",
+      "action",
+      "transition"
+    ],
+    [
+      "SMASH CUT TO:",
+      null,
+      "transition"
+    ],
+    [
+      "> FADE OUT.",
+      null,
+      "transition"
+    ],
+    [
+      "Eleanor climbs the stairs.",
+      "dialogue",
+      "action"
+    ],
+    [
+      "",
+      null,
+      "action"
+    ]
+  ],
+  "clean": [
+    [
+      "heading",
+      "int. lighthouse - night",
+      "INT. LIGHTHOUSE - NIGHT"
+    ],
+    [
+      "heading",
+      ".sniper scope pov",
+      "SNIPER SCOPE POV"
+    ],
+    [
+      "cue",
+      "@McCLANE",
+      "McCLANE"
+    ],
+    [
+      "cue",
+      "eleanor (v.o.)",
+      "ELEANOR (V.O.)"
+    ],
+    [
+      "transition",
+      "> fade out.",
+      "FADE OUT."
+    ],
+    [
+      "action",
+      "!Loud noises",
+      "Loud noises"
+    ],
+    [
+      "dialogue",
+      "  Still burning.  ",
+      "Still burning."
+    ]
+  ],
+  "cue": [
+    [
+      "ELEANOR",
+      "ELEANOR",
+      [],
+      false
+    ],
+    [
+      "ELEANOR (V.O.)",
+      "ELEANOR",
+      [
+        "V.O."
+      ],
+      false
+    ],
+    [
+      "MRS. HALE (O.S.) (CONT'D)",
+      "MRS. HALE",
+      [
+        "O.S.",
+        "CONT'D"
+      ],
+      false
+    ],
+    [
+      "THOMAS ^",
+      "THOMAS",
+      [],
+      true
+    ],
+    [
+      "@McCLANE",
+      "McCLANE",
+      [],
+      false
+    ]
+  ],
+  "parse": [
+    {
+      "text": "INT. LIGHTHOUSE - NIGHT\n\nEleanor climbs.\nWind howls.\n\nELEANOR (V.O.)\n(breathless)\nIt is still burning.\n\nCUT TO:",
+      "expect": [
+        [
+          "heading",
+          "INT. LIGHTHOUSE - NIGHT"
+        ],
+        [
+          "action",
+          "Eleanor climbs.\nWind howls."
+        ],
+        [
+          "cue",
+          "ELEANOR (V.O.)"
+        ],
+        [
+          "paren",
+          "(breathless)"
+        ],
+        [
+          "dialogue",
+          "It is still burning."
+        ],
+        [
+          "transition",
+          "CUT TO:"
+        ]
+      ]
+    },
+    {
+      "_why": "A capitals line with nothing after it is action, not a cue; so is one with no blank before it.",
+      "text": "The sign reads:\nNO ENTRY\n\nCLOSED",
+      "expect": [
+        [
+          "action",
+          "The sign reads:\nNO ENTRY"
+        ],
+        [
+          "action",
+          "CLOSED"
+        ]
+      ]
+    },
+    {
+      "_why": "Two speeches; a blank line ends a speech and the next line is action.",
+      "text": "THOMAS\nKeep it lit.\n\nELEANOR\nI will.\n(beat)\nI always have.\n\nShe turns away.",
+      "expect": [
+        [
+          "cue",
+          "THOMAS"
+        ],
+        [
+          "dialogue",
+          "Keep it lit."
+        ],
+        [
+          "cue",
+          "ELEANOR"
+        ],
+        [
+          "dialogue",
+          "I will."
+        ],
+        [
+          "paren",
+          "(beat)"
+        ],
+        [
+          "dialogue",
+          "I always have."
+        ],
+        [
+          "action",
+          "She turns away."
+        ]
+      ]
+    }
+  ],
+  "wrap": [
+    [
+      "Never mind the lamp, the lamp will keep burning",
+      35,
+      0,
+      [
+        "Never mind the lamp, the lamp will",
+        "keep burning"
+      ]
+    ],
+    [
+      "(quietly, almost to herself, looking away)",
+      19,
+      1,
+      [
+        "(quietly, almost to",
+        "herself, looking",
+        "away)"
+      ]
+    ],
+    [
+      "One line\nand another",
+      60,
+      0,
+      [
+        "One line",
+        "and another"
+      ]
+    ],
+    [
+      "Supercalifragilistic",
+      8,
+      0,
+      [
+        "Supercal",
+        "ifragili",
+        "stic"
+      ]
+    ],
+    [
+      "",
+      60,
+      0,
+      [
+        ""
+      ]
+    ]
+  ],
+  "paginate": [
+    {
+      "_why": "A heading never ends a page: three lines left, it needs five (itself, a blank, two lines).",
+      "blocks": [
+        [
+          "action",
+          "One.\nTwo.\nThree.\nFour.\nFive.\nSix.\nSeven."
+        ],
+        [
+          "heading",
+          "EXT. CLIFF - DAY"
+        ],
+        [
+          "action",
+          "Wind.\nRain."
+        ]
+      ],
+      "pages": [
+        [
+          "action|0|One.",
+          "action|0|Two.",
+          "action|0|Three.",
+          "action|0|Four.",
+          "action|0|Five.",
+          "action|0|Six.",
+          "action|0|Seven."
+        ],
+        [
+          "heading|0|EXT. CLIFF - DAY",
+          "",
+          "action|0|Wind.",
+          "action|0|Rain."
+        ]
+      ]
+    },
+    {
+      "_why": "Action splits between lines, two at least on each side.",
+      "blocks": [
+        [
+          "action",
+          "A1\nA2\nA3"
+        ],
+        [
+          "action",
+          "B1\nB2\nB3\nB4\nB5\nB6\nB7\nB8"
+        ]
+      ],
+      "pages": [
+        [
+          "action|0|A1",
+          "action|0|A2",
+          "action|0|A3",
+          "",
+          "action|0|B1",
+          "action|0|B2",
+          "action|0|B3",
+          "action|0|B4",
+          "action|0|B5",
+          "action|0|B6"
+        ],
+        [
+          "action|0|B7",
+          "action|0|B8"
+        ]
+      ]
+    },
+    {
+      "_why": "A speech splits after a sentence: (MORE) closes the page, the cue comes back (CONT'D), its V.O. kept.",
+      "blocks": [
+        [
+          "action",
+          "Opening line here."
+        ],
+        [
+          "cue",
+          "ELEANOR (V.O.)"
+        ],
+        [
+          "dialogue",
+          "One. Two. Three. Four. Five. Six. Seven. Eight. Nine. Ten. Eleven. Twelve. Thirteen. Fourteen. Fifteen. Sixteen. Seventeen. Eighteen. Nineteen. Twenty. Twenty-one. Twenty-two. Twenty-three. Twenty-four. Twenty-five. Twenty-six. Twenty-seven. Twenty-eight."
+        ]
+      ],
+      "pages": [
+        [
+          "action|0|Opening line here.",
+          "",
+          "cue|22|ELEANOR (V.O.)",
+          "dialogue|10|One. Two. Three. Four. Five. Six.",
+          "dialogue|10|Seven. Eight. Nine. Ten. Eleven.",
+          "dialogue|10|Twelve. Thirteen. Fourteen.",
+          "dialogue|10|Fifteen. Sixteen. Seventeen.",
+          "dialogue|10|Eighteen. Nineteen. Twenty.",
+          "dialogue|10|Twenty-one. Twenty-two.",
+          "more|22|(MORE)"
+        ],
+        [
+          "cue|22|ELEANOR (V.O.) (CONT'D)",
+          "dialogue|10|Twenty-three. Twenty-four.",
+          "dialogue|10|Twenty-five. Twenty-six.",
+          "dialogue|10|Twenty-seven. Twenty-eight."
+        ]
+      ]
+    },
+    {
+      "_why": "No room for two lines of dialogue each side: the whole speech goes over, cue and all.",
+      "blocks": [
+        [
+          "action",
+          "A1\nA2\nA3\nA4\nA5\nA6"
+        ],
+        [
+          "cue",
+          "THOMAS"
+        ],
+        [
+          "dialogue",
+          "Never mind the lamp, the lamp will keep burning long after we are gone from here"
+        ]
+      ],
+      "pages": [
+        [
+          "action|0|A1",
+          "action|0|A2",
+          "action|0|A3",
+          "action|0|A4",
+          "action|0|A5",
+          "action|0|A6"
+        ],
+        [
+          "cue|22|THOMAS",
+          "dialogue|10|Never mind the lamp, the lamp will",
+          "dialogue|10|keep burning long after we are gone",
+          "dialogue|10|from here"
+        ]
+      ]
+    },
+    {
+      "_why": "A transition sits against the right margin, 7.5in.",
+      "blocks": [
+        [
+          "action",
+          "She goes."
+        ],
+        [
+          "transition",
+          "CUT TO:"
+        ]
+      ],
+      "pages": [
+        [
+          "action|0|She goes.",
+          "",
+          "transition|53|CUT TO:"
+        ]
+      ]
+    }
+  ],
+  "scene_lines": [
+    [
+      [
+        [
+          "heading",
+          "INT. LIGHTHOUSE - NIGHT"
+        ],
+        [
+          "action",
+          "Eleanor climbs."
+        ]
+      ],
+      3,
+      1
+    ],
+    [
+      [
+        [
+          "action",
+          "Eleanor climbs."
+        ],
+        [
+          "cue",
+          "ELEANOR"
+        ],
+        [
+          "dialogue",
+          "It is still burning."
+        ]
+      ],
+      4,
+      1
+    ],
+    [
+      [],
+      0,
+      0
+    ]
+  ]
+}

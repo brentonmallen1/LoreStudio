@@ -18,6 +18,7 @@ from ..services.linking_service import apply_entity_links, suggest_entity_links
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
 from ..services.llm.prompts.summaries import build_scene_summary_prompt, build_structure_section_summary_prompt
 from ..services.llm.sse import sse_message, sse_stream
+from ..services.word_count import count_lines
 
 router = APIRouter()
 
@@ -124,6 +125,8 @@ def update_node(
         )
     for key, value in data.items():
         setattr(node, key, value)
+    if "content" in data:
+        node.line_count = count_lines(db.get(Story, node.story_id), node.content)
     if node.status == "planned" and "status" not in data and (data.get("word_count") or 0) > 0:
         # The first words turn a planned scene into a draft. Logged, not undoable on its own:
         # undoing it would leave prose in a scene marked as not yet written.

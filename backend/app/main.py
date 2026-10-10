@@ -93,6 +93,7 @@ from .services.seed import (
     seed_short_story_demo,
     seed_structure_templates,
 )
+from .services.seed_screenplay import seed_screenplay_demo
 from .services.seed_series import seed_lighthouse_sequel
 
 logging.basicConfig(level=settings.log_level.upper(), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -116,6 +117,7 @@ def seed_all() -> None:
     seed_admin()
     if settings.seed_demo:
         seed_demo_story()
+        seed_screenplay_demo()
     if settings.seed_extra_demos:
         seed_scifi_demo_story()
         seed_flash_fiction_demo()

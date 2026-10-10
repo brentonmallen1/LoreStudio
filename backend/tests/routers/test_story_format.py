@@ -86,3 +86,31 @@ def test_is_script():
     assert not is_script(None)
     assert not is_script(Story(title="t", story_format="prose"))
     assert is_script(Story(title="t", story_format="screenplay"))
+
+
+SCENE = (
+    '<p data-el="heading">INT. LIGHTHOUSE - NIGHT</p><p>Eleanor climbs.</p>'
+    '<p data-el="cue">ELEANOR</p><p data-el="dialogue">It is still burning.</p>'
+)
+
+
+def test_a_script_scene_keeps_its_length_in_lines(client):
+    story = client.post(
+        "/api/stories", json={"title": "Light", "story_format": "screenplay", "structure_template_id": "screenplay"}
+    ).json()
+    r = client.patch(f"/api/structure/{story['start_node_id']}", json={"content": SCENE})
+    assert r.status_code == 200, r.text
+    # heading, blank, action, blank, cue, dialogue
+    assert r.json()["line_count"] == 6
+
+
+def test_prose_has_no_lines_and_a_recount_finds_them(client, db_session):
+    from app.services.word_count import recount_story
+
+    story = client.post("/api/stories", json={"title": "Salt", "structure_template_id": "three-act"}).json()
+    r = client.patch(f"/api/structure/{story['start_node_id']}", json={"content": SCENE})
+    assert r.json()["line_count"] == 0
+
+    db_session.get(Story, story["id"]).story_format = "screenplay"
+    recount_story(story["id"], db_session)
+    assert db_session.get(StructureNode, story["start_node_id"]).line_count == 6

@@ -95,3 +95,15 @@ def test_a_name_change_finds_mentions_and_plain_text():
 def test_any_pronouns_and_name_only_make_no_pronoun_proposals():
     assert pronoun_set("any pronouns") is None and pronoun_set("name only") is None
     assert pronoun_set("they/them") == "they" and pronoun_set("Xe/Xem") == "xe"
+
+
+def test_a_scripts_dialogue_is_speech_without_quote_marks():
+    # Doc 25: a screenplay's line of dialogue has no quotes round it, but it is still speech.
+    html = (
+        '<p>Margaret leaves. The door bangs.</p><p data-el="cue">TAM</p><p data-el="dialogue">She was always late.</p>'
+    )
+    props = review_scene(
+        "n1", html, MARGARET, old_set=pronoun_set("she/her"), new_set=pronoun_set("he/him"),
+        on_page=[Person("m", "she"), Person("t", "he")], patterns=patterns_for([MARGARET, TAM]),
+    )  # fmt: skip
+    assert [(p.after, p.sure) for p in props if p.kind == "pronoun"] == [("He was always late.", False)]

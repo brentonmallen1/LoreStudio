@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { commandRegistry } from "./registry";
 import "./planning";
+import "./script";
 import "./panel";
 import "./strip";
 import "./findings";
