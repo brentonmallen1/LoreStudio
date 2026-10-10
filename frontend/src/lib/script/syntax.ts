@@ -152,6 +152,55 @@ export function clean(element: ScriptElement, text: string): string {
   return CAPITALS.includes(element) ? t.toUpperCase() : t;
 }
 
+/** How a heading says where the camera is, as stored ("INT/EXT"), and as printed ("INT./EXT."). */
+export const INTERIORS: Record<string, string> = {
+  INT: "INT.",
+  EXT: "EXT.",
+  "INT/EXT": "INT./EXT.",
+  "EXT/INT": "EXT./INT.",
+  EST: "EST.",
+};
+const SLUG_PREFIX = /^(INT\.?\/EXT|EXT\.?\/INT|I\/E|INT|EXT|EST)\.?\s+/i;
+const SCENE_NUMBER = /\s*#[^#]*#\s*$/;
+
+/** A scene heading read: "INT. KEEPER'S COTTAGE - NIGHT" is INT, KEEPER'S COTTAGE, NIGHT. */
+export interface Slug {
+  interior: string;
+  place: string;
+  time: string;
+}
+
+/** A heading's parts. The time is what follows the last " - "; what is between is the place. */
+export function parseSlugline(text: string): Slug {
+  let t = text.trim().replace(SCENE_NUMBER, "");
+  if (FORCED_HEADING.test(t)) t = t.slice(1);
+  let interior = "";
+  const m = SLUG_PREFIX.exec(t);
+  if (m) {
+    const word = m[1].toUpperCase().replace(/\./g, "");
+    interior = word === "I/E" ? "INT/EXT" : word;
+    t = t.slice(m[0].length);
+  }
+  const cut = t.lastIndexOf(" - ");
+  const [place, time] = cut < 0 ? [t, ""] : [t.slice(0, cut), t.slice(cut + 3)];
+  return { interior, place: place.trim(), time: time.trim() };
+}
+
+/** A heading from its parts, the way it prints. */
+export function formatSlugline(slug: Slug): string {
+  const head = [INTERIORS[slug.interior] ?? slug.interior, slug.place.toUpperCase()]
+    .filter(Boolean)
+    .join(" ");
+  return slug.time ? `${head} - ${slug.time.toUpperCase()}` : head;
+}
+
+/** Inside or out, and when, as a script scene's heading says them ("INT. · NIGHT"), for the
+ * glances that show the scene; null when the heading says neither (or the story is prose). */
+export function shotOf(node: { interior?: string; time_of_day?: string }): string | null {
+  const parts = [node.interior ? (INTERIORS[node.interior] ?? node.interior) : "", node.time_of_day ?? ""];
+  return parts.filter(Boolean).join(" · ") || null;
+}
+
 /** Fountain-style text, pasted or imported, as blocks (see the server's `parse_lines`). */
 export function parseLines(text: string): Block[] {
   const lines = text.replace(/\r\n?/g, "\n").split("\n");

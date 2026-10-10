@@ -191,6 +191,44 @@ def parse_lines(text: str) -> list[tuple[str, str]]:
     return blocks
 
 
+#: How a heading says where the camera is, as stored ("INT/EXT"), and as printed ("INT./EXT.").
+INTERIORS = {"INT": "INT.", "EXT": "EXT.", "INT/EXT": "INT./EXT.", "EXT/INT": "EXT./INT.", "EST": "EST."}
+_SLUG_PREFIX = re.compile(r"^(INT\.?/EXT|EXT\.?/INT|I/E|INT|EXT|EST)\.?\s+", re.I)
+_SCENE_NUMBER = re.compile(r"\s*#[^#]*#\s*$")
+
+
+@dataclass(frozen=True)
+class Slug:
+    """A scene heading read: "INT. KEEPER'S COTTAGE - NIGHT" is INT, KEEPER'S COTTAGE, NIGHT."""
+
+    interior: str = ""
+    place: str = ""
+    time: str = ""
+
+
+def parse_slugline(text: str) -> Slug:
+    """A heading's parts. The time is what follows the last " - "; what is between is the place."""
+    t = _SCENE_NUMBER.sub("", text.strip())
+    if _FORCED_HEADING.match(t):
+        t = t[1:]
+    interior = ""
+    m = _SLUG_PREFIX.match(t)
+    if m:
+        word = m.group(1).upper().replace(".", "")
+        interior = "INT/EXT" if word == "I/E" else word
+        t = t[m.end() :]
+    place, sep, time = t.rpartition(" - ")
+    if not sep:
+        place, time = t, ""
+    return Slug(interior, place.strip(), time.strip())
+
+
+def format_slugline(slug: Slug) -> str:
+    """A heading from its parts, the way it prints."""
+    head = " ".join(p for p in (INTERIORS.get(slug.interior, slug.interior), slug.place.upper()) if p)
+    return f"{head} - {slug.time.upper()}" if slug.time else head
+
+
 def scene_blocks(html: str) -> list[tuple[str, str]]:
     """A stored script scene as (element, text) blocks, read as the page shows it (mentions
     as their names). A paragraph with no element, from prose, is action."""

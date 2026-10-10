@@ -17,6 +17,7 @@ from ..database import engine
 from ..models import Character, Location, Story, User
 from ..models.location import SceneSetting
 from ..models.structure import StructureNode
+from .script_scene import derive_heading
 from .word_count import recount_story
 
 TITLE = "The Last Lighthouse: The Screenplay"
@@ -164,6 +165,8 @@ def seed_screenplay_demo() -> None:
             db.add(scene)
             db.flush()
             db.add(SceneSetting(location_id=place.id, node_id=scene.id, role="primary"))
+            db.flush()
+            derive_heading(scene, story, db)
 
         recount_story(story.id, db)
         db.commit()

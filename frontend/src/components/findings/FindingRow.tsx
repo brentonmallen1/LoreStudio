@@ -73,7 +73,9 @@ export default function FindingRow({
                   ? f.fix.story_id === useSeriesStore.getState().storyId
                     ? `Bring ${f.where} into this book, from where the books before left it?`
                     : `Bring ${f.where} into ${carryBook(f.fix.story_id)}, where this book leaves it?`
-                  : `Change every “${f.fix.old}” in ${f.where || "this scene"} to “${f.fix.new}”?`}
+                  : f.fix.kind === "split"
+                    ? `Start a new scene at “${f.fix.old}”? Everything from it on goes with it.`
+                    : `Change every “${f.fix.old}” in ${f.where || "this scene"} to “${f.fix.new}”?`}
             </span>
             <button
               type="button"
@@ -93,7 +95,9 @@ export default function FindingRow({
                 ? "Use it everywhere"
                 : f.fix.kind === "carry"
                   ? "Bring it in"
-                  : "Change it"}
+                  : f.fix.kind === "split"
+                    ? "Start the scene"
+                    : "Change it"}
             </button>
             <button type="button" className={styles.verb} onClick={() => setConfirming(false)}>
               Not now

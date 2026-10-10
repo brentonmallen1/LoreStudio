@@ -6,6 +6,7 @@ import {
   clean,
   cueName,
   eighths,
+  formatSlugline,
   ENTER_NEXT,
   formatEighths,
   LAYOUT,
@@ -14,6 +15,8 @@ import {
   paginate,
   parseCue,
   parseLines,
+  parseSlugline,
+  shotOf,
   sceneLines,
   SHIFT_TAB_NEXT,
   TAB_NEXT,
@@ -36,6 +39,7 @@ const CASES = JSON.parse(
   wrap: [string, number, number, string[]][];
   paginate: { _why: string; blocks: Block[]; pages: string[][] }[];
   scene_lines: [Block[], number, number][];
+  slugline: [string, string, string, string, string][];
 };
 
 const show = (pages: Page[]) => pages.map((p) => p.map((l) => (l ? `${l.element}|${l.x}|${l.text}` : "")));
@@ -60,6 +64,12 @@ describe("script grammar (shared cases)", () => {
 
   it.each(CASES.parse)("parses Fountain text %#", ({ text, expect: blocks }) => {
     expect(parseLines(text)).toEqual(blocks);
+  });
+
+  it.each(CASES.slugline)("reads the heading %j", (text, interior, place, time, printed) => {
+    const slug = parseSlugline(text);
+    expect(slug).toEqual({ interior, place, time });
+    expect(formatSlugline(slug)).toBe(printed);
   });
 
   it.each(CASES.wrap)("wraps %j at %i", (text, width, hang, lines) => {
@@ -95,5 +105,11 @@ describe("script grammar (shared cases)", () => {
     expect(formatEighths(8)).toBe("1 page");
     expect(formatEighths(13)).toBe("1 5/8 pages");
     expect(formatEighths(0)).toBe("");
+  });
+
+  it("says inside or out, and when, as a glance shows them", () => {
+    expect(shotOf({ interior: "INT/EXT", time_of_day: "NIGHT" })).toBe("INT./EXT. · NIGHT");
+    expect(shotOf({ interior: "EXT", time_of_day: "" })).toBe("EXT.");
+    expect(shotOf({})).toBeNull();
   });
 });

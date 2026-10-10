@@ -121,6 +121,10 @@ export interface StructureNode {
   word_count: number;
   /** A script scene's length in lines of the printed page (doc 25); 0 in prose. */
   line_count?: number;
+  /** What a script scene's heading says, read from it on save (doc 25, D3): INT, EXT, INT/EXT… */
+  interior?: string;
+  /** …and when: NIGHT, DAY, CONTINUOUS. */
+  time_of_day?: string;
   /** "planned": a scene in the plan with no prose yet; the first words make it a draft. */
   status: "planned" | "draft" | "revised" | "final";
   purpose: string;

@@ -541,6 +541,64 @@
       ]
     }
   ],
+  "slugline": [
+    [
+      "INT. KEEPER'S COTTAGE - NIGHT",
+      "INT",
+      "KEEPER'S COTTAGE",
+      "NIGHT",
+      "INT. KEEPER'S COTTAGE - NIGHT"
+    ],
+    [
+      "EXT. LIGHTHOUSE, LAMP ROOM - DUSK",
+      "EXT",
+      "LIGHTHOUSE, LAMP ROOM",
+      "DUSK",
+      "EXT. LIGHTHOUSE, LAMP ROOM - DUSK"
+    ],
+    [
+      "INT./EXT. CAR - MOVING",
+      "INT/EXT",
+      "CAR",
+      "MOVING",
+      "INT./EXT. CAR - MOVING"
+    ],
+    [
+      "I/E KITCHEN - CONTINUOUS",
+      "INT/EXT",
+      "KITCHEN",
+      "CONTINUOUS",
+      "INT./EXT. KITCHEN - CONTINUOUS"
+    ],
+    [
+      "int house - kitchen - later",
+      "INT",
+      "house - kitchen",
+      "later",
+      "INT. HOUSE - KITCHEN - LATER"
+    ],
+    [
+      "EST. HARBOUR - DAWN #12#",
+      "EST",
+      "HARBOUR",
+      "DAWN",
+      "EST. HARBOUR - DAWN"
+    ],
+    [
+      "INT. CELLAR",
+      "INT",
+      "CELLAR",
+      "",
+      "INT. CELLAR"
+    ],
+    [
+      ".SNIPER SCOPE POV",
+      "",
+      "SNIPER SCOPE POV",
+      "",
+      "SNIPER SCOPE POV"
+    ]
+  ],
   "scene_lines": [
     [
       [

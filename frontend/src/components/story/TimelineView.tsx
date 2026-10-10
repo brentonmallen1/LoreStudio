@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import { api } from "../../api/client";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import { sceneLeaves } from "../../lib/planning/methods";
+import { shotOf } from "../../lib/script/syntax";
 import { movedPositions, timelineRows, type TimelineRow } from "../../lib/timeline";
 import { useStoryStore } from "../../stores/storyStore";
 import { toast } from "../../stores/toastStore";
@@ -147,7 +148,7 @@ export default function TimelineView({ storyId }: { storyId: string }) {
 
 function SceneCard({ row, onOpen }: { row: TimelineRow; onOpen: () => void }) {
   const { node } = row;
-  const when = [node.in_world_date?.trim(), row.era?.name].filter(Boolean).join(" · ");
+  const when = [shotOf(node), node.in_world_date?.trim(), row.era?.name].filter(Boolean).join(" · ");
   return (
     <button className={styles.card} onClick={onOpen}>
       <span className={styles.cardTop}>

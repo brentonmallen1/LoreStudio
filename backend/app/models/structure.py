@@ -52,6 +52,9 @@ class StructureNode(Base):
     word_count: Mapped[int] = mapped_column(Integer, default=0)
     #: A script scene's length in lines of the printed page (services/script_syntax.py); 0 in prose.
     line_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    #: What a script scene's heading says (services/script_scene.py): INT, EXT, INT/EXT… and when.
+    interior: Mapped[str] = mapped_column(String, default="", server_default="")
+    time_of_day: Mapped[str] = mapped_column(String, default="", server_default="")
     status: Mapped[str] = mapped_column(String, default="draft")  # draft, revised, final
     entry_state: Mapped[str] = mapped_column(Text, default="")
     exit_state: Mapped[str] = mapped_column(Text, default="")

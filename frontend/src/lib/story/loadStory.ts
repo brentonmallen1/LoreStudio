@@ -44,3 +44,9 @@ export async function loadStoryIntoStores(storyId: string): Promise<StructureNod
   });
   return structure;
 }
+
+/** The open story's tree read again, after the server made or moved scenes (a split, doc 25). */
+export async function reloadStructure(): Promise<void> {
+  const store = useStoryStore.getState();
+  if (store.activeStory) store.setStructure(await api.getStructure(store.activeStory.id));
+}

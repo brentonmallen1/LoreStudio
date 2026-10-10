@@ -83,6 +83,13 @@ function capitalise(tr: Transaction, pos: number, node: PMNode): void {
   }
 }
 
+/** Where the cursor's heading starts, when it is a heading below the scene's first line. */
+export function headingBelowTop(editor: Editor): number | null {
+  const { $from } = editor.state.selection;
+  if ($from.depth < 1 || $from.index(0) === 0) return null;
+  return $from.node(1).attrs.el === "heading" ? $from.before(1) : null;
+}
+
 /** Set the element of the block the cursor is in (the palette, ⌥⌘1–6, Tab). */
 export function setElement(editor: Editor, el: ScriptElement): boolean {
   const { state } = editor;

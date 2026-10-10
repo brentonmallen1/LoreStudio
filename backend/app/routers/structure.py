@@ -18,6 +18,7 @@ from ..services.linking_service import apply_entity_links, suggest_entity_links
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
 from ..services.llm.prompts.summaries import build_scene_summary_prompt, build_structure_section_summary_prompt
 from ..services.llm.sse import sse_message, sse_stream
+from ..services.script_scene import derive_heading, split_scene
 from ..services.word_count import count_lines
 
 router = APIRouter()
@@ -126,7 +127,9 @@ def update_node(
     for key, value in data.items():
         setattr(node, key, value)
     if "content" in data:
-        node.line_count = count_lines(db.get(Story, node.story_id), node.content)
+        story = db.get(Story, node.story_id)
+        node.line_count = count_lines(story, node.content)
+        derive_heading(node, story, db)
     if node.status == "planned" and "status" not in data and (data.get("word_count") or 0) > 0:
         # The first words turn a planned scene into a draft. Logged, not undoable on its own:
         # undoing it would leave prose in a scene marked as not yet written.
@@ -152,6 +155,43 @@ def update_node(
         sync_scene_dialogue(node, db)
 
     return node
+
+
+class SplitBody(BaseModel):
+    """The scene's words up to the new heading, and from it on (doc 25, D3)."""
+
+    content: str
+    new_content: str
+    expected_updated_at: datetime | None = None
+
+
+@router.post("/{node_id}/split", response_model=StructureNodeOut, status_code=status.HTTP_201_CREATED)
+def split_node(
+    node_id: str,
+    body: SplitBody,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
+):
+    """Start a new scene where a script scene's second heading is: the scene keeps what came
+    before it, the new scene after it takes the rest, and ⌘Z puts them back together."""
+    node = _verify_node_access(node_id, db, current_user)
+    if body.expected_updated_at and node.updated_at is not None and _differs(body.expected_updated_at, node.updated_at):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "This segment changed since you loaded it.",
+                "node": StructureNodeOut.model_validate(node).model_dump(mode="json"),
+            },
+        )
+    if not body.new_content.strip():
+        raise HTTPException(status_code=400, detail="Nothing to start the new scene with.")
+    new = split_scene(db, node, body.content, body.new_content, actor_id=current_user.id, client_id=client_id)
+    db.commit()
+    db.refresh(new)
+    sync_scene_dialogue(node, db)
+    sync_scene_dialogue(new, db)
+    return new
 
 
 @router.post("/{node_id}/summarize")

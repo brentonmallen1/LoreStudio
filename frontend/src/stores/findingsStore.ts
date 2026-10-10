@@ -8,6 +8,7 @@ import { notifyPromisesChanged } from "../lib/promises/usePromises";
 import { announceScenesRewritten } from "../lib/sceneEvents";
 import { useProposalsStore } from "./proposalsStore";
 import { useSeriesStore } from "./seriesStore";
+import { reloadStructure } from "../lib/story/loadStory";
 import type { Finding, FindingsOut } from "../types/findings";
 
 /**
@@ -75,8 +76,11 @@ export const useFindingsStore = create<FindingsStore>((set, get) => ({
       const done = await findingsApi.fix(storyId, f.id);
       // An open editor holds the old text; this makes it take the new. A series fix wrote
       // the other books' sheets instead, which the series view shows.
-      if (done.node_id) announceScenesRewritten([done.node_id]);
-      else {
+      if (done.node_id) {
+        announceScenesRewritten([done.node_id]);
+        // A split made a scene: the strip and the outline show it.
+        if (f.fix?.kind === "split") await reloadStructure();
+      } else {
         void useSeriesStore.getState().refetch();
         // A thread carried into the next book: the promise views across the books redraw.
         if (f.fix?.kind === "carry") notifyPromisesChanged();

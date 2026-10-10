@@ -29,6 +29,12 @@ You never have to set an element by hand. If you know Final Draft, these work to
 - In a cue, the characters in your Lorebook are offered as you type. A new name makes a new character: `MRS. HALE` becomes _Mrs. Hale_.
 - Pasting Fountain text (the plain-text screenplay format) brings it in as elements.
 
+## Scenes and their headings
+
+Each scene in your structure opens on one heading, typed as its first line. LoreStudio reads it as you write: inside or out (`INT.`, `EXT.`, `INT./EXT.`), the place, and the time of day. The scene's glance and the Timeline show them, and a place your Lorebook already has becomes the scene's place, unless you have chosen one yourself.
+
+A heading typed further down a scene starts another scene. A bar above the page offers **Start a new scene here**: everything from the heading on becomes the next scene, and its lines of dialogue and margin notes go with it. **Keep as a line** turns the heading into action instead. Splitting is one step, and {{key:undo}} puts the scene back together. Findings lists any scene with a second heading, with the same fix.
+
 ## The page
 
 A screenplay is counted in pages, about a minute of screen time each: Courier 12 point, 55 lines to a page, each element in its place. The page count LoreStudio shows comes from the same layout the printed script uses.

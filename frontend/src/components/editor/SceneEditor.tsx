@@ -42,6 +42,7 @@ import { removeSpeakerTags, retagSpeakers, unlinkMentions } from "../../lib/ment
 import MentionGutter from "./MentionGutter";
 import EditorTopbar from "./EditorTopbar";
 import DraftBanner from "./DraftBanner";
+import SceneSplitBar from "./script/SceneSplitBar";
 import StatusCorner from "./StatusCorner";
 import { useAIAvailable } from "../../lib/mode";
 import { SHORTCUTS, matchesCombo } from "../../lib/keyboard/shortcuts";
@@ -299,6 +300,7 @@ export default function SceneEditor() {
 
           {sceneSearchOpen && editor && <EditorSearchBar editor={editor} onClose={closeSceneSearch} />}
           <DraftBanner autosave={autosave} />
+          {script && editor && <SceneSplitBar editor={editor} flush={autosave.flush} />}
 
           <div
             className={styles.scrollArea}

@@ -40,6 +40,13 @@ def test_parse(case):
     assert [list(b) for b in ss.parse_lines(case["text"])] == case["expect"]
 
 
+@pytest.mark.parametrize(("text", "interior", "place", "time", "printed"), CASES["slugline"])
+def test_slugline(text, interior, place, time, printed):
+    slug = ss.parse_slugline(text)
+    assert slug == ss.Slug(interior, place, time)
+    assert ss.format_slugline(slug) == printed
+
+
 @pytest.mark.parametrize(("text", "width", "hang", "lines"), CASES["wrap"], ids=lambda v: str(v)[:30])
 def test_wrap(text, width, hang, lines):
     assert ss.wrap(text, width, hang=hang) == lines
