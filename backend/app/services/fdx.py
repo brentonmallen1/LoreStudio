@@ -3,7 +3,9 @@ Final Draft's .fdx, written out (doc 25, P3): writers hand scripts on in Final D
 
 An FDX file is XML: one `<Paragraph Type="…">` per element, which Final Draft (and Fade In,
 WriterDuet, Highland) lays out with its own standard settings for each type. A line break inside
-a block becomes the next paragraph of the same type.
+a block becomes the next paragraph of the same type. Final Draft has no centred or lyric type: a
+centred line is centred action, a lyric italic dialogue; two speeches at once sit inside one
+`<DualDialogue>` (doc 25, P8).
 
 `parse` reads one for import (doc 25, P6): the elements, Final Draft's own italics and bold, a
 scene's summary as its synopsis, script notes as margin notes, and the title page.
@@ -18,7 +20,7 @@ from xml.sax.saxutils import escape, quoteattr
 
 from .script_export import ScriptDoc, ScriptOptions
 from .script_source import ScriptSource, Section, Synopsis
-from .script_syntax import CAPITALS, SCENE_NUMBER
+from .script_syntax import CAPITALS, SCENE_NUMBER, SPEECH, parse_cue, shown_cue
 
 TYPES = {
     "heading": "Scene Heading",
@@ -27,11 +29,37 @@ TYPES = {
     "paren": "Parenthetical",
     "dialogue": "Dialogue",
     "transition": "Transition",
+    "centered": "Action",
+    "lyric": "Dialogue",
 }
 
 
-def _para(kind: str, text: str, extra: str = "") -> str:
-    return f"    <Paragraph Type={quoteattr(kind)}{extra}>\n      <Text>{escape(text)}</Text>\n    </Paragraph>"
+def _para(kind: str, text: str, extra: str = "", style: str = "") -> str:
+    styled = f" Style={quoteattr(style)}" if style else ""
+    return f"    <Paragraph Type={quoteattr(kind)}{extra}>\n      <Text{styled}>{escape(text)}</Text>\n    </Paragraph>"
+
+
+def _block_paras(block, options: ScriptOptions) -> list[str]:
+    kind = TYPES.get(block.element, "Action")
+    text = shown_cue(block.text) if block.element == "cue" else block.text
+    extra = ' Alignment="Center"' if block.element == "centered" else ""
+    style = "Italic" if block.element == "lyric" else ""
+    out = []
+    for i, line in enumerate(text.split("\n")):
+        number = f' Number="{block.number}"' if options.scene_numbers and block.number and i == 0 else ""
+        out.append(_para(kind, line, number + extra, style))
+    return out
+
+
+def _units(blocks) -> list[list]:
+    """The blocks grouped: a speech (a cue and what it says) is one unit, any other block one."""
+    out: list[list] = []
+    for block in blocks:
+        if block.element in SPEECH and out and out[-1][0].element == "cue":
+            out[-1].append(block)
+        else:
+            out.append([block])
+    return out
 
 
 def _title_para(text: str, align: str) -> str:
@@ -54,11 +82,21 @@ def _title_page(doc: ScriptDoc) -> list[str]:
 
 def to_fdx(doc: ScriptDoc, options: ScriptOptions) -> str:
     paras: list[str] = []
-    for block in doc.blocks:
-        kind = TYPES.get(block.element, "Action")
-        for i, line in enumerate(block.text.split("\n")):
-            extra = f' Number="{block.number}"' if options.scene_numbers and block.number and i == 0 else ""
-            paras.append(_para(kind, line, extra))
+    units = _units(doc.blocks)
+    for k, unit in enumerate(units):
+        dual = unit[0].element == "cue" and parse_cue(unit[0].text).dual
+        if dual and k and units[k - 1][0].element == "cue" and not parse_cue(units[k - 1][0].text).dual:
+            continue  # written with the speech before it
+        nxt = units[k + 1] if k + 1 < len(units) else None
+        if unit[0].element == "cue" and nxt and nxt[0].element == "cue" and parse_cue(nxt[0].text).dual:
+            inner = [p for b in unit + nxt for p in _block_paras(b, options)]
+            paras.append(
+                "    <Paragraph>\n      <DualDialogue>\n"
+                + "\n".join(inner)
+                + "\n      </DualDialogue>\n    </Paragraph>"
+            )
+            continue
+        paras += [p for b in unit for p in _block_paras(b, options)]
     out = [
         '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>',
         '<FinalDraft DocumentType="Script" Template="No" Version="5">',
@@ -74,7 +112,7 @@ def to_fdx(doc: ScriptDoc, options: ScriptOptions) -> str:
 
 # ── Reading a file (doc 25, P6) ──────────────────────────────────────────────────────────
 
-ELEMENTS = {kind: element for element, kind in TYPES.items()}
+ELEMENTS = {kind: element for element, kind in TYPES.items() if element not in ("centered", "lyric")}
 #: Final Draft's other paragraph types that open an act; the rest ("Shot", "General"…) are action.
 _ACTS = ("New Act",)
 _SKIP = ("End of Act", "Cast List")
@@ -87,6 +125,7 @@ class _Para:
     runs: list[tuple[str, str]]
     notes: list[str]
     synopsis: str
+    dual: bool = False
 
 
 def _trim(runs: list[tuple[str, str]]) -> list[tuple[str, str]]:
@@ -119,13 +158,28 @@ def _notes(para: ET.Element) -> list[str]:
 
 
 def _paragraphs(content: ET.Element):
-    """The script's paragraphs in order, a dual dialogue's two speeches one after the other."""
+    """The script's paragraphs in order, as (paragraph, whether it is the cue of the second of
+    two speeches at once): a dual dialogue's two speeches one after the other."""
     for para in content.findall("Paragraph"):
         dual = para.find("DualDialogue")
-        if dual is not None:
-            yield from dual.findall("Paragraph")
-        else:
-            yield para
+        if dual is None:
+            yield para, False
+            continue
+        cues = 0
+        for inner in dual.findall("Paragraph"):
+            cues += inner.get("Type") == "Character"
+            yield inner, inner.get("Type") == "Character" and cues == 2
+
+
+def _element(para: ET.Element, kind: str) -> str:
+    """A paragraph's element: a centred line of action is centred, all-italic dialogue a lyric."""
+    element = ELEMENTS.get(kind, "action")
+    if element == "action" and para.get("Alignment") == "Center":
+        return "centered"
+    runs = _runs(para)
+    if element == "dialogue" and runs and all("em" in s for _, s in runs if _.strip()):
+        return "lyric"
+    return element
 
 
 def _read_title_page(root: ET.Element, src: ScriptSource) -> None:
@@ -168,30 +222,32 @@ def parse(data: bytes) -> ScriptSource:
         raise ValueError("This is not a Final Draft file LoreStudio can read.")
     _read_title_page(root, src)
     read: list[Section | _Para] = []
-    for para in _paragraphs(content):
+    for para, dual in _paragraphs(content):
         kind = para.get("Type", "Action")
         if kind in _ACTS and _words(para):
             read.append(Section(1, _words(para)))
         if kind in _ACTS or kind in _SKIP or not _words(para):
             continue
-        element = ELEMENTS.get(kind, "action")
+        element = _element(para, kind)
         runs = _trim([(t.upper() if element in CAPITALS else t, s) for t, s in _runs(para)])
         if element == "heading":
             runs = [(SCENE_NUMBER.sub("", t), s) for t, s in runs]
+        elif element == "lyric":
+            runs = [(t, "") for t, _ in runs]  # a lyric is italic by its element
         last = read[-1] if read else None
-        if element == "dialogue" and isinstance(last, _Para) and last.element == "dialogue":
+        if element in ("dialogue", "lyric") and isinstance(last, _Para) and last.element == element:
             # Final Draft breaks a speech into paragraphs; it is one block, its lines kept.
             last.runs += [("\n", ""), *runs]
             last.notes += _notes(para)
             continue
         summary = para.find("SceneProperties/Summary")
         synopsis = " ".join(_words(p) for p in summary.iter("Paragraph")).strip() if summary is not None else ""
-        read.append(_Para(element, runs, _notes(para), synopsis))
+        read.append(_Para(element, runs, _notes(para), synopsis, dual))
     for item in read:
         if isinstance(item, Section):
             src.items.append(item)
             continue
-        src.block(item.element, item.runs, item.notes)
+        src.block(item.element, item.runs, item.notes, item.dual)
         if item.synopsis:
             src.items.append(Synopsis(item.synopsis))
     return src

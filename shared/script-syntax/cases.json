@@ -32,6 +32,38 @@
         "x": 0,
         "width": 60,
         "before": 1
+      },
+      "centered": {
+        "x": 0,
+        "width": 60,
+        "before": 1
+      },
+      "lyric": {
+        "x": 10,
+        "width": 35,
+        "before": 0
+      }
+    },
+    "dual": {
+      "column": 29,
+      "right": 31,
+      "elements": {
+        "cue": {
+          "x": 9,
+          "width": 20
+        },
+        "paren": {
+          "x": 4,
+          "width": 19
+        },
+        "dialogue": {
+          "x": 1,
+          "width": 27
+        },
+        "lyric": {
+          "x": 1,
+          "width": 27
+        }
       }
     }
   },
@@ -42,7 +74,9 @@
       "cue": "dialogue",
       "paren": "dialogue",
       "dialogue": "action",
-      "transition": "heading"
+      "transition": "heading",
+      "centered": "action",
+      "lyric": "lyric"
     },
     "tab": {
       "action": "cue",
@@ -50,7 +84,9 @@
       "transition": "heading",
       "heading": "action",
       "dialogue": "paren",
-      "paren": "dialogue"
+      "paren": "dialogue",
+      "centered": "action",
+      "lyric": "dialogue"
     },
     "shift_tab": {
       "action": "heading",
@@ -58,7 +94,9 @@
       "transition": "cue",
       "cue": "action",
       "dialogue": "cue",
-      "paren": "dialogue"
+      "paren": "dialogue",
+      "centered": "action",
+      "lyric": "dialogue"
     }
   },
   "classify": [
@@ -181,6 +219,31 @@
       "",
       null,
       "action"
+    ],
+    [
+      ">THE END<",
+      null,
+      "centered"
+    ],
+    [
+      "> THE END <",
+      "action",
+      "centered"
+    ],
+    [
+      "~Over the sea",
+      "cue",
+      "lyric"
+    ],
+    [
+      "~Over the sea",
+      null,
+      "lyric"
+    ],
+    [
+      ">CUT TO:",
+      null,
+      "transition"
     ]
   ],
   "clean": [
@@ -218,6 +281,16 @@
       "dialogue",
       "  Still burning.  ",
       "Still burning."
+    ],
+    [
+      "centered",
+      "> THE END <",
+      "THE END"
+    ],
+    [
+      "lyric",
+      "~Over the sea",
+      "Over the sea"
     ]
   ],
   "cue": [
@@ -350,6 +423,40 @@
         [
           "action",
           "She turns away."
+        ]
+      ]
+    },
+    {
+      "_why": "Fountain's ^ marks a speech at the same time as the one before; ~ a lyric, its lines one block; >...< a centred line.",
+      "text": "BRICK\nScrew it.\n\nSTEEL ^\nScrew it.\n\nELEANOR\n~Over the sea\n~and far away\n\n>THE END<",
+      "expect": [
+        [
+          "cue",
+          "BRICK"
+        ],
+        [
+          "dialogue",
+          "Screw it."
+        ],
+        [
+          "cue",
+          "STEEL ^"
+        ],
+        [
+          "dialogue",
+          "Screw it."
+        ],
+        [
+          "cue",
+          "ELEANOR"
+        ],
+        [
+          "lyric",
+          "Over the sea\nand far away"
+        ],
+        [
+          "centered",
+          "THE END"
         ]
       ]
     }
@@ -557,6 +664,91 @@
           "transition|53|CUT TO:"
         ]
       ]
+    },
+    {
+      "_why": "Dual dialogue sits side by side, the right speech beside the left (row 'left || right'); a centred line is centred.",
+      "blocks": [
+        [
+          "action",
+          "They stare."
+        ],
+        [
+          "cue",
+          "BRICK"
+        ],
+        [
+          "dialogue",
+          "Screw retirement."
+        ],
+        [
+          "cue",
+          "STEEL ^"
+        ],
+        [
+          "paren",
+          "(at once)"
+        ],
+        [
+          "dialogue",
+          "Screw retirement, I said."
+        ],
+        [
+          "centered",
+          "THE END"
+        ]
+      ],
+      "pages": [
+        [
+          "action|0|They stare.",
+          "",
+          "cue|9|BRICK || cue|40|STEEL",
+          "dialogue|1|Screw retirement. || paren|35|(at once)",
+          " || dialogue|32|Screw retirement, I said.",
+          "",
+          "centered|26|THE END"
+        ]
+      ]
+    },
+    {
+      "_why": "Dual dialogue is never split: with no room for both, they start the next page together.",
+      "blocks": [
+        [
+          "action",
+          "a\nb\nc\nd\ne\nf\ng\nh"
+        ],
+        [
+          "cue",
+          "BRICK"
+        ],
+        [
+          "dialogue",
+          "One."
+        ],
+        [
+          "cue",
+          "STEEL ^"
+        ],
+        [
+          "dialogue",
+          "Two."
+        ]
+      ],
+      "pages": [
+        [
+          "action|0|a",
+          "action|0|b",
+          "action|0|c",
+          "action|0|d",
+          "action|0|e",
+          "action|0|f",
+          "action|0|g",
+          "action|0|h"
+        ],
+        [
+          "cue|9|BRICK || cue|40|STEEL",
+          "dialogue|1|One. || dialogue|32|Two."
+        ]
+      ]
     }
   ],
   "slugline": [
@@ -654,6 +846,40 @@
       [],
       0,
       0
+    ],
+    [
+      [
+        [
+          "action",
+          "They stare."
+        ],
+        [
+          "cue",
+          "BRICK"
+        ],
+        [
+          "dialogue",
+          "Screw retirement."
+        ],
+        [
+          "cue",
+          "STEEL ^"
+        ],
+        [
+          "paren",
+          "(at once)"
+        ],
+        [
+          "dialogue",
+          "Screw retirement, I said."
+        ],
+        [
+          "centered",
+          "THE END"
+        ]
+      ],
+      7,
+      1
     ]
   ],
   "cue_names": [

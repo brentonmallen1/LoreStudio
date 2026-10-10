@@ -14,7 +14,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from ..models.character import Character
-from .script_syntax import parse_cue, scene_blocks
+from .script_syntax import SPEECH, parse_cue, scene_blocks
 
 #: How a line is heard, from the cue's extensions.
 _HEARD = {"V.O.": "voice_over", "VO": "voice_over", "O.S.": "off_screen", "O.C.": "off_screen", "OS": "off_screen"}
@@ -45,7 +45,7 @@ def plan_script(content: str, resolve: Callable[[str], Character | None]) -> lis
             direction = ""
         elif element == "paren" and cue:
             direction = text.strip().removeprefix("(").removesuffix(")").strip()
-        elif element == "dialogue" and cue and text.strip():
+        elif element in ("dialogue", "lyric") and cue and text.strip():  # a sung line is the singer's
             char = resolve(cue.name)
             lines.append(
                 {
@@ -62,6 +62,6 @@ def plan_script(content: str, resolve: Callable[[str], Character | None]) -> lis
                 }
             )
             direction = ""
-        elif element not in ("paren", "dialogue"):
+        elif element not in SPEECH:
             cue = None
     return lines

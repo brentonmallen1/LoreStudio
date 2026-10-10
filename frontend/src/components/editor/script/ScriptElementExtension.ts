@@ -13,7 +13,9 @@ import {
   ENTER_NEXT,
   headingAt,
   isElement,
+  parseCue,
   parseLines,
+  shownCue,
   SHIFT_TAB_NEXT,
   TAB_NEXT,
   type ScriptElement,
@@ -46,6 +48,13 @@ export const ScriptElementAttribute = Extension.create({
               return isElement(el) ? el : null;
             },
             renderHTML: (attrs: { el?: string | null }) => (attrs.el ? { "data-el": attrs.el } : {}),
+          },
+          // A cue spoken at the same time as the speech before it (doc 25, P8; dualDialogue.ts).
+          dual: {
+            default: false,
+            keepOnSplit: false,
+            parseHTML: (element: HTMLElement) => element.hasAttribute("data-dual"),
+            renderHTML: (attrs: { dual?: boolean }) => (attrs.dual ? { "data-dual": "true" } : {}),
           },
         },
       },
@@ -148,7 +157,9 @@ function enter(editor: Editor): boolean {
   }
   const after = view.state;
   const at = after.selection.$from.end();
-  const tr = after.tr.split(at, 1, [{ type: block.type, attrs: { ...block.attrs, el: ENTER_NEXT[now] } }]);
+  const tr = after.tr.split(at, 1, [
+    { type: block.type, attrs: { ...block.attrs, el: ENTER_NEXT[now], dual: false } },
+  ]);
   tr.setSelection(TextSelection.create(tr.doc, at + 2));
   view.dispatch(typed ? closeHistory(tr) : tr);
   return true;
@@ -161,12 +172,15 @@ function cycle(editor: Editor, table: Record<ScriptElement, ScriptElement>): boo
 
 /** Blocks from Fountain-style text, ready to paste. */
 function blocksFrom(schema: Schema, text: string): PMNode[] {
-  return parseLines(text).map(([el, words]) => {
+  return parseLines(text).map(([el, text]) => {
+    // Fountain's "^" after a cue: spoken at the same time as the speech before (doc 25, P8).
+    const dual = el === "cue" && parseCue(text).dual;
+    const words = dual ? shownCue(text) : text;
     const parts = words.split("\n").flatMap((part, i) => {
       const nodes: PMNode[] = i ? [schema.nodes.hardBreak.create()] : [];
       return part ? [...nodes, schema.text(part)] : nodes;
     });
-    return schema.nodes.paragraph.create({ el }, parts);
+    return schema.nodes.paragraph.create({ el, dual }, parts);
   });
 }
 
@@ -265,7 +279,8 @@ export function docBlocks(doc: PMNode): [ScriptElement, string][] {
   doc.forEach((node) => {
     if (!node.isTextblock) return;
     const el = node.attrs.el;
-    out.push([isElement(el) ? el : "action", readerText(node.textBetween(0, node.content.size, "\n", " "))]);
+    const text = readerText(node.textBetween(0, node.content.size, "\n", " "));
+    out.push([isElement(el) ? el : "action", el === "cue" && node.attrs.dual ? `${text} ^` : text]);
   });
   return out;
 }

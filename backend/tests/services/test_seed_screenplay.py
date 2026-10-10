@@ -28,7 +28,9 @@ def test_the_screenplay_demo_is_a_script_in_elements(db_session: Session, monkey
     blocks = script_syntax.scene_blocks(scenes[1].content)
     assert blocks[0] == ("heading", "INT. KEEPER'S COTTAGE - NIGHT")
     assert ("cue", "THE VISITOR") in blocks
-    assert {el for el, _ in blocks} == {"heading", "action", "cue", "paren", "dialogue"}
+    assert {el for el, _ in blocks} == {"heading", "action", "cue", "paren", "dialogue", "lyric"}
+    # The Logbook shows two speaking at once (doc 25, P8).
+    assert ("cue", "THE VISITOR ^") in script_syntax.scene_blocks(scenes[2].content)
     # Every block reads as the element it was written as: no text a cue would misread.
     assert all(s.line_count == script_syntax.scene_lines(script_syntax.scene_blocks(s.content)) for s in scenes)
     assert all(s.word_count > 0 for s in scenes)

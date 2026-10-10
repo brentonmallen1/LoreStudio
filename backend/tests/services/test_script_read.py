@@ -60,7 +60,8 @@ Rain.
 
 
 def _blocks(src):
-    return [(i.element, i.text) for i in src.items if isinstance(i, Read)]
+    """The blocks read, a cue spoken with the speech before it marked the Fountain way."""
+    return [(i.element, f"{i.text} ^" if i.dual else i.text) for i in src.items if isinstance(i, Read)]
 
 
 def test_fountain_title_page():
@@ -79,7 +80,7 @@ def test_fountain_blocks_as_written():
         ("cue", "ELEANOR (V.O.)"),
         ("paren", "(her father's words)"),
         ("dialogue", "The glass doesn't lie.\nPeople lie."),
-        ("cue", "BOB"),  # "^" (dual dialogue) waits for P8
+        ("cue", "BOB ^"),  # spoken at the same time as the speech before (P8)
         ("dialogue", "Hello."),
         ("heading", "EXT. KEEPER'S COTTAGE - NIGHT"),
         ("action", "Rain."),
@@ -174,7 +175,7 @@ def test_final_draft_paragraphs_as_elements():
         ("action", "CLOSE ON THE LOG"),
         ("cue", "ELEANOR"),
         ("dialogue", "Now."),
-        ("cue", "BOB"),
+        ("cue", "BOB ^"),
         ("dialogue", "Now?\nThen later."),  # a speech in two paragraphs is one block
     ]
     assert Synopsis("A boat in the storm.") in src.items

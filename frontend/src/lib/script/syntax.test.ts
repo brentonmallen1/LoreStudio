@@ -23,7 +23,11 @@ import {
   TAB_NEXT,
   wrap,
   type Block,
+  type Line,
   type Page,
+  DUAL_COLUMN,
+  DUAL_LAYOUT,
+  DUAL_RIGHT,
   type ScriptElement,
 } from "./syntax";
 
@@ -45,11 +49,18 @@ const CASES = JSON.parse(
   heading_at: [Block[], number][];
 };
 
-const show = (pages: Page[]) => pages.map((p) => p.map((l) => (l ? `${l.element}|${l.x}|${l.text}` : "")));
+const line = (l: Line | null | undefined) => (l ? `${l.element}|${l.x}|${l.text}` : "");
+/** Each row as 'element|x|text', and ' || ' the line beside it (dual dialogue). */
+const show = (pages: Page[]) =>
+  pages.map((p) => p.lines.map((l, row) => line(l) + (p.beside[row] ? ` || ${line(p.beside[row])}` : "")));
 
 describe("script grammar (shared cases)", () => {
   it("lays elements out where the server does", () => {
-    expect(CASES.layout).toEqual({ lines_per_page: LINES_PER_PAGE, elements: LAYOUT });
+    expect(CASES.layout).toEqual({
+      lines_per_page: LINES_PER_PAGE,
+      elements: LAYOUT,
+      dual: { column: DUAL_COLUMN, right: DUAL_RIGHT, elements: DUAL_LAYOUT },
+    });
     expect(CASES.next).toEqual({ enter: ENTER_NEXT, tab: TAB_NEXT, shift_tab: SHIFT_TAB_NEXT });
   });
 

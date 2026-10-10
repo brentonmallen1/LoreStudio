@@ -43,6 +43,7 @@ import MentionGutter from "./MentionGutter";
 import EditorTopbar from "./EditorTopbar";
 import DraftBanner from "./DraftBanner";
 import SceneSplitBar from "./script/SceneSplitBar";
+import { toggleDual } from "./script/dualDialogue";
 import ScriptLineHint from "./script/ScriptLineHint";
 import StatusCorner from "./StatusCorner";
 import { useAIAvailable } from "../../lib/mode";
@@ -157,10 +158,15 @@ export default function SceneEditor() {
   useEffect(() => () => setBridgeNotes(null), [setBridgeNotes]);
   // The palette's Script commands set the element of the line the cursor is in.
   const setBridgeElement = useEditorBridge((s) => s.setScriptElement);
+  const setBridgeDual = useEditorBridge((s) => s.setScriptDual);
   useEffect(() => {
     setBridgeElement(script && editor ? (el) => setElement(editor, el) : null);
-    return () => setBridgeElement(null);
-  }, [script, editor, setBridgeElement]);
+    setBridgeDual(script && editor ? () => toggleDual(editor) : null);
+    return () => {
+      setBridgeElement(null);
+      setBridgeDual(null);
+    };
+  }, [script, editor, setBridgeElement, setBridgeDual]);
 
   // Load the active node's content into the editor when the selection changes.
   // A node from the tree listing carries no prose (StructureNodeMeta), and resuming or

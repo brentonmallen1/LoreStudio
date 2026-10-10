@@ -89,7 +89,8 @@ def read_script(data: bytes, filename: str) -> tuple[list[ParsedParagraph], str 
             tag = f"h{min(item.depth, 3)}"
             add(f"<{tag}>{escape(item.title, quote=False)}</{tag}>", item.title, tag, "section")
         elif isinstance(item, Block):
-            add(f'<p data-el="{item.element}">{item.html}</p>', item.text, "p", item.element)
+            dual = ' data-dual="true"' if item.dual else ""
+            add(f'<p data-el="{item.element}"{dual}>{item.html}</p>', item.text, "p", item.element)
         elif paragraphs:
             _keep(imp, len(paragraphs) - 1, item)
         else:

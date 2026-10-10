@@ -22,7 +22,10 @@ from dataclasses import dataclass, field
 from .prose_html import paragraphs
 from .prose_syntax import reader_text
 
-ELEMENTS = ("heading", "action", "cue", "paren", "dialogue", "transition")
+ELEMENTS = ("heading", "action", "cue", "paren", "dialogue", "transition", "centered", "lyric")
+
+#: What a cue's speech is made of (doc 25, P8: a sung line belongs to its singer).
+SPEECH = ("paren", "dialogue", "lyric")
 
 #: Elements whose text is written in capitals (typed so, not styled so).
 CAPITALS = ("heading", "cue", "transition")
@@ -35,6 +38,8 @@ ENTER_NEXT = {
     "paren": "dialogue",
     "dialogue": "action",
     "transition": "heading",
+    "centered": "action",
+    "lyric": "lyric",
 }
 
 #: What Tab turns the line into, and Shift-Tab back: extras for Final Draft hands (D2).
@@ -45,6 +50,8 @@ TAB_NEXT = {
     "heading": "action",
     "dialogue": "paren",
     "paren": "dialogue",
+    "centered": "action",
+    "lyric": "dialogue",
 }
 SHIFT_TAB_NEXT = {
     "action": "heading",
@@ -53,6 +60,8 @@ SHIFT_TAB_NEXT = {
     "cue": "action",
     "dialogue": "cue",
     "paren": "dialogue",
+    "centered": "action",
+    "lyric": "dialogue",
 }
 
 #: Each element's place on the page: its left edge in characters from the 1.5in margin, how
@@ -66,6 +75,18 @@ LAYOUT: dict[str, dict[str, int]] = {
     "paren": {"x": 16, "width": 19, "before": 0},
     "dialogue": {"x": 10, "width": 35, "before": 0},
     "transition": {"x": 0, "width": 60, "before": 1},
+    "centered": {"x": 0, "width": 60, "before": 1},
+    "lyric": {"x": 10, "width": 35, "before": 0},
+}
+#: Two speeches at once (doc 25, P8) sit side by side, each in a column 29 characters wide:
+#: where each element of a speech goes within its column, and how wide it runs.
+DUAL_COLUMN = 29
+DUAL_RIGHT = 31
+DUAL_LAYOUT: dict[str, dict[str, int]] = {
+    "cue": {"x": 9, "width": 20},
+    "paren": {"x": 4, "width": 19},
+    "dialogue": {"x": 1, "width": 27},
+    "lyric": {"x": 1, "width": 27},
 }
 #: The fewest lines of action or dialogue left on either side of a page break.
 MIN_SPLIT = 2
@@ -145,11 +166,15 @@ def classify_line(text: str, prev: str | None) -> str:
         return "heading"
     if t.startswith("!"):
         return "action"
-    if t.startswith(">") and not t.endswith("<"):
+    if t.startswith(">") and t.endswith("<") and len(t) > 2:
+        return "centered"
+    if t.startswith(">"):
         return "transition"
-    if prev in ("cue", "dialogue", "paren") and t.startswith("(") and t.endswith(")"):
+    if t.startswith("~"):
+        return "lyric"
+    if prev in ("cue", *SPEECH) and t.startswith("(") and t.endswith(")"):
         return "paren"
-    if prev in ("cue", "paren", "dialogue"):
+    if prev in ("cue", *SPEECH):
         return "dialogue"
     if is_capitals(t) and t.endswith("TO:"):
         return "transition"
@@ -169,6 +194,10 @@ def clean(element: str, text: str) -> str:
         return t[1:]  # Fountain's "@" keeps a name's own capitals: McCLANE
     elif element == "transition" and t.startswith(">"):
         t = t[1:].strip()
+    elif element == "centered" and t.startswith(">") and t.endswith("<"):
+        t = t[1:-1].strip()
+    elif element == "lyric" and t.startswith("~"):
+        t = t[1:].strip()
     return t.upper() if element in CAPITALS else t
 
 
@@ -186,7 +215,7 @@ def parse_lines(text: str) -> list[tuple[str, str]]:
     for i, raw in enumerate(lines):
         line = raw.rstrip()
         if not line.strip():
-            if prev in ("cue", "paren", "dialogue"):
+            if prev in ("cue", *SPEECH):
                 prev = "action"
             blank_before = True
             continue
@@ -196,7 +225,7 @@ def parse_lines(text: str) -> list[tuple[str, str]]:
             el = "action"
         if el == "heading" and not blank_before and not _FORCED_HEADING.match(line.strip()):
             el = "action"
-        if blocks and not blank_before and el == blocks[-1][0] in ("action", "dialogue"):
+        if blocks and not blank_before and el == blocks[-1][0] in ("action", "dialogue", "lyric"):
             blocks[-1] = (el, blocks[-1][1] + "\n" + clean(el, line))
         else:
             blocks.append((el, clean(el, line)))
@@ -263,7 +292,8 @@ def scene_blocks(html: str) -> list[tuple[str, str]]:
     out: list[tuple[str, str]] = []
     for para in paragraphs(html):
         element = para.element if para.element in ELEMENTS else "action"
-        out.append((element, reader_text(para.text)))
+        text = reader_text(para.text)
+        out.append((element, f"{text} ^" if element == "cue" and para.dual else text))
     return out
 
 
@@ -308,6 +338,8 @@ class Line:
 class Page:
     #: Lines from the top; None is a blank line.
     lines: list[Line | None] = field(default_factory=list)
+    #: The right-hand speech of dual dialogue, by row: the line beside `lines[row]`.
+    beside: dict[int, Line] = field(default_factory=dict)
 
     @property
     def used(self) -> int:
@@ -320,15 +352,37 @@ def block_lines(element: str, text: str) -> list[Line]:
     hang = 1 if element == "paren" else 0
     lines: list[Line] = []
     for i, t in enumerate(wrap(text, spec["width"], hang=hang)):
-        x = max(0, spec["width"] - len(t)) if element == "transition" else spec["x"] + (hang if i else 0)
+        if element == "transition":
+            x = max(0, spec["width"] - len(t))
+        elif element == "centered":
+            x = max(0, (spec["width"] - len(t)) // 2)
+        else:
+            x = spec["x"] + (hang if i else 0)
         lines.append(Line(element, t, x))
     return lines
+
+
+def shown_cue(text: str) -> str:
+    """A cue as it prints: Fountain's dual mark off."""
+    return re.sub(r"\s*\^$", "", text.strip())
+
+
+def _column(blocks: list[tuple[str, str]], origin: int) -> list[Line]:
+    """One speech of dual dialogue, laid out in its column."""
+    out: list[Line] = []
+    for element, text in blocks:
+        spec = DUAL_LAYOUT.get(element, DUAL_LAYOUT["dialogue"])
+        hang = 1 if element == "paren" else 0
+        body = shown_cue(text) if element == "cue" else text
+        for i, t in enumerate(wrap(body, spec["width"], hang=hang)):
+            out.append(Line(element, t, origin + spec["x"] + (hang if i else 0)))
+    return out
 
 
 def _speech_end(blocks: list[tuple[str, str]], i: int) -> int:
     """The end (exclusive) of the speech starting at a cue: its parentheticals and dialogue."""
     j = i + 1
-    while j < len(blocks) and blocks[j][0] in ("paren", "dialogue"):
+    while j < len(blocks) and blocks[j][0] in SPEECH:
         j += 1
     return j
 
@@ -376,6 +430,7 @@ class _Layout:
     def speech(self, cue_text: str, body: list[Line]) -> None:
         """A cue and its speech. It splits only in the dialogue, after a sentence, two lines on
         each side: "(MORE)" closes the page, "NAME (CONT'D)" opens the next."""
+        cue_text = shown_cue(cue_text)
         head = block_lines("cue", cue_text)
         while True:
             room = self.room("cue")
@@ -395,6 +450,18 @@ class _Layout:
             cue_text = f"{cue.name}{kept} (CONT'D)"
             head = block_lines("cue", cue_text)
             body = body[split:]
+
+
+def _dual(layout: _Layout, left: list[Line], right: list[Line]) -> None:
+    """Two speeches at once, side by side. They are never split: if both do not fit, they
+    start the next page together."""
+    if max(len(left), len(right)) > layout.room("cue"):
+        layout.turn()
+    layout.page.lines.extend([None] * layout.gap("cue"))
+    top = layout.page.used
+    layout.page.lines.extend(left + [None] * (len(right) - len(left)))
+    for row, line in enumerate(right):
+        layout.page.beside[top + row] = line
 
 
 def _speech_split(body: list[Line], most: int) -> int | None:
@@ -441,6 +508,11 @@ def paginate(blocks: list[tuple[str, str]], lines_per_page: int = LINES_PER_PAGE
         element, text = blocks[i]
         if element == "cue":
             end = _speech_end(blocks, i)
+            if end < len(blocks) and blocks[end][0] == "cue" and parse_cue(blocks[end][1]).dual:
+                after = _speech_end(blocks, end)
+                _dual(layout, _column(blocks[i:end], 0), _column(blocks[end:after], DUAL_RIGHT))
+                i = after
+                continue
             body = [ln for e, t in blocks[i + 1 : end] for ln in block_lines(e, t)]
             layout.speech(text, body)
             i = end
@@ -461,11 +533,19 @@ def page_count(blocks: list[tuple[str, str]]) -> int:
 def scene_lines(blocks: list[tuple[str, str]]) -> int:
     """How many lines the blocks take laid end to end, blank lines included: a scene's length,
     shown in eighths of a page (LINES_PER_PAGE / 8 lines each)."""
-    total = 0
-    for element, text in blocks:
-        if not text.strip():
+    blocks = [(e, t) for e, t in blocks if t.strip()]
+    total = i = 0
+    while i < len(blocks):
+        element, text = blocks[i]
+        gap = LAYOUT.get(element, LAYOUT["action"])["before"] if total else 0
+        end = _speech_end(blocks, i) if element == "cue" else i + 1
+        if element == "cue" and end < len(blocks) and blocks[end][0] == "cue" and parse_cue(blocks[end][1]).dual:
+            after = _speech_end(blocks, end)
+            total += gap + max(len(_column(blocks[i:end], 0)), len(_column(blocks[end:after], DUAL_RIGHT)))
+            i = after
             continue
-        total += (LAYOUT.get(element, LAYOUT["action"])["before"] if total else 0) + len(block_lines(element, text))
+        total += gap + len(block_lines(element, text))
+        i += 1
     return total
 
 

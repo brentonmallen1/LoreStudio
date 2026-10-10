@@ -45,6 +45,7 @@ export default function ScriptPages({ layout }: { layout: ScriptLayout }) {
                 className={[
                   styles.line,
                   line.kind === "bold" && styles.bold,
+                  line.kind === "italic" && styles.italic,
                   line.kind === "centre" && styles.centre,
                 ]
                   .filter(Boolean)

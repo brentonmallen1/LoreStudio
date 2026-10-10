@@ -35,6 +35,8 @@ You never have to set an element by hand. If you know Final Draft, these work to
 - Typing `INT. ` or `EXT. ` at the start of a line starts a scene heading. A name in capitals followed by Enter becomes a cue (`BOOM!` stays action). A line in capitals ending `TO:` is a transition.
 - Headings, cues and transitions are typed in capitals for you.
 - In a cue, the characters in your Lorebook are offered as you type. A new name makes a new character: `MRS. HALE` becomes _Mrs. Hale_.
+- Two more elements are in the palette: a **centred line** (_Script: Centred line_, for THE END or a title over black) and a **lyric** (_Script: Lyric_), which prints in italics where dialogue sits and counts as the singer's line.
+- When two characters speak at once, put the cursor in the second speech and choose **Script: Speak at the same time** from the palette. The cue says "at the same time", and the printed page sets the two speeches side by side. Choose it again to undo it.
 - Pasting Fountain text (the plain-text screenplay format) brings it in as elements. A whole script opens as a new story through **Import** on the dashboard.
 
 ## Scenes and their headings

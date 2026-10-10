@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .script_export import ScriptDoc, ScriptOptions
-from .script_syntax import LINES_PER_PAGE, Line, paginate
+from .script_syntax import LINES_PER_PAGE, Line, Page, paginate
 
 FONTS_DIR = Path(__file__).parent.parent / "assets" / "fonts"
 
@@ -68,8 +68,8 @@ def _font_faces() -> str:
 @dataclass
 class Item:
     """One printed line: where it sits (points from the page's top left) and how it is set.
-    `kind` is "" (plain), "bold" (a bold heading) or "centre" (centred across the page, on the
-    title page; `left` is then 0)."""
+    `kind` is "" (plain), "bold" (a bold heading), "italic" (a lyric) or "centre" (centred
+    across the page, on the title page; `left` is then 0)."""
 
     top: float
     left: float
@@ -94,14 +94,22 @@ def _right(text: str, top: float, edge: float = RIGHT_EDGE_PT) -> Item:
     return Item(top, edge - len(text) * CHAR_PT, text)
 
 
-def _page_items(lines: list[Line | None], numbers: dict[int, int], options: ScriptOptions) -> list[Item]:
+def _kind(line: Line, options: ScriptOptions) -> str:
+    if line.element == "lyric":
+        return "italic"
+    return "bold" if options.bold_headings and line.element == "heading" else ""
+
+
+def _page_items(page: Page, numbers: dict[int, int], options: ScriptOptions) -> list[Item]:
     out = []
-    for i, line in enumerate(lines):
+    for i, line in enumerate(page.lines):
+        top = TOP_PT + i * LINE_PT
+        if i in page.beside:  # dual dialogue: the right-hand speech on the same row
+            right = page.beside[i]
+            out.append(Item(top, LEFT_PT + right.x * CHAR_PT, right.text, _kind(right, options)))
         if line is None:
             continue
-        top = TOP_PT + i * LINE_PT
-        bold = "bold" if options.bold_headings and line.element == "heading" else ""
-        out.append(Item(top, LEFT_PT + line.x * CHAR_PT, line.text, bold))
+        out.append(Item(top, LEFT_PT + line.x * CHAR_PT, line.text, _kind(line, options)))
         if options.scene_numbers and i in numbers:
             n = f"{numbers[i]}"
             out.append(_right(n, top, LEFT_PT - 3 * CHAR_PT))
@@ -150,7 +158,7 @@ def layout(doc: ScriptDoc, options: ScriptOptions) -> Layout:
     if options.title_page:
         out.pages.append(_title_page(doc, out.height_pt))
     for k, (page, numbers) in enumerate(zip(pages, _numbered_lines(doc, pages), strict=True), start=1):
-        items = _page_items(page.lines, numbers, options)
+        items = _page_items(page, numbers, options)
         if k > 1:  # no number on page one, nor on the title page
             items.insert(0, _right(f"{k}.", NUMBER_TOP_PT))
         out.pages.append(items)
@@ -158,7 +166,7 @@ def layout(doc: ScriptDoc, options: ScriptOptions) -> Layout:
     return out
 
 
-_CLASS = {"": "l", "bold": "l b", "centre": "l c"}
+_CLASS = {"": "l", "bold": "l b", "italic": "l i", "centre": "l c"}
 
 
 def _html_item(item: Item) -> str:
@@ -180,6 +188,7 @@ body {{ font-family: "Courier Prime", "Courier New", monospace; font-size: 12pt;
 .p:last-child {{ page-break-after: auto; }}
 .l {{ position: absolute; white-space: pre; height: {LINE_PT}pt; }}
 .b {{ font-weight: 700; }}
+.i {{ font-style: italic; }}
 .c {{ left: 0; right: 0; text-align: center; }}
 """
     title = html.escape(doc.title)

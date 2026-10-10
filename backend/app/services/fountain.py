@@ -17,7 +17,16 @@ import re
 from ..schemas.story import TitlePage
 from .script_export import Block, ScriptDoc, ScriptOptions
 from .script_source import SceneNote, ScriptSource, Section, Synopsis
-from .script_syntax import SCENE_NUMBER, classify_line, looks_like_cue, parse_lines, scene_blocks
+from .script_syntax import (
+    SCENE_NUMBER,
+    SPEECH,
+    classify_line,
+    looks_like_cue,
+    parse_cue,
+    parse_lines,
+    scene_blocks,
+    shown_cue,
+)
 
 #: Fountain's own marks at the start of a line: a section, a synopsis, a lyric, a note, the boneyard.
 _MARK_START = ("#", "=", "~", "[[", "/*")
@@ -48,6 +57,10 @@ def _block(element: str, text: str, number: int | None, options: ScriptOptions, 
         return [t if plain else f"@{t}"]
     if element == "transition":
         return [t if classify_line(text, None) == "transition" else f"> {t}"]
+    if element == "centered":
+        return [f">{t}<"]
+    if element == "lyric":
+        return [f"~{line}" for line in t.split("\n")]
     if element in ("paren", "dialogue"):
         return t.split("\n")
     return _action(text)
@@ -75,9 +88,9 @@ def to_fountain(doc: ScriptDoc, options: ScriptOptions) -> str:
         out += _title_page(doc)
     blocks = doc.blocks
     for i, block in enumerate(blocks):
-        if block.element not in ("paren", "dialogue") and out:
+        if block.element not in SPEECH and out:
             out.append("")
-        follows = i + 1 < len(blocks) and blocks[i + 1].element in ("paren", "dialogue")
+        follows = i + 1 < len(blocks) and blocks[i + 1].element in SPEECH
         out += _block(block.element, block.text, block.number, options, follows)
     return "\n".join(out).strip() + "\n"
 
@@ -178,11 +191,12 @@ def _read_chunk(chunk: list[str], notes: list[str], src: ScriptSource) -> None:
         k = text.count("\n") + 1
         mine = [n for line_notes in on_line[:k] for n in line_notes]
         on_line = on_line[k:]
-        if element == "cue":
-            text = text.removesuffix("^").rstrip()  # dual dialogue: P8
+        dual = element == "cue" and parse_cue(text).dual
+        if dual:
+            text = shown_cue(text)
         elif element == "heading":
             text = SCENE_NUMBER.sub("", text)  # the export numbers scenes itself
-        src.block(element, _runs(text), mine)
+        src.block(element, _runs(text), mine, dual)
 
 
 def parse(text: str) -> ScriptSource:

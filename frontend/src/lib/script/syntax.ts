@@ -9,10 +9,23 @@
  * PDF prints. Courier 12pt: ten characters to the inch, six lines, 55 lines to a Letter page.
  */
 
-export type ScriptElement = "heading" | "action" | "cue" | "paren" | "dialogue" | "transition";
+export type ScriptElement =
+  "heading" | "action" | "cue" | "paren" | "dialogue" | "transition" | "centered" | "lyric";
 export type Block = [ScriptElement, string];
 
-export const ELEMENTS: ScriptElement[] = ["heading", "action", "cue", "paren", "dialogue", "transition"];
+export const ELEMENTS: ScriptElement[] = [
+  "heading",
+  "action",
+  "cue",
+  "paren",
+  "dialogue",
+  "transition",
+  "centered",
+  "lyric",
+];
+
+/** What a cue's speech is made of (doc 25, P8: a sung line belongs to its singer). */
+const SPEECH: ScriptElement[] = ["paren", "dialogue", "lyric"];
 
 /** Elements whose text is written in capitals (typed so, not styled so). */
 export const CAPITALS: ScriptElement[] = ["heading", "cue", "transition"];
@@ -24,6 +37,8 @@ export const ELEMENT_LABELS: Record<ScriptElement, string> = {
   paren: "Parenthetical",
   dialogue: "Dialogue",
   transition: "Transition",
+  centered: "Centred",
+  lyric: "Lyric",
 };
 
 /** Where Enter goes from each element (Final Draft's defaults). */
@@ -34,6 +49,8 @@ export const ENTER_NEXT: Record<ScriptElement, ScriptElement> = {
   paren: "dialogue",
   dialogue: "action",
   transition: "heading",
+  centered: "action",
+  lyric: "lyric",
 };
 
 /** What Tab turns the line into, and Shift-Tab back: extras for Final Draft hands (D2). */
@@ -44,6 +61,8 @@ export const TAB_NEXT: Record<ScriptElement, ScriptElement> = {
   heading: "action",
   dialogue: "paren",
   paren: "dialogue",
+  centered: "action",
+  lyric: "dialogue",
 };
 export const SHIFT_TAB_NEXT: Record<ScriptElement, ScriptElement> = {
   action: "heading",
@@ -52,6 +71,8 @@ export const SHIFT_TAB_NEXT: Record<ScriptElement, ScriptElement> = {
   cue: "action",
   dialogue: "cue",
   paren: "dialogue",
+  centered: "action",
+  lyric: "dialogue",
 };
 
 export const LINES_PER_PAGE = 55;
@@ -63,6 +84,18 @@ export const LAYOUT: Record<ScriptElement, { x: number; width: number; before: n
   paren: { x: 16, width: 19, before: 0 },
   dialogue: { x: 10, width: 35, before: 0 },
   transition: { x: 0, width: 60, before: 1 },
+  centered: { x: 0, width: 60, before: 1 },
+  lyric: { x: 10, width: 35, before: 0 },
+};
+/** Two speeches at once (doc 25, P8) sit side by side, each in a column 29 characters wide:
+ *  where each element of a speech goes within its column, and how wide it runs. */
+export const DUAL_COLUMN = 29;
+export const DUAL_RIGHT = 31;
+export const DUAL_LAYOUT: Partial<Record<ScriptElement, { x: number; width: number }>> = {
+  cue: { x: 9, width: 20 },
+  paren: { x: 4, width: 19 },
+  dialogue: { x: 1, width: 27 },
+  lyric: { x: 1, width: 27 },
 };
 /** The fewest lines of action or dialogue left on either side of a page break. */
 const MIN_SPLIT = 2;
@@ -132,10 +165,12 @@ export function classifyLine(text: string, prev: ScriptElement | null): ScriptEl
   if (!t) return "action";
   if (FORCED_HEADING.test(t) || HEADING.test(t + " ")) return "heading";
   if (t.startsWith("!")) return "action";
-  if (t.startsWith(">") && !t.endsWith("<")) return "transition";
-  if ((prev === "cue" || prev === "dialogue" || prev === "paren") && t.startsWith("(") && t.endsWith(")"))
-    return "paren";
-  if (prev === "cue" || prev === "paren" || prev === "dialogue") return "dialogue";
+  if (t.startsWith(">") && t.endsWith("<") && t.length > 2) return "centered";
+  if (t.startsWith(">")) return "transition";
+  if (t.startsWith("~")) return "lyric";
+  const speaking = prev === "cue" || (prev !== null && SPEECH.includes(prev));
+  if (speaking && t.startsWith("(") && t.endsWith(")")) return "paren";
+  if (speaking) return "dialogue";
   if (isCapitals(t) && t.endsWith("TO:")) return "transition";
   if (t.startsWith("@") || looksLikeCue(t)) return "cue";
   return "action";
@@ -149,6 +184,8 @@ export function clean(element: ScriptElement, text: string): string {
   else if (element === "cue" && t.startsWith("@"))
     return t.slice(1); // keeps McCLANE's own capitals
   else if (element === "transition" && t.startsWith(">")) t = t.slice(1).trim();
+  else if (element === "centered" && t.startsWith(">") && t.endsWith("<")) t = t.slice(1, -1).trim();
+  else if (element === "lyric" && t.startsWith("~")) t = t.slice(1).trim();
   return CAPITALS.includes(element) ? t.toUpperCase() : t;
 }
 
@@ -221,7 +258,7 @@ export function parseLines(text: string): Block[] {
   lines.forEach((raw, i) => {
     const line = raw.trimEnd();
     if (!line.trim()) {
-      if (prev === "cue" || prev === "paren" || prev === "dialogue") prev = "action";
+      if (prev === "cue" || (prev !== null && SPEECH.includes(prev))) prev = "action";
       blankBefore = true;
       return;
     }
@@ -230,7 +267,7 @@ export function parseLines(text: string): Block[] {
     if (el === "cue" && !line.trim().startsWith("@") && (!blankBefore || !next)) el = "action";
     if (el === "heading" && !blankBefore && !FORCED_HEADING.test(line.trim())) el = "action";
     const last = blocks[blocks.length - 1];
-    if (last && !blankBefore && el === last[0] && (el === "action" || el === "dialogue"))
+    if (last && !blankBefore && el === last[0] && (el === "action" || el === "dialogue" || el === "lyric"))
       last[1] = `${last[1]}\n${clean(el, line)}`;
     else blocks.push([el, clean(el, line)]);
     prev = el;
@@ -274,8 +311,12 @@ export interface Line {
   /** Left edge, in characters from the 1.5in margin. */
   x: number;
 }
-/** Lines from the top of a page; null is a blank line. */
-export type Page = (Line | null)[];
+export interface Page {
+  /** Lines from the top; null is a blank line. */
+  lines: (Line | null)[];
+  /** The right-hand speech of dual dialogue, by row: the line beside `lines[row]`. */
+  beside: Record<number, Line>;
+}
 
 /** One block's lines on the page, wrapped and placed. */
 export function blockLines(element: ScriptElement, text: string): Line[] {
@@ -284,13 +325,42 @@ export function blockLines(element: ScriptElement, text: string): Line[] {
   return wrap(text, spec.width, hang).map((t, i) => ({
     element,
     text: t,
-    x: element === "transition" ? Math.max(0, spec.width - t.length) : spec.x + (i ? hang : 0),
+    x:
+      element === "transition"
+        ? Math.max(0, spec.width - t.length)
+        : element === "centered"
+          ? Math.max(0, Math.floor((spec.width - t.length) / 2))
+          : spec.x + (i ? hang : 0),
   }));
+}
+
+/** A cue as it prints: Fountain's dual mark off. */
+export function shownCue(text: string): string {
+  return text.trim().replace(/\s*\^$/, "");
+}
+
+/** One speech of dual dialogue, laid out in its column. */
+function column(blocks: Block[], origin: number): Line[] {
+  return blocks.flatMap(([element, text]) => {
+    const spec = DUAL_LAYOUT[element] ?? DUAL_LAYOUT.dialogue!;
+    const hang = element === "paren" ? 1 : 0;
+    const body = element === "cue" ? shownCue(text) : text;
+    return wrap(body, spec.width, hang).map((t, i) => ({
+      element,
+      text: t,
+      x: origin + spec.x + (i ? hang : 0),
+    }));
+  });
+}
+
+/** Whether a speech at `end` is spoken at the same time as the one before it. */
+function isDual(blocks: Block[], end: number): boolean {
+  return end < blocks.length && blocks[end][0] === "cue" && parseCue(blocks[end][1]).dual;
 }
 
 function speechEnd(blocks: Block[], i: number): number {
   let j = i + 1;
-  while (j < blocks.length && (blocks[j][0] === "paren" || blocks[j][0] === "dialogue")) j++;
+  while (j < blocks.length && SPEECH.includes(blocks[j][0])) j++;
   return j;
 }
 
@@ -320,15 +390,24 @@ function keepWith(blocks: Block[], i: number): number {
 
 /** Lay the blocks out on pages, the way the PDF prints them (see the server's `paginate`). */
 export function paginate(input: Block[], linesPerPage = LINES_PER_PAGE): Page[] {
-  const pages: Page[] = [[]];
-  const page = () => pages[pages.length - 1];
+  const pages: Page[] = [{ lines: [], beside: {} }];
+  const page = () => pages[pages.length - 1].lines;
   const gap = (element: ScriptElement) => (page().length ? LAYOUT[element].before : 0);
   const room = (element: ScriptElement) => linesPerPage - page().length - gap(element);
   const put = (element: ScriptElement, lines: Line[]) => {
     page().push(...Array<null>(gap(element)).fill(null), ...lines);
   };
   const turn = () => {
-    if (page().length) pages.push([]);
+    if (page().length) pages.push({ lines: [], beside: {} });
+  };
+
+  /** Two speeches at once, side by side; never split, they go over together. */
+  const dual = (left: Line[], right: Line[]) => {
+    if (Math.max(left.length, right.length) > room("cue")) turn();
+    page().push(...Array<null>(gap("cue")).fill(null));
+    const top = page().length;
+    page().push(...left, ...Array<null>(Math.max(0, right.length - left.length)).fill(null));
+    right.forEach((line, row) => (pages[pages.length - 1].beside[top + row] = line));
   };
 
   const place = (element: ScriptElement, lines: Line[], keep: number) => {
@@ -345,6 +424,7 @@ export function paginate(input: Block[], linesPerPage = LINES_PER_PAGE): Page[] 
   };
 
   const speech = (cueText: string, body: Line[]) => {
+    cueText = shownCue(cueText);
     let head = blockLines("cue", cueText);
     for (;;) {
       const space = room("cue");
@@ -375,6 +455,12 @@ export function paginate(input: Block[], linesPerPage = LINES_PER_PAGE): Page[] 
     const [element, text] = blocks[i];
     if (element === "cue") {
       const end = speechEnd(blocks, i);
+      if (isDual(blocks, end)) {
+        const after = speechEnd(blocks, end);
+        dual(column(blocks.slice(i, end), 0), column(blocks.slice(end, after), DUAL_RIGHT));
+        i = after;
+        continue;
+      }
       speech(
         text,
         blocks.slice(i + 1, end).flatMap(([e, t]) => blockLines(e, t)),
@@ -394,11 +480,25 @@ export function pageCount(blocks: Block[]): number {
 }
 
 /** Lines laid end to end, blank lines included: a scene's length. */
-export function sceneLines(blocks: Block[]): number {
+export function sceneLines(input: Block[]): number {
+  const blocks = input.filter(([, t]) => t.trim());
   let total = 0;
-  for (const [element, text] of blocks) {
-    if (!text.trim()) continue;
-    total += (total ? (LAYOUT[element] ?? LAYOUT.action).before : 0) + blockLines(element, text).length;
+  for (let i = 0; i < blocks.length;) {
+    const [element, text] = blocks[i];
+    const gap = total ? (LAYOUT[element] ?? LAYOUT.action).before : 0;
+    const end = element === "cue" ? speechEnd(blocks, i) : i + 1;
+    if (element === "cue" && isDual(blocks, end)) {
+      const after = speechEnd(blocks, end);
+      const rows = Math.max(
+        column(blocks.slice(i, end), 0).length,
+        column(blocks.slice(end, after), DUAL_RIGHT).length,
+      );
+      total += gap + rows;
+      i = after;
+      continue;
+    }
+    total += gap + blockLines(element, text).length;
+    i++;
   }
   return total;
 }

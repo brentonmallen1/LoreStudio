@@ -41,6 +41,11 @@
   font-weight: 700;
 }
 
+/* A lyric (doc 25, P8). */
+.italic {
+  font-style: italic;
+}
+
 .centre {
   right: 0;
   text-align: center;

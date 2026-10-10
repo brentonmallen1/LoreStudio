@@ -29,6 +29,8 @@ class Block:
     html: str
     #: The plain words, for previews and counts.
     text: str
+    #: A cue spoken at the same time as the speech before it (Fountain's "^", doc 25 P8).
+    dual: bool = False
 
 
 @dataclass
@@ -58,7 +60,7 @@ class ScriptSource:
     #: Margin notes by id, as (the note, the words it sits beside); the anchor is in a block's HTML.
     notes: dict[str, tuple[str, str]] = field(default_factory=dict)
 
-    def block(self, element: str, runs: list[tuple[str, str]], notes: list[str]) -> Block:
+    def block(self, element: str, runs: list[tuple[str, str]], notes: list[str], dual: bool = False) -> Block:
         """A block from runs of (words, "em" | "strong" | "em strong" | ""), its first note
         anchored on its words (a second note on one line is kept as the scene's)."""
         inner = "".join(_marked(text, style) for text, style in runs)
@@ -68,7 +70,7 @@ class ScriptSource:
             self.notes[note_id] = (notes[0], text)
             inner = f'<span data-note-id="{note_id}" class="note-anchor">{inner}</span>'
             notes = notes[1:]
-        out = Block(element, inner, text)
+        out = Block(element, inner, text, dual)
         self.items.append(out)
         self.items.extend(SceneNote(n) for n in notes)
         return out

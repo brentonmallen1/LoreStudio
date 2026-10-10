@@ -12,7 +12,11 @@ CASES = json.loads((Path(__file__).parents[3] / "shared" / "script-syntax" / "ca
 
 
 def test_layout():
-    assert CASES["layout"] == {"lines_per_page": ss.LINES_PER_PAGE, "elements": ss.LAYOUT}
+    assert CASES["layout"] == {
+        "lines_per_page": ss.LINES_PER_PAGE,
+        "elements": ss.LAYOUT,
+        "dual": {"column": ss.DUAL_COLUMN, "right": ss.DUAL_RIGHT, "elements": ss.DUAL_LAYOUT},
+    }
     assert set(ss.LAYOUT) == set(ss.ELEMENTS)
 
 
@@ -62,8 +66,16 @@ def test_wrap(text, width, hang, lines):
     assert ss.wrap(text, width, hang=hang) == lines
 
 
+def _line(ln):
+    return "" if ln is None else f"{ln.element}|{ln.x}|{ln.text}"
+
+
 def _show(pages):
-    return [["" if ln is None else f"{ln.element}|{ln.x}|{ln.text}" for ln in page.lines] for page in pages]
+    """Each row as 'element|x|text', and ' || ' the line beside it (dual dialogue)."""
+    return [
+        [_line(ln) + (f" || {_line(page.beside[i])}" if i in page.beside else "") for i, ln in enumerate(page.lines)]
+        for page in pages
+    ]
 
 
 @pytest.mark.parametrize("case", CASES["paginate"], ids=lambda c: c["_why"][:40])

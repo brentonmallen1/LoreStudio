@@ -17,7 +17,7 @@ export interface ScriptLine {
   top: number;
   left: number;
   text: string;
-  kind: "" | "bold" | "centre";
+  kind: "" | "bold" | "italic" | "centre";
 }
 
 /** A screenplay's pages exactly as the PDF prints them (GET /stories/{id}/script-layout). */

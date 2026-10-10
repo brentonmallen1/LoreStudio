@@ -15,7 +15,7 @@ from .story_format import is_script
 
 #: A scene longer than this many eighths (three pages) is long for the screen.
 LONG_SCENE = 24
-_SPEECH = ("cue", "paren", "dialogue")
+_SPEECH = ("cue", "paren", "dialogue", "lyric")
 
 
 def pages(view: StoryView) -> NumbersPages | None:

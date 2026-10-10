@@ -17,7 +17,7 @@ from pydantic import BaseModel
 from ..models.story import Story
 from ..schemas.story import TitlePage
 from .manuscript_builder import ManuscriptSection
-from .script_syntax import parse_cue, scene_blocks
+from .script_syntax import parse_cue, scene_blocks, shown_cue
 
 #: A script export: what it is called, its media type, its file extension.
 SCRIPT_FORMATS: dict[str, tuple[str, str]] = {
@@ -106,7 +106,8 @@ def _continued(blocks: list[Block]) -> None:
         elif block.element == "cue":
             cue = parse_cue(block.text)
             if cue.name == last and not any(e.upper() in ("CONT'D", "CONT’D", "CONT") for e in cue.extensions):
-                block.text = f"{block.text} (CONT'D)"
+                # Before a dual mark, which ends the cue (doc 25, P8).
+                block.text = f"{shown_cue(block.text)} (CONT'D)" + (" ^" if cue.dual else "")
             last = cue.name
 
 

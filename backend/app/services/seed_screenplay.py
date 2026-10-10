@@ -18,6 +18,7 @@ from ..models import Character, Location, Story, User
 from ..models.location import SceneSetting
 from ..models.structure import StructureNode
 from .script_scene import derive_heading
+from .script_syntax import shown_cue
 from .word_count import recount_story
 
 TITLE = "The Last Lighthouse: The Screenplay"
@@ -45,6 +46,9 @@ KNOCK = [
     ("action", "Rain hammers the window. Eleanor sits at the table with a cup of tea she isn't drinking."),
     ("action", "A KNOCK. Three of them, unhurried."),
     ("action", "She doesn't move. Another knock."),
+    ("cue", "ELEANOR"),
+    ("paren", "(half-singing, the keepers' old song)"),
+    ("lyric", "Keep the light and keep the glass,\nkeep them till the weather pass."),
     ("cue", "ELEANOR"),
     ("paren", "(to herself)"),
     ("dialogue", "Don't open the door."),
@@ -82,13 +86,24 @@ LOGBOOK = [
     ("cue", "THE VISITOR (CONT'D)"),
     ("dialogue", "There's a month missing."),
     ("action", "Eleanor leans in. Where March 1987 should be, the stubs of cut pages."),
+    ("cue", "ELEANOR"),
+    ("dialogue", "March."),
+    ("cue", "THE VISITOR ^"),
+    ("dialogue", "March."),
     ("transition", "FADE OUT."),
 ]
 
 
 def script_html(blocks: list[tuple[str, str]]) -> str:
-    """Blocks as the editor stores them."""
-    return "".join(f'<p data-el="{el}">{escape(text, quote=False)}</p>' for el, text in blocks)
+    """Blocks as the editor stores them: a cue ending "^" is spoken at the same time as the
+    speech before it (doc 25, P8), and a line break is a <br>."""
+    out = []
+    for el, text in blocks:
+        dual = el == "cue" and text.endswith("^")
+        words = escape(shown_cue(text) if dual else text, quote=False).replace("\n", "<br>")
+        attrs = f'data-el="{el}"' + (' data-dual="true"' if dual else "")
+        out.append(f"<p {attrs}>{words}</p>")
+    return "".join(out)
 
 
 def seed_screenplay_demo() -> None:

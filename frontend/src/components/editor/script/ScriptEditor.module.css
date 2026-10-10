@@ -47,3 +47,24 @@
 .script :global(.ProseMirror p[data-el="transition"]) {
   text-align: right;
 }
+
+/* A centred line (THE END) and a lyric, sung in italics where dialogue sits (doc 25, P8). */
+.script :global(.ProseMirror p[data-el="centered"]) {
+  text-align: center;
+}
+
+.script :global(.ProseMirror p[data-el="lyric"]) {
+  margin: 0 0 1.5em 10ch;
+  max-width: 35ch;
+  font-style: italic;
+}
+
+/* A speech spoken at the same time as the one before: the page prints the two side by side;
+   here the cue says so, quietly. */
+.script :global(.ProseMirror p[data-el="cue"][data-dual])::after {
+  content: " · at the same time";
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.8em;
+  user-select: none;
+}
