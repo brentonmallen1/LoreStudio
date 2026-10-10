@@ -19,6 +19,7 @@ import {
 import { useAIAvailable, useMode } from "../../lib/mode";
 import { visibleFeatures } from "../../lib/ai/featureRegistry";
 import { navigateTo } from "../../lib/navigation";
+import { useStoryFormat } from "../../lib/storyFormat";
 import { sceneSheetPath } from "../../lib/scene/glance";
 import { useStoryStore } from "../../stores/storyStore";
 import type { WritingGuideTab } from "../help/WritingGuidesModal";
@@ -53,6 +54,8 @@ export default function EditorMoreMenu(p: Props) {
   const [open, setOpen] = useState(false);
   const [pane, setPane] = useState<Pane>("menu");
   const [about, setAbout] = useState(false);
+  // A script's cues say who speaks (doc 25, P4): there are no quotes to tag.
+  const script = useStoryFormat() !== "prose";
   const wrap = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const ai = useAIAvailable();
@@ -137,12 +140,14 @@ export default function EditorMoreMenu(p: Props) {
               if (activeStory && activeNode) navigateTo(sceneSheetPath(activeStory.id, activeNode.id));
             })}
           />
-          <Item
-            label="Tag the dialogue"
-            icon={Tag}
-            title="Find quotes with no speaker"
-            onSelect={then(p.onOpenAutoTag)}
-          />
+          {!script && (
+            <Item
+              label="Tag the dialogue"
+              icon={Tag}
+              title="Find quotes with no speaker"
+              onSelect={then(p.onOpenAutoTag)}
+            />
+          )}
           <Item
             label="Link mentions"
             icon={Link}

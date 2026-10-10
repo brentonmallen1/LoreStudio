@@ -50,3 +50,9 @@ export async function reloadStructure(): Promise<void> {
   const store = useStoryStore.getState();
   if (store.activeStory) store.setStructure(await api.getStructure(store.activeStory.id));
 }
+
+/** The open story's cast read again, after the server added someone (a finding's fix). */
+export async function reloadCharacters(): Promise<void> {
+  const store = useStoryStore.getState();
+  if (store.activeStory) store.setCharacters(await api.listCharacters(store.activeStory.id));
+}

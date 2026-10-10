@@ -15,6 +15,14 @@ A screenplay is written with the same moves as prose. LoreStudio lays it out as 
 | Type `(` on an empty line of dialogue            |                                      | a parenthetical: _(quietly)_                                      |
 | `@Name`, `[[Place]]`                             | a mention                            | the same                                                          |
 
+If you write a line the prose way in the action, `"Run," Eleanor said.`, a quiet bar offers to make it Eleanor's line of dialogue. Nothing changes until you say so, and {{key:undo}} puts it back.
+
+## Who speaks
+
+In a script the character's name above a line says who speaks it, so there is nothing to tag. The **Dialogue** tool, each character's voice and the numbers read the lines from their cues: a parenthetical shows as the line's direction, and `(V.O.)` or `(O.S.)` as a voice-over or a line off screen. A character whose name is written in capitals in the action, the way a script introduces them, counts as named in that scene.
+
+A cue for someone not in your Lorebook shows in **Findings**, with **Add to the Lorebook**. Renaming a character rewrites their cues too: ELEANOR becomes NELL.
+
 ## Elements
 
 Every line of a script is one element: a **scene heading** (`INT. LIGHTHOUSE - NIGHT`), **action**, a **character** cue, a **parenthetical**, **dialogue**, or a **transition** (`CUT TO:`). The bottom right of the page shows the element the cursor is in and how long the scene runs, in eighths of a page, the way a script breakdown counts it.

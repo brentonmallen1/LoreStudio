@@ -102,6 +102,19 @@ def parse_cue(text: str) -> Cue:
     return Cue(name=name, extensions=extensions, dual=dual)
 
 
+_TITLED = re.compile(r"^(the|mr|mrs|ms|miss|dr|doctor|captain|sir|lady|lord|father|mother|aunt|uncle)\b", re.I)
+
+
+def cue_name(name: str) -> str:
+    """The cue a script writes for a character: what people call them, in capitals. A full name
+    is cued by its first name ("Eleanor Vance" is ELEANOR); "The Visitor (Calder)" and a name
+    with a title keep their words (THE VISITOR, DR. PRIYA SHARMA); another name the author
+    typed ("Nell") is used as written. The editor's `cueName` is the same rule."""
+    plain = " ".join(re.sub(r"\s*\([^()]*\)", "", name).split())
+    words = plain.split(" ")
+    return (words[0] if len(words) > 1 and not _TITLED.match(plain) else plain).upper()
+
+
 def looks_like_cue(text: str) -> bool:
     """A name in capitals, perhaps with extensions: "ELEANOR", "MRS. HALE (O.S.)".
 

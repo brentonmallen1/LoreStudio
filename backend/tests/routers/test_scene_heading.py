@@ -95,8 +95,7 @@ BEFORE = (
 AFTER = (
     '<p data-el="heading">EXT. LIGHTHOUSE - CONTINUOUS</p>'
     '<p data-el="action">She runs <span data-note-id="n-1" class="note-anchor">into the rain</span>.</p>'
-    # A tagged quote until P4 reads speech from cues: the row it makes is what has to move.
-    '<p data-el="action">"Wait!"&lt;Eleanor&gt;</p>'
+    '<p data-el="cue">ELEANOR</p><p data-el="dialogue">Wait!</p>'
 )
 
 

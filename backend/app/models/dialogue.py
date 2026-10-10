@@ -49,8 +49,12 @@ class DialogueBlock(Base):
     speaker_name: Mapped[str] = mapped_column(String, default="")
 
     # "speech" | "thought" | None (None = unknown / not relevant)
-    # Thoughts are extracted from italicised prose (<em>...</em>) near a quoted attribution
+    # Thoughts are extracted from italicised prose (<em>...</em>) near a quoted attribution.
+    # A script's cue can say "voice_over" (V.O.) or "off_screen" (O.S.): speech to every count.
     dialogue_type: Mapped[str | None] = mapped_column(String, nullable=True)
+
+    # A script's parenthetical before the line, "quietly" (services/script_dialogue.py).
+    direction: Mapped[str] = mapped_column(String, default="", server_default="")
 
     # Optional author note on what the character means vs what they say
     subtext: Mapped[str | None] = mapped_column(Text, nullable=True)

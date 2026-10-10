@@ -42,7 +42,18 @@ export default function DialogueLine({
   const thought = block.dialogue_type === "thought";
   const guessed = block.attribution_method === "inferred" || block.attribution_method === "alternating";
   const align = side === "right" ? "end" : "start";
-  const text = thought ? <em>{block.content}</em> : `“${block.content}”`;
+  // A script's line (doc 25, P4): its parenthetical, and V.O. or O.S. beside the speaker.
+  const heard =
+    block.dialogue_type === "voice_over" ? "V.O." : block.dialogue_type === "off_screen" ? "O.S." : null;
+  const said = thought ? <em>{block.content}</em> : `“${block.content}”`;
+  const text = block.direction ? (
+    <>
+      <span className={styles.direction}>({block.direction}) </span>
+      {said}
+    </>
+  ) : (
+    said
+  );
 
   if (unattributed) {
     return (
@@ -103,6 +114,10 @@ export default function DialogueLine({
 
   const mark = thought ? (
     <span className={styles.thoughtMark}>thought</span>
+  ) : heard ? (
+    <span className={styles.heardMark} title={heard === "V.O." ? "Voice-over" : "Off screen"}>
+      {heard}
+    </span>
   ) : isPov ? (
     block.attribution_method === "pov_default" && <span className={styles.guess}>pov</span>
   ) : (

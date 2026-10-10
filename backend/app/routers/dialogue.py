@@ -56,6 +56,8 @@ class DialogueBlockOut(BaseModel):
     position_in_paragraph: int
     attribution_method: str
     dialogue_type: str | None = None
+    #: A script's parenthetical before the line (doc 25, P4).
+    direction: str = ""
     confidence: float
     subtext: str | None
 

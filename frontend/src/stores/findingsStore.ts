@@ -8,7 +8,7 @@ import { notifyPromisesChanged } from "../lib/promises/usePromises";
 import { announceScenesRewritten } from "../lib/sceneEvents";
 import { useProposalsStore } from "./proposalsStore";
 import { useSeriesStore } from "./seriesStore";
-import { reloadStructure } from "../lib/story/loadStory";
+import { reloadCharacters, reloadStructure } from "../lib/story/loadStory";
 import type { Finding, FindingsOut } from "../types/findings";
 
 /**
@@ -84,6 +84,8 @@ export const useFindingsStore = create<FindingsStore>((set, get) => ({
         void useSeriesStore.getState().refetch();
         // A thread carried into the next book: the promise views across the books redraw.
         if (f.fix?.kind === "carry") notifyPromisesChanged();
+        // Someone added to the Lorebook: the cast everywhere shows them.
+        if (f.fix?.kind === "add") await reloadCharacters();
       }
       return done;
     } finally {

@@ -75,7 +75,9 @@ export default function FindingRow({
                     : `Bring ${f.where} into ${carryBook(f.fix.story_id)}, where this book leaves it?`
                   : f.fix.kind === "split"
                     ? `Start a new scene at “${f.fix.old}”? Everything from it on goes with it.`
-                    : `Change every “${f.fix.old}” in ${f.where || "this scene"} to “${f.fix.new}”?`}
+                    : f.fix.kind === "add"
+                      ? `Add ${f.fix.old} to the Lorebook as a character? Their lines become theirs.`
+                      : `Change every “${f.fix.old}” in ${f.where || "this scene"} to “${f.fix.new}”?`}
             </span>
             <button
               type="button"
@@ -97,7 +99,9 @@ export default function FindingRow({
                   ? "Bring it in"
                   : f.fix.kind === "split"
                     ? "Start the scene"
-                    : "Change it"}
+                    : f.fix.kind === "add"
+                      ? "Add them"
+                      : "Change it"}
             </button>
             <button type="button" className={styles.verb} onClick={() => setConfirming(false)}>
               Not now

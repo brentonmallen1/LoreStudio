@@ -36,3 +36,15 @@ export interface TitlePage {
   draft: string;
   date: string;
 }
+
+/** A manuscript export's choices: prose formats and a screenplay's own. */
+export interface ExportOptions extends Partial<ScriptExportChoices> {
+  format:
+    "docx" | "docx_manuscript" | "epub" | "markdown" | "html" | "odt" | "pdf" | "txt" | ScriptExportFormat;
+  include_headers: boolean;
+  include_scene_titles: boolean;
+  title_page: boolean;
+  scene_break: string;
+  status_filter: string[] | null;
+  pdf_layout?: "default" | "novel" | "manuscript" | "compact" | "dark";
+}

@@ -64,6 +64,8 @@ def computed(view: StoryView, db: Session) -> list[Finding]:
                 passages=[f.excerpt] if f.excerpt else [],
                 suggestion=f.suggestion,
                 where=f.node_title or "Untitled scene",
+                action="fix",
+                fix=FindingFix(kind="add", old=f.text, new=f.text),
             )
         )
     out += _second_headings(view)

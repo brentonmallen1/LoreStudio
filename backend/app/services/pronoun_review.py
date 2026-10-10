@@ -256,7 +256,7 @@ def review_scene(
 
 def _name_proposals(node_id: str, pi: int, text: str, html: str, old: str, new: str) -> list[Proposal]:
     """Every use of the old name in a paragraph: mentions, speaker tags and plain text."""
-    marked = [(a, b) for i, _p, a, b in _uses(html, "character", old) if i == pi]
+    marked = [(a, b) for i, _p, a, b, _cue in _uses(html, "character", old) if i == pi]
     plain = [
         (a, b)
         for a, b in find_in_text(text, old, case_sensitive=True, whole_word=True)

@@ -33,10 +33,11 @@ class FindingAnchor(BaseModel):
 class FindingFix(BaseModel):
     """A fix the app can make for the author, on their word: a misspelt name, (``series``)
     this book's value of an enduring field made the value in every book of the series,
-    (``carry``) a thread left open brought into the next book, or (``split``) a script scene cut
-    at its second heading, ``old``, into two scenes (doc 25, D3)."""
+    (``carry``) a thread left open brought into the next book, (``split``) a script scene cut
+    at its second heading, ``old``, into two scenes (doc 25, D3), or (``add``) someone who
+    speaks but is not in the Lorebook, ``old``, added to it as a character (doc 25, P4)."""
 
-    kind: Literal["rename", "series", "carry", "split"] = "rename"
+    kind: Literal["rename", "series", "carry", "split", "add"] = "rename"
     old: str
     new: str
     #: ``series`` only: the field, and the element it is a field of.

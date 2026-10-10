@@ -1,8 +1,17 @@
 import type { WhoAreThey } from "./whoAreThey";
 
 export type { Facet, FacetArea, Formative, Known, WhoAreThey } from "./whoAreThey";
-import type { ScriptExportChoices, ScriptExportFormat, TitlePage } from "./script";
-export type { ScriptExportChoices, ScriptExportFormat, ScriptLayout, ScriptLine, TitlePage } from "./script";
+import type { AttributionMethod, DialogueType } from "./dialogue";
+export type { AttributionMethod, DialogueType } from "./dialogue";
+import type { TitlePage } from "./script";
+export type {
+  ExportOptions,
+  ScriptExportChoices,
+  ScriptExportFormat,
+  ScriptLayout,
+  ScriptLine,
+  TitlePage,
+} from "./script";
 
 export interface User {
   id: string;
@@ -125,9 +134,8 @@ export interface StructureNode {
   word_count: number;
   /** A script scene's length in lines of the printed page (doc 25); 0 in prose. */
   line_count?: number;
-  /** What a script scene's heading says, read from it on save (doc 25, D3): INT, EXT, INT/EXT… */
+  /** What a script scene's heading says, read from it on save (doc 25, D3): INT, EXT… and when. */
   interior?: string;
-  /** …and when: NIGHT, DAY, CONTINUOUS. */
   time_of_day?: string;
   /** "planned": a scene in the plan with no prose yet; the first words make it a draft. */
   status: "planned" | "draft" | "revised" | "final";
@@ -836,17 +844,6 @@ export interface Manuscript {
   sections: ManuscriptSection[];
 }
 
-export interface ExportOptions extends Partial<ScriptExportChoices> {
-  format:
-    "docx" | "docx_manuscript" | "epub" | "markdown" | "html" | "odt" | "pdf" | "txt" | ScriptExportFormat;
-  include_headers: boolean;
-  include_scene_titles: boolean;
-  title_page: boolean;
-  scene_break: string;
-  status_filter: string[] | null;
-  pdf_layout?: "default" | "novel" | "manuscript" | "compact" | "dark";
-}
-
 export interface AssetAttachment {
   id: string;
   asset_id: string;
@@ -1438,10 +1435,12 @@ export interface DialogueBlock {
   raw_text: string;
   paragraph_index: number;
   position_in_paragraph: number;
-  attribution_method: "explicit" | "inferred" | "alternating" | "manual" | "unattributed" | "pov_default";
-  dialogue_type: "speech" | "thought" | null;
+  attribution_method: AttributionMethod;
+  dialogue_type: DialogueType | null;
   confidence: number;
   subtext: string | null;
+  /** A script's parenthetical before the line, "quietly" (doc 25, P4). */
+  direction?: string;
 }
 
 export interface DialogueBlockWithScene {
@@ -1451,8 +1450,8 @@ export interface DialogueBlockWithScene {
   character_id: string | null;
   speaker_name: string;
   content: string;
-  attribution_method: "explicit" | "inferred" | "alternating" | "manual" | "unattributed" | "pov_default";
-  dialogue_type: "speech" | "thought" | null;
+  attribution_method: AttributionMethod;
+  dialogue_type: DialogueType | null;
   confidence: number;
   paragraph_index: number;
   subtext?: string | null;

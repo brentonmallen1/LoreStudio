@@ -30,6 +30,11 @@ def test_clean(element, text, expect):
     assert ss.clean(element, text) == expect
 
 
+@pytest.mark.parametrize(("name", "cue"), CASES["cue_names"])
+def test_cue_name(name, cue):
+    assert ss.cue_name(name) == cue
+
+
 @pytest.mark.parametrize(("text", "name", "extensions", "dual"), CASES["cue"])
 def test_cue(text, name, extensions, dual):
     assert ss.parse_cue(text) == ss.Cue(name, tuple(extensions), dual)

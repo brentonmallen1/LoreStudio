@@ -42,9 +42,12 @@ _TAG = re.compile(r"<[^>]+>")
 
 def _pattern(form: str) -> re.Pattern[str]:
     # A one-word form must be capitalised as written, or "will" is Will and "grace" is
-    # Grace. A longer form is distinctive enough to match however it is cased.
-    flags = 0 if " " not in form else re.IGNORECASE
-    return re.compile(rf"(?<![\w@])@?{re.escape(form)}(?!\w)", flags)
+    # Grace; or all in capitals, as a script writes ELEANOR in a cue and at her entrance
+    # (doc 25, P4). A longer form is distinctive enough to match however it is cased.
+    if " " in form:
+        return re.compile(rf"(?<![\w@])@?{re.escape(form)}(?!\w)", re.IGNORECASE)
+    either = "|".join(re.escape(f) for f in dict.fromkeys([form, form.upper()]))
+    return re.compile(rf"(?<![\w@])@?(?:{either})(?!\w)")
 
 
 def known_as(character) -> list[str]:

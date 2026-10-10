@@ -177,6 +177,17 @@
   color: var(--color-nlp);
 }
 
+/* A script's parenthetical before the line, and V.O. / O.S. by the name (doc 25, P4). */
+.direction {
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+.heardMark {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
 .guess {
   font-weight: 700;
   color: var(--color-warning);

@@ -13,6 +13,7 @@ from typing import Literal
 
 from .prose_html import Edit, apply_edits, paragraphs
 from .prose_syntax import Known, Lexicon, find_mentions, find_quotes, find_speaker_tags, fold, is_word
+from .script_syntax import cue_name, parse_cue
 
 _NO_NAMES = Lexicon([])
 
@@ -92,28 +93,44 @@ Kind = Literal["character", "location"]
 def name_occurrences(html: str, kind: Kind, name: str) -> list[tuple[int, str]]:
     """Each place the prose uses `name` as a mention (or, for a character, a speaker tag):
     (paragraph index, the paragraph's text) per use, for a rename's preview."""
-    return [(i, p.text) for i, p, _a, _b in _uses(html, kind, name)]
+    return [(i, p.text) for i, p, _a, _b, _cue in _uses(html, kind, name)]
 
 
 def _uses(html: str, kind: Kind, name: str):
     lex = Lexicon([Known("character" if kind == "character" else "place", name)])
     want = fold(name)
     for i, p in enumerate(paragraphs(html)):
+        if kind == "character" and p.element == "cue":
+            # A script's cue (doc 25, P4): the name as cued (ELEANOR) or written out whole.
+            said = parse_cue(p.text).name
+            if fold(said) in (fold(cue_name(name)), want):
+                inner = p.text.index(said)
+                yield i, p, inner, inner + len(said), fold(said) == want
+            continue
         for m in find_mentions(p.text, lex):
             if fold(m.written) == want:
                 inner = p.text.index(m.written, m.start)
-                yield i, p, inner, inner + len(m.written)
+                yield i, p, inner, inner + len(m.written), None
         if kind == "character":
             for t in find_speaker_tags(p.text):
                 if fold(t.speaker) == want:
                     inner = p.text.index(t.speaker, p.text.index("<", t.tag_start))
-                    yield i, p, inner, inner + len(t.speaker)
+                    yield i, p, inner, inner + len(t.speaker), None
 
 
 def rename(html: str, kind: Kind, old: str, new: str) -> tuple[str, int]:
-    """Rename: the words inside each mention (and a character's speaker tags) that say `old`."""
-    edits = [Edit(p, a, b, new) for _i, p, a, b in _uses(html, kind, old)]
+    """Rename: the words inside each mention (and a character's speaker tags and a script's
+    cues) that say `old`. A cue keeps its form: ELEANOR becomes NELL, ELEANOR VANCE NELL HART."""
+    edits = [
+        Edit(p, a, b, new if cue is None else _cue_for(new, cue))
+        for _i, p, a, b, cue in _uses(html, kind, old)
+        if cue is None or _cue_for(new, cue) != p.text[a:b]
+    ]
     return apply_edits(html, edits) if edits else (html, 0)
+
+
+def _cue_for(name: str, full: bool) -> str:
+    return name.upper() if full else cue_name(name)
 
 
 _OPENERS_BEFORE = set(" \t\n\r(—–-[{“‘/ ")

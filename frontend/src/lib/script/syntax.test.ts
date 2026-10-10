@@ -35,6 +35,7 @@ const CASES = JSON.parse(
   classify: [string, ScriptElement | null, ScriptElement][];
   clean: [ScriptElement, string, string][];
   cue: [string, string, string[], boolean][];
+  cue_names: [string, string][];
   parse: { text: string; expect: Block[] }[];
   wrap: [string, number, number, string[]][];
   paginate: { _why: string; blocks: Block[]; pages: string[][] }[];
@@ -90,13 +91,7 @@ describe("script grammar (shared cases)", () => {
     expect(pageCount([["action", "word ".repeat(3000)]])).toBe(5);
   });
 
-  it.each([
-    ["Eleanor Vance", "ELEANOR"],
-    ["The Visitor (Calder)", "THE VISITOR"],
-    ["Dr. Priya Sharma", "DR. PRIYA SHARMA"],
-    ["Nell", "NELL"],
-    ["O'Brien", "O'BRIEN"],
-  ])("cues %s as %s", (name, cue) => {
+  it.each(CASES.cue_names)("cues %s as %s", (name, cue) => {
     expect(cueName(name)).toBe(cue);
   });
 

@@ -33,12 +33,14 @@ export interface Finding {
   action: FindingAction;
   /** A misspelt name to rename, (series) this book's value to make every book's, (carry)
    * a thread left open brought into the next book, or (split) a script scene's second
-   * heading, `old`, made the start of a scene of its own. */
+   * heading, `old`, made the start of a scene of its own, or (add) someone who speaks, `old`,
+   * added to the Lorebook. */
   fix:
     | { kind: "rename"; old: string; new: string }
     | { kind: "series"; old: string; new: string; field: string; element_id: string }
     | { kind: "carry"; old: string; new: string; story_id: string }
     | { kind: "split"; old: string; new: string }
+    | { kind: "add"; old: string; new: string }
     | null;
   run_id: string | null;
   feature: string | null;
