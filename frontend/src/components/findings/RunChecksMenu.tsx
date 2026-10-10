@@ -10,6 +10,7 @@ import { useJobsStore } from "../../stores/jobsStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { toast } from "../../stores/toastStore";
 import AIFeatureInfoModal from "../ai/AIFeatureInfoModal";
+import { useStoryFormat } from "../../lib/storyFormat";
 import { ASSISTANT_CHECKS, LOCAL_CHECKS } from "./checks";
 import EditorialPassDialog from "./EditorialPassDialog";
 import styles from "./Findings.module.css";
@@ -27,6 +28,7 @@ const FINDINGS_JOBS = ["check", "editorial-pass", "local-checks"] as const;
 export default function RunChecksMenu() {
   const storyId = useStoryStore((s) => s.activeStory?.id);
   const aiAvailable = useAIAvailable();
+  const local = useStoryFormat() === "prose" ? "prose" : "script";
   const data = useFindingsStore((s) => s.data);
   const runLocal = useFindingsStore((s) => s.runLocal);
   const refetch = useFindingsStore((s) => s.refetch);
@@ -125,7 +127,7 @@ export default function RunChecksMenu() {
             onClick={() => void runLocal()}
           >
             <span className={styles.runDot} data-source="local" />
-            <RunText label={LOCAL_CHECKS.prose.label} hint={LOCAL_CHECKS.prose.hint} />
+            <RunText label={LOCAL_CHECKS[local].label} hint={LOCAL_CHECKS[local].hint} />
             <span className={styles.runWhen}>{runningLocal ? "running…" : ago(data?.last_local_run)}</span>
           </button>
           {aiAvailable && (

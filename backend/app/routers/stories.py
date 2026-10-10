@@ -36,9 +36,10 @@ from ..services.llm.prompts.snowflake import LAYER_SPECS, build_snowflake_guidan
 from ..services.llm.prompts.summaries import build_story_summary_prompt
 from ..services.llm.sse import sse_stream
 from ..services.series import service as series_service
+from ..services.story_format import is_script
 from ..services.structure_scaffold import scaffold_story
 from ..services.text_utils import last_paragraphs
-from ..services.word_count import get_word_count_status
+from ..services.word_count import length_status, story_pages, story_target
 
 router = APIRouter()
 
@@ -75,12 +76,13 @@ def list_story_progress(db: Session = Depends(get_db), current_user: User = Depe
         words = sum(r.word_count or 0 for r in mine)
         written = [r for r in mine if (r.word_count or 0) > 0] or mine
         last = max(written, key=lambda r: r.updated_at, default=None)
-        target = get_word_count_status(story.intended_length or "", words)
+        target = story_target(story, db, words)
         out.append(
             {
                 "story_id": story.id,
                 "word_count": words,
                 "target_words": target["max"] if target else None,
+                "target_unit": target["unit"] if target else None,
                 "pct": target["pct"] if target else None,
                 "last_scene_id": last.id if last else None,
                 "last_scene_title": last.title if last else None,
@@ -265,9 +267,17 @@ def get_story_overview(
         for b in sorted_buckets
     ]
 
+    # A script is measured in the pages its PDF prints (doc 25, P5).
+    page_count = story_pages(story, db) if is_script(story) else None
+    target = (
+        length_status("screenplay", story.intended_length or "", page_count)
+        if page_count is not None
+        else length_status("prose", story.intended_length or "", total_words)
+    )
     return StoryOverview(
         word_count=total_words,
-        word_count_target=get_word_count_status(story.intended_length or "", total_words),
+        word_count_target=target,
+        page_count=page_count,
         resume_excerpt=last_paragraphs(recent_leaves[0].content or "") if recent_leaves else [],
         scene_count=len(leaf_nodes),
         scenes_by_status=scenes_by_status,

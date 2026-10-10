@@ -19,6 +19,11 @@ export const LOCAL_CHECKS = {
     label: "Prose habits, tense, point of view",
     hint: "Passive voice, adverbs, tags other than said, repeated words, slips of tense and point of view",
   },
+  /** A script's checks read its action lines (doc 25, P5; story_format.SCRIPT_CHECKS). */
+  script: {
+    label: "Action lines: habits and tense",
+    hint: "Passive voice, adverbs and repeated words in the action, and action that slips out of the present tense",
+  },
 };
 
 export const ASSISTANT_CHECKS: AssistantCheck[] = [

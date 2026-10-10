@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from ..models.activity_log import ActivityLog
 from ..models.character import Character
 from ..models.location import Location
+from ..models.story import Story
 from ..models.structure import StructureNode
 from ..schemas.nlp_analysis import (
     EditorialConsistencyResponse,
@@ -22,7 +23,12 @@ from ..schemas.nlp_analysis import (
     SceneNLPAnalysis,
 )
 from .nlp_analysis_service import ALL_CHECKS, analyze_scene, analyze_scene_editorial, extract_unknown_entities
+from .story_format import SCRIPT_CHECKS, action_html, is_script, spoken_and_action_html
 from .wording import count
+
+
+def _script(story_id: str, db: Session) -> bool:
+    return is_script(db.get(Story, story_id))
 
 
 def _scenes(story_id: str, db: Session, node_ids: list[str] | None) -> list[StructureNode]:
@@ -36,8 +42,16 @@ def run_prose_analysis(
     story_id: str, user_id: str, db: Session, node_ids: list[str] | None = None, checks: list[str] | None = None
 ) -> ProseNLPResponse:
     checks_set = set(checks) & ALL_CHECKS if checks else ALL_CHECKS
+    script = _script(story_id, db)
+    if script:
+        # A script's action lines read like prose; the rest of it does not (doc 25, P5).
+        checks_set = checks_set & SCRIPT_CHECKS
     scenes = [
-        SceneNLPAnalysis(scene_id=n.id, scene_title=n.title or "", **analyze_scene(n.content, checks_set))
+        SceneNLPAnalysis(
+            scene_id=n.id,
+            scene_title=n.title or "",
+            **analyze_scene(action_html(n.content) if script else n.content, checks_set),
+        )
         for n in _scenes(story_id, db, node_ids)
     ]
     result = ProseNLPResponse(scenes=scenes, checks_run=sorted(checks_set))
@@ -70,15 +84,24 @@ def run_prose_analysis(
 def run_editorial_consistency(
     story_id: str, user_id: str, db: Session, node_ids: list[str] | None = None
 ) -> EditorialConsistencyResponse:
+    script = _script(story_id, db)
     scenes = [
-        SceneEditorialAnalysis(scene_id=n.id, scene_title=n.title or "", **analyze_scene_editorial(n.content))
+        SceneEditorialAnalysis(
+            scene_id=n.id,
+            scene_title=n.title or "",
+            **(
+                analyze_scene_editorial(action_html(n.content), script=True)
+                if script
+                else analyze_scene_editorial(n.content)
+            ),
+        )
         for n in _scenes(story_id, db, node_ids)
     ]
     total_tense = sum((s.tense_consistency.shift_count if s.tense_consistency else 0) for s in scenes)
     total_pov = sum(len(s.pov_drift.findings) if s.pov_drift else 0 for s in scenes)
     result = EditorialConsistencyResponse(
         scenes=scenes,
-        checks_run=["tense_consistency", "pov_drift"],
+        checks_run=["tense_consistency"] if script else ["tense_consistency", "pov_drift"],
         total_tense_shifts=total_tense,
         total_pov_flags=total_pov,
     )
@@ -113,7 +136,11 @@ def run_entity_scan(story_id: str, user_id: str, db: Session) -> EntitySuggestio
     known_locations = {
         n for loc in db.query(Location).filter(Location.story_id == story_id) for n in [loc.name, *(loc.aliases or [])]
     }
-    scenes = [(n.id, n.title or "", n.content) for n in _scenes(story_id, db, None)]
+    script = _script(story_id, db)
+    scenes = [
+        (n.id, n.title or "", spoken_and_action_html(n.content) if script else n.content)
+        for n in _scenes(story_id, db, None)
+    ]
     result = extract_unknown_entities(scenes, known_characters, known_locations)
     chars, locs = len(result.character_suggestions), len(result.location_suggestions)
     db.add(

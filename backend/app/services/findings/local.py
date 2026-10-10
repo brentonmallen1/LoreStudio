@@ -192,7 +192,24 @@ def from_editorial_run(view: StoryView, log: ActivityLog) -> list[Finding]:
             continue
         tense = scene.get("tense_consistency") or {}
         shifts = [f for f in tense.get("findings", []) if view.still_there(node, f.get("sentence", ""))]
-        if shifts:
+        if shifts and is_script(view.story):
+            # A script's action happens as we watch (doc 25, P5).
+            out.append(
+                make(
+                    "past_in_action",
+                    "prose",
+                    "low",
+                    "local",
+                    "Action slips into the past tense " + ("once" if len(shifts) == 1 else f"{len(shifts)} times"),
+                    anchor=FindingAnchor(node_id=node.id),
+                    key="past_in_action",
+                    evidence=shifts[0].get("sentence", ""),
+                    passages=_quotes(f.get("sentence") for f in shifts),
+                    suggestion="A script's action is what we see as it happens: “She opens the door”, not “opened”.",
+                    **_run_fields(log, node),
+                )
+            )
+        elif shifts:
             dominant = tense.get("dominant_tense") or "the scene's tense"
             out.append(
                 make(

@@ -2,6 +2,8 @@ import type { WhoAreThey } from "./whoAreThey";
 
 export type { Facet, FacetArea, Formative, Known, WhoAreThey } from "./whoAreThey";
 import type { AttributionMethod, DialogueType } from "./dialogue";
+import type { WordCountTarget } from "./numbers";
+export type { WordCountTarget } from "./numbers";
 export type { AttributionMethod, DialogueType } from "./dialogue";
 import type { TitlePage } from "./script";
 export type {
@@ -765,15 +767,6 @@ export interface BrainstormIntent {
 
 // ── Story Health ──
 
-export interface WordCountTarget {
-  min: number | null;
-  max: number;
-  soft_warning_at: number | null;
-  current: number;
-  pct: number;
-  warning_level: "normal" | "approaching" | "exceeded";
-}
-
 export interface RecentScene {
   id: string;
   title: string;
@@ -811,6 +804,8 @@ export interface DistributionEntry {
 export interface StoryOverview {
   word_count: number;
   word_count_target: WordCountTarget | null;
+  /** A script's length in printed pages (doc 25, P5); null for prose. */
+  page_count?: number | null;
   scene_count: number;
   scenes_by_status: Record<string, number>;
   character_count: number;

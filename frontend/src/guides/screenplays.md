@@ -47,6 +47,10 @@ A heading typed further down a scene starts another scene. A bar above the page 
 
 A screenplay is counted in pages, about a minute of screen time each: Courier 12 point, 55 lines to a page, each element in its place. The page count LoreStudio shows comes from the same layout the printed script uses.
 
+Choose the script's form under **Intended length** in **Story identity**: a short film, a TV half-hour, a TV hour or a feature. Its length is counted in pages, and **Numbers** shows the pages against that form, each act's pages, how much of the script is speech, and any scene over three pages.
+
+**Run checks** reads a script's action lines, which are written like prose: passive voice, adverbs, repeated words, and action that slips out of the present tense ("She opened the door" rather than "She opens the door"). A character's words are theirs to say however they say them, so dialogue is left alone, and the prose-only checks (tags other than said, point of view, sentence length) do not run.
+
 **Publish** shows the script as its printed pages, and exports it as a screenplay PDF, a Final Draft file or Fountain, with a title page. See _Import and export_.
 
 The demo story _The Last Lighthouse: The Screenplay_ is the novel's first three scenes written for the screen.

@@ -87,6 +87,16 @@ def build_script(story: Story, sections: list[ManuscriptSection], *, auto_contd:
     )
 
 
+def pages_in(contents: list[str | None]) -> int:
+    """How many pages scenes with these contents, in this order, print on: the PDF's count,
+    title page aside (doc 25, D5)."""
+    from .script_syntax import page_count
+
+    blocks = [Block(e, t) for html in contents for e, t in scene_blocks(html or "") if t.strip()]
+    _continued(blocks)
+    return page_count([(b.element, b.text) for b in blocks])
+
+
 def _continued(blocks: list[Block]) -> None:
     """A speaker who speaks again with only action since gets "(CONT'D)" on the cue."""
     last: str | None = None

@@ -28,14 +28,16 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString
  */
 export function Vitals({ storyId, ov }: { storyId: string; ov: StoryOverview }) {
   const target = ov.word_count_target;
+  // A script is measured in the pages it prints (doc 25, P5).
+  const unit = ov.page_count != null ? "pages" : "words";
   const states = (["draft", "revised", "final", "planned"] as const)
     .filter((s) => ov.scenes_by_status[s])
     .map((s) => `${ov.scenes_by_status[s]} ${s}`)
     .join(" · ");
   const items = [
     {
-      label: target ? `words of ${target.max.toLocaleString()}` : "words",
-      value: ov.word_count.toLocaleString(),
+      label: target ? `${unit} of ${target.max.toLocaleString()}` : unit,
+      value: (ov.page_count ?? ov.word_count).toLocaleString(),
       sub: target ? `${Math.round(target.pct)}% of ${target.max.toLocaleString()}` : "no target length set",
       bar: target ? Math.min(100, target.pct) : null,
       warn: target?.warning_level,

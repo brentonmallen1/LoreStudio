@@ -437,17 +437,22 @@ _PERSPECTIVE_VERBS = {
 }
 
 
-def check_tense_consistency(doc) -> TenseConsistencyResult:
+def check_tense_consistency(doc, expect: str | None = None) -> TenseConsistencyResult:
     """
     Detect tense inconsistencies across sentences.
     Tags VBD/VBN as past and VBZ/VBP as present.
     Flags sentences that deviate from the document's dominant tense.
     Only flags sentences with at least 2 finite verbs to reduce false positives.
+
+    `expect` fixes the tense instead ("present" for a script's action, doc 25 P5), and then
+    one verb is enough: "She opened the door." is a slip in a script.
     """
     sentence_data: list[tuple] = []  # (sent, tense, past_count, present_count)
+    # Held to the present, only a simple past (VBD) is a slip: "is lit", "has gone" are not.
+    past_tags = {"VBD"} if expect == "present" else _PAST_TAGS
 
     for sent in doc.sents:
-        past_c = sum(1 for tok in sent if tok.pos_ == "VERB" and tok.tag_ in _PAST_TAGS)
+        past_c = sum(1 for tok in sent if tok.pos_ == "VERB" and tok.tag_ in past_tags)
         pres_c = sum(1 for tok in sent if tok.pos_ == "VERB" and tok.tag_ in _PRESENT_TAGS)
         if past_c == 0 and pres_c == 0:
             continue
@@ -462,10 +467,13 @@ def check_tense_consistency(doc) -> TenseConsistencyResult:
     dominant = "past" if past_sents >= pres_sents else "present"
     if past_sents == pres_sents:
         dominant = "mixed"
+    if expect:
+        dominant = expect
+    least = 1 if expect else 2
 
     findings: list[TenseShift] = []
     for sent, tense, past_c, pres_c in sentence_data:
-        if tense != dominant and dominant != "mixed" and (past_c + pres_c) >= 2:
+        if tense != dominant and dominant != "mixed" and (past_c + pres_c) >= least:
             findings.append(
                 TenseShift(
                     sentence=sent.text.strip(),
@@ -550,10 +558,13 @@ def check_pov_drift(doc) -> POVDriftResult:
     )
 
 
-def analyze_scene_editorial(scene_html: str) -> dict:
+def analyze_scene_editorial(scene_html: str, *, script: bool = False) -> dict:
     """
     Run editorial consistency checks (tense + POV) on a scene.
     Returns a dict matching SceneEditorialAnalysis fields (excluding scene_id/title).
+
+    A script (its action lines, doc 25 P5) is held to the present tense and has no point of
+    view to drift from.
     """
     text = prose_text(scene_html)
     if not text.strip():
@@ -565,8 +576,8 @@ def analyze_scene_editorial(scene_html: str) -> dict:
 
     return {
         "word_count": word_count,
-        "tense_consistency": check_tense_consistency(doc),
-        "pov_drift": check_pov_drift(doc),
+        "tense_consistency": check_tense_consistency(doc, expect="present" if script else None),
+        "pov_drift": None if script else check_pov_drift(doc),
     }
 
 

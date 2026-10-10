@@ -20,9 +20,35 @@ TEMPLATE_FORMATS: dict[str, str] = {
 }
 
 
+#: The local checks a script runs (doc 25, P5), and what they read: its action lines, which are
+#: written like prose. Said-bookisms (a cue names the speaker), point of view (a script has no
+#: narrator) and sentence variety (action is terse by design) do not run on a script; tense
+#: does, expecting the present: action happens as we watch.
+SCRIPT_CHECKS: frozenset[str] = frozenset({"passive_voice", "adverb_overuse", "repeated_words"})
+
+
 def is_script(story) -> bool:
     """Whether the story is written in script elements rather than prose."""
     return bool(story) and (getattr(story, "story_format", None) or "prose") != "prose"
+
+
+def action_html(html: str | None) -> str:
+    """A script scene's action lines alone, as paragraphs, for the checks that read prose."""
+    from html import escape
+
+    from .script_syntax import scene_blocks
+
+    return "".join(f"<p>{escape(text)}</p>" for el, text in scene_blocks(html or "") if el == "action")
+
+
+def spoken_and_action_html(html: str | None) -> str:
+    """A script scene's action and dialogue, without cues, headings or transitions (the
+    name scan would take every ALL CAPS cue and heading for a stranger)."""
+    from html import escape
+
+    from .script_syntax import scene_blocks
+
+    return "".join(f"<p>{escape(t)}</p>" for el, t in scene_blocks(html or "") if el in ("action", "dialogue"))
 
 
 def template_format(template_id: str | None) -> str:

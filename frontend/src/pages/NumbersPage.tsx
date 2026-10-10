@@ -16,6 +16,7 @@ import Summaries from "../components/numbers/Summaries";
 import Talk from "../components/numbers/Talk";
 import Threads from "../components/numbers/Threads";
 import Trend from "../components/numbers/Trend";
+import Pages from "../components/numbers/Pages";
 import Words from "../components/numbers/Words";
 import { useNumbersCompare } from "../hooks/useNumbersCompare";
 import { useReloadOnUndo } from "../hooks/useUndoRedo";
@@ -125,7 +126,9 @@ export default function NumbersPage({ storyId }: { storyId: string }) {
         ]}
         summary={
           <>
-            {now ? `${now.words.total.toLocaleString()} words · ${now.words.scenes} scenes` : "Counting…"}
+            {now
+              ? `${data?.pages && !compare.to ? `${data.pages.total.toLocaleString()} pages · ` : ""}${now.words.total.toLocaleString()} words · ${now.words.scenes} scenes`
+              : "Counting…"}
             <span className={styles.stance}>
               The book as it stands, measured: nothing here is a verdict or a suggestion. The ⓘ beside each
               section says what it counts and how to read it.
@@ -139,6 +142,8 @@ export default function NumbersPage({ storyId }: { storyId: string }) {
         {now && then && <WhatChanged then={then} now={now} />}
         {now && (
           <>
+            {/* A script in pages (doc 25, P5): the book as it is, not kept in readings yet. */}
+            {!compare.to && data?.pages && <Pages storyId={storyId} pages={data.pages} />}
             <Words words={now.words} then={then?.words} />
             {now.bars.length > 0 && (
               <>

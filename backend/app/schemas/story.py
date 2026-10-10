@@ -140,6 +140,8 @@ class DistributionEntry(BaseModel):
 class StoryOverview(BaseModel):
     word_count: int
     word_count_target: dict | None
+    #: A script's length in printed pages (doc 25, P5); None for prose.
+    page_count: int | None = None
     scene_count: int
     scenes_by_status: dict[str, int]
     character_count: int
