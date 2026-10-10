@@ -12,6 +12,9 @@ import { BookOpen, RefreshCw, Download, X, Feather, Orbit } from "lucide-react";
 import { api } from "../../api/client";
 import type { Manuscript, ManuscriptSection } from "../../types";
 import ExportPanel from "./ExportPanel";
+import ScriptExportPanel from "./ScriptExportPanel";
+import ScriptPages from "./ScriptPages";
+import { pagesSummary, useScriptPreview } from "./useScriptPreview";
 import PageHeader from "../layout/PageHeader";
 import { useAIAvailable } from "../../lib/mode";
 import CompTitlesSuggester from "../publish/CompTitlesSuggester";
@@ -105,15 +108,19 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
   const [pubPrepOpen, setPubPrepOpen] = useState(false);
   const [showCompTitles, setShowCompTitles] = useState(false);
   const { createSession } = useAIStore();
+  // A screenplay reads as its printed pages (doc 25, P3).
+  const preview = useScriptPreview(storyId, STATUS_FILTER_VALUES[statusFilter]);
+  const reloadPreview = preview.reload;
 
   const load = useCallback(() => {
+    reloadPreview();
     setLoading(true);
     api
       .getManuscript(storyId, STATUS_FILTER_VALUES[statusFilter])
       .then(setManuscript)
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [storyId, statusFilter]);
+  }, [storyId, statusFilter, reloadPreview]);
 
   useEffect(() => {
     load();
@@ -143,9 +150,11 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
         <PageHeader
           title="Publish"
           summary={
-            manuscript
-              ? `${manuscript.total_words.toLocaleString()} words · ${estimateReadingTime(manuscript.total_words)} · the manuscript as a reader will see it`
-              : "The manuscript as a reader will see it"
+            preview.script && preview.layout
+              ? `${pagesSummary(preview.layout.page_count)} · the script as it prints`
+              : manuscript
+                ? `${manuscript.total_words.toLocaleString()} words · ${estimateReadingTime(manuscript.total_words)} · the manuscript as a reader will see it`
+                : "The manuscript as a reader will see it"
           }
           aside={filterSelect}
           primary={{
@@ -177,12 +186,16 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
         <div className={styles.toolbar}>
           <BookOpen size={14} className={styles.toolbarIcon} />
           <span className={styles.toolbarTitle}>{manuscript?.title ?? "Manuscript"}</span>
-          {manuscript && (
-            <span className={styles.toolbarMeta}>
-              {manuscript.total_words.toLocaleString()} words
-              {" · "}
-              {estimateReadingTime(manuscript.total_words)}
-            </span>
+          {preview.script && preview.layout ? (
+            <span className={styles.toolbarMeta}>{pagesSummary(preview.layout.page_count)}</span>
+          ) : (
+            manuscript && (
+              <span className={styles.toolbarMeta}>
+                {manuscript.total_words.toLocaleString()} words
+                {" · "}
+                {estimateReadingTime(manuscript.total_words)}
+              </span>
+            )
           )}
           <div className={styles.toolbarRight}>
             {filterSelect}
@@ -233,6 +246,8 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
                 </button>
               )}
             </div>
+          ) : preview.script ? (
+            preview.layout && <ScriptPages layout={preview.layout} />
           ) : (
             <div className={styles.document}>
               <h1 className={styles.documentTitle}>{manuscript?.title}</h1>
@@ -316,7 +331,17 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
                 <X size={13} />
               </button>
             </div>
-            <ExportPanel storyId={storyId} />
+            {preview.script ? (
+              <ScriptExportPanel
+                storyId={storyId}
+                choices={preview.choices}
+                onChoices={preview.setChoices}
+                statusFilter={STATUS_FILTER_VALUES[statusFilter]}
+                onTitlePage={preview.reload}
+              />
+            ) : (
+              <ExportPanel storyId={storyId} />
+            )}
           </div>
         )}
       </div>

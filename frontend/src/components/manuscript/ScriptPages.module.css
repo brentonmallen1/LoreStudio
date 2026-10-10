@@ -1,0 +1,47 @@
+/*
+ * A screenplay's pages as they print (ScriptPages.tsx, doc 25 P3). A page is drawn at its true
+ * size, Courier Prime 12pt with each line placed by the server's layout, then scaled to fit:
+ * so the type is a printed page's, not the app's writing size.
+ */
+
+.pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+  padding: 1.5rem 0 3rem;
+}
+
+.slot {
+  position: relative;
+  flex: none;
+}
+
+.page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: "Courier Prime", "Courier New", monospace;
+  font-size: 12pt;
+  line-height: 12pt;
+}
+
+.line {
+  position: absolute;
+  white-space: pre;
+}
+
+.bold {
+  font-weight: 700;
+}
+
+.centre {
+  right: 0;
+  text-align: center;
+}

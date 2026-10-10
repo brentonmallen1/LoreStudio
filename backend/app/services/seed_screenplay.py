@@ -110,6 +110,7 @@ def seed_screenplay_demo() -> None:
             "has come for the one month of her father's logs that was cut out.",
             narrative_intent="Show the novel's opening told as a script: what the camera sees, and what people say.",
             author_name="",
+            title_page={"based_on": "Based on the novel The Last Lighthouse", "draft": "First draft"},
         )
         db.add(story)
         db.flush()

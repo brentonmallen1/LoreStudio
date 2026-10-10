@@ -2,6 +2,7 @@ import { getHTMLFromFragment, type Editor } from "@tiptap/core";
 import { useState } from "react";
 import { api } from "../../../api/client";
 import { ApiError } from "../../../api/request";
+import { scriptApi } from "../../../api/script";
 import { reloadStructure } from "../../../lib/story/loadStory";
 import { loadScene } from "../../../lib/undo/sceneHistory";
 import { useStoryStore } from "../../../stores/storyStore";
@@ -30,7 +31,11 @@ export default function SceneSplitBar({ editor, flush }: { editor: Editor; flush
       const before = getHTMLFromFragment(doc.content.cut(0, pos), schema);
       const after = getHTMLFromFragment(doc.content.cut(pos), schema);
       const expected = useStoryStore.getState().activeNode?.updated_at;
-      await api.splitNode(node.id, { content: before, new_content: after, expected_updated_at: expected });
+      await scriptApi.splitNode(node.id, {
+        content: before,
+        new_content: after,
+        expected_updated_at: expected,
+      });
       loadScene(editor, before);
       const store = useStoryStore.getState();
       if (store.activeNode?.id === node.id) store.setActiveNode(await api.getNode(node.id));

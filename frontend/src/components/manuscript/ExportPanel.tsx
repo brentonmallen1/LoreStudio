@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { Download, FileText, FileCode, BookOpen, FileType2, AlertCircle } from "lucide-react";
 import { api } from "../../api/client";
+import { saveResponse } from "../../lib/download";
 import type { ExportOptions } from "../../types";
 import styles from "./ExportPanel.module.css";
 
@@ -74,15 +75,6 @@ export default function ExportPanel({ storyId }: Props) {
         ...(format === "pdf" && pdfLayout !== "default" ? { pdf_layout: pdfLayout } : {}),
       };
 
-      const res = await api.exportStory(storyId, options);
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.detail ?? `Export failed (${res.status})`);
-      }
-
-      // Extract filename from Content-Disposition header
-      const disposition = res.headers.get("Content-Disposition") ?? "";
-      const match = disposition.match(/filename="([^"]+)"/);
       const ext =
         format === "docx_manuscript"
           ? "docx"
@@ -91,15 +83,7 @@ export default function ExportPanel({ storyId }: Props) {
             : format === "txt"
               ? "txt"
               : format;
-      const filename = match?.[1] ?? `manuscript.${ext}`;
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
+      await saveResponse(await api.exportStory(storyId, options), `manuscript.${ext}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Export failed");
     } finally {

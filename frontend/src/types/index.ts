@@ -1,6 +1,8 @@
 import type { WhoAreThey } from "./whoAreThey";
 
 export type { Facet, FacetArea, Formative, Known, WhoAreThey } from "./whoAreThey";
+import type { ScriptExportChoices, ScriptExportFormat, TitlePage } from "./script";
+export type { ScriptExportChoices, ScriptExportFormat, ScriptLayout, ScriptLine, TitlePage } from "./script";
 
 export interface User {
   id: string;
@@ -40,6 +42,8 @@ export interface Story {
   premise: string;
   logline: string;
   author_name: string;
+  /** A script's title page (doc 25, P3). */
+  title_page?: TitlePage;
   goals: StoryGoal[];
   discovery_enabled: boolean;
   discovery_auto_analyze: boolean;
@@ -832,8 +836,9 @@ export interface Manuscript {
   sections: ManuscriptSection[];
 }
 
-export interface ExportOptions {
-  format: "docx" | "docx_manuscript" | "epub" | "markdown" | "html" | "odt" | "pdf" | "txt";
+export interface ExportOptions extends Partial<ScriptExportChoices> {
+  format:
+    "docx" | "docx_manuscript" | "epub" | "markdown" | "html" | "odt" | "pdf" | "txt" | ScriptExportFormat;
   include_headers: boolean;
   include_scene_titles: boolean;
   title_page: boolean;

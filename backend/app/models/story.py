@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -64,6 +64,9 @@ class Story(Base):
     logline: Mapped[str] = mapped_column(String, default="")
     # Byline for exports and the title page. Optional; the account name is not assumed.
     author_name: Mapped[str] = mapped_column(String, default="", server_default="")
+    #: A script's title page beyond the title and byline (services/script_export.py, doc 25):
+    #: credit, based_on, contact, draft, date. Empty for prose.
+    title_page: Mapped[dict] = mapped_column(JSON, default=dict, server_default=text("'{}'"))
 
     # Narrative perspective
     narrative_perspective: Mapped[str] = mapped_column(String, default="")

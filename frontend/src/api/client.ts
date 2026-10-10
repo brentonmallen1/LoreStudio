@@ -163,12 +163,6 @@ export const api = {
       body: JSON.stringify(data),
     }),
   deleteNode: (nodeId: string) => request<void>(`/structure/${nodeId}`, { method: "DELETE" }),
-  /** Start a new scene at a script scene's second heading (doc 25, D3): one undoable change. */
-  splitNode: (nodeId: string, data: { content: string; new_content: string; expected_updated_at?: string }) =>
-    request<import("../types").StructureNode>(`/structure/${nodeId}/split`, {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
   reorderStructure: (
     storyId: string,
     operations: { node_id: string; parent_id: string | null; position: number }[],

@@ -39,6 +39,6 @@ A heading typed further down a scene starts another scene. A bar above the page 
 
 A screenplay is counted in pages, about a minute of screen time each: Courier 12 point, 55 lines to a page, each element in its place. The page count LoreStudio shows comes from the same layout the printed script uses.
 
-Exporting in script layout (a screenplay PDF, Fountain and Final Draft) is on its way. Until then, exports read the script as prose.
+**Publish** shows the script as its printed pages, and exports it as a screenplay PDF, a Final Draft file or Fountain, with a title page. See _Import and export_.
 
 The demo story _The Last Lighthouse: The Screenplay_ is the novel's first three scenes written for the screen.

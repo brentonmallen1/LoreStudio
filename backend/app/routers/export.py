@@ -2,10 +2,13 @@
 Manuscript & Export endpoints.
 
 GET  /stories/{id}/manuscript  — structured sections for in-app reading
-POST /stories/{id}/export       — pandoc / weasyprint file download
+GET  /stories/{id}/script-layout — a screenplay's printed pages, line by line, for the preview
+POST /stories/{id}/export       — pandoc / weasyprint file download; a screenplay's own formats
+                                  (screenplay PDF, Fountain, Final Draft) from services/script_export
 """
 
 import asyncio
+import dataclasses
 import os
 import tempfile
 from pathlib import Path
@@ -21,6 +24,9 @@ from ..database import get_db
 from ..models.story import Story
 from ..models.user import User
 from ..services.manuscript_builder import build_manuscript_html, get_manuscript_sections
+from ..services.script_export import SCRIPT_FORMATS, ScriptOptions, build_script, export_script
+from ..services.script_pdf import layout
+from ..services.story_format import is_script
 from ..services.text_utils import html_to_paragraphs
 
 router = APIRouter()
@@ -75,6 +81,11 @@ class ExportOptions(BaseModel):
     scene_break: str = "* * *"
     status_filter: list[str] | None = None
     pdf_layout: str = "default"
+    #: A screenplay's export (doc 25): numbered scenes, bold headings, page size, automatic (CONT'D).
+    scene_numbers: bool = False
+    bold_headings: bool = False
+    page_size: str = "letter"
+    auto_contd: bool = True
 
 
 def _build_plain_text(
@@ -140,6 +151,29 @@ def _inject_pdf_layout(html: str, layout_key: str) -> str:
     return style_block + "\n" + html
 
 
+def _script_export(story: Story, sections, options: ExportOptions, safe_title: str) -> Response:
+    """A screenplay in its own layout: the paginated PDF, Fountain or Final Draft (doc 25, P3)."""
+    if not is_script(story):
+        raise HTTPException(status_code=400, detail="Only a screenplay exports in script formats")
+    mime_type, ext = SCRIPT_FORMATS[options.format]
+    script = ScriptOptions(
+        title_page=options.title_page,
+        scene_numbers=options.scene_numbers,
+        bold_headings=options.bold_headings,
+        page_size=options.page_size,
+        auto_contd=options.auto_contd,
+    )
+    try:
+        content = export_script(story, sections, options.format, script)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Export failed: {e}") from e
+    return Response(
+        content=content,
+        media_type=mime_type,
+        headers={"Content-Disposition": f'attachment; filename="{safe_title}.{ext}"'},
+    )
+
+
 def _get_story(story_id: str, db: Session, user: User) -> Story:
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == user.id).first()
     if not story:
@@ -185,6 +219,31 @@ def get_manuscript(
     }
 
 
+@router.get("/stories/{story_id}/script-layout")
+def get_script_layout(
+    story_id: str,
+    status_filter: str | None = None,
+    title_page: bool = True,
+    scene_numbers: bool = False,
+    bold_headings: bool = False,
+    page_size: str = "letter",
+    auto_contd: bool = True,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """A screenplay's pages exactly as the PDF prints them (doc 25, P3): what you see is what
+    exports, because both come from `script_pdf.layout`."""
+    story = _get_story(story_id, db, current_user)
+    if not is_script(story):
+        raise HTTPException(status_code=400, detail="Only a screenplay has script pages")
+    sf = [s.strip() for s in status_filter.split(",")] if status_filter else None
+    doc = build_script(story, get_manuscript_sections(story, db, status_filter=sf), auto_contd=auto_contd)
+    options = ScriptOptions(
+        title_page=title_page, scene_numbers=scene_numbers, bold_headings=bold_headings, page_size=page_size
+    )
+    return dataclasses.asdict(layout(doc, options))
+
+
 @router.post("/stories/{story_id}/export")
 async def export_story(
     story_id: str,
@@ -193,7 +252,7 @@ async def export_story(
     current_user: User = Depends(get_current_user),
 ):
     """Convert the manuscript to the requested format via pandoc and return as a download."""
-    if options.format not in EXPORT_FORMATS:
+    if options.format not in EXPORT_FORMATS and options.format not in SCRIPT_FORMATS:
         raise HTTPException(status_code=400, detail=f"Unsupported format: {options.format}")
 
     story = _get_story(story_id, db, current_user)
@@ -202,12 +261,15 @@ async def export_story(
     if not any(s.is_leaf for s in sections):
         raise HTTPException(status_code=422, detail="No scenes to export (check status filter)")
 
-    _, mime_type, ext = EXPORT_FORMATS[options.format]
-
     safe_title = (
         "".join(c if c.isalnum() or c in "- _" else "_" for c in (story.title or "manuscript")).strip("_")
         or "manuscript"
     )
+
+    if options.format in SCRIPT_FORMATS:
+        return _script_export(story, sections, options, safe_title)
+
+    _, mime_type, ext = EXPORT_FORMATS[options.format]
     filename = f"{safe_title}.{ext}"
 
     # Plain text: no pandoc or weasyprint needed
