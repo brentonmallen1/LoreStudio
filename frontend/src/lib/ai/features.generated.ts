@@ -21,10 +21,11 @@ export interface AIFeatureRow {
   /** Gemma reasons before answering under Settings' "Where it helps". */
   thinks: boolean;
   /** The story formats it serves. */
-  formats: ("prose" | "screenplay")[];
+  formats: ("prose" | "screenplay" | "stage_play")[];
   /** Its name and line for a script, where they differ. */
   scriptLabel?: string;
   scriptDescription?: string;
+  stageLabel?: string;
 }
 
 export const AI_FEATURE_GROUP_LABELS: Record<AIFeatureGroup, string> = {
@@ -64,7 +65,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene title, synopsis and purpose", "Characters and threads in the scene, with how their body and mind show", "Adjacent scenes"],
     budget: 16384,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "writing-coach",
@@ -75,7 +76,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Selected text", "Scene prose", "Story tone and genre"],
     budget: 16384,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "cliche-coach",
@@ -86,7 +87,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Selected text", "Scene prose"],
     budget: 16384,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "identity-workshop",
@@ -97,7 +98,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Story identity fields", "Character roles and motivations", "Scene synopses"],
     budget: 32768,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "snowflake-guidance",
@@ -108,7 +109,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Current Snowflake step", "Existing outline", "Story premise"],
     budget: 16384,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "interview",
@@ -119,7 +120,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Full character profile", "Who they are: identity, body and mind, what formed them (unless kept out)", "Relationships", "Arc milestones", "Scenes they were present for"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "interview-summary",
@@ -130,7 +131,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Interview transcript"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "interview-compaction",
@@ -141,7 +142,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Older interview messages"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "panel-compaction",
@@ -152,7 +153,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Older group interview messages"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "panel-character",
@@ -163,7 +164,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Each character's profile", "Relationships between them", "Panel transcript"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "panel-orchestrator",
@@ -174,7 +175,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Character names and roles", "Panel transcript"],
     budget: 8192,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "arc-analysis",
@@ -185,7 +186,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Story structure", "Scene synopses", "Narrative intent"],
     budget: 32768,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "audience-adherence",
@@ -196,7 +197,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene prose", "Target audience", "Genre and tone"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "character-arc",
@@ -207,7 +208,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Character profile and arc notes", "Arc milestones", "Scenes mentioning them"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "character-dimensionality",
@@ -218,7 +219,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Character profiles", "Scene prose", "Relationships", "Thread involvement"],
     budget: 32768,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "character-journey",
@@ -229,7 +230,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scenes the character appears in", "Arc milestones", "Interview history"],
     budget: 32768,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "cliche-analysis",
@@ -240,7 +241,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene prose"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "continuity-check",
@@ -251,7 +252,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene prose", "Character profiles, pronouns and how their bodies show", "Story structure"],
     budget: 32768,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "dialogue-attribution",
@@ -273,7 +274,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene prose", "Existing Lorebook entries"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "discovery-questions",
@@ -284,7 +285,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Story identity", "Character profiles", "Plot threads"],
     budget: 16384,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "economy-analysis",
@@ -295,7 +296,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Story structure", "MICE threads", "Scene synopses", "Word counts"],
     budget: 32768,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "editorial-pass",
@@ -306,7 +307,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene prose", "Stated intent and purpose", "Story identity"],
     budget: 32768,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "essential-questions",
@@ -317,7 +318,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Story intent and premise", "Character goals", "Plot threads", "Structure"],
     budget: 32768,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "extract-outline",
@@ -328,7 +329,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene prose", "Story title and genre"],
     budget: 32768,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "first-pass",
@@ -339,7 +340,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene prose", "Scene purpose and intent", "Arc milestones", "Narrative goals"],
     budget: 32768,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "image-analysis",
@@ -350,7 +351,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["The image", "Its caption and attachment context"],
     budget: 8192,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "import-extraction",
@@ -361,7 +362,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Prose excerpts naming the candidate", "Other candidates in the same scenes"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "import-structure",
@@ -372,7 +373,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Imported document headings and paragraphs"],
     budget: 32768,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "outline-alignment",
@@ -383,7 +384,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Outline items", "Scene synopses", "Story structure"],
     budget: 32768,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "talk-subjects",
@@ -394,7 +395,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["The conversations found between the chosen group", "Each speaker's gender as the author wrote it"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "pacing-analysis",
@@ -405,7 +406,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Story structure", "Scene synopses", "Word counts"],
     budget: 32768,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "plot-holes",
@@ -416,7 +417,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene prose", "Story structure", "Plot threads", "Twists", "Character motivations"],
     budget: 32768,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "pronoun-identification",
@@ -427,7 +428,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene prose", "Character names and aliases"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "reader-knowledge-scan",
@@ -438,7 +439,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene synopses (or openings)", "Characters", "Twists", "What the reader already knows"],
     budget: 32768,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "session-recap",
@@ -449,7 +450,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Activity log for the session", "Scene synopses touched"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "show-dont-tell",
@@ -460,9 +461,10 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene prose", "Genre and tone"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
     scriptLabel: "Unfilmables",
     scriptDescription: "Points at action a camera could not film: a thought, a feeling stated, backstory.",
+    stageLabel: "Unstageables",
   },
   {
     id: "story-summary",
@@ -473,7 +475,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["All scene prose", "Story title and narrative intent"],
     budget: 32768,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "structure-summary",
@@ -484,7 +486,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Prose within the section", "Section purpose"],
     budget: 32768,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "system-analysis",
@@ -495,7 +497,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["System rules", "Other world systems", "Cultures that use it"],
     budget: 8192,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "theme-tracker",
@@ -506,7 +508,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene prose", "Story intent"],
     budget: 32768,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "thread-analysis",
@@ -517,7 +519,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Thread description", "Where it opens and closes", "Try/fail cycles", "Its scenes in reading order, with your notes"],
     budget: 32768,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "travel-analysis",
@@ -528,7 +530,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Origin and destination", "World systems on the route", "Cultures along the way"],
     budget: 8192,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "twist-analysis",
@@ -539,7 +541,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["The truth and the misdirection", "Clues, before or after the reveal", "The reveal scene"],
     budget: 16384,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "twist-impact",
@@ -550,7 +552,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["The truth and the misdirection", "Clues and the reveal", "Plot threads", "Characters", "Scene synopses"],
     budget: 16384,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "voice-fidelity",
@@ -561,7 +563,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["The character's dialogue lines", "Their voice notes"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "brainstorm",
@@ -572,7 +574,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene synopsis and purpose", "Plot threads", "Character arcs", "Adjacent scenes"],
     budget: 16384,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "whatif",
@@ -583,7 +585,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Story structure", "Plot threads", "Character motivations", "Lorebook"],
     budget: 32768,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "scene-plan",
@@ -594,7 +596,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene title, synopsis and purpose", "Adjacent scenes", "Characters", "Active threads"],
     budget: 16384,
     thinks: true,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "scene-atmosphere",
@@ -605,7 +607,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene setting and purpose", "Story tone"],
     budget: 8192,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "what-exists",
@@ -616,7 +618,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Location details", "World systems", "Connected cultures"],
     budget: 8192,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "element-suggest",
@@ -627,7 +629,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["The element's own fields", "Associated systems", "Related cultures and eras"],
     budget: 8192,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "historical-implications",
@@ -638,7 +640,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Event details", "Era context", "Cultures and systems affected"],
     budget: 8192,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "calendar-suggestions",
@@ -649,7 +651,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Calendar structure", "Associated cultures", "Historical events"],
     budget: 8192,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "character-attributes",
@@ -660,7 +662,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Character name, role and personality", "Existing traits", "Story context"],
     budget: 8192,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "character-from-image",
@@ -671,7 +673,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["The image", "Existing character fields"],
     budget: 8192,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "codex-suggest",
@@ -682,7 +684,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["The scene's prose", "The cast, and who the graph already places in the scene", "Facts already recorded"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "relationship-suggest",
@@ -693,7 +695,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Character profiles", "Existing relationships"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "book-description",
@@ -704,7 +706,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Story identity", "Main characters", "Central conflict", "Themes"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
     scriptLabel: "Logline & Synopsis",
     scriptDescription: "A logline and a one-page synopsis to rewrite in your own voice.",
   },
@@ -717,7 +719,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Story identity and word count", "Main characters and conflict", "Comp titles"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
     scriptDescription: "A query to a manager or producer, to rewrite in your own voice.",
   },
   {
@@ -729,9 +731,10 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Genre, audience and tone", "Logline and premise", "Themes"],
     budget: 8192,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
     scriptLabel: "Comparable Films",
     scriptDescription: "Films and series your script sits beside, with why.",
+    stageLabel: "Comparable Plays",
   },
   {
     id: "conversation-summarize",
@@ -742,7 +745,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["The conversation so far"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "session-title-generation",
@@ -753,7 +756,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["First messages of the session"],
     budget: 8192,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
   {
     id: "scene-summary-batch",
@@ -764,7 +767,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     context: ["Scene prose"],
     budget: 16384,
     thinks: false,
-    formats: ["prose", "screenplay"],
+    formats: ["prose", "screenplay", "stage_play"],
   },
 ];
 
@@ -774,14 +777,15 @@ export const AI_FEATURES_BY_ID: Record<string, AIFeatureRow> = Object.fromEntrie
 
 /** Label for a feature id (a script's own where it has one); unknown ids are title-cased
  *  so nothing renders raw. */
-export function aiFeatureLabel(id: string, format: "prose" | "screenplay" = "prose"): string {
+export function aiFeatureLabel(id: string, format: "prose" | "screenplay" | "stage_play" = "prose"): string {
   const feature = AI_FEATURES_BY_ID[id];
-  if (feature) return (format === "screenplay" && feature.scriptLabel) || feature.label;
+  if (feature && format === "stage_play" && feature.stageLabel) return feature.stageLabel;
+  if (feature) return (format !== "prose" && feature.scriptLabel) || feature.label;
   return id.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 /** Whether a feature serves a story of this format (doc 25, P7). */
-export function aiFeatureFits(id: string | undefined, format: "prose" | "screenplay"): boolean {
+export function aiFeatureFits(id: string | undefined, format: "prose" | "screenplay" | "stage_play"): boolean {
   const feature = id ? AI_FEATURES_BY_ID[id] : undefined;
   return !feature || feature.formats.includes(format);
 }

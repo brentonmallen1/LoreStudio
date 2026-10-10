@@ -41,6 +41,18 @@ export const ELEMENT_LABELS: Record<ScriptElement, string> = {
   lyric: "Lyric",
 };
 
+/** A play names three of them for the theatre (doc 25, P9). */
+const STAGE_LABELS: Partial<Record<ScriptElement, string>> = {
+  heading: "Act or scene",
+  action: "Stage direction",
+  paren: "Direction",
+};
+
+/** An element's name in a story of this format. */
+export function elementLabel(element: ScriptElement, fmt?: string | null): string {
+  return (fmt === "stage_play" && STAGE_LABELS[element]) || ELEMENT_LABELS[element];
+}
+
 /** Where Enter goes from each element (Final Draft's defaults). */
 export const ENTER_NEXT: Record<ScriptElement, ScriptElement> = {
   heading: "action",
@@ -76,17 +88,42 @@ export const SHIFT_TAB_NEXT: Record<ScriptElement, ScriptElement> = {
 };
 
 export const LINES_PER_PAGE = 55;
-/** Each element's left edge in characters from the 1.5in margin, its width, blank lines before. */
-export const LAYOUT: Record<ScriptElement, { x: number; width: number; before: number }> = {
+/** Each element's left edge in characters from the 1.5in margin, its width, blank lines before,
+ *  and where it is not set left its alignment within that width; `italic` where it prints so. */
+export interface Spec {
+  x: number;
+  width: number;
+  before: number;
+  align?: "right" | "center";
+  italic?: boolean;
+}
+export const LAYOUT: Record<ScriptElement, Spec> = {
   heading: { x: 0, width: 60, before: 1 },
   action: { x: 0, width: 60, before: 1 },
   cue: { x: 22, width: 38, before: 1 },
   paren: { x: 16, width: 19, before: 0 },
   dialogue: { x: 10, width: 35, before: 0 },
-  transition: { x: 0, width: 60, before: 1 },
-  centered: { x: 0, width: 60, before: 1 },
-  lyric: { x: 10, width: 35, before: 0 },
+  transition: { x: 0, width: 60, before: 1, align: "right" },
+  centered: { x: 0, width: 60, before: 1, align: "center" },
+  lyric: { x: 10, width: 35, before: 0, italic: true },
 };
+/** A stage play's page (doc 25, P9), as the Dramatists Guild lays one out: the name centred in
+ *  capitals, the speech the full width under it, stage directions in italics from halfway. */
+export const STAGE_LAYOUT: Record<ScriptElement, Spec> = {
+  heading: { x: 0, width: 60, before: 1, align: "center" },
+  action: { x: 20, width: 40, before: 1, italic: true },
+  cue: { x: 0, width: 60, before: 1, align: "center" },
+  paren: { x: 10, width: 30, before: 0, italic: true },
+  dialogue: { x: 0, width: 60, before: 0 },
+  transition: { x: 0, width: 60, before: 1, align: "right" },
+  centered: { x: 0, width: 60, before: 1, align: "center" },
+  lyric: { x: 0, width: 60, before: 0, italic: true },
+};
+
+/** The layout table for a script format; a screenplay's for anything else. */
+export function layoutFor(fmt?: string | null): Record<ScriptElement, Spec> {
+  return fmt === "stage_play" ? STAGE_LAYOUT : LAYOUT;
+}
 /** Two speeches at once (doc 25, P8) sit side by side, each in a column 29 characters wide:
  *  where each element of a speech goes within its column, and how wide it runs. */
 export const DUAL_COLUMN = 29;
@@ -101,6 +138,9 @@ export const DUAL_LAYOUT: Partial<Record<ScriptElement, { x: number; width: numb
 const MIN_SPLIT = 2;
 
 const HEADING = /^(?:INT\.?\/EXT|EXT\.?\/INT|INT|EXT|EST|I\/E)[.\s]/i;
+/** A stage play's scenes open on a marker: "ACT ONE", "SCENE 2", "Act Two, Scene 3". */
+const STAGE_HEADING =
+  /^(?:ACT|SCENE)\s+(?:[0-9]+|[IVXLC]+|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\b/i;
 const FORCED_HEADING = /^\.(?=[A-Za-z0-9])/;
 const EXTENSION = /\s*\(([^()]*)\)/g;
 const SENTENCE_END = /[.?!…—-]['"’”)]*$/;
@@ -160,10 +200,11 @@ export function looksLikeCue(text: string): boolean {
 }
 
 /** The element a typed or pasted line is, given the element before it (null at the top). */
-export function classifyLine(text: string, prev: ScriptElement | null): ScriptElement {
+export function classifyLine(text: string, prev: ScriptElement | null, fmt?: string | null): ScriptElement {
   const t = text.trim();
   if (!t) return "action";
-  if (FORCED_HEADING.test(t) || HEADING.test(t + " ")) return "heading";
+  if (FORCED_HEADING.test(t) || (fmt === "stage_play" ? STAGE_HEADING : HEADING).test(t + " "))
+    return "heading";
   if (t.startsWith("!")) return "action";
   if (t.startsWith(">") && t.endsWith("<") && t.length > 2) return "centered";
   if (t.startsWith(">")) return "transition";
@@ -239,18 +280,28 @@ export function shotOf(node: { interior?: string; time_of_day?: string }): strin
 }
 
 const OPENING = /^FADE IN\W*$/i;
+/** A play's act marker, "ACT TWO": it opens the act's first scene, and a new page. */
+const ACT = /^ACT\s+\S/i;
+
+export function isAct(element: string | null, text: string): boolean {
+  return element === "heading" && ACT.test(text.trim());
+}
 
 /** Where a scene's own heading is, among its blocks: its first line, or the first after the
  *  lines that open a script ("FADE IN:", a transition). A heading further down starts another
  *  scene. The server's `heading_at`. */
 export function headingAt(blocks: [string | null, string][]): number {
   let i = 0;
-  while (i < blocks.length && (blocks[i][0] === "transition" || OPENING.test(blocks[i][1].trim()))) i++;
+  while (
+    i < blocks.length &&
+    (blocks[i][0] === "transition" || OPENING.test(blocks[i][1].trim()) || isAct(blocks[i][0], blocks[i][1]))
+  )
+    i++;
   return i;
 }
 
 /** Fountain-style text, pasted or imported, as blocks (see the server's `parse_lines`). */
-export function parseLines(text: string): Block[] {
+export function parseLines(text: string, fmt?: string | null): Block[] {
   const lines = text.replace(/\r\n?/g, "\n").split("\n");
   const blocks: Block[] = [];
   let prev: ScriptElement | null = null;
@@ -263,7 +314,7 @@ export function parseLines(text: string): Block[] {
       return;
     }
     const next = i + 1 < lines.length ? lines[i + 1].trim() : "";
-    let el = classifyLine(line, blankBefore ? null : prev);
+    let el = classifyLine(line, blankBefore ? null : prev, fmt);
     if (el === "cue" && !line.trim().startsWith("@") && (!blankBefore || !next)) el = "action";
     if (el === "heading" && !blankBefore && !FORCED_HEADING.test(line.trim())) el = "action";
     const last = blocks[blocks.length - 1];
@@ -319,17 +370,18 @@ export interface Page {
 }
 
 /** One block's lines on the page, wrapped and placed. */
-export function blockLines(element: ScriptElement, text: string): Line[] {
-  const spec = LAYOUT[element] ?? LAYOUT.action;
+export function blockLines(element: ScriptElement, text: string, fmt?: string | null): Line[] {
+  const table = layoutFor(fmt);
+  const spec = table[element] ?? table.action;
   const hang = element === "paren" ? 1 : 0;
   return wrap(text, spec.width, hang).map((t, i) => ({
     element,
     text: t,
     x:
-      element === "transition"
-        ? Math.max(0, spec.width - t.length)
-        : element === "centered"
-          ? Math.max(0, Math.floor((spec.width - t.length) / 2))
+      spec.align === "right"
+        ? spec.x + Math.max(0, spec.width - t.length)
+        : spec.align === "center"
+          ? spec.x + Math.max(0, Math.floor((spec.width - t.length) / 2))
           : spec.x + (i ? hang : 0),
   }));
 }
@@ -376,23 +428,24 @@ function speechSplit(body: Line[], most: number): number | null {
   return null;
 }
 
-function keepWith(blocks: Block[], i: number): number {
+function keepWith(blocks: Block[], i: number, fmt?: string | null): number {
   if (i + 1 >= blocks.length) return 0;
   const [element, text] = blocks[i + 1];
-  const before = LAYOUT[element].before;
+  const before = layoutFor(fmt)[element].before;
   if (element === "cue") {
     const end = speechEnd(blocks, i + 1);
-    const body = blocks.slice(i + 2, end).reduce((n, [e, t]) => n + blockLines(e, t).length, 0);
+    const body = blocks.slice(i + 2, end).reduce((n, [e, t]) => n + blockLines(e, t, fmt).length, 0);
     return before + 1 + Math.min(body, MIN_SPLIT);
   }
-  return before + Math.min(blockLines(element, text).length, MIN_SPLIT);
+  return before + Math.min(blockLines(element, text, fmt).length, MIN_SPLIT);
 }
 
 /** Lay the blocks out on pages, the way the PDF prints them (see the server's `paginate`). */
-export function paginate(input: Block[], linesPerPage = LINES_PER_PAGE): Page[] {
+export function paginate(input: Block[], linesPerPage = LINES_PER_PAGE, fmt?: string | null): Page[] {
+  const table = layoutFor(fmt);
   const pages: Page[] = [{ lines: [], beside: {} }];
   const page = () => pages[pages.length - 1].lines;
-  const gap = (element: ScriptElement) => (page().length ? LAYOUT[element].before : 0);
+  const gap = (element: ScriptElement) => (page().length ? table[element].before : 0);
   const room = (element: ScriptElement) => linesPerPage - page().length - gap(element);
   const put = (element: ScriptElement, lines: Line[]) => {
     page().push(...Array<null>(gap(element)).fill(null), ...lines);
@@ -425,7 +478,7 @@ export function paginate(input: Block[], linesPerPage = LINES_PER_PAGE): Page[] 
 
   const speech = (cueText: string, body: Line[]) => {
     cueText = shownCue(cueText);
-    let head = blockLines("cue", cueText);
+    let head = blockLines("cue", cueText, fmt);
     for (;;) {
       const space = room("cue");
       if (head.length + body.length <= space) return put("cue", [...head, ...body]);
@@ -437,7 +490,8 @@ export function paginate(input: Block[], linesPerPage = LINES_PER_PAGE): Page[] 
         }
         split = Math.max(1, space - head.length - 1);
       }
-      put("cue", [...head, ...body.slice(0, split), { element: "more", text: "(MORE)", x: LAYOUT.cue.x }]);
+      const more = blockLines("cue", "(MORE)", fmt)[0].x;
+      put("cue", [...head, ...body.slice(0, split), { element: "more", text: "(MORE)", x: more }]);
       turn();
       const cue = parseCue(cueText);
       const kept = cue.extensions
@@ -445,7 +499,7 @@ export function paginate(input: Block[], linesPerPage = LINES_PER_PAGE): Page[] 
         .map((e) => ` (${e})`)
         .join("");
       cueText = `${cue.name}${kept} (CONT'D)`;
-      head = blockLines("cue", cueText);
+      head = blockLines("cue", cueText, fmt);
       body = body.slice(split);
     }
   };
@@ -463,29 +517,31 @@ export function paginate(input: Block[], linesPerPage = LINES_PER_PAGE): Page[] 
       }
       speech(
         text,
-        blocks.slice(i + 1, end).flatMap(([e, t]) => blockLines(e, t)),
+        blocks.slice(i + 1, end).flatMap(([e, t]) => blockLines(e, t, fmt)),
       );
       i = end;
       continue;
     }
-    place(element, blockLines(element, text), element === "heading" ? keepWith(blocks, i) : 0);
+    if (fmt === "stage_play" && isAct(element, text)) turn(); // a play starts each act on a new page
+    place(element, blockLines(element, text, fmt), element === "heading" ? keepWith(blocks, i, fmt) : 0);
     i++;
   }
   return pages;
 }
 
 /** How many pages the blocks print on (none for nothing). */
-export function pageCount(blocks: Block[]): number {
-  return blocks.some(([, t]) => t.trim()) ? paginate(blocks).length : 0;
+export function pageCount(blocks: Block[], fmt?: string | null): number {
+  return blocks.some(([, t]) => t.trim()) ? paginate(blocks, LINES_PER_PAGE, fmt).length : 0;
 }
 
 /** Lines laid end to end, blank lines included: a scene's length. */
-export function sceneLines(input: Block[]): number {
+export function sceneLines(input: Block[], fmt?: string | null): number {
   const blocks = input.filter(([, t]) => t.trim());
+  const table = layoutFor(fmt);
   let total = 0;
   for (let i = 0; i < blocks.length;) {
     const [element, text] = blocks[i];
-    const gap = total ? (LAYOUT[element] ?? LAYOUT.action).before : 0;
+    const gap = total ? (table[element] ?? table.action).before : 0;
     const end = element === "cue" ? speechEnd(blocks, i) : i + 1;
     if (element === "cue" && isDual(blocks, end)) {
       const after = speechEnd(blocks, end);
@@ -497,7 +553,7 @@ export function sceneLines(input: Block[]): number {
       i = after;
       continue;
     }
-    total += gap + blockLines(element, text).length;
+    total += gap + blockLines(element, text, fmt).length;
     i++;
   }
   return total;

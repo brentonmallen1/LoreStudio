@@ -27,7 +27,7 @@ import ImportWizard from "../components/import/ImportWizard";
 import StoryListRow from "../components/story/StoryListRow";
 import list from "../components/story/StoryList.module.css";
 import type { Story } from "../types";
-import { isScript } from "../lib/storyFormat";
+import { formatLabel, formatOf, isScript } from "../lib/storyFormat";
 import styles from "./Dashboard.module.css";
 
 type Layout = "cards" | "list";
@@ -153,7 +153,7 @@ export default function DashboardPage() {
           <div className={styles.storymeta}>
             <Clock size={11} />
             {formatRelative(story.updated_at)}
-            {isScript(story) && <span>· Screenplay</span>}
+            {isScript(story) && <span>· {formatLabel(formatOf(story))}</span>}
           </div>
         </button>
         {progress[story.id]?.last_scene_id && (
@@ -323,10 +323,12 @@ export default function DashboardPage() {
   );
 }
 
-/** "3,529 of 17,500 words" with a bar, or just the count when the story has no target. */
+/** "3,529 of 17,500 words" (a script: "12 of 40 pages") with a bar, or just the count when the
+ *  story has no target. */
 function StoryProgressLine({ progress }: { progress?: StoryProgress }) {
   if (!progress || progress.word_count === 0) return null;
   const words = progress.word_count.toLocaleString();
+  const pages = progress.target_unit === "pages";
   return (
     <div className={styles.progress}>
       {progress.target_words ? (
@@ -335,7 +337,8 @@ function StoryProgressLine({ progress }: { progress?: StoryProgress }) {
             <span style={{ width: `${Math.min(100, progress.pct ?? 0)}%` }} />
           </div>
           <span>
-            {words} of {progress.target_words.toLocaleString()} words
+            {pages ? (progress.target_current ?? 0).toLocaleString() : words} of{" "}
+            {progress.target_words.toLocaleString()} {pages ? "pages" : "words"}
           </span>
         </>
       ) : (

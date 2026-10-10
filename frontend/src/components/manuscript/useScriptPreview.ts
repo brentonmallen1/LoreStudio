@@ -38,7 +38,8 @@ export function useScriptPreview(storyId: string, statusFilter: string | undefin
 }
 
 /** "12 pages · about 12 minutes": a page of script is about a minute on screen. */
-export function pagesSummary(pages: number): string {
-  if (pages === 1) return "1 page · about a minute on screen";
-  return `${pages} pages · about ${pages} minutes on screen`;
+export function pagesSummary(pages: number, format: string = "screenplay"): string {
+  const where = format === "stage_play" ? "on stage" : "on screen";
+  if (pages === 1) return `1 page · about a minute ${where}`;
+  return `${pages} pages · about ${pages} minutes ${where}`;
 }

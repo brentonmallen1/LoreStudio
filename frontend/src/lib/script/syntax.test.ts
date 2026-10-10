@@ -28,6 +28,7 @@ import {
   DUAL_COLUMN,
   DUAL_LAYOUT,
   DUAL_RIGHT,
+  STAGE_LAYOUT,
   type ScriptElement,
 } from "./syntax";
 
@@ -47,6 +48,8 @@ const CASES = JSON.parse(
   scene_lines: [Block[], number, number][];
   slugline: [string, string, string, string, string][];
   heading_at: [Block[], number][];
+  stage_classify: [string, ScriptElement | null, ScriptElement][];
+  stage_paginate: { _why: string; blocks: Block[]; pages: string[][]; lines: number }[];
 };
 
 const line = (l: Line | null | undefined) => (l ? `${l.element}|${l.x}|${l.text}` : "");
@@ -60,6 +63,7 @@ describe("script grammar (shared cases)", () => {
       lines_per_page: LINES_PER_PAGE,
       elements: LAYOUT,
       dual: { column: DUAL_COLUMN, right: DUAL_RIGHT, elements: DUAL_LAYOUT },
+      stage: STAGE_LAYOUT,
     });
     expect(CASES.next).toEqual({ enter: ENTER_NEXT, tab: TAB_NEXT, shift_tab: SHIFT_TAB_NEXT });
   });
@@ -88,6 +92,15 @@ describe("script grammar (shared cases)", () => {
 
   it.each(CASES.heading_at)("finds the scene's own heading in %j", (blocks, at) => {
     expect(headingAt(blocks)).toBe(at);
+  });
+
+  it.each(CASES.stage_classify)("classifies %j after %s in a play", (text, prev, expected) => {
+    expect(classifyLine(text, prev, "stage_play")).toBe(expected);
+  });
+
+  it.each(CASES.stage_paginate)("lays out a play: $_why", ({ blocks, pages, lines }) => {
+    expect(show(paginate(blocks, 20, "stage_play"))).toEqual(pages);
+    expect(sceneLines(blocks, "stage_play")).toBe(lines);
   });
 
   it.each(CASES.wrap)("wraps %j at %i", (text, width, hang, lines) => {

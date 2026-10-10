@@ -16,7 +16,9 @@ def test_layout():
         "lines_per_page": ss.LINES_PER_PAGE,
         "elements": ss.LAYOUT,
         "dual": {"column": ss.DUAL_COLUMN, "right": ss.DUAL_RIGHT, "elements": ss.DUAL_LAYOUT},
+        "stage": ss.STAGE_LAYOUT,
     }
+    assert set(ss.STAGE_LAYOUT) == set(ss.ELEMENTS)
     assert set(ss.LAYOUT) == set(ss.ELEMENTS)
 
 
@@ -107,3 +109,15 @@ def test_a_stored_scene_reads_as_its_blocks():
         ("cue", "ELEANOR"),
         ("dialogue", "It is still burning."),
     ]
+
+
+@pytest.mark.parametrize(("text", "prev", "expect"), CASES["stage_classify"])
+def test_stage_classify(text, prev, expect):
+    assert ss.classify_line(text, prev, "stage_play") == expect
+
+
+@pytest.mark.parametrize("case", CASES["stage_paginate"], ids=lambda c: c["_why"][:40])
+def test_stage_paginate(case):
+    blocks = [tuple(b) for b in case["blocks"]]
+    assert _show(ss.paginate(blocks, 20, "stage_play")) == case["pages"]
+    assert ss.scene_lines(blocks, "stage_play") == case["lines"]

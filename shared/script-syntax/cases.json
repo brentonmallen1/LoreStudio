@@ -31,17 +31,20 @@
       "transition": {
         "x": 0,
         "width": 60,
-        "before": 1
+        "before": 1,
+        "align": "right"
       },
       "centered": {
         "x": 0,
         "width": 60,
-        "before": 1
+        "before": 1,
+        "align": "center"
       },
       "lyric": {
         "x": 10,
         "width": 35,
-        "before": 0
+        "before": 0,
+        "italic": true
       }
     },
     "dual": {
@@ -64,6 +67,55 @@
           "x": 1,
           "width": 27
         }
+      }
+    },
+    "stage": {
+      "heading": {
+        "x": 0,
+        "width": 60,
+        "before": 1,
+        "align": "center"
+      },
+      "action": {
+        "x": 20,
+        "width": 40,
+        "before": 1,
+        "italic": true
+      },
+      "cue": {
+        "x": 0,
+        "width": 60,
+        "before": 1,
+        "align": "center"
+      },
+      "paren": {
+        "x": 10,
+        "width": 30,
+        "before": 0,
+        "italic": true
+      },
+      "dialogue": {
+        "x": 0,
+        "width": 60,
+        "before": 0
+      },
+      "transition": {
+        "x": 0,
+        "width": 60,
+        "before": 1,
+        "align": "right"
+      },
+      "centered": {
+        "x": 0,
+        "width": 60,
+        "before": 1,
+        "align": "center"
+      },
+      "lyric": {
+        "x": 0,
+        "width": 60,
+        "before": 0,
+        "italic": true
       }
     }
   },
@@ -961,6 +1013,144 @@
         ]
       ],
       0
+    ],
+    [
+      [
+        [
+          "heading",
+          "ACT TWO"
+        ],
+        [
+          "heading",
+          "SCENE 1"
+        ],
+        [
+          "action",
+          "Dawn."
+        ]
+      ],
+      1
     ]
+  ],
+  "_stage": "A stage play (doc 25, P9): its headings are act and scene markers, and its page is laid out by layout.stage.",
+  "stage_classify": [
+    [
+      "SCENE 2",
+      null,
+      "heading"
+    ],
+    [
+      "Act Two, Scene 3",
+      null,
+      "heading"
+    ],
+    [
+      "ACT ONE",
+      null,
+      "heading"
+    ],
+    [
+      "Scene shifts to the garden.",
+      null,
+      "action"
+    ],
+    [
+      "INT. HOUSE - DAY",
+      null,
+      "action"
+    ]
+  ],
+  "stage_paginate": [
+    {
+      "_why": "A play's page: the scene marker and the name centred, stage directions from halfway, the speech the full width.",
+      "blocks": [
+        [
+          "heading",
+          "SCENE 1"
+        ],
+        [
+          "action",
+          "A lighthouse keeper's cottage. Night. Rain on the window."
+        ],
+        [
+          "cue",
+          "ELEANOR"
+        ],
+        [
+          "paren",
+          "(to herself)"
+        ],
+        [
+          "dialogue",
+          "Don't open the door. Don't open it, whatever it says, whoever it is."
+        ],
+        [
+          "transition",
+          "BLACKOUT."
+        ]
+      ],
+      "pages": [
+        [
+          "heading|26|SCENE 1",
+          "",
+          "action|20|A lighthouse keeper's cottage. Night.",
+          "action|20|Rain on the window.",
+          "",
+          "cue|26|ELEANOR",
+          "paren|10|(to herself)",
+          "dialogue|0|Don't open the door. Don't open it, whatever it says,",
+          "dialogue|0|whoever it is.",
+          "",
+          "transition|51|BLACKOUT."
+        ]
+      ],
+      "lines": 11
+    },
+    {
+      "_why": "Each act after the first starts a new page; its marker opens the scene.",
+      "blocks": [
+        [
+          "heading",
+          "ACT ONE"
+        ],
+        [
+          "heading",
+          "SCENE 1"
+        ],
+        [
+          "action",
+          "Night."
+        ],
+        [
+          "heading",
+          "ACT TWO"
+        ],
+        [
+          "heading",
+          "SCENE 1"
+        ],
+        [
+          "action",
+          "Dawn."
+        ]
+      ],
+      "pages": [
+        [
+          "heading|26|ACT ONE",
+          "",
+          "heading|26|SCENE 1",
+          "",
+          "action|20|Night."
+        ],
+        [
+          "heading|26|ACT TWO",
+          "",
+          "heading|26|SCENE 1",
+          "",
+          "action|20|Dawn."
+        ]
+      ],
+      "lines": 11
+    }
   ]
 }

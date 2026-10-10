@@ -324,6 +324,7 @@ export default function SceneEditor() {
                 styles.editorWrap,
                 notes.hideEditorial && styles.hideEditorialNotes,
                 script && scriptStyles.script,
+                format === "stage_play" && scriptStyles.stage,
               ]
                 .filter(Boolean)
                 .join(" ")}

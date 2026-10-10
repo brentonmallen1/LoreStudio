@@ -9,14 +9,18 @@ rather than comparing strings itself. A stage play joins as a third format in do
 
 from typing import Literal
 
-StoryFormat = Literal["prose", "screenplay"]
+StoryFormat = Literal["prose", "screenplay", "stage_play"]
 
-FORMATS: tuple[str, ...] = ("prose", "screenplay")
+FORMATS: tuple[str, ...] = ("prose", "screenplay", "stage_play")
+#: The formats written in script elements; a stage play is a script laid out for the theatre
+#: (doc 25, P9).
+SCRIPT_FORMATS: tuple[str, ...] = ("screenplay", "stage_play")
 
 #: The built-in structures written for one format. The others, and the author's own, fit any.
 TEMPLATE_FORMATS: dict[str, str] = {
     "screenplay": "screenplay",
     "screenplay-sequences": "screenplay",
+    "stage-play": "stage_play",
 }
 
 
@@ -25,6 +29,11 @@ TEMPLATE_FORMATS: dict[str, str] = {
 #: narrator) and sentence variety (action is terse by design) do not run on a script; tense
 #: does, expecting the present: action happens as we watch.
 SCRIPT_CHECKS: frozenset[str] = frozenset({"passive_voice", "adverb_overuse", "repeated_words"})
+
+
+def story_format(story) -> str:
+    """The story's format, "prose" when it has none."""
+    return (getattr(story, "story_format", None) or "prose") if story else "prose"
 
 
 def is_script(story) -> bool:

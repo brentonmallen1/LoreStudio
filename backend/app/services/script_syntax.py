@@ -18,6 +18,7 @@ from __future__ import annotations
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from typing import NotRequired, TypedDict
 
 from .prose_html import paragraphs
 from .prose_syntax import reader_text
@@ -65,19 +66,51 @@ SHIFT_TAB_NEXT = {
 }
 
 #: Each element's place on the page: its left edge in characters from the 1.5in margin, how
-#: many characters wide it runs, and how many blank lines go before it.
+#: many characters wide it runs, how many blank lines go before it, and, where it is not set
+#: left, its alignment within that width; `italic` where it prints so.
 LINES_PER_PAGE = 55
 CHARS_PER_INCH = 10
-LAYOUT: dict[str, dict[str, int]] = {
+
+
+class Spec(TypedDict):
+    x: int
+    width: int
+    before: int
+    align: NotRequired[str]
+    italic: NotRequired[bool]
+
+
+LAYOUT: dict[str, Spec] = {
     "heading": {"x": 0, "width": 60, "before": 1},
     "action": {"x": 0, "width": 60, "before": 1},
     "cue": {"x": 22, "width": 38, "before": 1},
     "paren": {"x": 16, "width": 19, "before": 0},
     "dialogue": {"x": 10, "width": 35, "before": 0},
-    "transition": {"x": 0, "width": 60, "before": 1},
-    "centered": {"x": 0, "width": 60, "before": 1},
-    "lyric": {"x": 10, "width": 35, "before": 0},
+    "transition": {"x": 0, "width": 60, "before": 1, "align": "right"},
+    "centered": {"x": 0, "width": 60, "before": 1, "align": "center"},
+    "lyric": {"x": 10, "width": 35, "before": 0, "italic": True},
 }
+#: A stage play's page (doc 25, P9), as the Dramatists Guild lays one out: the character's name
+#: centred in capitals, the speech the full width under it, stage directions in italics from
+#: halfway across, an act or scene marker centred.
+STAGE_LAYOUT: dict[str, Spec] = {
+    "heading": {"x": 0, "width": 60, "before": 1, "align": "center"},
+    "action": {"x": 20, "width": 40, "before": 1, "italic": True},
+    "cue": {"x": 0, "width": 60, "before": 1, "align": "center"},
+    "paren": {"x": 10, "width": 30, "before": 0, "italic": True},
+    "dialogue": {"x": 0, "width": 60, "before": 0},
+    "transition": {"x": 0, "width": 60, "before": 1, "align": "right"},
+    "centered": {"x": 0, "width": 60, "before": 1, "align": "center"},
+    "lyric": {"x": 0, "width": 60, "before": 0, "italic": True},
+}
+LAYOUTS: dict[str, dict[str, Spec]] = {"screenplay": LAYOUT, "stage_play": STAGE_LAYOUT}
+
+
+def layout_for(fmt: str | None) -> dict[str, Spec]:
+    """The layout table for a script format; a screenplay's for anything else."""
+    return LAYOUTS.get(fmt or "", LAYOUT)
+
+
 #: Two speeches at once (doc 25, P8) sit side by side, each in a column 29 characters wide:
 #: where each element of a speech goes within its column, and how wide it runs.
 DUAL_COLUMN = 29
@@ -92,6 +125,16 @@ DUAL_LAYOUT: dict[str, dict[str, int]] = {
 MIN_SPLIT = 2
 
 _HEADING = re.compile(r"^(?:INT\.?/EXT|EXT\.?/INT|INT|EXT|EST|I/E)[.\s]", re.I)
+#: A stage play's scenes open on a marker: "ACT ONE", "SCENE 2", "Act Two, Scene 3".
+_STAGE_HEADING = re.compile(
+    r"^(?:ACT|SCENE)\s+(?:[0-9]+|[IVXLC]+|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\b", re.I
+)
+
+
+def _headings(fmt: str | None) -> re.Pattern:
+    return _STAGE_HEADING if fmt == "stage_play" else _HEADING
+
+
 _FORCED_HEADING = re.compile(r"^\.(?=[A-Za-z0-9])")
 _EXTENSION = re.compile(r"\s*\(([^()]*)\)")
 _SENTENCE_END = re.compile(r"[.?!…—\-]['\"’”)]*$")
@@ -154,15 +197,16 @@ def looks_like_cue(text: str) -> bool:
     return not re.search(r"[.!?:;,]$", name) or name.endswith(("MR.", "MRS.", "MS.", "DR.", "ST."))
 
 
-def classify_line(text: str, prev: str | None) -> str:
+def classify_line(text: str, prev: str | None, fmt: str | None = None) -> str:
     """The element a typed or pasted line is, given the element before it (None at the top).
+    A heading is "INT." or "EXT." in a screenplay, "ACT" or "SCENE" and a number in a play.
 
     Fountain's forcing marks win: "." a heading, "!" action, "@" a cue, ">" a transition.
     """
     t = text.strip()
     if not t:
         return "action"
-    if _FORCED_HEADING.match(t) or _HEADING.match(t + " "):
+    if _FORCED_HEADING.match(t) or _headings(fmt).match(t + " "):
         return "heading"
     if t.startswith("!"):
         return "action"
@@ -201,7 +245,7 @@ def clean(element: str, text: str) -> str:
     return t.upper() if element in CAPITALS else t
 
 
-def parse_lines(text: str) -> list[tuple[str, str]]:
+def parse_lines(text: str, fmt: str | None = None) -> list[tuple[str, str]]:
     """Fountain-style text, pasted or imported, as (element, text) blocks.
 
     A cue needs a blank line before it and a line after it; the lines after a cue are its
@@ -220,7 +264,7 @@ def parse_lines(text: str) -> list[tuple[str, str]]:
             blank_before = True
             continue
         nxt = lines[i + 1].strip() if i + 1 < len(lines) else ""
-        el = classify_line(line, prev if not blank_before else None)
+        el = classify_line(line, prev if not blank_before else None, fmt)
         if el == "cue" and not line.strip().startswith("@") and (not blank_before or not nxt):
             el = "action"
         if el == "heading" and not blank_before and not _FORCED_HEADING.match(line.strip()):
@@ -274,14 +318,22 @@ def format_slugline(slug: Slug) -> str:
 
 
 _OPENING = re.compile(r"^FADE IN\W*$", re.I)
+#: A play's act marker, "ACT TWO": it opens the act's first scene, and a new page.
+_ACT = re.compile(r"^ACT\s+\S", re.I)
+
+
+def is_act(element: str | None, text: str) -> bool:
+    return element == "heading" and bool(_ACT.match(text.strip()))
 
 
 def heading_at(blocks: Sequence[tuple[str | None, str]]) -> int:
     """Where a scene's own heading is, among its (element, text) blocks: its first line, or the
-    first after the lines that open a script ("FADE IN:", a transition). A heading further down
-    starts another scene."""
+    first after the lines that open a script or an act ("FADE IN:", a transition, a play's
+    "ACT TWO"). A heading further down starts another scene."""
     i = 0
-    while i < len(blocks) and (blocks[i][0] == "transition" or _OPENING.match(blocks[i][1].strip())):
+    while i < len(blocks) and (
+        blocks[i][0] == "transition" or _OPENING.match(blocks[i][1].strip()) or is_act(*blocks[i])
+    ):
         i += 1
     return i
 
@@ -346,16 +398,18 @@ class Page:
         return len(self.lines)
 
 
-def block_lines(element: str, text: str) -> list[Line]:
+def block_lines(element: str, text: str, fmt: str | None = None) -> list[Line]:
     """One block's lines on the page, wrapped and placed."""
-    spec = LAYOUT.get(element, LAYOUT["action"])
+    table = layout_for(fmt)
+    spec = table.get(element, table["action"])
     hang = 1 if element == "paren" else 0
+    align = spec.get("align", "")
     lines: list[Line] = []
     for i, t in enumerate(wrap(text, spec["width"], hang=hang)):
-        if element == "transition":
-            x = max(0, spec["width"] - len(t))
-        elif element == "centered":
-            x = max(0, (spec["width"] - len(t)) // 2)
+        if align == "right":
+            x = spec["x"] + max(0, spec["width"] - len(t))
+        elif align == "center":
+            x = spec["x"] + max(0, (spec["width"] - len(t)) // 2)
         else:
             x = spec["x"] + (hang if i else 0)
         lines.append(Line(element, t, x))
@@ -388,8 +442,10 @@ def _speech_end(blocks: list[tuple[str, str]], i: int) -> int:
 
 
 class _Layout:
-    def __init__(self, lines_per_page: int):
+    def __init__(self, lines_per_page: int, fmt: str | None = None):
         self.size = lines_per_page
+        self.fmt = fmt
+        self.table = layout_for(fmt)
         self.pages = [Page()]
 
     @property
@@ -397,7 +453,7 @@ class _Layout:
         return self.pages[-1]
 
     def gap(self, element: str) -> int:
-        return LAYOUT.get(element, LAYOUT["action"])["before"] if self.page.used else 0
+        return self.table.get(element, self.table["action"])["before"] if self.page.used else 0
 
     def room(self, element: str) -> int:
         return self.size - self.page.used - self.gap(element)
@@ -431,7 +487,7 @@ class _Layout:
         """A cue and its speech. It splits only in the dialogue, after a sentence, two lines on
         each side: "(MORE)" closes the page, "NAME (CONT'D)" opens the next."""
         cue_text = shown_cue(cue_text)
-        head = block_lines("cue", cue_text)
+        head = block_lines("cue", cue_text, self.fmt)
         while True:
             room = self.room("cue")
             if len(head) + len(body) <= room:
@@ -443,12 +499,13 @@ class _Layout:
                     self.turn()
                     continue
                 split = max(1, room - len(head) - 1)  # a speech longer than a page: cut anywhere
-            self.put("cue", head + body[:split] + [Line("more", "(MORE)", LAYOUT["cue"]["x"])])
+            more = block_lines("cue", "(MORE)", self.fmt)[0]
+            self.put("cue", head + body[:split] + [Line("more", "(MORE)", more.x)])
             self.turn()
             cue = parse_cue(cue_text)
             kept = "".join(f" ({e})" for e in cue.extensions if e.upper() != "CONT'D")
             cue_text = f"{cue.name}{kept} (CONT'D)"
-            head = block_lines("cue", cue_text)
+            head = block_lines("cue", cue_text, self.fmt)
             body = body[split:]
 
 
@@ -480,20 +537,21 @@ def _speech_split(body: list[Line], most: int) -> int | None:
     return None
 
 
-def _keep_with(blocks: list[tuple[str, str]], i: int) -> int:
+def _keep_with(blocks: list[tuple[str, str]], i: int, fmt: str | None = None) -> int:
     """How many lines of what follows a heading must go with it: two lines, or a cue and two."""
     if i + 1 >= len(blocks):
         return 0
     element, text = blocks[i + 1]
-    before = LAYOUT.get(element, LAYOUT["action"])["before"]
+    table = layout_for(fmt)
+    before = table.get(element, table["action"])["before"]
     if element == "cue":
         end = _speech_end(blocks, i + 1)
-        body = sum(len(block_lines(e, t)) for e, t in blocks[i + 2 : end])
+        body = sum(len(block_lines(e, t, fmt)) for e, t in blocks[i + 2 : end])
         return before + 1 + min(body, MIN_SPLIT)
-    return before + min(len(block_lines(element, text)), MIN_SPLIT)
+    return before + min(len(block_lines(element, text, fmt)), MIN_SPLIT)
 
 
-def paginate(blocks: list[tuple[str, str]], lines_per_page: int = LINES_PER_PAGE) -> list[Page]:
+def paginate(blocks: list[tuple[str, str]], lines_per_page: int = LINES_PER_PAGE, fmt: str | None = None) -> list[Page]:
     """Lay the blocks out on pages, the way the PDF prints them.
 
     Blank lines before a block are dropped at the top of a page. A heading never ends a page:
@@ -501,7 +559,7 @@ def paginate(blocks: list[tuple[str, str]], lines_per_page: int = LINES_PER_PAGE
     on each side. A speech splits as `_Layout.speech` says. Otherwise a block that does not fit
     starts the next page.
     """
-    layout = _Layout(lines_per_page)
+    layout = _Layout(lines_per_page, fmt)
     blocks = [(e, t) for e, t in blocks if t.strip()]
     i = 0
     while i < len(blocks):
@@ -513,38 +571,41 @@ def paginate(blocks: list[tuple[str, str]], lines_per_page: int = LINES_PER_PAGE
                 _dual(layout, _column(blocks[i:end], 0), _column(blocks[end:after], DUAL_RIGHT))
                 i = after
                 continue
-            body = [ln for e, t in blocks[i + 1 : end] for ln in block_lines(e, t)]
+            body = [ln for e, t in blocks[i + 1 : end] for ln in block_lines(e, t, fmt)]
             layout.speech(text, body)
             i = end
             continue
-        keep = _keep_with(blocks, i) if element == "heading" else 0
-        layout.lines(element, block_lines(element, text), keep)
+        keep = _keep_with(blocks, i, fmt) if element == "heading" else 0
+        if fmt == "stage_play" and is_act(element, text):
+            layout.turn()  # a play starts each act on a new page
+        layout.lines(element, block_lines(element, text, fmt), keep)
         i += 1
     return layout.pages
 
 
-def page_count(blocks: list[tuple[str, str]]) -> int:
+def page_count(blocks: list[tuple[str, str]], fmt: str | None = None) -> int:
     """How many pages the blocks print on (none for nothing)."""
     if not any(text.strip() for _, text in blocks):
         return 0
-    return len(paginate(blocks))
+    return len(paginate(blocks, fmt=fmt))
 
 
-def scene_lines(blocks: list[tuple[str, str]]) -> int:
+def scene_lines(blocks: list[tuple[str, str]], fmt: str | None = None) -> int:
     """How many lines the blocks take laid end to end, blank lines included: a scene's length,
     shown in eighths of a page (LINES_PER_PAGE / 8 lines each)."""
     blocks = [(e, t) for e, t in blocks if t.strip()]
+    table = layout_for(fmt)
     total = i = 0
     while i < len(blocks):
         element, text = blocks[i]
-        gap = LAYOUT.get(element, LAYOUT["action"])["before"] if total else 0
+        gap = table.get(element, table["action"])["before"] if total else 0
         end = _speech_end(blocks, i) if element == "cue" else i + 1
         if element == "cue" and end < len(blocks) and blocks[end][0] == "cue" and parse_cue(blocks[end][1]).dual:
             after = _speech_end(blocks, end)
             total += gap + max(len(_column(blocks[i:end], 0)), len(_column(blocks[end:after], DUAL_RIGHT)))
             i = after
             continue
-        total += gap + len(block_lines(element, text))
+        total += gap + len(block_lines(element, text, fmt))
         i += 1
     return total
 

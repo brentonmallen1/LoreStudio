@@ -32,7 +32,7 @@ export interface StoryGoal {
 }
 
 /** What a story is written as (doc 25, lib/storyFormat.ts). */
-export type StoryFormat = "prose" | "screenplay";
+export type StoryFormat = "prose" | "screenplay" | "stage_play";
 
 export interface Story {
   id: string;

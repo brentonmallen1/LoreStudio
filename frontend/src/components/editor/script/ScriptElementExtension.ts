@@ -126,12 +126,12 @@ export function setElement(editor: Editor, el: ScriptElement): boolean {
 }
 
 /** What the words of an action line say they are, typed Fountain-style. */
-function typedAs(text: string): ScriptElement | null {
-  const el = classifyLine(text, null);
+function typedAs(text: string, format: string): ScriptElement | null {
+  const el = classifyLine(text, null, format);
   return el === "heading" || el === "cue" || el === "transition" ? el : null;
 }
 
-function enter(editor: Editor): boolean {
+function enter(editor: Editor, format: string): boolean {
   const { state, view } = editor;
   const { $from, empty } = state.selection;
   const block = $from.parent;
@@ -149,7 +149,7 @@ function enter(editor: Editor): boolean {
   if ($from.parentOffset < block.content.size && !(el === "paren" && rest === ")")) return false;
 
   let now = el;
-  const typed = el === "action" ? typedAs(text) : null;
+  const typed = el === "action" ? typedAs(text, format) : null;
   if (typed) {
     // Its own step: ⌘Z after Enter takes the new line back first, then this.
     view.dispatch(setElementAt(state.tr, $from.before(), typed));
@@ -171,8 +171,8 @@ function cycle(editor: Editor, table: Record<ScriptElement, ScriptElement>): boo
 }
 
 /** Blocks from Fountain-style text, ready to paste. */
-function blocksFrom(schema: Schema, text: string): PMNode[] {
-  return parseLines(text).map(([el, text]) => {
+function blocksFrom(schema: Schema, text: string, format: string): PMNode[] {
+  return parseLines(text, format).map(([el, text]) => {
     // Fountain's "^" after a cue: spoken at the same time as the speech before (doc 25, P8).
     const dual = el === "cue" && parseCue(text).dual;
     const words = dual ? shownCue(text) : text;
@@ -193,15 +193,20 @@ const ELEMENT_KEYS: [keyof typeof SHORTCUTS, ScriptElement][] = [
   ["scriptTransition", "transition"],
 ];
 
-export const ScriptKeys = Extension.create({
+export const ScriptKeys = Extension.create<{ format: string }>({
   name: "scriptKeys",
+
+  // "screenplay" or "stage_play" (doc 25, P9): what a typed heading looks like.
+  addOptions() {
+    return { format: "screenplay" };
+  },
   // Ahead of the editor's own Enter; a picker (`@`, `^`, `/`) that is open keeps its keys.
   priority: 101,
 
   addKeyboardShortcuts() {
     const picking = () => mentionIsOpen() || slashIsOpen();
     const keys: Record<string, (props: { editor: Editor }) => boolean> = {
-      Enter: ({ editor }) => !picking() && enter(editor),
+      Enter: ({ editor }) => !picking() && enter(editor, this.options.format),
       Tab: ({ editor }) => !picking() && cycle(editor, TAB_NEXT),
       "Shift-Tab": ({ editor }) => !picking() && cycle(editor, SHIFT_TAB_NEXT),
     };
@@ -211,10 +216,15 @@ export const ScriptKeys = Extension.create({
   },
 
   addInputRules() {
+    // "INT. " or "EXT. " at the start of an action line starts a scene heading; in a play,
+    // "SCENE 2 " or "ACT ONE ".
+    const find =
+      this.options.format === "stage_play"
+        ? /^(act|scene) ([0-9]+|[ivxlc]+|one|two|three|four|five|six|seven|eight|nine|ten) $/i
+        : /^(int|ext|est|i\/e|int\.?\/ext|ext\.?\/int)\. $/i;
     return [
-      // "INT. " or "EXT. " at the start of an action line starts a scene heading.
       new InputRule({
-        find: /^(int|ext|est|i\/e|int\.?\/ext|ext\.?\/int)\. $/i,
+        find,
         handler: ({ state, range, match }) => {
           const $from = state.doc.resolve(range.from);
           const el = $from.parent.attrs.el;
@@ -227,6 +237,7 @@ export const ScriptKeys = Extension.create({
   },
 
   addProseMirrorPlugins() {
+    const format = this.options.format;
     return [
       new Plugin({
         key: new PluginKey("scriptKeys"),
@@ -262,7 +273,7 @@ export const ScriptKeys = Extension.create({
             const text = data?.getData("text/plain") ?? "";
             // Copied from this editor: it carries its elements already.
             if (!text.includes("\n") || data?.getData("text/html").includes("data-el")) return false;
-            const nodes = blocksFrom(view.state.schema, text);
+            const nodes = blocksFrom(view.state.schema, text, format);
             if (!nodes.length) return false;
             view.dispatch(view.state.tr.replaceSelection(new Slice(Fragment.fromArray(nodes), 0, 0)));
             return true;

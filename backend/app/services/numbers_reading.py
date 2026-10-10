@@ -42,7 +42,7 @@ from .numbers import CONTAINERS, STATUSES, form_for, prose_from_run, spoken_shar
 from .scene_cast import cast_patterns, on_the_page
 from .script_export import pages_in
 from .snapshot_service import _model_to_dict
-from .story_format import is_script
+from .story_format import is_script, story_format
 from .structure_scaffold import FLAT
 from .word_count import length_status
 
@@ -159,7 +159,8 @@ def _words(leaves: list[SimpleNamespace], story: Any) -> dict[str, Any]:
     total = sum(n.word_count or 0 for n in scenes)
     form = story.intended_length or ""
     if is_script(story):
-        target = length_status("screenplay", form, pages_in([n.content for n in leaves]))
+        fmt = story_format(story)
+        target = length_status(fmt, form, pages_in([n.content for n in leaves], fmt))
     else:
         target = length_status("prose", form, total)
     past = target is not None and target["warning_level"] == "exceeded"

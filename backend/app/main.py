@@ -95,6 +95,7 @@ from .services.seed import (
 )
 from .services.seed_screenplay import seed_screenplay_demo
 from .services.seed_series import seed_lighthouse_sequel
+from .services.seed_stage_play import seed_stage_play_demo
 
 logging.basicConfig(level=settings.log_level.upper(), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("lorestudio")
@@ -118,6 +119,7 @@ def seed_all() -> None:
     if settings.seed_demo:
         seed_demo_story()
         seed_screenplay_demo()
+        seed_stage_play_demo()
     if settings.seed_extra_demos:
         seed_scifi_demo_story()
         seed_flash_fiction_demo()

@@ -78,10 +78,12 @@ class AIFeature:
     thinks: bool | None = None
     #: The story formats it serves (doc 25, P7). A script's cues already say who speaks, so
     #: dialogue attribution is prose's alone.
-    formats: tuple[str, ...] = ("prose", "screenplay")
+    formats: tuple[str, ...] = ("prose", "screenplay", "stage_play")
     #: What it is called and does for a script, where that differs ("Comparable Films").
     script_label: str = ""
     script_description: str = ""
+    #: And for a stage play, where it differs again ("Comparable Plays", doc 25 P9).
+    stage_label: str = ""
 
     @property
     def thinks_first(self) -> bool:
@@ -429,6 +431,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         context=("Scene prose", "Genre and tone"),
         script_label="Unfilmables",
         script_description="Points at action a camera could not film: a thought, a feeling stated, backstory.",
+        stage_label="Unstageables",
     ),
     AIFeature(
         id="story-summary",
@@ -667,6 +670,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         budget=BUDGET_SMALL,
         script_label="Comparable Films",
         script_description="Films and series your script sits beside, with why.",
+        stage_label="Comparable Plays",
     ),
     # ── Background ──────────────────────────────────────────────────────────────
     AIFeature(
@@ -741,7 +745,7 @@ def thinks(feature_id: str, mode: str) -> bool:
 
 def fits(feature_id: str, story) -> bool:
     """Whether a feature serves this story's format (doc 25, P7)."""
-    from ..story_format import is_script
+    from ..story_format import story_format
 
     feature = FEATURES_BY_ID.get(feature_id)
-    return feature is None or ("screenplay" if is_script(story) else "prose") in feature.formats
+    return feature is None or story_format(story) in feature.formats

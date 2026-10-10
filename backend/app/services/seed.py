@@ -119,6 +119,15 @@ STRUCTURE_TEMPLATES = [
             {"name": "Scene", "plural": "Scenes"},
         ],
     },
+    {
+        "id": "stage-play",
+        "name": "Stage Play",
+        "description": "Acts of scenes for the theatre, each scene opening on its marker (SCENE 1); a one-act play keeps one act.",
+        "levels": [
+            {"name": "Act", "plural": "Acts"},
+            {"name": "Scene", "plural": "Scenes"},
+        ],
+    },
 ]
 
 

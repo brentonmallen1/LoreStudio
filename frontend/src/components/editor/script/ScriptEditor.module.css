@@ -1,12 +1,14 @@
 /*
- * A screenplay scene in the editor (doc 25). Courier Prime whatever the writing font, since a
- * script's page is counted in its characters; every measure is in ch, so a character here is
- * a column of the printed page (lib/script/syntax.ts LAYOUT: action 60 wide, dialogue from 10
- * and 35 wide, a cue from 22, a parenthetical from 16 and 19 wide).
+ * A screenplay scene in the editor (doc 25). Courier Prime whatever the writing font. The line
+ * is as wide as the author's line-width setting; each element sits where it does on the printed
+ * page as a share of the line (lib/script/syntax.ts LAYOUT, in sixtieths: dialogue from 10 and
+ * 35 wide, a cue from 22, a parenthetical from 16 and 19 wide), so a wider line keeps the
+ * script's shape. The page count and the export always use the printed page.
  */
 .script {
   --font-editor: "Courier Prime", "Courier New", monospace;
-  --editor-max-width: 61ch;
+  /* One sixtieth of the line: a column of the printed page. */
+  --col: calc(100% / 60);
 }
 
 .script :global(.ProseMirror) {
@@ -23,19 +25,19 @@
 }
 
 .script :global(.ProseMirror p[data-el="cue"]) {
-  margin: 0 0 0 22ch;
+  margin: 0 0 0 calc(22 * var(--col));
 }
 
 .script :global(.ProseMirror p[data-el="paren"]) {
-  margin: 0 0 0 16ch;
-  max-width: 19ch;
+  margin: 0 0 0 calc(16 * var(--col));
+  max-width: calc(19 * var(--col));
   padding-left: 1ch;
   text-indent: -1ch;
 }
 
 .script :global(.ProseMirror p[data-el="dialogue"]) {
-  margin: 0 0 1.5em 10ch;
-  max-width: 35ch;
+  margin: 0 0 1.5em calc(10 * var(--col));
+  max-width: calc(35 * var(--col));
 }
 
 /* A cue or parenthetical still waiting for its speech keeps the gap a speech ends with. */
@@ -54,8 +56,8 @@
 }
 
 .script :global(.ProseMirror p[data-el="lyric"]) {
-  margin: 0 0 1.5em 10ch;
-  max-width: 35ch;
+  margin: 0 0 1.5em calc(10 * var(--col));
+  max-width: calc(35 * var(--col));
   font-style: italic;
 }
 
@@ -67,4 +69,30 @@
   font-family: var(--font-ui);
   font-size: 0.8em;
   user-select: none;
+}
+
+/* A stage play (doc 25, P9; lib/script/syntax.ts STAGE_LAYOUT): the scene marker and the name
+   centred, the speech the full width under it, stage directions in italics from halfway. */
+.stage :global(.ProseMirror p[data-el="heading"]),
+.stage :global(.ProseMirror p[data-el="cue"]) {
+  margin-left: 0;
+  text-align: center;
+}
+
+.stage :global(.ProseMirror p:not([data-el])),
+.stage :global(.ProseMirror p[data-el="action"]) {
+  margin-left: calc(20 * var(--col));
+  font-style: italic;
+}
+
+.stage :global(.ProseMirror p[data-el="paren"]) {
+  margin-left: calc(10 * var(--col));
+  max-width: calc(30 * var(--col));
+  font-style: italic;
+}
+
+.stage :global(.ProseMirror p[data-el="dialogue"]),
+.stage :global(.ProseMirror p[data-el="lyric"]) {
+  margin-left: 0;
+  max-width: none;
 }

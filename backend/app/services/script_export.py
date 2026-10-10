@@ -18,6 +18,7 @@ from ..models.story import Story
 from ..schemas.story import TitlePage
 from .manuscript_builder import ManuscriptSection
 from .script_syntax import parse_cue, scene_blocks, shown_cue
+from .story_format import story_format
 
 #: A script export: what it is called, its media type, its file extension.
 SCRIPT_FORMATS: dict[str, tuple[str, str]] = {
@@ -53,6 +54,8 @@ class ScriptDoc:
     author: str
     page: TitlePage
     blocks: list[Block] = field(default_factory=list)
+    #: "screenplay" or "stage_play": which page layout it prints with (doc 25, P9).
+    format: str = "screenplay"
 
     @property
     def pairs(self) -> list[tuple[str, str]]:
@@ -83,18 +86,22 @@ def build_script(story: Story, sections: list[ManuscriptSection], *, auto_contd:
     if auto_contd:
         _continued(blocks)
     return ScriptDoc(
-        title=story.title or "Untitled", author=story.author_name or "", page=title_page_of(story), blocks=blocks
+        title=story.title or "Untitled",
+        author=story.author_name or "",
+        page=title_page_of(story),
+        blocks=blocks,
+        format=story_format(story),
     )
 
 
-def pages_in(contents: list[str | None]) -> int:
-    """How many pages scenes with these contents, in this order, print on: the PDF's count,
-    title page aside (doc 25, D5)."""
+def pages_in(contents: list[str | None], fmt: str | None = None) -> int:
+    """How many pages scenes with these contents, in this order, print on in their format: the
+    PDF's count, title page aside (doc 25, D5)."""
     from .script_syntax import page_count
 
     blocks = [Block(e, t) for html in contents for e, t in scene_blocks(html or "") if t.strip()]
     _continued(blocks)
-    return page_count([(b.element, b.text) for b in blocks])
+    return page_count([(b.element, b.text) for b in blocks], fmt)
 
 
 def _continued(blocks: list[Block]) -> None:

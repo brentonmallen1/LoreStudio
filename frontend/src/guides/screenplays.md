@@ -1,6 +1,6 @@
-# Writing a screenplay
+# Screenplays and stage plays
 
-A story is written as **prose** or as a **screenplay**. Choose under **Written as** when you make the story, or later in **Lorebook › Story identity**. Switching keeps every word: prose paragraphs read as action until you change them, and {{key:undo}} switches back.
+A story is written as **prose**, a **screenplay** or a **stage play**. Choose under **Written as** when you make the story, or later in **Lorebook › Story identity**. Switching keeps every word: prose paragraphs read as action until you change them, and {{key:undo}} switches back.
 
 ## You write it the way you write prose
 
@@ -62,5 +62,18 @@ Choose the script's form under **Intended length** in **Story identity**: a shor
 In Studio mode the Assistant knows it is reading a script. It sees each scene as a screenwriter would, with every heading, cue and line of dialogue in its place. It talks about pages rather than chapters, and like everywhere in LoreStudio it never writes a line of the script for you, dialogue included.
 
 Some tools change for a script. **Unfilmables** takes the place of Show, Don't Tell and points at action a camera could not film: a thought, a feeling stated, backstory. **Pacing**, **First-pass editor** and **Story economy** measure in pages and eighths of a page. **Clichés** also looks for lines heard in a thousand films. The editorial pass judges the voice of the action lines and how distinct each character sounds, since a script has no narrator. Under **Publish**, **Logline & Synopsis** replaces the book description, the query is written for a manager or producer, and **Comparable Films** suggests films and series. Dialogue attribution is not offered, because the cue above each line already says who speaks.
+
+## Stage plays
+
+A stage play is written the same way, with the same elements, and laid out the way a play is printed. The character's name is centred above the speech, the speech runs the full width of the page, and stage directions are in italics from halfway across. Start a new story with **Written as: Stage play** and the **Stage Play** structure (acts of scenes; a one-act play keeps one act).
+
+- Each scene opens on its marker. Type `SCENE 1` (or `ACT TWO`) at the start of a line and it becomes the scene's heading, the way `INT.` does in a screenplay.
+- Type the act's marker above the first scene of each act, as in `ACT TWO` then `SCENE 1`. Each act after the first starts on a new page.
+- The bottom right of the page calls the elements by their theatre names: a stage direction, a direction inside a speech, an act or scene.
+- Its intended length is a ten-minute play, a one-act or a full-length play, counted in pages.
+- The Assistant (Studio) reads it as a play: what an audience in the theatre can see and hear. **Unstageables** points at stage directions no audience could see, and **Comparable Plays** suggests plays it sits beside.
+- **Publish** prints it as a stage play PDF, and exports Final Draft and Fountain files too.
+
+The demo _The Last Lighthouse: A Play in One Act_ tells the same night on stage.
 
 The demo story _The Last Lighthouse: The Screenplay_ is the novel's first three scenes written for the screen.

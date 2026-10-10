@@ -24,10 +24,15 @@ export function editorExtensions(format: StoryFormat): AnyExtension[] {
   return [
     proseStarterKit(),
     Placeholder.configure({
-      placeholder: script ? "Write what we see. ^ gives someone a line." : "Begin writing…",
+      placeholder:
+        format === "stage_play"
+          ? "Write what the audience sees. ^ gives someone a line."
+          : script
+            ? "Write what we see. ^ gives someone a line."
+            : "Begin writing…",
     }),
     CharacterCount,
-    ...(script ? [ScriptKeys] : [Typography]),
+    ...(script ? [ScriptKeys.configure({ format })] : [Typography]),
     ScriptElementAttribute,
     InlineNoteExtension,
     InlineImageExtension,

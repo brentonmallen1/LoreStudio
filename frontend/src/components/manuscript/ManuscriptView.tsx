@@ -10,7 +10,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { BookOpen, RefreshCw, Download, X, Feather, Orbit } from "lucide-react";
 import { api } from "../../api/client";
-import type { Manuscript, ManuscriptSection } from "../../types";
+import type { Manuscript, ManuscriptSection, StoryFormat } from "../../types";
 import ExportPanel from "./ExportPanel";
 import ScriptExportPanel from "./ScriptExportPanel";
 import ScriptPages from "./ScriptPages";
@@ -19,6 +19,8 @@ import PageHeader from "../layout/PageHeader";
 import { useAIAvailable } from "../../lib/mode";
 import CompTitlesSuggester from "../publish/CompTitlesSuggester";
 import { useAIStore } from "../../stores/aiStore";
+import { aiFeatureLabel } from "../../lib/ai/features.generated";
+import { useStoryFormat } from "../../lib/storyFormat";
 import styles from "./ManuscriptView.module.css";
 
 type StatusFilter = "all" | "revised_final" | "final";
@@ -99,6 +101,28 @@ function SceneSection({
   );
 }
 
+/** How the publication tools speak of the work, by format (doc 25, P7 and P9). */
+const PITCH: Record<StoryFormat, { intro: string; query: string; comps: string; compsHint: string }> = {
+  prose: {
+    intro: "AI tools to help prepare your manuscript for submission or self-publishing.",
+    query: "Draft a professional query letter",
+    comps: "Comp Titles",
+    compsHint: "Suggest comparable published books",
+  },
+  screenplay: {
+    intro: "AI tools to help prepare your script to send to managers, producers and contests.",
+    query: "Draft a query to a manager or producer",
+    comps: aiFeatureLabel("comp-titles", "screenplay"),
+    compsHint: "Suggest films and series it sits beside",
+  },
+  stage_play: {
+    intro: "AI tools to help prepare your play to send to theatres, literary managers and contests.",
+    query: "Draft a query to a theatre or literary manager",
+    comps: aiFeatureLabel("comp-titles", "stage_play"),
+    compsHint: "Suggest plays it sits beside",
+  },
+};
+
 export default function ManuscriptView({ storyId, onNavigateToScene, asPage = false }: Props) {
   const [manuscript, setManuscript] = useState<Manuscript | null>(null);
   const [loading, setLoading] = useState(true);
@@ -110,6 +134,8 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
   const { createSession } = useAIStore();
   // A screenplay reads as its printed pages (doc 25, P3).
   const preview = useScriptPreview(storyId, STATUS_FILTER_VALUES[statusFilter]);
+  const storyFormat = useStoryFormat();
+  const pitch = PITCH[preview.script ? storyFormat : "prose"];
   const reloadPreview = preview.reload;
 
   const load = useCallback(() => {
@@ -151,7 +177,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
           title="Publish"
           summary={
             preview.script && preview.layout
-              ? `${pagesSummary(preview.layout.page_count)} · the script as it prints`
+              ? `${pagesSummary(preview.layout.page_count, storyFormat)} · the script as it prints`
               : manuscript
                 ? `${manuscript.total_words.toLocaleString()} words · ${estimateReadingTime(manuscript.total_words)} · the manuscript as a reader will see it`
                 : "The manuscript as a reader will see it"
@@ -187,7 +213,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
           <BookOpen size={14} className={styles.toolbarIcon} />
           <span className={styles.toolbarTitle}>{manuscript?.title ?? "Manuscript"}</span>
           {preview.script && preview.layout ? (
-            <span className={styles.toolbarMeta}>{pagesSummary(preview.layout.page_count)}</span>
+            <span className={styles.toolbarMeta}>{pagesSummary(preview.layout.page_count, storyFormat)}</span>
           ) : (
             manuscript && (
               <span className={styles.toolbarMeta}>
@@ -270,11 +296,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
               </button>
             </div>
             <div className={styles.pubPrepBody}>
-              <p className={styles.pubPrepDesc}>
-                {preview.script
-                  ? "AI tools to help prepare your script to send to managers, producers and contests."
-                  : "AI tools to help prepare your manuscript for submission or self-publishing."}
-              </p>
+              <p className={styles.pubPrepDesc}>{pitch.intro}</p>
               <div className={styles.pubPrepActions}>
                 <button
                   className={styles.pubPrepBtn}
@@ -305,11 +327,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
                   <Feather size={14} className={styles.pubPrepBtnIcon} />
                   <div>
                     <div className={styles.pubPrepBtnLabel}>Query Letter</div>
-                    <div className={styles.pubPrepBtnDesc}>
-                      {preview.script
-                        ? "Draft a query to a manager or producer"
-                        : "Draft a professional query letter"}
-                    </div>
+                    <div className={styles.pubPrepBtnDesc}>{pitch.query}</div>
                   </div>
                 </button>
                 <button
@@ -318,14 +336,8 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
                 >
                   <Orbit size={14} className={styles.pubPrepBtnIcon} />
                   <div>
-                    <div className={styles.pubPrepBtnLabel}>
-                      {preview.script ? "Comparable Films" : "Comp Titles"}
-                    </div>
-                    <div className={styles.pubPrepBtnDesc}>
-                      {preview.script
-                        ? "Suggest films and series it sits beside"
-                        : "Suggest comparable published books"}
-                    </div>
+                    <div className={styles.pubPrepBtnLabel}>{pitch.comps}</div>
+                    <div className={styles.pubPrepBtnDesc}>{pitch.compsHint}</div>
                   </div>
                 </button>
               </div>

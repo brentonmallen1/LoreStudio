@@ -6,6 +6,7 @@ import { useState } from "react";
 import { AlertCircle, Download, FileCode, FileText, FileType2 } from "lucide-react";
 import { api } from "../../api/client";
 import { saveResponse } from "../../lib/download";
+import { formatLabel, useStoryFormat } from "../../lib/storyFormat";
 import { useStoryStore } from "../../stores/storyStore";
 import type { ScriptExportChoices, ScriptExportFormat, Story, TitlePage } from "../../types";
 import styles from "./ExportPanel.module.css";
@@ -45,6 +46,7 @@ interface Props {
 }
 
 export default function ScriptExportPanel({ storyId, choices, onChoices, statusFilter, onTitlePage }: Props) {
+  const storyFormat = useStoryFormat();
   const story = useStoryStore((s) => s.activeStory);
   const [format, setFormat] = useState<ScriptExportFormat>("screenplay_pdf");
   const [exporting, setExporting] = useState(false);
@@ -71,6 +73,8 @@ export default function ScriptExportPanel({ storyId, choices, onChoices, statusF
     }
   }
 
+  // The PDF is called what the story is: "Screenplay PDF", "Stage play PDF" (doc 25, P9).
+  const pdfLabel = `${formatLabel(storyFormat)} PDF`;
   return (
     <div className={styles.panel}>
       <div className={styles.section}>
@@ -84,7 +88,7 @@ export default function ScriptExportPanel({ storyId, choices, onChoices, statusF
               type="button"
             >
               <Icon size={14} className={styles.formatIcon} />
-              <span className={styles.formatLabel}>{label}</span>
+              <span className={styles.formatLabel}>{key === "screenplay_pdf" ? pdfLabel : label}</span>
               <span className={styles.formatSublabel}>{sublabel}</span>
             </button>
           ))}

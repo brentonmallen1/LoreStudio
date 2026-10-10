@@ -32,7 +32,7 @@ export default function BookDescriptionMode({ session }: Props) {
   const state = useAIModeState(session);
   const { sendMessage, cancelStreaming } = useAIStore();
   const storyId = session.context.storyId ?? "";
-  const script = useStoryFormat() === "screenplay";
+  const script = useStoryFormat() !== "prose";
   const starters = script ? SCRIPT_STARTERS : STARTERS;
 
   function handleSend(text?: string) {

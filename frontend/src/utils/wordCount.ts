@@ -80,6 +80,29 @@ export const LENGTH_TARGETS: Record<StoryFormat, Record<string, LengthForm>> = {
       phrase: "feature",
     },
   },
+  stage_play: {
+    ten_minute: {
+      min: 1,
+      max: 12,
+      label: "Ten-minute play",
+      option: "Ten-minute play (up to 12 pages)",
+      phrase: "ten-minute play",
+    },
+    one_act: {
+      min: 15,
+      max: 60,
+      label: "One-act play",
+      option: "One-act play (15–60 pages)",
+      phrase: "one-act play",
+    },
+    full_length: {
+      min: 80,
+      max: 130,
+      label: "Full-length play",
+      option: "Full-length play (80–130 pages)",
+      phrase: "full-length play",
+    },
+  },
 };
 
 /** Prose's forms, by their old name. */
@@ -88,7 +111,7 @@ export const WORD_COUNT_RANGES = LENGTH_TARGETS.prose;
 /** A form by its key, in whichever format has it. */
 export function lengthForm(key: string | null | undefined): LengthForm | undefined {
   if (!key) return undefined;
-  return LENGTH_TARGETS.prose[key] ?? LENGTH_TARGETS.screenplay[key];
+  return LENGTH_TARGETS.prose[key] ?? LENGTH_TARGETS.screenplay[key] ?? LENGTH_TARGETS.stage_play[key];
 }
 
 /** The Story identity choices for a format: none, then its forms in order. */

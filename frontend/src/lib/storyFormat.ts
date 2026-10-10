@@ -2,8 +2,9 @@ import { useStoryStore } from "../stores/storyStore";
 import type { Story, StoryFormat, StoryStructureTemplate } from "../types";
 
 /**
- * What a story is written as (doc 25): prose, or a screenplay. Anything that behaves
- * differently for a script asks here; the backend's twin is services/story_format.py.
+ * What a story is written as (doc 25): prose, a screenplay, or a stage play. A screenplay and a
+ * play are both scripts, written in the same elements and laid out differently. Anything that
+ * behaves differently for a script asks here; the backend's twin is services/story_format.py.
  */
 
 export const FORMATS: { id: StoryFormat; label: string; hint: string }[] = [
@@ -13,16 +14,28 @@ export const FORMATS: { id: StoryFormat; label: string; hint: string }[] = [
     label: "Screenplay",
     hint: "A film, a short or TV: scenes of action and dialogue, laid out as a script and counted in pages.",
   },
+  {
+    id: "stage_play",
+    label: "Stage play",
+    hint: "A play for the theatre: acts and scenes of speeches and stage directions, laid out as a play and counted in pages.",
+  },
 ];
+
+/** A format's name, as a story card or a heading says it. */
+export function formatLabel(format: StoryFormat): string {
+  return FORMATS.find((f) => f.id === format)?.label ?? "Prose";
+}
 
 /** The structure a new story of this format starts with, unless the author picks another. */
 export const DEFAULT_TEMPLATE: Record<StoryFormat, string> = {
   prose: "freeform",
   screenplay: "screenplay",
+  stage_play: "stage-play",
 };
 
 export function formatOf(story: Pick<Story, "story_format"> | null | undefined): StoryFormat {
-  return story?.story_format === "screenplay" ? "screenplay" : "prose";
+  const format = story?.story_format;
+  return format === "screenplay" || format === "stage_play" ? format : "prose";
 }
 
 export function isScript(story: Pick<Story, "story_format"> | null | undefined): boolean {

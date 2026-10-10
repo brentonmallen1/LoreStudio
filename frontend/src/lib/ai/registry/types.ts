@@ -19,5 +19,5 @@ export interface AIFeatureInfo {
   backendFeatureId?: string;
   /** The story formats it serves, when not every one (doc 25, P7); a gateway feature's own
    *  formats come from the feature table. */
-  formats?: ("prose" | "screenplay")[];
+  formats?: ("prose" | "screenplay" | "stage_play")[];
 }

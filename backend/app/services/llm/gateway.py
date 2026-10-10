@@ -52,7 +52,7 @@ from .base import LLMProvider
 from .features import FEATURES_BY_ID, feature_budget, thinking_mode, thinks
 from .gate import cooldown_for, model_gate, parallel_for
 from .ollama import StreamMetrics, _strip_json_fencing, extract_thoughts, ollama_provider, strip_thoughts
-from .prompts.core import CORE_SYSTEM_PROMPT, SCRIPT_RULES, class_contract
+from .prompts.core import CORE_SYSTEM_PROMPT, SCRIPT_RULES, STAGE_RULES, class_contract, for_stage
 from .prompts.who_they_are import CARE_RULES, MARKER
 
 logger = logging.getLogger(__name__)
@@ -77,12 +77,14 @@ class AICallContext:
     extra_metadata: dict = field(default_factory=dict)
 
 
-def _is_script(context: AICallContext, db: Session) -> bool:
-    """Whether the call is about a story written as a script (doc 25, P7)."""
+def _is_script(context: AICallContext, db: Session) -> str:
+    """The script format of the story the call is about ("screenplay", "stage_play"), or ""
+    for prose or no story (doc 25, P7 and P9)."""
     from ...models.story import Story
-    from ..story_format import is_script
+    from ..story_format import is_script, story_format
 
-    return bool(context.story_id) and is_script(db.get(Story, context.story_id))
+    story = db.get(Story, context.story_id) if context.story_id else None
+    return story_format(story) if is_script(story) else ""
 
 
 class AIDisabledError(RuntimeError):
@@ -253,7 +255,7 @@ class AIGateway:
         include_core: bool = True,
         feature_id: str = "",
         messages: list[dict] | None = None,
-        script: bool = False,
+        script: bool | str = False,
     ) -> str:
         """
         Merge the core prompt, the feature's co-author contract and the feature prompt.
@@ -271,7 +273,11 @@ class AIGateway:
         parts = [core] if include_core else []
         if contract:
             parts.append(contract)
-        if script:
+        # A script's own rule (doc 25, P7); a stage play's, and its prompt in the theatre's words (P9).
+        if script == "stage_play":
+            parts.append(STAGE_RULES)
+            feature_prompt = for_stage(feature_prompt)
+        elif script:
             parts.append(SCRIPT_RULES)
         # Who a person is (doc 20 P8): any call that carries those fields carries the rules.
         sent = [feature_prompt, *(str(m.get("content", "")) for m in messages or [])]

@@ -11,7 +11,7 @@ from ..schemas.numbers import LongScene, NumbersPages, PagesPart, WordTarget
 from .findings.view import StoryView
 from .script_export import pages_in
 from .script_syntax import LINES_PER_PAGE, block_lines, eighths, scene_blocks
-from .story_format import is_script
+from .story_format import is_script, story_format
 
 #: A scene longer than this many eighths (three pages) is long for the screen.
 LONG_SCENE = 24
@@ -23,7 +23,7 @@ def pages(view: StoryView) -> NumbersPages | None:
     if not is_script(view.story):
         return None
     target = view.target
-    total = target["current"] if target else pages_in([n.content for n in view.leaves])
+    total = target["current"] if target else pages_in([n.content for n in view.leaves], story_format(view.story))
 
     speech = action = 0
     for node in view.written:

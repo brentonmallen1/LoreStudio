@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .script_export import ScriptDoc, ScriptOptions
-from .script_syntax import LINES_PER_PAGE, Line, Page, paginate
+from .script_syntax import LINES_PER_PAGE, Line, Page, layout_for, paginate
 
 FONTS_DIR = Path(__file__).parent.parent / "assets" / "fonts"
 
@@ -94,22 +94,22 @@ def _right(text: str, top: float, edge: float = RIGHT_EDGE_PT) -> Item:
     return Item(top, edge - len(text) * CHAR_PT, text)
 
 
-def _kind(line: Line, options: ScriptOptions) -> str:
-    if line.element == "lyric":
+def _kind(line: Line, options: ScriptOptions, fmt: str) -> str:
+    if layout_for(fmt).get(line.element, {}).get("italic"):
         return "italic"
     return "bold" if options.bold_headings and line.element == "heading" else ""
 
 
-def _page_items(page: Page, numbers: dict[int, int], options: ScriptOptions) -> list[Item]:
+def _page_items(page: Page, numbers: dict[int, int], options: ScriptOptions, fmt: str) -> list[Item]:
     out = []
     for i, line in enumerate(page.lines):
         top = TOP_PT + i * LINE_PT
         if i in page.beside:  # dual dialogue: the right-hand speech on the same row
             right = page.beside[i]
-            out.append(Item(top, LEFT_PT + right.x * CHAR_PT, right.text, _kind(right, options)))
+            out.append(Item(top, LEFT_PT + right.x * CHAR_PT, right.text, _kind(right, options, fmt)))
         if line is None:
             continue
-        out.append(Item(top, LEFT_PT + line.x * CHAR_PT, line.text, _kind(line, options)))
+        out.append(Item(top, LEFT_PT + line.x * CHAR_PT, line.text, _kind(line, options, fmt)))
         if options.scene_numbers and i in numbers:
             n = f"{numbers[i]}"
             out.append(_right(n, top, LEFT_PT - 3 * CHAR_PT))
@@ -154,11 +154,11 @@ def layout(doc: ScriptDoc, options: ScriptOptions) -> Layout:
     """Every page of the script, every line placed: the paginator's pages, numbered from two."""
     width_in, height_in = PAGE_SIZES.get(options.page_size, PAGE_SIZES["letter"])
     out = Layout(width_in * PT_PER_IN, height_in * PT_PER_IN)
-    pages = paginate(doc.pairs, lines_per_page(options.page_size)) if doc.blocks else []
+    pages = paginate(doc.pairs, lines_per_page(options.page_size), doc.format) if doc.blocks else []
     if options.title_page:
         out.pages.append(_title_page(doc, out.height_pt))
     for k, (page, numbers) in enumerate(zip(pages, _numbered_lines(doc, pages), strict=True), start=1):
-        items = _page_items(page, numbers, options)
+        items = _page_items(page, numbers, options, doc.format)
         if k > 1:  # no number on page one, nor on the title page
             items.insert(0, _right(f"{k}.", NUMBER_TOP_PT))
         out.pages.append(items)

@@ -36,7 +36,7 @@ from ..services.llm.prompts.snowflake import LAYER_SPECS, build_snowflake_guidan
 from ..services.llm.prompts.summaries import build_story_summary_prompt
 from ..services.llm.sse import sse_stream
 from ..services.series import service as series_service
-from ..services.story_format import is_script
+from ..services.story_format import is_script, story_format
 from ..services.structure_scaffold import scaffold_story
 from ..services.text_utils import for_model, last_paragraphs
 from ..services.word_count import length_status, story_pages, story_target
@@ -83,6 +83,8 @@ def list_story_progress(db: Session = Depends(get_db), current_user: User = Depe
                 "word_count": words,
                 "target_words": target["max"] if target else None,
                 "target_unit": target["unit"] if target else None,
+                # Where it stands, in that unit: a script's pages (doc 25).
+                "target_current": target["current"] if target else None,
                 "pct": target["pct"] if target else None,
                 "last_scene_id": last.id if last else None,
                 "last_scene_title": last.title if last else None,
@@ -270,7 +272,7 @@ def get_story_overview(
     # A script is measured in the pages its PDF prints (doc 25, P5).
     page_count = story_pages(story, db) if is_script(story) else None
     target = (
-        length_status("screenplay", story.intended_length or "", page_count)
+        length_status(story_format(story), story.intended_length or "", page_count)
         if page_count is not None
         else length_status("prose", story.intended_length or "", total_words)
     )

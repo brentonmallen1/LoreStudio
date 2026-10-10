@@ -9,7 +9,8 @@ import SprintTimer from "../story/SprintTimer";
 import type { AutosaveState } from "./useSceneAutosave";
 import { goalFor, ledFor, statusFigures } from "./statusFigures";
 import { useTodayWords } from "./useTodayWords";
-import { ELEMENT_LABELS, eighths, formatEighths, type ScriptElement } from "../../lib/script/syntax";
+import { eighths, elementLabel, formatEighths, type ScriptElement } from "../../lib/script/syntax";
+import { useStoryFormat } from "../../lib/storyFormat";
 import styles from "./StatusCorner.module.css";
 
 interface Props {
@@ -63,10 +64,11 @@ export default function StatusCorner({ node, autosave, wordCount, script }: Prop
     return () => document.removeEventListener("mousedown", onDown);
   }, [shown, conflict]);
 
+  const format = useStoryFormat();
   const words = wordCount.toLocaleString();
   // A script shows where the cursor is and how long the scene runs; the words are a click away.
   const length = script ? formatEighths(eighths(script.lines)) || "no pages yet" : "";
-  const chipText = script ? `${ELEMENT_LABELS[script.element]} · ${length}` : `${words} words`;
+  const chipText = script ? `${elementLabel(script.element, format)} · ${length}` : `${words} words`;
   return (
     <div
       className={styles.corner}

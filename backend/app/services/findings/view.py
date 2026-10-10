@@ -18,7 +18,7 @@ from ...models.plot_thread import PlotThread
 from ...models.story import Story
 from ...models.structure import StoryStructureTemplate, StructureNode
 from ...schemas.findings import FindingsSizing
-from ..story_format import is_script
+from ..story_format import is_script, story_format
 from ..text_utils import html_to_text
 from ..word_count import length_status
 from .fingerprint import normalise
@@ -121,8 +121,9 @@ class StoryView:
         if is_script(self.story):
             from ..script_export import pages_in
 
-            pages = pages_in([n.content for n in self.leaves])
-            return length_status("screenplay", self.story.intended_length or "", pages)
+            fmt = story_format(self.story)
+            pages = pages_in([n.content for n in self.leaves], fmt)
+            return length_status(fmt, self.story.intended_length or "", pages)
         total = sum(n.word_count or 0 for n in self.leaves)
         return length_status("prose", self.story.intended_length or "", total)
 

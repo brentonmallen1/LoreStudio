@@ -190,5 +190,6 @@ export function sessionTypesFor(format: StoryFormat): SessionTypeConfig[] {
 /** A session type's name for a story of this format ("Unfilmables" for a script). */
 export function sessionTypeLabel(type: SessionTypeConfig, format: StoryFormat): string {
   const feature = type.backendFeatureId ? AI_FEATURES_BY_ID[type.backendFeatureId] : undefined;
-  return (format === "screenplay" && feature?.scriptLabel) || type.label;
+  if (format === "stage_play" && feature?.stageLabel) return feature.stageLabel;
+  return (format !== "prose" && feature?.scriptLabel) || type.label;
 }

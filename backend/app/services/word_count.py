@@ -37,8 +37,14 @@ LENGTH_TARGETS: dict[str, dict[str, dict]] = {
         "tv_hour": {"min": 45, "max": 65, "soft_warning_at": 58},
         "feature": {"min": 90, "max": 120, "soft_warning_at": 110},
     },
+    # A play's page runs about a minute on stage, as a screenplay's does on screen (doc 25, P9).
+    "stage_play": {
+        "ten_minute": {"min": 1, "max": 12, "soft_warning_at": 11},
+        "one_act": {"min": 15, "max": 60, "soft_warning_at": 54},
+        "full_length": {"min": 80, "max": 130, "soft_warning_at": 120},
+    },
 }
-UNITS = {"prose": "words", "screenplay": "pages"}
+UNITS = {"prose": "words", "screenplay": "pages", "stage_play": "pages"}
 #: Prose's table, by its old name: the word forms.
 WORD_COUNT_RANGES = LENGTH_TARGETS["prose"]
 
@@ -85,16 +91,17 @@ def story_pages(story, db) -> int:
     reading order, title page aside (doc 25, D5)."""
     from .manuscript_builder import get_manuscript_sections
     from .script_export import pages_in
+    from .story_format import story_format
 
-    return pages_in([s.content for s in get_manuscript_sections(story, db) if s.is_leaf])
+    return pages_in([s.content for s in get_manuscript_sections(story, db) if s.is_leaf], story_format(story))
 
 
 def story_target(story, db, words: int) -> dict | None:
     """`length_status` for a story: a script in the pages it prints, prose in `words`."""
-    from .story_format import is_script
+    from .story_format import is_script, story_format
 
     if is_script(story):
-        return length_status("screenplay", story.intended_length or "", story_pages(story, db))
+        return length_status(story_format(story), story.intended_length or "", story_pages(story, db))
     return length_status("prose", story.intended_length or "", words)
 
 
@@ -117,9 +124,11 @@ def scene_size(node, script: bool) -> str:
 def count_lines(story, html: str | None) -> int:
     """A script scene's length in lines of the printed page; 0 for prose (doc 25)."""
     from . import script_syntax
-    from .story_format import is_script
+    from .story_format import is_script, story_format
 
-    return script_syntax.scene_lines(script_syntax.scene_blocks(html or "")) if is_script(story) else 0
+    if not is_script(story):
+        return 0
+    return script_syntax.scene_lines(script_syntax.scene_blocks(html or ""), story_format(story))
 
 
 def recount_story(story_id: str, db) -> int:
