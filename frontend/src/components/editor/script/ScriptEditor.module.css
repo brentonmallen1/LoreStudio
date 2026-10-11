@@ -1,0 +1,203 @@
+/*
+ * A screenplay scene in the editor (doc 25). Courier Prime whatever the writing font. The line
+ * is as wide as the author's line-width setting; each element sits where it does on the printed
+ * page as a share of the line (lib/script/syntax.ts LAYOUT, in sixtieths: dialogue from 10 and
+ * 35 wide, a cue from 22, a parenthetical from 16 and 19 wide), so a wider line keeps the
+ * script's shape. The page count and the export always use the printed page.
+ *
+ * Each element's left edge is its `--indent`, so a line changing element glides there (P3½).
+ */
+.script {
+  --font-editor: "Courier Prime", "Courier New", monospace;
+}
+
+/* The line is the container, so a sixtieth of it means the same in every line's box. */
+.script :global(.ProseMirror) {
+  container-type: inline-size;
+  line-height: 1.3;
+}
+
+/* The printed page's margins are not even (1.5in left, 1in right), so a script's speeches sit
+   at the middle of the paper, not of its text. The line moves right by half the difference
+   (2.5 of its 60 columns), so a speech sits at the middle of the screen as on the paper. A
+   play centres on its text, as its PDF does. */
+.script:not(.stage) :global(.ProseMirror) {
+  position: relative;
+  left: calc(2.5 / 60 * 100%);
+}
+
+.script :global(.ProseMirror p) {
+  /* One sixtieth of the line: a column of the printed page. */
+  --col: calc(100cqw / 60);
+  --indent: 0px;
+  position: relative;
+  margin: 0 0 1.5em var(--indent);
+  transition:
+    margin-left 120ms ease-out,
+    max-width 120ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .script :global(.ProseMirror p) {
+    transition: none;
+  }
+}
+
+.script :global(.ProseMirror p[data-el="heading"]) {
+  margin-top: 1.5em;
+  font-weight: 700;
+}
+
+.script :global(.ProseMirror p[data-el="cue"]) {
+  --indent: calc(22 * var(--col));
+  margin-bottom: 0;
+}
+
+.script :global(.ProseMirror p[data-el="paren"]) {
+  --indent: calc(16 * var(--col));
+  margin-bottom: 0;
+  max-width: calc(19 * var(--col));
+  padding-left: 1ch;
+  text-indent: -1ch;
+}
+
+.script :global(.ProseMirror p[data-el="dialogue"]) {
+  --indent: calc(10 * var(--col));
+  max-width: calc(35 * var(--col));
+}
+
+/* A cue or parenthetical still waiting for its speech keeps the gap a speech ends with. */
+.script :global(.ProseMirror p[data-el="cue"]:last-child),
+.script :global(.ProseMirror p[data-el="paren"]:last-child) {
+  margin-bottom: 1.5em;
+}
+
+.script :global(.ProseMirror p[data-el="transition"]) {
+  text-align: right;
+}
+
+/* A centred line (THE END) and a lyric, sung in italics where dialogue sits (doc 25, P8). */
+.script :global(.ProseMirror p[data-el="centered"]) {
+  text-align: center;
+}
+
+.script :global(.ProseMirror p[data-el="lyric"]) {
+  --indent: calc(10 * var(--col));
+  max-width: calc(35 * var(--col));
+  font-style: italic;
+}
+
+/* A speech spoken at the same time as the one before: the page prints the two side by side;
+   here the cue says so, quietly. */
+.script :global(.ProseMirror p[data-el="cue"][data-dual])::after {
+  content: " · at the same time";
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.8em;
+  user-select: none;
+}
+
+/* A stage play (doc 25, P9; lib/script/syntax.ts STAGE_LAYOUT): the scene marker and the name
+   centred, the speech the full width under it, stage directions in italics from halfway. */
+.stage :global(.ProseMirror p[data-el="heading"]),
+.stage :global(.ProseMirror p[data-el="cue"]) {
+  --indent: 0px;
+  text-align: center;
+}
+
+.stage :global(.ProseMirror p:not([data-el])),
+.stage :global(.ProseMirror p[data-el="action"]) {
+  --indent: calc(20 * var(--col));
+  font-style: italic;
+}
+
+.stage :global(.ProseMirror p[data-el="paren"]) {
+  --indent: calc(10 * var(--col));
+  max-width: calc(30 * var(--col));
+  font-style: italic;
+}
+
+.stage :global(.ProseMirror p[data-el="dialogue"]),
+.stage :global(.ProseMirror p[data-el="lyric"]) {
+  --indent: 0px;
+  max-width: none;
+}
+
+/*
+ * Element guides (doc 25, P3½; ScriptGuide.ts), on unless the author turns them off: each
+ * element's words in a colour of their own, like a code editor's syntax highlighting, the
+ * element's name in the left margin beside the line being written, and an empty line's hint.
+ */
+/* Each palette's own syntax colours (`--syntax-*` in themes/), held to AA on the page by the
+   palettes' contrast test. Action is the body text, as a program's plain words are; a centred
+   line takes the transition's colour and a lyric the dialogue's. */
+:root:not([data-element-guides="off"]) .script :global(.ProseMirror p) {
+  --ink: var(--color-text);
+  color: var(--ink);
+}
+:root:not([data-element-guides="off"]) .script :global(.ProseMirror p[data-el="heading"]) {
+  --ink: var(--syntax-heading);
+}
+:root:not([data-element-guides="off"]) .script :global(.ProseMirror p[data-el="cue"]) {
+  --ink: var(--syntax-cue);
+}
+:root:not([data-element-guides="off"]) .script :global(.ProseMirror p[data-el="paren"]) {
+  --ink: var(--syntax-paren);
+}
+:root:not([data-element-guides="off"]) .script :global(.ProseMirror p[data-el="dialogue"]),
+:root:not([data-element-guides="off"]) .script :global(.ProseMirror p[data-el="lyric"]) {
+  --ink: var(--syntax-dialogue);
+}
+:root:not([data-element-guides="off"]) .script :global(.ProseMirror p[data-el="transition"]),
+:root:not([data-element-guides="off"]) .script :global(.ProseMirror p[data-el="centered"]) {
+  --ink: var(--syntax-transition);
+}
+
+:root:not([data-element-guides="off"]) .script :global(.script-margin-label) {
+  position: absolute;
+  translate: calc(-100% - 1.25rem) 0.15em;
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  line-height: 1.6;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+:root[data-element-guides="off"] .script :global(.script-margin-label) {
+  display: none;
+}
+
+:root:not([data-element-guides="off"]) .script :global(.ProseMirror p.el-empty[data-hint])::after {
+  content: attr(data-hint);
+  position: absolute;
+  inset: 0 auto auto 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.85em;
+  font-style: normal;
+  font-weight: 400;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* A transition and a centred line are not placed from the left: the hint follows their text. */
+:root:not([data-element-guides="off"]) .script :global(.ProseMirror p[data-el="transition"].el-empty)::after {
+  inset: 0 0 auto auto;
+}
+:root:not([data-element-guides="off"]) .script :global(.ProseMirror p[data-el="centered"].el-empty)::after,
+:root:not([data-element-guides="off"]) .stage :global(.ProseMirror p[data-el="cue"].el-empty)::after,
+:root:not([data-element-guides="off"]) .stage :global(.ProseMirror p[data-el="heading"].el-empty)::after {
+  inset: 0 0 auto 0;
+  text-align: center;
+}
+
+/* SmartType's offer (ScriptComplete.ts): the rest of the word, faint, until Tab takes it. */
+.script :global(.ProseMirror .script-ghost) {
+  color: var(--color-text-subtle);
+  pointer-events: none;
+  user-select: none;
+}

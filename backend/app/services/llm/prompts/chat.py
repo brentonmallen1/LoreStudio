@@ -15,8 +15,9 @@ def build_writing_coach_system_prompt(ctx: dict) -> str:
     s = ctx["story"]
     sc = ctx.get("scene")
 
+    craft = "the choices in their script" if s.get("script") else "their prose choices"
     lines = [
-        "You are a writing coach embedded in LoreStudio, helping an author think through their prose choices.",
+        f"You are a writing coach embedded in LoreStudio, helping an author think through {craft}.",
         "",
         "Your role is NOT to rewrite for the author. You help them think clearly about their own work.",
         "When given a passage to review:",
@@ -118,7 +119,8 @@ def build_scene_chat_system_prompt(ctx: dict) -> str:  # noqa: C901, PLR0912, PL
         if sc.get("key_events"):
             lines.append(f"Key events planned: {sc['key_events']}")
         if sc.get("prose_preview"):
-            lines += ["", "Prose so far (excerpt):", sc["prose_preview"]]
+            heading = "The scene so far (Fountain, excerpt):" if s.get("script") else "Prose so far (excerpt):"
+            lines += ["", heading, sc["prose_preview"]]
 
     if ctx["characters_in_scene"]:
         lines += ["", "## Characters in this scene"]

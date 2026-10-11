@@ -44,6 +44,8 @@ from ..services.llm.prompts.editorial import (
     build_priorities_prompt,
     build_voice_prompt,
 )
+from ..services.story_format import is_script
+from ..services.text_utils import for_model
 from ..services.wording import count
 
 router = APIRouter()
@@ -112,7 +114,7 @@ def _gather_sections(
         if context_level == "summaries":
             prose = n.content_summary or n.content or ""
         else:
-            prose = n.content or ""
+            prose = for_model(n.content)
         sections.append(
             {
                 "id": n.id,
@@ -197,7 +199,10 @@ def _prompts(story: Story, sections: list[dict], context_level: str) -> dict[str
         "Priorities": (
             PrioritiesResponse,
             build_priorities_prompt(
-                story_title=story.title, story_intent=intent, sections=sections, context_level=context_level
+                story_title=story.title,
+                story_intent=intent,
+                sections=sections,
+                context_level=context_level,
             ),
         ),
         "Intent vs Execution": (
@@ -207,12 +212,19 @@ def _prompts(story: Story, sections: list[dict], context_level: str) -> dict[str
         "Voice": (
             VoiceResponse,
             build_voice_prompt(
-                story_title=story.title, genre=genre, tone=tone, sections=sections, context_level=context_level
+                story_title=story.title,
+                genre=genre,
+                tone=tone,
+                sections=sections,
+                context_level=context_level,
+                script=is_script(story),
             ),
         ),
         "Marginal Notes": (
             MarginalNotesResponse,
-            build_marginal_notes_prompt(story_title=story.title, story_intent=intent, sections=sections),
+            build_marginal_notes_prompt(
+                story_title=story.title, story_intent=intent, sections=sections, script=is_script(story)
+            ),
         ),
     }
 

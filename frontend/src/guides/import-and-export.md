@@ -19,6 +19,10 @@ Your prose comes in exactly as you wrote it.
 In Studio mode, the importer can also ask the AI to find scene breaks (**Auto-segment**) and to fill in details for the characters it found. It only suggests; you choose what to keep.
 <!-- /studio -->
 
+### Scripts
+
+A script in **Fountain** (`.fountain`, `.spmd`) or **Final Draft** (`.fdx`) comes in as a screenplay, with nothing guessed: a scene starts at each scene heading and is named for its place, `#` sections (Final Draft's New Act) become acts, and an opening `FADE IN:` stays with the first scene. Its title page, each scene's synopsis (`=` in Fountain, the scene summary in Final Draft) and its notes come with it, a note beside the line it was written on. The characters it suggests are the names in its cues, for anyone who speaks twice or more, and its places are the ones its headings name. Italics and bold are kept. Two characters speaking at once (`^` in Fountain, dual dialogue in Final Draft) come in as speeches spoken at the same time, centred lines and lyrics as themselves, and the Fountain boneyard (`/* … */`) is left out.
+
 ## Export your manuscript
 
 Open the **Manuscript** page and choose **Export**, or choose **Export manuscript…** in the command palette ({{key:palette}}). Pick a format and your options, then choose **Download**.
@@ -38,5 +42,17 @@ The options:
 - **Include act / chapter headings** and **Include scene titles**.
 - **Scene break**: the mark printed between scenes.
 - **Include scenes**: all of them, only revised and final, or only final.
+
+### Screenplays
+
+A screenplay exports as a script, not as prose. **Publish** shows its pages as they will print, and the export offers:
+
+| Format         | Notes                                                                             |
+| -------------- | --------------------------------------------------------------------------------- |
+| Screenplay PDF | Industry layout: Courier 12 point, US Letter or A4, (MORE) and (CONT'D) at breaks |
+| Final Draft    | `.fdx`, which opens in Final Draft, Fade In, WriterDuet and Highland              |
+| Fountain       | `.fountain`, the plain-text screenplay format                                     |
+
+Options: a title page (its credit, "based on" line, contact block, draft and date are kept with the story), scene numbers in both margins for a shooting script, bold scene headings, and (CONT'D) on a cue when the same character speaks again after action. The preview follows the options, so the pages you see are the pages that export.
 
 > **Tip:** To move a whole story, notes and Lorebook included, to another copy of LoreStudio, download a snapshot from Chronicle › **Versions**, then choose **Import from a file…** there on the other copy. See [Snapshots, backups and undo](/guides/snapshots-and-backups).

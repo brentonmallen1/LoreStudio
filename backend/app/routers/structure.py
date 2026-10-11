@@ -12,12 +12,16 @@ from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.structure import StructureNodeOut, StructureNodeUpdate
 from ..services import change_log
+from ..services.adaptation import AdaptError, check_source_scene
 from ..services.dangling import detach_scenes
 from ..services.dialogue_service import sync_scene_dialogue
 from ..services.linking_service import apply_entity_links, suggest_entity_links
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
 from ..services.llm.prompts.summaries import build_scene_summary_prompt, build_structure_section_summary_prompt
 from ..services.llm.sse import sse_message, sse_stream
+from ..services.script_scene import derive_heading, split_at_headings, split_scene
+from ..services.text_utils import for_model
+from ..services.word_count import count_lines
 
 router = APIRouter()
 
@@ -60,7 +64,7 @@ def get_node(node_id: str, db: Session = Depends(get_db), current_user: User = D
     return _verify_node_access(node_id, db, current_user)
 
 
-_CLEARABLE = ("pov_character_id", "beat_id", "era_id")
+_CLEARABLE = ("pov_character_id", "beat_id", "era_id", "adapted_from_id")
 
 
 @router.patch("/{node_id}", response_model=StructureNodeOut)
@@ -77,6 +81,11 @@ def update_node(
     for key in _CLEARABLE:
         if key in body.model_fields_set and not getattr(body, key):
             data[key] = None
+    if data.get("adapted_from_id"):
+        try:
+            check_source_scene(db, node, data["adapted_from_id"])
+        except AdaptError as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e)) from e
     expected = data.pop("expected_updated_at", None)
     if expected is not None and node.updated_at is not None and _differs(expected, node.updated_at):
         # Someone (another tab, an undo, a restore) changed this node since the client loaded it.
@@ -124,6 +133,10 @@ def update_node(
         )
     for key, value in data.items():
         setattr(node, key, value)
+    if "content" in data:
+        story = db.get(Story, node.story_id)
+        node.line_count = count_lines(story, node.content)
+        derive_heading(node, story, db)
     if node.status == "planned" and "status" not in data and (data.get("word_count") or 0) > 0:
         # The first words turn a planned scene into a draft. Logged, not undoable on its own:
         # undoing it would leave prose in a scene marked as not yet written.
@@ -151,6 +164,73 @@ def update_node(
     return node
 
 
+def _unchanged_since(node: StructureNode, expected: datetime | None) -> None:
+    if expected and node.updated_at is not None and _differs(expected, node.updated_at):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "This segment changed since you loaded it.",
+                "node": StructureNodeOut.model_validate(node).model_dump(mode="json"),
+            },
+        )
+
+
+class SplitBody(BaseModel):
+    """The scene's words up to the new heading, and from it on (doc 25, D3)."""
+
+    content: str
+    new_content: str
+    expected_updated_at: datetime | None = None
+
+
+@router.post("/{node_id}/split", response_model=StructureNodeOut, status_code=status.HTTP_201_CREATED)
+def split_node(
+    node_id: str,
+    body: SplitBody,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
+):
+    """Start a new scene where a script scene's second heading is: the scene keeps what came
+    before it, the new scene after it takes the rest, and ⌘Z puts them back together."""
+    node = _verify_node_access(node_id, db, current_user)
+    _unchanged_since(node, body.expected_updated_at)
+    if not body.new_content.strip():
+        raise HTTPException(status_code=400, detail="Nothing to start the new scene with.")
+    new = split_scene(db, node, body.content, body.new_content, actor_id=current_user.id, client_id=client_id)
+    db.commit()
+    db.refresh(new)
+    sync_scene_dialogue(node, db)
+    sync_scene_dialogue(new, db)
+    return new
+
+
+class SplitHeadingsBody(BaseModel):
+    expected_updated_at: datetime | None = None
+
+
+@router.post("/{node_id}/split-headings", response_model=StructureNodeOut)
+def split_at_every_heading(
+    node_id: str,
+    body: SplitHeadingsBody,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
+):
+    """Start a scene at every heading below a script scene's own, as several scenes pasted at
+    once ask (doc 25, P6). One change ⌘Z takes back whole; returns the scene as it now reads."""
+    node = _verify_node_access(node_id, db, current_user)
+    _unchanged_since(node, body.expected_updated_at)
+    made = split_at_headings(db, node, actor_id=current_user.id, client_id=client_id)
+    if not made:
+        raise HTTPException(status_code=400, detail="There is no other heading in this scene.")
+    db.commit()
+    for scene in (node, *made):
+        sync_scene_dialogue(scene, db)
+    db.refresh(node)
+    return node
+
+
 @router.post("/{node_id}/summarize")
 async def summarize_node(
     node_id: str,
@@ -167,7 +247,7 @@ async def summarize_node(
     # Leaf node: has direct prose content
     if node.content and node.content.strip():
         feature_prompt = build_scene_summary_prompt(node.title, node.content)
-        llm_messages = [{"role": "user", "content": f"Scene: {node.title}\n\n{node.content}"}]
+        llm_messages = [{"role": "user", "content": f"Scene: {node.title}\n\n{for_model(node.content)}"}]
         feature = "scene-summary"
     else:
         # Section node: gather all child content recursively
@@ -179,7 +259,7 @@ async def summarize_node(
         def gather_content(n: StructureNode) -> list[str]:
             pieces = []
             if n.content and n.content.strip():
-                pieces.append(f"[{n.title}]\n{n.content}")
+                pieces.append(f"[{n.title}]\n{for_model(n.content)}")
             for child in sorted(child_map.get(n.id, []), key=lambda c: c.position):
                 pieces.extend(gather_content(child))
             return pieces

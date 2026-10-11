@@ -11,29 +11,17 @@
 
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { matchSlash, slashCommandsFor, type SlashCommandDef } from "../../lib/editor/slashCommands";
 
 // ---------------------------------------------------------------------------
-// Command registry
+// The commands on offer: the open editor's, by its story's format (lib/editor/slashCommands)
 // ---------------------------------------------------------------------------
 
-export interface SlashCommandDef {
-  name: string;
-  label: string;
-  description: string;
+let _commands: SlashCommandDef[] = slashCommandsFor("prose");
+
+export function setSlashCommands(commands: SlashCommandDef[]) {
+  _commands = commands;
 }
-
-export const SLASH_COMMANDS: SlashCommandDef[] = [
-  {
-    name: "dialogue",
-    label: "Insert dialogue line",
-    description: "Insert a dialogue block with speaker attribution",
-  },
-  {
-    name: "todo",
-    label: "Add a to-do",
-    description: "A to-do in the margin, on the sentence at the cursor",
-  },
-];
 
 // ---------------------------------------------------------------------------
 // Module-level callbacks (safe: only one SceneEditor exists at a time)
@@ -145,9 +133,7 @@ export const SlashCommandExtension = Extension.create({
                   const slashFrom = blockStart + slashIdx;
                   const slashTo = from;
 
-                  const matching = SLASH_COMMANDS.filter((cmd) => cmd.name.startsWith(query));
-
-                  if (matching.length > 0) {
+                  if (matchSlash(_commands, query).length > 0) {
                     const coords = view.coordsAtPos(from);
                     _cb.onOpen(query, slashFrom, slashTo, coords.bottom, coords.left);
                     return;

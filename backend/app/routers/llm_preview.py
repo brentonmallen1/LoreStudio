@@ -40,6 +40,7 @@ from ..services.llm.prompts.interviews import (
 )
 from ..services.llm.prompts.summaries import build_story_summary_prompt
 from ..services.llm.prompts.who_they_are import entries
+from ..services.story_format import is_script, story_format
 
 router = APIRouter()
 
@@ -433,7 +434,11 @@ async def get_prompt_preview(  # noqa: C901, PLR0912, PLR0915
         raise HTTPException(status_code=400, detail=f"Unknown context_type: {body.context_type}")
 
     user_ai = (current_user.settings or {}).get("ai", {})
-    composed_prompt = ai_gateway.compose_prompt(system_prompt, current_user)
+    # A script's calls carry the screenplay rule (doc 25, P7); the preview shows it too.
+    previewed = db.get(Story, body.story_id) if body.story_id else None
+    composed_prompt = ai_gateway.compose_prompt(
+        system_prompt, current_user, script=story_format(previewed) if is_script(previewed) else ""
+    )
     core_is_custom = bool(user_ai.get("core_prompt"))
 
     system_tokens = len(system_prompt) // 4

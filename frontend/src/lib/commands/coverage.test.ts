@@ -18,8 +18,9 @@ import type { StructureNode } from "../../types";
 describe("command palette coverage", () => {
   const ids = new Set(commandRegistry.getAll().map((a) => a.id));
 
-  it("reaches the Series page, which is not a story route, and starts a sequel", () => {
+  it("reaches the Series page, which is not a story route, and starts a sequel or an adaptation", () => {
     expect([...ids].filter((id) => id.startsWith("series-")).sort()).toEqual([
+      "series-adapt",
       "series-canon",
       "series-new",
       "series-new-book",

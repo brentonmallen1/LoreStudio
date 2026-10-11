@@ -1,6 +1,9 @@
 """
 Import router — document upload, structure preview, and story creation.
 
+A Fountain or Final Draft file takes the same steps (doc 25, P6): services/import_script reads
+the structure and the Lorebook entries it states, and makes the story a screenplay.
+
 Session lifecycle (in-memory, 30-minute TTL):
   POST /import/upload              → creates session, returns preview
   POST /import/{session_id}/ai-analyze → AI break suggestions (user-initiated)
@@ -38,6 +41,15 @@ from ..schemas.import_schemas import (
     UploadResponse,
 )
 from ..schemas.jobs import JobOut
+from ..services.import_script import (
+    SCRIPT_EXTENSIONS,
+    ScriptImport,
+    is_script_file,
+    read_script,
+    script_preview,
+)
+from ..services.import_script import candidates as script_candidates
+from ..services.import_script import finish as finish_script
 from ..services.import_service import (
     _merge_breaks,
     apply_adjustment,
@@ -69,11 +81,13 @@ class _ImportSession:
         user_id: str,
         paragraphs: list[ParsedParagraph],
         preview: ImportPreviewTree,
+        script: ScriptImport | None = None,
     ):
         self.session_id = session_id
         self.user_id = user_id
         self.paragraphs = paragraphs
         self.preview = preview
+        self.script = script
         self.created_at = time.monotonic()
 
     def is_expired(self) -> bool:
@@ -118,12 +132,35 @@ ALLOWED_MIME_TYPES = {
     "application/octet-stream",
 }
 
-ALLOWED_EXTENSIONS = {".docx", ".doc", ".rtf", ".md", ".markdown", ".txt", ".epub"}
+ALLOWED_EXTENSIONS = {".docx", ".doc", ".rtf", ".md", ".markdown", ".txt", ".epub", *SCRIPT_EXTENSIONS}
 MAX_FILE_SIZE = 30 * 1024 * 1024  # 30 MB
 
 
 def _get_template(template_id: str, db: Session) -> StoryStructureTemplate | None:
     return db.query(StoryStructureTemplate).filter(StoryStructureTemplate.id == template_id).first()
+
+
+def _preview(paragraphs, script, session_id, template_id, template_levels, source_format, detected_title):
+    """The structure the wizard opens on: what a script states, or what headings and breaks suggest."""
+    if script:
+        return script_preview(
+            script,
+            paragraphs,
+            session_id=session_id,
+            template_id=template_id,
+            template_levels=template_levels,
+            source_format=source_format,
+            detected_title=detected_title,
+        )
+    return build_preview_tree(
+        sections=apply_breaks(paragraphs, detect_structure_heuristic(paragraphs), template_levels),
+        paragraphs=paragraphs,
+        session_id=session_id,
+        template_id=template_id,
+        template_levels=template_levels,
+        source_format=source_format,
+        detected_title=detected_title,
+    )
 
 
 def _template_levels(template: StoryStructureTemplate | None) -> list[dict]:
@@ -172,10 +209,14 @@ async def upload_for_import(
 
     mime = file.content_type or "application/octet-stream"
 
-    # Parse document via pandoc
+    # Parse document via pandoc; a script file reads itself
+    script: ScriptImport | None = None
     try:
-        paragraphs, detected_title, source_format = parse_document(content, filename, mime)
-    except RuntimeError as e:
+        if is_script_file(filename):
+            paragraphs, detected_title, source_format, script = read_script(content, filename)
+        else:
+            paragraphs, detected_title, source_format = parse_document(content, filename, mime)
+    except (RuntimeError, ValueError) as e:
         raise HTTPException(status_code=422, detail=f"Could not parse document: {e}")
 
     if not paragraphs:
@@ -185,20 +226,8 @@ async def upload_for_import(
     template = _get_template(template_id, db)
     template_levels = _template_levels(template)
 
-    # Heuristic detection
-    breaks = detect_structure_heuristic(paragraphs)
-    sections = apply_breaks(paragraphs, breaks, template_levels)
-
     session_id = str(uuid.uuid4())
-    preview = build_preview_tree(
-        sections=sections,
-        paragraphs=paragraphs,
-        session_id=session_id,
-        template_id=template_id,
-        template_levels=template_levels,
-        source_format=source_format,
-        detected_title=detected_title,
-    )
+    preview = _preview(paragraphs, script, session_id, template_id, template_levels, source_format, detected_title)
 
     # Check if Ollama is reachable (non-blocking check)
     ai_available = False
@@ -215,6 +244,8 @@ async def upload_for_import(
     )
     if len(preview.nodes) == 1:
         has_unstructured = True
+    if script:
+        has_unstructured = False  # a script states its own scenes
 
     # Store session
     _sessions[session_id] = _ImportSession(
@@ -222,6 +253,7 @@ async def upload_for_import(
         user_id=current_user.id,
         paragraphs=paragraphs,
         preview=preview,
+        script=script,
     )
 
     return UploadResponse(
@@ -342,9 +374,12 @@ async def extract_preview(
 
     session = _get_session(session_id, current_user.id)
 
-    # Stage 1: NLP
+    # Stage 1: NLP (a script names its people in its cues and its places in its headings)
     nlp_start = time.monotonic()
-    candidates = extract_entities_nlp(session.paragraphs, session.preview.nodes, options)
+    if session.script:
+        candidates = script_candidates(session.script, session.paragraphs, session.preview.nodes, options)
+    else:
+        candidates = extract_entities_nlp(session.paragraphs, session.preview.nodes, options)
     nlp_elapsed = int((time.monotonic() - nlp_start) * 1000)
 
     # Check AI availability
@@ -539,19 +574,14 @@ def finalize_import(
     # If template changed, rebuild preview with new level names
     preview = session.preview
     if body.template_id != preview.template_id:
-        from ..services.import_service import apply_breaks, build_preview_tree, detect_structure_heuristic
-
-        template_levels = _template_levels(template)
-        heuristic_breaks = detect_structure_heuristic(session.paragraphs)
-        sections = apply_breaks(session.paragraphs, heuristic_breaks, template_levels)
-        preview = build_preview_tree(
-            sections=sections,
-            paragraphs=session.paragraphs,
-            session_id=session_id,
-            template_id=body.template_id,
-            template_levels=template_levels,
-            source_format=preview.source_format,
-            detected_title=preview.detected_title,
+        preview = _preview(
+            session.paragraphs,
+            session.script,
+            session_id,
+            body.template_id,
+            _template_levels(template),
+            preview.source_format,
+            preview.detected_title,
         )
 
     try:
@@ -576,6 +606,8 @@ def finalize_import(
             entity_counts = create_entities_from_extraction(candidates, selected_ids, story.id, db)
         except Exception as e:
             logger.warning("Entity extraction creation failed (non-fatal): %s", e)
+    if session.script:
+        finish_script(story, session.script, preview, db)
 
     # Clean up session
     _sessions.pop(session_id, None)

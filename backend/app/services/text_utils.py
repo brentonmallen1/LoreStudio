@@ -7,6 +7,7 @@ for analysis, NLP, and export without any external dependencies.
 
 from __future__ import annotations
 
+import re
 from html.parser import HTMLParser
 
 _BLOCK_TAGS = {"p", "div", "li", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote"}
@@ -56,18 +57,44 @@ def html_to_paragraphs(html: str) -> list[str]:
     return extractor.get_paragraphs()
 
 
+_SCRIPT_LINE = re.compile(r"""<p[^>]*\sdata-el=["'](heading|action|cue|paren|dialogue|transition)["']""")
+
+
+def is_script_html(html: str | None) -> bool:
+    """Whether a scene is written in script elements (doc 25): its lines carry `data-el`."""
+    return bool(html) and bool(_SCRIPT_LINE.search(html))
+
+
 def prose_paragraphs(html: str) -> list[str]:
     """The prose's paragraphs as a reader sees them: no `@`, no `[[ ]]`, no `<Name>` after a
     line (services/prose_syntax). What analysis, the search index and the model are given,
-    so a speaker tag is never read as words ("Hi."Calder) or a name as "@Eleanor"."""
+    so a speaker tag is never read as words ("Hi."Calder) or a name as "@Eleanor".
+
+    A script scene is read as Fountain, a paragraph per block (a cue with its speech is one),
+    so the model knows a cue from a line of dialogue (doc 25, P7)."""
     from .prose_syntax import reader_text
 
+    if is_script_html(html):
+        from .fountain import scene_fountain
+
+        return [p for p in scene_fountain(html).split("\n\n") if p.strip()]
     return [t for t in (reader_text(p).strip() for p in html_to_paragraphs(html)) if t]
 
 
 def prose_text(html: str) -> str:
-    """The prose as one string, as a reader sees it (see `prose_paragraphs`)."""
+    """The prose as one string, as a reader sees it (see `prose_paragraphs`); a script keeps
+    its Fountain lines."""
+    if is_script_html(html):
+        return "\n\n".join(prose_paragraphs(html))
     return " ".join(prose_paragraphs(html))
+
+
+def for_model(html: str | None) -> str:
+    """A scene as the model is given it: a script as Fountain text (doc 25, P7). Prose goes as
+    it is stored, as these prompts have always sent it."""
+    if is_script_html(html):
+        return prose_text(html or "")
+    return html or ""
 
 
 def last_paragraphs(html: str, count: int = 2, max_chars: int = 700) -> list[str]:

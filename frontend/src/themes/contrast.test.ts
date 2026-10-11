@@ -106,6 +106,9 @@ const TEXT: [string, string][] = [
 ];
 const FILLS = ["accent", "ai", "nlp", "editorial", "ai-coach", "planner", "brainstorm"];
 
+/** A script's syntax colours (doc 25, P3½), one per element, each palette its own. */
+const SYNTAX = ["heading", "cue", "paren", "dialogue", "transition"];
+
 const PAIRS: [string, string, number, string][] = [
   ...TEXT.flatMap(([fg, what]) =>
     GROUNDS.map(([bg, where]): [string, string, number, string] => [fg, bg, 4.5, `${what} on ${where}`]),
@@ -146,6 +149,15 @@ const PAIRS: [string, string, number, string][] = [
     ]),
     [`--cat-${n}-fg`, `--cat-${n}`, 4.5, `text on slot ${n}`],
   ]),
+  // A script's syntax colours (doc 25, P3½; ScriptEditor.module.css): text on the page.
+  ...SYNTAX.flatMap((el) =>
+    GROUNDS.slice(0, 2).map(([bg, where]): [string, string, number, string] => [
+      `--syntax-${el}`,
+      bg,
+      4.5,
+      `script ${el} colour on ${where}`,
+    ]),
+  ),
   // The edge of an input, select or toggle (WCAG 1.4.11), and the keyboard focus ring.
   ...GROUNDS.map(([bg, where]): [string, string, number, string] => [
     "--color-control-border",
@@ -171,6 +183,7 @@ const PAIRS: [string, string, number, string][] = [
 
 /** Tokens every palette must define in hex, light and dark, or the pairs above are silently skipped. */
 const REQUIRED = [
+  ...SYNTAX.map((el) => `--syntax-${el}`),
   ...Array.from({ length: 8 }, (_, i) => [`--cat-${i + 1}`, `--cat-${i + 1}-fg`]).flat(),
   "--status-planned",
   "--status-draft",

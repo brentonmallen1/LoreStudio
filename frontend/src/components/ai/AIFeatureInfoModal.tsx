@@ -7,6 +7,7 @@ import type { AISettings } from "../../types";
 import { PAGE_LABELS, visibleFeatures } from "../../lib/ai/featureRegistry";
 import { AI_FEATURES_BY_ID } from "../../lib/ai/features.generated";
 import { useMode } from "../../lib/mode";
+import { useStoryFormat } from "../../lib/storyFormat";
 import type { AIFeatureInfo } from "../../lib/ai/featureRegistry";
 import styles from "./AIFeatureInfoModal.module.css";
 
@@ -30,7 +31,7 @@ export default function AIFeatureInfoModal({ isOpen, onClose, pageId }: Props) {
   }, [isOpen]);
 
   // Writer mode sees the NLP tools it can actually run, and nothing about the AI ones.
-  const allFeatures = visibleFeatures(pageId, useMode());
+  const allFeatures = visibleFeatures(pageId, useMode(), useStoryFormat());
 
   const nlpFeatures = allFeatures.filter((f) => f.type === "nlp");
   const aiFeatures = allFeatures.filter((f) => f.type === "ai");

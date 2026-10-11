@@ -13,7 +13,6 @@ from ...schemas.promises import PromisesOut
 from ..codex.presence import known_as, name_patterns
 from ..mice_validation import validate_thread_nesting
 from ..thread_roles import tries
-from ..word_count import get_word_count_status
 from .make import make, severity
 from .view import StoryView
 
@@ -174,21 +173,21 @@ def _chapters(view: StoryView) -> list[Finding]:
 
 
 def _target(view: StoryView) -> list[Finding]:
-    total = sum(n.word_count or 0 for n in view.leaves)
-    status = get_word_count_status(view.story.intended_length or "", total)
+    status = view.target
     if not status or status["warning_level"] == "normal":
         return []
-    form = (view.story.intended_length or "").replace("_", " ")
+    form = (view.story.intended_length or "").replace("_", " ").replace("tv", "TV")
     over = status["warning_level"] == "exceeded"
+    total, unit = status["current"], status["unit"]
     return [
         make(
             "word_target",
             "structure",
             "mid" if over else "low",
             "data",
-            f"{total:,} words: past the {status['max']:,} a {form} usually runs to"
+            f"{total:,} {unit}: past the {status['max']:,} a {form} usually runs to"
             if over
-            else f"{total:,} words: nearing the {status['max']:,} a {form} usually runs to",
+            else f"{total:,} {unit}: nearing the {status['max']:,} a {form} usually runs to",
             key=status["warning_level"],
             suggestion="Is this still the form you mean it to be?",
             where="Story identity",

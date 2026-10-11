@@ -76,6 +76,14 @@ class AIFeature:
     #: Whether Gemma reasons before answering when the author's choice is "Where it helps".
     #: None takes the class's default (`thinks_first`); a row sets it where that is wrong.
     thinks: bool | None = None
+    #: The story formats it serves (doc 25, P7). A script's cues already say who speaks, so
+    #: dialogue attribution is prose's alone.
+    formats: tuple[str, ...] = ("prose", "screenplay", "stage_play")
+    #: What it is called and does for a script, where that differs ("Comparable Films").
+    script_label: str = ""
+    script_description: str = ""
+    #: And for a stage play, where it differs again ("Comparable Plays", doc 25 P9).
+    stage_label: str = ""
 
     @property
     def thinks_first(self) -> bool:
@@ -263,6 +271,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         classification="analyse",
         description="Who is speaking in blocks the deterministic pass could not settle.",
         context=("Dialogue blocks", "Characters in the scene"),
+        formats=("prose",),
     ),
     AIFeature(
         id="discovery",
@@ -420,6 +429,9 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         classification="analyse",
         description="Points at passages that state what could be shown, and names the telling.",
         context=("Scene prose", "Genre and tone"),
+        script_label="Unfilmables",
+        script_description="Points at action a camera could not film: a thought, a feeling stated, backstory.",
+        stage_label="Unstageables",
     ),
     AIFeature(
         id="story-summary",
@@ -636,6 +648,8 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         classification="draft",
         description="Back-cover copy to rewrite in your own voice.",
         context=("Story identity", "Main characters", "Central conflict", "Themes"),
+        script_label="Logline & Synopsis",
+        script_description="A logline and a one-page synopsis to rewrite in your own voice.",
     ),
     AIFeature(
         id="query-letter",
@@ -644,6 +658,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         classification="draft",
         description="A query draft to rewrite — agents can tell when a letter was not written by the author.",
         context=("Story identity and word count", "Main characters and conflict", "Comp titles"),
+        script_description="A query to a manager or producer, to rewrite in your own voice.",
     ),
     AIFeature(
         id="comp-titles",
@@ -653,6 +668,9 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         description="Published books your story sits beside, with why.",
         context=("Genre, audience and tone", "Logline and premise", "Themes"),
         budget=BUDGET_SMALL,
+        script_label="Comparable Films",
+        script_description="Films and series your script sits beside, with why.",
+        stage_label="Comparable Plays",
     ),
     # ── Background ──────────────────────────────────────────────────────────────
     AIFeature(
@@ -723,3 +741,11 @@ def thinks(feature_id: str, mode: str) -> bool:
         return mode == "always"
     feature = FEATURES_BY_ID.get(feature_id)
     return bool(feature and feature.thinks_first)
+
+
+def fits(feature_id: str, story) -> bool:
+    """Whether a feature serves this story's format (doc 25, P7)."""
+    from ..story_format import story_format
+
+    feature = FEATURES_BY_ID.get(feature_id)
+    return feature is None or story_format(story) in feature.formats

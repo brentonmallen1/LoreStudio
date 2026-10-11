@@ -22,6 +22,7 @@ export const api = {
     description?: string;
     intent?: string;
     structure_template_id?: string;
+    story_format?: import("../types").StoryFormat;
     scaffold?: boolean;
   }) =>
     request<import("../types").Story & { start_node_id: string | null }>("/stories", {

@@ -1,18 +1,9 @@
 import { STATUS_LABEL, STATUSES } from "../../lib/numbers/charts";
 import { signed } from "../../lib/numbers/compare";
 import type { NumbersWords } from "../../types/numbers";
+import { lengthForm } from "../../utils/wordCount";
 import SectionHeading from "./SectionHeading";
 import styles from "./Numbers.module.css";
-
-const FORM_LABEL: Record<string, string> = {
-  flash_fiction: "flash fiction",
-  short_story: "short story",
-  novelette: "novelette",
-  novella: "novella",
-  novel: "novel",
-  epic_saga: "epic",
-  series: "series",
-};
 
 /**
  * How long the story is, how far along its words are, and how that sits against its form.
@@ -20,7 +11,7 @@ const FORM_LABEL: Record<string, string> = {
  */
 export default function Words({ words, then }: { words: NumbersWords; then?: NumbersWords }) {
   const n = (v: number) => v.toLocaleString();
-  const form = FORM_LABEL[words.form];
+  const form = lengthForm(words.form)?.phrase;
   const t = words.target;
   const scale = Math.max(1, words.total, then?.total ?? 0);
   return (
@@ -79,7 +70,7 @@ export default function Words({ words, then }: { words: NumbersWords; then?: Num
           </span>
         ))}
       </div>
-      {t && form && (
+      {t && form && t.unit !== "pages" && (
         <>
           <div
             className={styles.target}
@@ -106,7 +97,7 @@ export default function Words({ words, then }: { words: NumbersWords; then?: Num
                 ? `Close to the ${n(t.max)} words a ${form} usually runs to.`
                 : `${t.pct}% of the ${n(t.max)} words a ${form} usually runs to.`}
             {words.reads_as &&
-              ` At this length it reads as a ${FORM_LABEL[words.reads_as] ?? words.reads_as}.`}
+              ` At this length it reads as a ${lengthForm(words.reads_as)?.phrase ?? words.reads_as}.`}
           </p>
         </>
       )}

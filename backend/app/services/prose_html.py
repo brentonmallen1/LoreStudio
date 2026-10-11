@@ -18,6 +18,8 @@ from dataclasses import dataclass, field
 _TOKEN = re.compile(r"<!--.*?-->|<[^>]*>|&(?:#\d+|#[xX][0-9a-fA-F]+|[A-Za-z][A-Za-z0-9]*);|[^<&]+|&", re.S)
 _TAG_NAME = re.compile(r"<\s*/?\s*([A-Za-z][A-Za-z0-9]*)")
 _BLOCKS = {"p", "div", "li", "ul", "ol", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "pre", "hr"}
+_ELEMENT = re.compile(r"""\sdata-el\s*=\s*["']([a-z]+)["']""")
+_DUAL = re.compile(r"""\sdata-dual(?:\s*=\s*["'](?:true|)["'])?[\s>/]""")
 
 
 @dataclass
@@ -28,6 +30,10 @@ class Paragraph:
     spans: list[tuple[int, int]] = field(default_factory=list)
     #: For each character, whether it is in italics (<em> or <i>).
     italic: list[bool] = field(default_factory=list)
+    #: A screenplay block's element ("cue", "dialogue"…, doc 25), from its `data-el`; None in prose.
+    element: str | None = None
+    #: A cue spoken at the same time as the speech before it (`data-dual`, doc 25 P8).
+    dual: bool = False
 
     def html_range(self, start: int, end: int) -> tuple[int, int]:
         """The HTML holding text[start:end]; an empty range is the point after text[start-1]."""
@@ -58,6 +64,9 @@ def paragraphs(html: str) -> list[Paragraph]:
             tag = name.group(1).lower() if name else ""
             if tag in _BLOCKS:
                 flush()
+                if not tok.startswith("</") and (el := _ELEMENT.search(tok)):
+                    cur.element = el.group(1)
+                    cur.dual = bool(_DUAL.search(tok))
             elif tag == "br":
                 cur.text += "\n"
                 cur.spans.append((m.start(), m.end()))

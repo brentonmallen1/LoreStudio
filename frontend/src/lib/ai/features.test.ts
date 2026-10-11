@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import FEATURES, { PAGE_FEATURES, PAGE_LABELS } from "./featureRegistry";
-import { AI_FEATURES, AI_FEATURES_BY_ID, aiFeatureLabel } from "./features.generated";
+import FEATURES, { PAGE_FEATURES, PAGE_LABELS, visibleFeatures } from "./featureRegistry";
+import { AI_FEATURES, AI_FEATURES_BY_ID, aiFeatureFits, aiFeatureLabel } from "./features.generated";
 
 /**
  * The backend table (services/llm/features.py) is the source for feature ids; this file
@@ -41,5 +41,19 @@ describe("aiFeatureLabel", () => {
 
   it("title-cases ids it does not know, so nothing renders raw", () => {
     expect(aiFeatureLabel("legacy-feature_id")).toBe("Legacy Feature Id");
+  });
+
+  it("offers a script only what serves it, under its own name (doc 25, P7)", () => {
+    expect(aiFeatureFits("dialogue-attribution", "screenplay")).toBe(false);
+    expect(aiFeatureFits("dialogue-attribution", "prose")).toBe(true);
+    expect(aiFeatureLabel("show-dont-tell", "screenplay")).toBe("Unfilmables");
+    expect(aiFeatureLabel("comp-titles", "screenplay")).toBe("Comparable Films");
+    expect(aiFeatureLabel("comp-titles")).toBe(AI_FEATURES_BY_ID["comp-titles"].label);
+    const ids = (format: "prose" | "screenplay") =>
+      visibleFeatures("scene-editor", "studio", format).map((f) => f.id);
+    expect(ids("prose")).toEqual(expect.arrayContaining(["dialogue-attribution", "auto-tag-dialogue"]));
+    expect(ids("screenplay")).not.toContain("dialogue-attribution");
+    expect(ids("screenplay")).not.toContain("auto-tag-dialogue");
+    expect(ids("screenplay")).toContain("scene-plan");
   });
 });

@@ -147,6 +147,11 @@ interface UIState {
   /** Tint dialogue in the prose editor. Off by default: it is noise while drafting. */
   highlightDialogue: boolean;
   setHighlightDialogue: (on: boolean) => void;
+  /** A script's element guides (doc 25, P3½): each element's words in a colour of their own,
+   *  its name beside the line being written, an empty line's hint. On by default: the format
+   *  is new to most writers. */
+  elementGuides: boolean;
+  setElementGuides: (on: boolean) => void;
 
   // Command palette
   commandPaletteOpen: boolean;
@@ -325,6 +330,10 @@ function applyHighlightDialogue(on: boolean) {
   document.documentElement.dataset.dialogueHighlight = on ? "on" : "off";
 }
 
+function applyElementGuides(on: boolean) {
+  document.documentElement.dataset.elementGuides = on ? "on" : "off";
+}
+
 /** The author's choices as the browser keeps them (the account's copy, lib/preferences). */
 function readSavedPrefs() {
   const theme = localStorage.getItem("ls_theme") as ThemeName;
@@ -345,6 +354,7 @@ function readSavedPrefs() {
     editorLineWidth: VALID_LINE_WIDTHS.includes(width) ? width : ("medium" as EditorLineWidth),
     uiScale: isUiScale(scale) ? scale : ("default" as UiScale),
     highlightDialogue: localStorage.getItem("ls_highlight_dialogue") === "on",
+    elementGuides: localStorage.getItem("ls_element_guides") !== "off",
     // Read against the mode table, so a mode added there (Findings, doc 12 P4) survives a reload.
     stripColourMode: (COLOUR_MODES.some((m) => m.id === colour) ? colour : "none") as ColourMode,
   };
@@ -356,6 +366,7 @@ function applySavedPrefs(prefs: ReturnType<typeof readSavedPrefs>) {
   applyEditorLineWidth(prefs.editorLineWidth);
   applyUiScale(prefs.uiScale);
   applyHighlightDialogue(prefs.highlightDialogue);
+  applyElementGuides(prefs.elementGuides);
 }
 
 const savedPrefs = readSavedPrefs();
@@ -433,6 +444,11 @@ export const useUIStore = create<UIState>((set, get) => ({
     rememberPref("ls_highlight_dialogue", highlightDialogue ? "on" : "off");
     applyHighlightDialogue(highlightDialogue);
     set({ highlightDialogue });
+  },
+  setElementGuides: (elementGuides) => {
+    rememberPref("ls_element_guides", elementGuides ? "on" : "off");
+    applyElementGuides(elementGuides);
+    set({ elementGuides });
   },
 
   commandPaletteOpen: false,

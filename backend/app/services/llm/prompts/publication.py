@@ -4,7 +4,12 @@ Publication preparation prompts.
 - build_book_description_system_prompt: conversational book jacket copy drafting
 - build_query_letter_system_prompt: conversational query letter drafting
 - build_comp_titles_prompt: one-shot comparable titles suggestions
+
+A script's versions (doc 25, P7): a logline and synopsis instead of jacket copy, a query to a
+manager or producer, comparable films and series.
 """
+
+from .core import for_script
 
 
 def build_book_description_system_prompt(ctx: dict) -> str:
@@ -14,6 +19,8 @@ def build_book_description_system_prompt(ctx: dict) -> str:
     """
     s = ctx["story"]
     chars = ctx.get("characters", [])
+    if ctx.get("script"):
+        return _logline_and_synopsis(s, chars)
 
     lines = [
         "You are a marketing copywriter specializing in book jacket copy for " + (s.get("genre") or "fiction") + ".",
@@ -73,6 +80,45 @@ def build_book_description_system_prompt(ctx: dict) -> str:
     return "\n".join(lines)
 
 
+def _logline_and_synopsis(s: dict, chars: list[dict]) -> str:
+    """A screenwriter's selling pages: the logline and a one-page synopsis."""
+    lines = [
+        "You are a script consultant helping a screenwriter draft the pages that sell a script: "
+        "a logline and a one-page synopsis.",
+        "",
+        "## YOUR ROLE",
+        "- Draft a logline: one sentence of 25-40 words naming the protagonist, their goal, what stands in the way, and what is at stake",
+        "- Draft a synopsis: about one page, present tense, the whole story in order, ending included",
+        "- Accept refinement requests: 'tighter', 'lead with the hook', 'less plot, more character'",
+        "- Offer two or three logline variations when that would help them choose",
+        "",
+        "## ABSOLUTE RULES",
+        "- This is material about the script, never a line of the script itself",
+        "- A synopsis is for a reader at a company, not the audience: it reveals the ending",
+        "- Name the genre and form (a feature, a TV pilot) in the logline's framing when it helps",
+        "",
+        f"## Script: {s['title']}",
+    ]
+    for key, label in (
+        ("genre", "Genre"),
+        ("tone", "Tone"),
+        ("logline", "The author's logline"),
+        ("premise", "Premise"),
+        ("narrative_intent", "Author's intent"),
+        ("central_conflict", "Central conflict"),
+    ):
+        if s.get(key):
+            lines.append(f"{label}: {s[key]}")
+    if s.get("themes"):
+        lines.append(f"Core themes: {', '.join(s['themes'])}")
+    main = [c for c in chars if c.get("role") in ("protagonist", "main")][:2]
+    if main:
+        lines += ["", "## Main Character(s)"]
+        lines += [f"- {c['name']}" + (f": {c['motivation'][:120]}" if c.get("motivation") else "") for c in main]
+    lines += ["", "Begin by asking whether they want the logline, the synopsis, or both first."]
+    return "\n".join(lines)
+
+
 def build_query_letter_system_prompt(ctx: dict) -> str:
     """
     System prompt for the query letter drafting assistant.
@@ -113,7 +159,9 @@ def build_query_letter_system_prompt(ctx: dict) -> str:
         lines.append(f"Genre: {s['genre']}")
     if s.get("tone"):
         lines.append(f"Tone: {s['tone']}")
-    if word_count:
+    if ctx.get("pages"):
+        lines.append(f"Pages: {ctx['pages']}")
+    elif word_count:
         lines.append(f"Word count: ~{word_count:,}")
     if s.get("logline"):
         lines.append(f"Logline: {s['logline']}")
@@ -135,7 +183,23 @@ def build_query_letter_system_prompt(ctx: dict) -> str:
         lines.append(line)
         lines.append("")
 
-    return "\n".join(lines)
+    prompt = "\n".join(lines)
+    if not ctx.get("script"):
+        return prompt
+    return for_script(
+        prompt,
+        {
+            "You are a literary agent and query letter coach": "You are a screenwriting manager and query coach",
+            "Flag if anything is missing that agents will expect": "Flag anything a manager or producer will expect",
+            "Comps: 2 recent (within 5 years) published books in similar genre/tone": (
+                "Comps: 2 recent (within 10 years) films or series in a similar genre and tone"
+            ),
+            "Word count and genre are mandatory": "Form, genre and page count are mandatory (a 105-page thriller feature)",
+            "agents don't need": "they don't need",
+            "Length: 250-350 words total": "Length: 150-250 words total; managers read fast",
+            "generic queries get rejected": "generic queries go unread",
+        },
+    )
 
 
 def build_comp_titles_prompt(
@@ -147,12 +211,13 @@ def build_comp_titles_prompt(
     narrative_intent: str | None,
     themes: list[str],
     intended_length: str | None,
+    script: bool = False,
 ) -> str:
     """
-    One-shot structured prompt to suggest comparable published titles.
-    Returns JSON matching CompTitlesResponse schema.
+    One-shot structured prompt to suggest comparable published titles (for a script, films and
+    series). Returns JSON matching CompTitlesResponse schema.
     """
-    return f"""You are a literary agent helping an author identify comparable titles (comp titles) for their query letters and pitch materials.
+    prompt = f"""You are a literary agent helping an author identify comparable titles (comp titles) for their query letters and pitch materials.
 
 Story: "{story_title}"
 Genre: {genre or "Not specified"}
@@ -187,3 +252,20 @@ Rules:
 - Prefer titles that are well-known enough to resonate with agents.
 - Avoid comparing to mega-bestsellers (Harry Potter, Game of Thrones) unless highly specific aspects match.
 - positioning_note: 1-2 sentences on market positioning."""
+    if not script:
+        return prompt
+    return for_script(
+        prompt,
+        {
+            "You are a literary agent helping an author identify comparable titles (comp titles) for their query letters": (
+                "You are a screenwriting manager helping a writer identify comparable films and series for their queries"
+            ),
+            "comparable published titles from the last 10 years": "comparable films or series released in the last 10 years",
+            '"title": "Book Title"': '"title": "Film or Series Title"',
+            '"author": "Author Name"': '"author": "Writer, director or creator"',
+            "Only suggest real, published books": "Only suggest real, released films and series",
+            "resonate with agents": "resonate with managers and producers",
+            "(Harry Potter, Game of Thrones)": "(Star Wars, the Marvel films)",
+            "position this book": "position this script",
+        },
+    )

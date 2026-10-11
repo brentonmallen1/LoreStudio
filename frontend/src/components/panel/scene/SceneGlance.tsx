@@ -43,7 +43,7 @@ export default function SceneGlance({
   const sheet = sceneSheetPath(story.id, node.id);
   const onSheet = useLocation().pathname === sheet;
   const words = node.word_count ?? 0;
-  const { who, where, beat } = useSceneFacts(node, story);
+  const { who, where, beat, shot } = useSceneFacts(node, story);
   const [links, setLinks] = useState(0);
   useEffect(() => {
     api
@@ -120,7 +120,7 @@ export default function SceneGlance({
         </p>
       )}
 
-      {(who.length > 0 || where.length > 0 || beat || node.in_world_date) && (
+      {(who.length > 0 || where.length > 0 || shot || beat || node.in_world_date) && (
         <dl className={styles.facts}>
           {who.length > 0 && (
             <>
@@ -136,7 +136,7 @@ export default function SceneGlance({
               </dd>
             </>
           )}
-          {where.length > 0 && (
+          {(where.length > 0 || shot) && (
             <>
               <dt>Where</dt>
               <dd>
@@ -146,6 +146,7 @@ export default function SceneGlance({
                     {p.role === "primary" ? p.name : `${p.role} ${p.name}`}
                   </span>
                 ))}
+                {shot && <span className={styles.muted}>{where.length > 0 ? ` · ${shot}` : shot}</span>}
               </dd>
             </>
           )}

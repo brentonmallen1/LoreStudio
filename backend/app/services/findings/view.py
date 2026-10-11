@@ -18,8 +18,9 @@ from ...models.plot_thread import PlotThread
 from ...models.story import Story
 from ...models.structure import StoryStructureTemplate, StructureNode
 from ...schemas.findings import FindingsSizing
+from ..story_format import is_script, story_format
 from ..text_utils import html_to_text
-from ..word_count import get_word_count_status
+from ..word_count import length_status
 from .fingerprint import normalise
 
 _PUNCT = re.compile(r"[\"'“”‘’.,:;!?()\[\]]")
@@ -114,12 +115,24 @@ class StoryView:
         return not needle or needle in normalise(self.text(node))
 
     @cached_property
+    def target(self) -> dict | None:
+        """Where the story stands against its intended length: in pages for a script, counted
+        by the paginator its PDF prints with (doc 25, P5), in words for prose."""
+        if is_script(self.story):
+            from ..script_export import pages_in
+
+            fmt = story_format(self.story)
+            pages = pages_in([n.content for n in self.leaves], fmt)
+            return length_status(fmt, self.story.intended_length or "", pages)
+        total = sum(n.word_count or 0 for n in self.leaves)
+        return length_status("prose", self.story.intended_length or "", total)
+
+    @cached_property
     def sizing(self) -> FindingsSizing:
         levels = [str(lv.get("name", "")).lower() for lv in (self.template.levels if self.template else [])]
-        total = sum(n.word_count or 0 for n in self.leaves)
         return FindingsSizing(
             has_chapters="chapter" in levels or bool(self.chapters),
-            has_target=get_word_count_status(self.story.intended_length or "", total) is not None,
+            has_target=self.target is not None,
             written_scenes=len(self.written),
         )
 

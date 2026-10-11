@@ -3,6 +3,7 @@ import { MessageSquare, Orbit, Square, Tag } from "lucide-react";
 import { api } from "../../../api/client";
 import type { DialogueBlock, ProposedDialogueTag, StructureNode } from "../../../types";
 import { useAIAvailable } from "../../../lib/mode";
+import { useStoryFormat } from "../../../lib/storyFormat";
 import { assignSides } from "../../../lib/dialogue/sides";
 import { speakerChoices } from "../../../lib/dialogue/speakerChoices";
 import { layInRewrite, saveOpenScene } from "../../../lib/panel/panelSync";
@@ -38,6 +39,8 @@ export default function DialogueTool() {
 
 function SceneDialogue({ node, storyId }: { node: StructureNode; storyId: string }) {
   const studio = useAIAvailable();
+  // A script's cues say who speaks (doc 25, P4): no tags to suggest, add or check.
+  const script = useStoryFormat() !== "prose";
   const { activeStory, characters, sceneCast } = useStoryStore();
   const [blocks, setBlocks] = useState<DialogueBlock[] | null>(null);
   const [suggestions, setSuggestions] = useState<ProposedDialogueTag[]>([]);
@@ -138,7 +141,7 @@ function SceneDialogue({ node, storyId }: { node: StructureNode; storyId: string
         </span>
         <span className={styles.spacer} />
         {studio && <AIFeatureInfoTrigger pageId="scene-editor" />}
-        {studio && (
+        {studio && !script && (
           <button
             type="button"
             className={styles.ai}
@@ -149,23 +152,34 @@ function SceneDialogue({ node, storyId }: { node: StructureNode; storyId: string
             {suggesting ? "Cancel" : "Suggest speakers"}
           </button>
         )}
-        <button
-          type="button"
-          className={styles.tag}
-          title="Find quotes with no speaker and tag them"
-          onClick={() => setAutoTag(true)}
-        >
-          <Tag size={12} aria-hidden />
-          Tag the dialogue
-        </button>
+        {!script && (
+          <button
+            type="button"
+            className={styles.tag}
+            title="Find quotes with no speaker and tag them"
+            onClick={() => setAutoTag(true)}
+          >
+            <Tag size={12} aria-hidden />
+            Tag the dialogue
+          </button>
+        )}
       </div>
-      <AttributionChecks storyId={storyId} nodeId={node.id} />
+      {!script && <AttributionChecks storyId={storyId} nodeId={node.id} />}
       {blocks === null ? (
         <p className={styles.empty}>Reading the dialogue…</p>
       ) : lines.length === 0 ? (
         <p className={styles.empty}>
-          No dialogue in this scene yet. Quoted lines appear here; attribute one with{" "}
-          <code>"text"&lt;Name&gt;</code> or <code>^</code>.
+          {script ? (
+            <>
+              No dialogue in this scene yet. A character&rsquo;s lines appear here; start one with{" "}
+              <code>^</code>.
+            </>
+          ) : (
+            <>
+              No dialogue in this scene yet. Quoted lines appear here; attribute one with{" "}
+              <code>"text"&lt;Name&gt;</code> or <code>^</code>.
+            </>
+          )}
         </p>
       ) : (
         <div className={styles.thread}>

@@ -6,6 +6,7 @@ from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.structure import StoryStructureTemplate
 from ..models.user import User
+from ..services.story_format import template_format
 from ..services.structure_scaffold import FLAT, starter_titles
 
 router = APIRouter()
@@ -26,6 +27,12 @@ class TemplateOut(BaseModel):
     def flat(self) -> bool:
         """Its levels are kinds of beat side by side (Single MICE), not a hierarchy."""
         return self.id in FLAT
+
+    @computed_field
+    @property
+    def format(self) -> str:
+        """The story format it was written for ("screenplay"), or "" when it fits any."""
+        return template_format(self.id)
 
     @computed_field
     @property

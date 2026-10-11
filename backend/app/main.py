@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from .auth.router import router as auth_router
 from .config import settings
 from .database import Base, engine
+from .routers.adaptation import router as adaptation_router
 from .routers.ai_calls import router as ai_calls_router
 from .routers.ai_settings import router as ai_settings_router
 from .routers.analysis import router as analysis_router
@@ -93,7 +94,9 @@ from .services.seed import (
     seed_short_story_demo,
     seed_structure_templates,
 )
+from .services.seed_screenplay import seed_screenplay_demo
 from .services.seed_series import seed_lighthouse_sequel
+from .services.seed_stage_play import seed_stage_play_demo
 
 logging.basicConfig(level=settings.log_level.upper(), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("lorestudio")
@@ -116,6 +119,8 @@ def seed_all() -> None:
     seed_admin()
     if settings.seed_demo:
         seed_demo_story()
+        seed_screenplay_demo()
+        seed_stage_play_demo()
     if settings.seed_extra_demos:
         seed_scifi_demo_story()
         seed_flash_fiction_demo()
@@ -187,6 +192,7 @@ app.include_router(numbers_router, prefix="/api", tags=["numbers"])
 app.include_router(promises_router, prefix="/api", tags=["promises"])
 app.include_router(proposals_router, prefix="/api", tags=["proposals"])
 app.include_router(series_router, prefix="/api", tags=["series"])
+app.include_router(adaptation_router, prefix="/api", tags=["series"])
 app.include_router(series_plan_router, prefix="/api", tags=["series"])
 app.include_router(series_promises_router, prefix="/api", tags=["series"])
 app.include_router(series_shared_router, prefix="/api", tags=["series"])

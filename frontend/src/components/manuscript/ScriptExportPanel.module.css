@@ -1,0 +1,33 @@
+/* The title page's fields in the screenplay export panel (ScriptExportPanel.tsx, doc 25 P3). */
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.field input,
+.field textarea {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.82rem;
+  resize: vertical;
+}
+
+.field input:focus-visible,
+.field textarea:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}

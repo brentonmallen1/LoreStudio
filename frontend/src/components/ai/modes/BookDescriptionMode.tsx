@@ -5,6 +5,7 @@ import { useAIModeState } from "../../../hooks/useAIModeState";
 import AIModeWrapper from "../AIModeWrapper";
 import MessageList from "../shared/MessageList";
 import MentionComposer from "../shared/MentionComposer";
+import { useStoryFormat } from "../../../lib/storyFormat";
 import styles from "./AssistantMode.module.css";
 
 const STARTERS = [
@@ -15,6 +16,14 @@ const STARTERS = [
   "Focus on the central conflict and stakes",
 ];
 
+/** A script sells on a logline and a synopsis rather than jacket copy (doc 25, P7). */
+const SCRIPT_STARTERS = [
+  "Draft a logline",
+  "Give me three logline variations",
+  "Draft a one-page synopsis",
+  "Tighten the logline to under 30 words",
+];
+
 interface Props {
   session: AISession;
 }
@@ -23,6 +32,8 @@ export default function BookDescriptionMode({ session }: Props) {
   const state = useAIModeState(session);
   const { sendMessage, cancelStreaming } = useAIStore();
   const storyId = session.context.storyId ?? "";
+  const script = useStoryFormat() !== "prose";
+  const starters = script ? SCRIPT_STARTERS : STARTERS;
 
   function handleSend(text?: string) {
     const content = (text ?? state.input).trim();
@@ -33,19 +44,26 @@ export default function BookDescriptionMode({ session }: Props) {
   }
 
   return (
-    <AIModeWrapper session={session} state={state} icon={Feather} title="Book Description">
+    <AIModeWrapper
+      session={session}
+      state={state}
+      icon={Feather}
+      title={script ? "Logline & Synopsis" : "Book Description"}
+    >
       {session.messages.length === 0 && !session.isStreaming ? (
         <div className={styles.empty}>
           <Feather size={22} className={styles.emptyIcon} />
-          <p className={styles.emptyTitle}>Book Jacket Copy</p>
+          <p className={styles.emptyTitle}>{script ? "Logline & Synopsis" : "Book Jacket Copy"}</p>
           <p className={styles.emptyHint}>
-            {storyId
-              ? "Draft and refine back-cover copy: hook, body paragraph, and tagline. Tell me what tone you're going for, or pick a style below."
-              : "Add a story to context to draft book jacket copy."}
+            {!storyId
+              ? "Add a story to context to draft book jacket copy."
+              : script
+                ? "Draft and refine the pages that sell a script: a one-sentence logline and a one-page synopsis, ending included."
+                : "Draft and refine back-cover copy: hook, body paragraph, and tagline. Tell me what tone you're going for, or pick a style below."}
           </p>
           {storyId && (
             <div className={styles.starters}>
-              {STARTERS.map((p) => (
+              {starters.map((p) => (
                 <button
                   key={p}
                   className={styles.starterBtn}

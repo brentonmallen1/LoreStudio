@@ -7,7 +7,8 @@ import { useStoryStore } from "../../stores/storyStore";
 import { toast } from "../../stores/toastStore";
 import CarryOverStep from "../series/CarryOverStep";
 import { carryItem, carryKey } from "../../lib/series/carry";
-import type { StoryStructureTemplate } from "../../types";
+import { DEFAULT_TEMPLATE, FORMATS, formatOf, templatesFor } from "../../lib/storyFormat";
+import type { StoryFormat, StoryStructureTemplate } from "../../types";
 import TemplateManagerDialog from "../templates/TemplateManagerDialog";
 import { Modal } from "../common";
 import styles from "./CreateStoryDialog.module.css";
@@ -44,6 +45,7 @@ interface Props {
 export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [formatChoice, setFormat] = useState<StoryFormat>("prose");
   // Left unchosen, a sequel is laid out like the book before it.
   const [templateChoice, setTemplateId] = useState<string | null>(null);
   const [scaffold, setScaffold] = useState(true);
@@ -66,7 +68,9 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
   const previous = stories.find((s) => s.id === sequelOf) ?? null;
   const candidates = carry && carry.of === sequelOf ? carry.list : null;
   const seriesOf = seriesOfBook && seriesOfBook.of === sequelOf ? seriesOfBook.name : null;
-  const templateId = templateChoice ?? previous?.structure_template_id ?? "freeform";
+  // A sequel is written as the book before it was; the server carries the format over.
+  const format = previous ? formatOf(previous) : formatChoice;
+  const templateId = templateChoice ?? previous?.structure_template_id ?? DEFAULT_TEMPLATE[format];
 
   useEffect(() => {
     api.listStructureTemplates().then(setTemplates).catch(console.error);
@@ -114,6 +118,7 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
             title: title.trim(),
             description,
             structure_template_id: templateId,
+            story_format: format,
             scaffold,
           });
       upsertStory(story);
@@ -140,6 +145,7 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
     }
   }
 
+  const offered = templatesFor(templates, format);
   const selectedTemplate = templates.find((t) => t.id === templateId);
 
   const carrying = previous !== null && step === "carry";
@@ -217,6 +223,34 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
                 />
               </div>
 
+              {!previous && (
+                <fieldset className={styles.begin}>
+                  <legend className={styles.label}>Written as</legend>
+                  {FORMATS.map((f) => (
+                    <label
+                      key={f.id}
+                      className={`${styles.beginOption} ${format === f.id ? styles.beginChosen : ""}`}
+                    >
+                      <input
+                        type="radio"
+                        name="format"
+                        value={f.id}
+                        checked={format === f.id}
+                        onChange={() => {
+                          setFormat(f.id);
+                          setTemplateId(null);
+                          if (f.id !== "prose" && begin === "first") setBegin("write");
+                        }}
+                      />
+                      <span>
+                        <span className={styles.beginName}>{f.label}</span>
+                        <span className={styles.beginHint}>{f.hint}</span>
+                      </span>
+                    </label>
+                  ))}
+                </fieldset>
+              )}
+
               {stories.length > 0 && (
                 <div className={styles.field}>
                   <label className={styles.label} htmlFor="sequel-of">
@@ -240,7 +274,8 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
                       {seriesOf
                         ? `The book after “${previous.title}” in ${seriesOf}.`
                         : `“${previous.title}” and this book become a series.`}{" "}
-                      Genre, tone, point of view and byline carry over; who carries over comes next.
+                      Its format, genre, tone, point of view and byline carry over; who carries over comes
+                      next.
                     </p>
                   )}
                 </div>
@@ -293,7 +328,7 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
                   onChange={(e) => setTemplateId(e.target.value)}
                   className={styles.select}
                 >
-                  {templates.map((t) => (
+                  {offered.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name}
                       {!t.is_system ? " (custom)" : ""}
@@ -320,7 +355,7 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
               )}
               <fieldset className={styles.begin}>
                 <legend className={styles.label}>How do you want to begin?</legend>
-                {BEGINNINGS.filter((b) => !(previous && b.id === "first")).map((b) => (
+                {BEGINNINGS.filter((b) => b.id !== "first" || (!previous && format === "prose")).map((b) => (
                   <label
                     key={b.id}
                     className={`${styles.beginOption} ${begin === b.id ? styles.beginChosen : ""}`}

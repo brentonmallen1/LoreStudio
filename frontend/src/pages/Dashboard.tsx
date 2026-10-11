@@ -20,6 +20,7 @@ import { useAuthStore } from "../stores/authStore";
 import { useStoryStore } from "../stores/storyStore";
 import { formatRelative } from "../lib/utils";
 import CreateStoryDialog from "../components/story/CreateStoryDialog";
+import AdaptDialog from "../components/story/AdaptDialog";
 import NewSeriesDialog from "../components/series/NewSeriesDialog";
 import SeriesGroup from "../components/series/SeriesGroup";
 import { seriesPath } from "../lib/series/sections";
@@ -27,6 +28,7 @@ import ImportWizard from "../components/import/ImportWizard";
 import StoryListRow from "../components/story/StoryListRow";
 import list from "../components/story/StoryList.module.css";
 import type { Story } from "../types";
+import { formatLabel, formatOf, isScript } from "../lib/storyFormat";
 import styles from "./Dashboard.module.css";
 
 type Layout = "cards" | "list";
@@ -51,6 +53,8 @@ export default function DashboardPage() {
   const [sequelTo, setSequelTo] = useState<string | null>(() =>
     new URLSearchParams(window.location.search).get("sequel"),
   );
+  // "Adapt as a screenplay or a play" (doc 25, P10) arrives as ?adapt=<novel>.
+  const [adapting, setAdapting] = useState(() => new URLSearchParams(window.location.search).get("adapt"));
   const [seriesList, setSeriesList] = useState<SeriesSummary[]>([]);
   // Jobs › Open on a finished import reading comes back here with ?import (doc 21 R8).
   const [importing, setImporting] = useState(() => new URLSearchParams(window.location.search).has("import"));
@@ -152,6 +156,7 @@ export default function DashboardPage() {
           <div className={styles.storymeta}>
             <Clock size={11} />
             {formatRelative(story.updated_at)}
+            {isScript(story) && <span>· {formatLabel(formatOf(story))}</span>}
           </div>
         </button>
         {progress[story.id]?.last_scene_id && (
@@ -315,16 +320,19 @@ export default function DashboardPage() {
           }}
         />
       )}
+      {adapting && <AdaptDialog novelId={adapting} onClose={() => setAdapting(null)} />}
       {importing && <ImportWizard onClose={() => setImporting(false)} />}
       {newSeries && <NewSeriesDialog onClose={() => setNewSeries(false)} />}
     </div>
   );
 }
 
-/** "3,529 of 17,500 words" with a bar, or just the count when the story has no target. */
+/** "3,529 of 17,500 words" (a script: "12 of 40 pages") with a bar, or just the count when the
+ *  story has no target. */
 function StoryProgressLine({ progress }: { progress?: StoryProgress }) {
   if (!progress || progress.word_count === 0) return null;
   const words = progress.word_count.toLocaleString();
+  const pages = progress.target_unit === "pages";
   return (
     <div className={styles.progress}>
       {progress.target_words ? (
@@ -333,7 +341,8 @@ function StoryProgressLine({ progress }: { progress?: StoryProgress }) {
             <span style={{ width: `${Math.min(100, progress.pct ?? 0)}%` }} />
           </div>
           <span>
-            {words} of {progress.target_words.toLocaleString()} words
+            {pages ? (progress.target_current ?? 0).toLocaleString() : words} of{" "}
+            {progress.target_words.toLocaleString()} {pages ? "pages" : "words"}
           </span>
         </>
       ) : (

@@ -32,19 +32,24 @@ from ..schemas.numbers import (
 from .dialogue_service import get_interaction_matrix, gini, sync_story_dialogue
 from .findings.runs import latest_runs, result_of
 from .findings.view import StoryView, load_view
-from .word_count import WORD_COUNT_RANGES, get_word_count_status
+from .numbers_pages import pages
+from .word_count import LENGTH_TARGETS
 
 STATUSES = ("planned", "draft", "revised", "final")
-CONTAINERS = ("act", "part", "chapter", "book")
+CONTAINERS = ("act", "part", "chapter", "book", "sequence")
 
 
-def form_for(words: int) -> str | None:
-    """The bounded form a length falls in (the last form with no upper bound past that)."""
-    for form, r in WORD_COUNT_RANGES.items():
+def form_for(length: int, story_format: str | None = "prose") -> str | None:
+    """The bounded prose form a length in words falls in (the last form with no upper bound
+    past that). A script's forms overlap and are not told apart by length, so a script reads
+    as none (doc 25, P5)."""
+    if (story_format or "prose") != "prose":
+        return None
+    for form, r in LENGTH_TARGETS["prose"].items():
         if r["min"] is None:
             continue
-        if r["max"] is None or words < r["max"]:
-            return form if words >= r["min"] else None
+        if r["max"] is None or length < r["max"]:
+            return form if length >= r["min"] else None
     return None
 
 
@@ -57,7 +62,7 @@ def words(view: StoryView) -> NumbersWords:
     written = [n.word_count or 0 for n in leaves if (n.word_count or 0) > 0]
     total = sum(n.word_count or 0 for n in leaves)
     form = view.story.intended_length or ""
-    target = get_word_count_status(form, total)
+    target = view.target
     # Only past the form's ceiling: a novel at 5,000 words is a novel being written.
     past = target is not None and target["warning_level"] == "exceeded"
     return NumbersWords(
@@ -69,7 +74,7 @@ def words(view: StoryView) -> NumbersWords:
         median_per_scene=round(median(written)) if written else 0,
         form=form,
         target=WordTarget(**target) if target else None,
-        reads_as=form_for(total) if past else None,
+        reads_as=form_for(target["current"], view.story.story_format) if past and target else None,
     )
 
 
@@ -209,4 +214,10 @@ def summaries(view: StoryView) -> NumbersSummaries:
 
 def numbers(story: Story, db: Session) -> NumbersOut:
     view = load_view(story, db)
-    return NumbersOut(words=words(view), dialogue=dialogue(view, db), prose=prose(view, db), summaries=summaries(view))
+    return NumbersOut(
+        words=words(view),
+        dialogue=dialogue(view, db),
+        prose=prose(view, db),
+        summaries=summaries(view),
+        pages=pages(view),
+    )

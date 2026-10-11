@@ -2,6 +2,7 @@ import gettingStarted from "./getting-started.md?raw";
 import structure from "./structure.md?raw";
 import planning from "./planning.md?raw";
 import dialogue from "./dialogue-and-quotes.md?raw";
+import screenplays from "./screenplays.md?raw";
 import notes from "./notes-and-freewrite.md?raw";
 import promises from "./promises.md?raw";
 import series from "./writing-a-series.md?raw";
@@ -117,6 +118,25 @@ const GUIDE_LIST: Guide[] = [
     body: dialogue,
     modes: BOTH,
     keywords: ["speaker", "attribution", "curly", "straight", "tag", "who says this", "thought", "highlight"],
+  },
+  {
+    id: "screenplays",
+    title: "Screenplays and stage plays",
+    body: screenplays,
+    modes: BOTH,
+    keywords: [
+      "script",
+      "screenplay",
+      "film",
+      "slugline",
+      "cue",
+      "fountain",
+      "final draft",
+      "pages",
+      "stage play",
+      "play",
+      "theatre",
+    ],
   },
   {
     id: "notes-and-freewrite",

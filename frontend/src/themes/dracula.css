@@ -10,6 +10,13 @@
   --color-border: #484b5d;
   --color-border-light: #3d3f52;
   --color-text: #f8f8f2;
+  /* A script's syntax colours (doc 25, P3½): each element's words, as a code theme colours
+     its syntax; dialogue is the string colour. AA on the page (contrast.test.ts). */
+  --syntax-heading: #8be9fd;
+  --syntax-cue: #ff79c6;
+  --syntax-paren: #ffb86c;
+  --syntax-dialogue: #f1fa8c;
+  --syntax-transition: #bd93f9;
   --color-text-muted: #cdd1e6;
   --color-text-subtle: #8fa9d4;
   --color-section-title: #bcbfe8;

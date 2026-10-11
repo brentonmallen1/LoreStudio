@@ -20,17 +20,8 @@ import { sectionPath } from "../lib/routes";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
 import type { StoryOverview } from "../types";
+import { lengthForm } from "../utils/wordCount";
 import styles from "../components/overview/Overview.module.css";
-
-const LENGTH_LABELS: Record<string, string> = {
-  flash_fiction: "Flash fiction",
-  short_story: "Short story",
-  novelette: "Novelette",
-  novella: "Novella",
-  novel: "Novel",
-  epic_saga: "Epic / saga",
-  series: "Series",
-};
 
 /**
  * The story's home (doc 12 P6): what it is, where you were, its numbers, what needs your
@@ -63,7 +54,7 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
   const facts = [
     story.genre,
     story.tone,
-    LENGTH_LABELS[story.intended_length ?? ""] ?? story.intended_length,
+    lengthForm(story.intended_length)?.label ?? story.intended_length,
   ].filter((f): f is string => !!f);
 
   return (

@@ -707,6 +707,24 @@
       "expect": [
         "The Visitor (Calder)"
       ]
+    },
+    {
+      "text": "ELEANOR waits by the stove. MAYA knocks.",
+      "expect": [
+        "Eleanor Vance",
+        "Maya"
+      ]
+    },
+    {
+      "text": "THE VISITOR stands in the rain. O'BRIEN does not.",
+      "expect": [
+        "The Visitor (Calder)",
+        "O'Brien"
+      ]
+    },
+    {
+      "text": "eLEANOR and mAYA, WILL it rain?",
+      "expect": []
     }
   ]
 }

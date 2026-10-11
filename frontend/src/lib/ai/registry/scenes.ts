@@ -42,6 +42,8 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
     fullDescription:
       "Analyzes the scene's dialogue to suggest speaker tags for lines that aren't yet attributed to a character.",
     contextSources: ["Scene prose text", "Character names in scene"],
+    // A script's cues say who speaks (doc 25).
+    formats: ["prose"],
   },
   "auto-link-entities": {
     id: "auto-link-entities",

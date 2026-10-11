@@ -54,17 +54,18 @@ from ..services.llm.prompts.analysis import (
     build_pacing_analysis_prompt,
     build_plot_hole_detection_prompt,
     build_session_recap_prompt,
-    build_show_dont_tell_prompt,
     build_theme_tracker_prompt,
 )
+from ..services.llm.prompts.show_dont_tell import build_show_dont_tell_prompt
 from ..services.llm.prompts.summaries import build_structure_section_summary_prompt
 from ..services.llm.prompts.who_they_are import continuity_profile
 from ..services.llm.sse import sse_message, sse_stream
 from ..services.nlp_runs import run_editorial_consistency, run_entity_scan, run_prose_analysis
 from ..services.scene_summaries import refresh_scene_summaries
-from ..services.text_utils import prose_text
+from ..services.story_format import is_script, scene_action
+from ..services.text_utils import for_model, prose_text
 from ..services.thread_roles import tries
-from ..services.word_count import WORD_COUNT_RANGES
+from ..services.word_count import length_line, scene_size, story_pages
 from ..services.wording import count
 
 router = APIRouter()
@@ -101,7 +102,7 @@ async def summarize_structure_section(
     def gather_content(n: StructureNode) -> list[str]:
         pieces = []
         if n.content and n.content.strip():
-            pieces.append(f"[{n.title}]\n{n.content}")
+            pieces.append(f"[{n.title}]\n{for_model(n.content)}")
         for child in sorted(child_map.get(n.id, []), key=lambda c: c.position):
             pieces.extend(gather_content(child))
         return pieces
@@ -153,7 +154,7 @@ async def summarize_character_arc(
     # Get all scene content mentioning the character
     all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
     names = naming(character)
-    relevant_scenes = [f"[{n.title}]\n{n.content}" for n in all_nodes if names(n.content)]
+    relevant_scenes = [f"[{n.title}]\n{for_model(n.content)}" for n in all_nodes if names(n.content)]
 
     profile_parts = []
     if character.personality:
@@ -253,24 +254,16 @@ async def analyze_economy(
         for a in t.appearances:
             scene_thread_map.setdefault(a.node_id, []).append(t.name)
 
+    script = is_script(story)
     scenes_info = []
     for leaf in leaves:
         thread_names = scene_thread_map.get(leaf.id, [])
         scenes_info.append(
-            f'- "{leaf.title or "Untitled"}" ({leaf.word_count} words, {leaf.status})'
+            f'- "{leaf.title or "Untitled"}" ({scene_size(leaf, script)}, {leaf.status})'
             + (f" — serves: {', '.join(thread_names)}" if thread_names else " — NO THREAD")
         )
 
-    # Word count context
-    length_key = story.intended_length or ""
-    length_range = WORD_COUNT_RANGES.get(length_key, {})
-    length_context = ""
-    if length_range.get("max"):
-        length_context = (
-            f"Intended form: {length_key.replace('_', ' ')} "
-            f"(target: up to {length_range['max']:,} words). "
-            f"Current: {total_words:,} words.\n"
-        )
+    length_context = length_line(story, db, total_words)
 
     feature_prompt = build_economy_analysis_prompt(
         story_title=story.title,
@@ -278,6 +271,7 @@ async def analyze_economy(
         length_context=length_context,
         threads_summary=threads_summary,
         scenes_info=scenes_info,
+        script=script,
     )
     llm_messages = [{"role": "user", "content": "Analyze this story's economy."}]
 
@@ -459,7 +453,7 @@ async def analyze_character_arc_structured(
                 {
                     "id": n.id,
                     "title": n.title or "Untitled",
-                    "content_excerpt": n.content,
+                    "content_excerpt": for_model(n.content),
                 }
             )
 
@@ -518,7 +512,7 @@ async def analyze_essential_questions(
     # Gather scenes featuring this character
     all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
     names = naming(character)
-    relevant_scenes = [f"[{n.title}]\n{n.content}" for n in all_nodes if names(n.content)]
+    relevant_scenes = [f"[{n.title}]\n{for_model(n.content)}" for n in all_nodes if names(n.content)]
     scenes_content = "\n\n".join(relevant_scenes) if relevant_scenes else ""
 
     feature_prompt = build_essential_questions_prompt(
@@ -584,7 +578,8 @@ async def analyze_show_dont_tell(
         node = db.get(StructureNode, node_id)
         if not node or node.story_id != story_id:
             raise HTTPException(status_code=404, detail="Scene not found")
-        prose_text = (node.content or "").strip()
+        # A script's unfilmables are in its action; the dialogue is the characters' to say.
+        prose_text = scene_action(node.content) if is_script(story) else for_model(node.content).strip()
     else:
         raise HTTPException(status_code=422, detail="Either node_id or text must be provided")
 
@@ -596,6 +591,7 @@ async def analyze_show_dont_tell(
         story_title=story.title,
         genre=story.genre or None,
         tone=story.tone or None,
+        script=is_script(story),
     )
 
     ctx = AICallContext(
@@ -646,7 +642,8 @@ async def analyze_audience_adherence(
         node = db.get(StructureNode, node_id)
         if not node or node.story_id != story_id:
             raise HTTPException(status_code=404, detail="Scene not found")
-        prose_text = (node.content or "").strip()
+        # A script's unfilmables are in its action; the dialogue is the characters' to say.
+        prose_text = scene_action(node.content) if is_script(story) else for_model(node.content).strip()
     else:
         raise HTTPException(status_code=422, detail="Either node_id or text must be provided")
 
@@ -787,10 +784,11 @@ async def analyze_pacing(
             if parent:
                 parent_map[n.id] = parent.title or parent.level_type or ""
 
+    script = is_script(story)
     scenes_info = []
     for leaf in leaves:
         parent_label = f" [{parent_map[leaf.id]}]" if leaf.id in parent_map else ""
-        scenes_info.append(f'- "{leaf.title or "Untitled"}"{parent_label} ({leaf.word_count} words, {leaf.status})')
+        scenes_info.append(f'- "{leaf.title or "Untitled"}"{parent_label} ({scene_size(leaf, script)}, {leaf.status})')
 
     feature_prompt = build_pacing_analysis_prompt(
         story_title=story.title,
@@ -798,6 +796,7 @@ async def analyze_pacing(
         intended_length=story.intended_length,
         scenes_info=scenes_info,
         total_words=total_words,
+        pages=story_pages(story, db) if script else None,
     )
 
     ctx = AICallContext(
@@ -878,10 +877,8 @@ async def analyze_continuity(
     scenes_with_content = []
     for leaf in leaves:
         if leaf.content and leaf.content.strip():
-            excerpt = leaf.content[:600]
-            scenes_with_content.append(
-                f"[{leaf.title or 'Untitled'}]\n{excerpt}{'...' if len(leaf.content) > 600 else ''}"
-            )
+            text = for_model(leaf.content)
+            scenes_with_content.append(f"[{leaf.title or 'Untitled'}]\n{text[:600]}{'...' if len(text) > 600 else ''}")
 
     feature_prompt = build_continuity_check_prompt(
         story_title=story.title,
@@ -958,10 +955,8 @@ async def analyze_themes(
     scenes_with_content = []
     for leaf in leaves:
         if leaf.content and leaf.content.strip():
-            excerpt = leaf.content[:500]
-            scenes_with_content.append(
-                f"[{leaf.title or 'Untitled'}]\n{excerpt}{'...' if len(leaf.content) > 500 else ''}"
-            )
+            text = for_model(leaf.content)
+            scenes_with_content.append(f"[{leaf.title or 'Untitled'}]\n{text[:500]}{'...' if len(text) > 500 else ''}")
 
     feature_prompt = build_theme_tracker_prompt(
         story_title=story.title,
@@ -1127,6 +1122,7 @@ async def analyze_first_pass(
     leaves = flatten_leaves(roots)
     total_words = sum(n.word_count or 0 for n in all_nodes)
 
+    script = is_script(story)
     scenes_info = []
     for leaf in leaves:
         synopsis = (
@@ -1134,7 +1130,7 @@ async def analyze_first_pass(
         )
         desc = f": {synopsis[:120]}" if synopsis else ""
         scenes_info.append(
-            f'- "{leaf.title or "Untitled"}" ({leaf.word_count or 0} words, {leaf.status or "draft"}){desc}'
+            f'- "{leaf.title or "Untitled"}" ({scene_size(leaf, script)}, {leaf.status or "draft"}){desc}'
         )
 
     characters = db.query(Character).filter(Character.story_id == story_id).all()
@@ -1161,6 +1157,7 @@ async def analyze_first_pass(
         characters_summary=characters_summary,
         scenes_info=scenes_info,
         total_words=total_words,
+        pages=story_pages(story, db) if script else None,
     )
 
     ctx = AICallContext(
@@ -1242,7 +1239,7 @@ async def analyze_cliches(
                 {
                     "id": leaf.id,
                     "title": leaf.title or "Untitled",
-                    "content": leaf.content,
+                    "content": for_model(leaf.content),
                 }
             )
 
@@ -1255,6 +1252,7 @@ async def analyze_cliches(
         tone=story.tone or None,
         scenes=scenes,
         total_words=total_words,
+        pages=story_pages(story, db) if is_script(story) else None,
     )
 
     ctx = AICallContext(
@@ -1320,13 +1318,14 @@ async def cliche_coach_chat(
         raise HTTPException(status_code=404, detail="Scene not found")
 
     scene_title = node.title if node else "General"
-    passage = selected_text or (node.content[:500] if node and node.content else "")
+    passage = selected_text or (for_model(node.content)[:500] if node and node.content else "")
 
     feature_prompt = build_cliche_coach_system_prompt(
         story_title=story.title,
         scene_title=scene_title,
         genre=story.genre or None,
         selected_text=passage,
+        script=is_script(story),
     ) + render_mentions(resolve_mentions(story_id, mentioned_refs, db))
 
     call_ctx = AICallContext(

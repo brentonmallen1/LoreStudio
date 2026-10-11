@@ -3,10 +3,11 @@
  * not generate its command: these are its way in from the palette, and coverage.test.ts
  * holds them in place.
  */
-import { BookCopy, BookPlus } from "lucide-react";
+import { BookCopy, BookPlus, Clapperboard } from "lucide-react";
 import { commandRegistry } from "./registry";
 import { navigateTo } from "../navigation";
 import { seriesPath } from "../series/sections";
+import { isScript } from "../storyFormat";
 import { useSeriesStore } from "../../stores/seriesStore";
 import { useStoryStore } from "../../stores/storyStore";
 
@@ -64,6 +65,24 @@ commandRegistry.register({
   action: () => {
     const story = useStoryStore.getState().activeStory;
     if (story) navigateTo(`/?sequel=${story.id}`);
+  },
+});
+
+// A novel told again as a script, after it in its series (doc 25, P10).
+commandRegistry.register({
+  id: "series-adapt",
+  label: "Adapt as a screenplay or a play",
+  description: "A script of this novel beside it in its series, with its outline and Lorebook",
+  keywords: ["adapt", "adaptation", "screenplay", "script", "film", "play", "stage", "theatre"],
+  icon: Clapperboard,
+  group: "Create",
+  when: () => {
+    const story = useStoryStore.getState().activeStory;
+    return !!story && !isScript(story);
+  },
+  action: () => {
+    const story = useStoryStore.getState().activeStory;
+    if (story) navigateTo(`/?adapt=${story.id}`);
   },
 });
 

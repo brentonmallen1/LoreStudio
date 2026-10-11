@@ -1,20 +1,25 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { StructureNode } from "../../types";
 import { formatMinutes } from "../../lib/writingToday";
 import { useHostFocusExit } from "../../lib/focusExit";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import FocusExit from "../layout/FocusExit";
+import KeysCard from "./script/KeysCard";
 import SprintTimer from "../story/SprintTimer";
 import type { AutosaveState } from "./useSceneAutosave";
 import { goalFor, ledFor, statusFigures } from "./statusFigures";
 import { useTodayWords } from "./useTodayWords";
+import { eighths, elementLabel, formatEighths, type ScriptElement } from "../../lib/script/syntax";
+import { useStoryFormat } from "../../lib/storyFormat";
 import styles from "./StatusCorner.module.css";
 
 interface Props {
   node: StructureNode;
   autosave: AutosaveState;
   wordCount: number;
+  /** In a script (doc 25): the element the cursor is in, and the scene's length in lines. */
+  script?: { element: ScriptElement; lines: number } | null;
 }
 
 /**
@@ -24,7 +29,7 @@ interface Props {
  * with Keep mine and Take theirs. A running sprint shows beside it, and in focus mode so
  * does the way out, which GlobalLayout then leaves to it.
  */
-export default function StatusCorner({ node, autosave, wordCount }: Props) {
+export default function StatusCorner({ node, autosave, wordCount, script }: Props) {
   const { saveState, conflict } = autosave;
   const [open, setOpen] = useState(false);
   // A conflict opens the popover; closing it hides that conflict, not the next one.
@@ -60,7 +65,11 @@ export default function StatusCorner({ node, autosave, wordCount }: Props) {
     return () => document.removeEventListener("mousedown", onDown);
   }, [shown, conflict]);
 
+  const format = useStoryFormat();
   const words = wordCount.toLocaleString();
+  // A script shows where the cursor is and how long the scene runs; the words are a click away.
+  const length = script ? formatEighths(eighths(script.lines)) || "no pages yet" : "";
+  const chipText = script ? `${elementLabel(script.element, format)} · ${length}` : `${words} words`;
   return (
     <div
       className={styles.corner}
@@ -79,13 +88,13 @@ export default function StatusCorner({ node, autosave, wordCount }: Props) {
         type="button"
         className={`${styles.chip} ${shown ? styles.chipOpen : ""}`}
         title={label}
-        aria-label={`${label}. ${words} words in this scene. Show the figures`}
+        aria-label={`${label}. ${chipText} in this scene. Show the figures`}
         aria-haspopup="dialog"
         aria-expanded={shown}
         onClick={() => (shown ? close() : setOpen(true))}
       >
         <span className={`${styles.led} ${styles[led]}`} aria-hidden />
-        <span className={styles.words}>{words} words</span>
+        <span className={styles.words}>{chipText}</span>
       </button>
       {shown && (
         <Figures
@@ -98,6 +107,7 @@ export default function StatusCorner({ node, autosave, wordCount }: Props) {
           levelName={activeTemplate?.levels}
           goal={goalFor(intended)}
           today={today}
+          keys={script ? <KeysCard element={script.element} format={format} /> : null}
         />
       )}
       <span className={styles.srOnly} role="status">
@@ -117,6 +127,7 @@ function Figures({
   levelName,
   goal,
   today,
+  keys,
 }: {
   node: StructureNode;
   autosave: AutosaveState;
@@ -127,12 +138,15 @@ function Figures({
   levelName: { name: string }[] | undefined;
   goal: number | null;
   today: ReturnType<typeof useTodayWords>;
+  /** In a script, the keys from the line being written (doc 25, P3½). */
+  keys: ReactNode;
 }) {
   const f = statusFigures(structure, node.id, wordCount);
   const parentKind = f.parent ? (levelName?.[f.parent.node.level]?.name ?? f.parent.node.level_type) : "";
   const pct = goal ? Math.min(100, Math.round((f.book / goal) * 100)) : 0;
   return (
     <div className={styles.pop} role="dialog" aria-label="Words and saving">
+      {keys}
       <div className={styles.saveLine}>
         <span className={`${styles.led} ${styles[led]}`} aria-hidden />
         <span>{label}</span>

@@ -6,7 +6,7 @@ import { filterGroups, type OpenChoice, type OpenGroup } from "../../lib/panel/o
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
 import type { CompendiumEntrySummary, Twist } from "../../types";
-import { TOOLS, TOOL_LABELS, type EntityKind } from "../../types/panel";
+import { TOOL_LABELS, toolsFor, type EntityKind } from "../../types/panel";
 import { useAIAvailable, useMode } from "../../lib/mode";
 import { besideRoutes } from "../../lib/panel/pages";
 import { findRoute } from "../../lib/routes";
@@ -99,7 +99,11 @@ export default function OpenMenu() {
         },
         {
           name: "Lists and tools",
-          choices: TOOLS.map((tool) => ({ type: "tool" as const, tool, label: TOOL_LABELS[tool] })),
+          choices: toolsFor(useStoryStore.getState().activeStory).map((tool) => ({
+            type: "tool" as const,
+            tool,
+            label: TOOL_LABELS[tool],
+          })),
         },
       ],
       query,

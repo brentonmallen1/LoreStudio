@@ -9,6 +9,7 @@ import {
   Layers,
   Link,
   MoreHorizontal,
+  Palette,
   Quote,
   StickyNote,
   Tag,
@@ -19,8 +20,10 @@ import {
 import { useAIAvailable, useMode } from "../../lib/mode";
 import { visibleFeatures } from "../../lib/ai/featureRegistry";
 import { navigateTo } from "../../lib/navigation";
+import { useStoryFormat } from "../../lib/storyFormat";
 import { sceneSheetPath } from "../../lib/scene/glance";
 import { useStoryStore } from "../../stores/storyStore";
+import { useUIStore } from "../../stores/uiStore";
 import type { WritingGuideTab } from "../help/WritingGuidesModal";
 import AIFeatureInfoModal from "../ai/AIFeatureInfoModal";
 import FontSettings from "../story/FontSettings";
@@ -53,11 +56,15 @@ export default function EditorMoreMenu(p: Props) {
   const [open, setOpen] = useState(false);
   const [pane, setPane] = useState<Pane>("menu");
   const [about, setAbout] = useState(false);
+  // A script's cues say who speaks (doc 25, P4): there are no quotes to tag.
+  const format = useStoryFormat();
+  const script = format !== "prose";
+  const { elementGuides, setElementGuides } = useUIStore();
   const wrap = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const ai = useAIAvailable();
   const mode = useMode();
-  const hasAbout = visibleFeatures("scene-editor", mode).length > 0;
+  const hasAbout = visibleFeatures("scene-editor", mode, format).length > 0;
 
   function close() {
     setOpen(false);
@@ -137,12 +144,14 @@ export default function EditorMoreMenu(p: Props) {
               if (activeStory && activeNode) navigateTo(sceneSheetPath(activeStory.id, activeNode.id));
             })}
           />
-          <Item
-            label="Tag the dialogue"
-            icon={Tag}
-            title="Find quotes with no speaker"
-            onSelect={then(p.onOpenAutoTag)}
-          />
+          {!script && (
+            <Item
+              label="Tag the dialogue"
+              icon={Tag}
+              title="Find quotes with no speaker"
+              onSelect={then(p.onOpenAutoTag)}
+            />
+          )}
           <Item
             label="Link mentions"
             icon={Link}
@@ -160,8 +169,19 @@ export default function EditorMoreMenu(p: Props) {
                 ? "Notes sit beside the text; choose to show them as dots"
                 : "Notes show as dots; choose to show them beside the text"
             }
-            onSelect={then(() => p.onNotesView(p.notesView === "cards" ? "dots" : "cards"))}
+            // A setting under Show changes the page in place, and the menu stays open to see it.
+            onSelect={() => p.onNotesView(p.notesView === "cards" ? "dots" : "cards")}
           />
+          {script && (
+            <Item
+              label="Element guides"
+              icon={Palette}
+              checked={elementGuides}
+              hint={elementGuides ? "On" : "Off"}
+              title="Each element's words in a colour of their own, its name beside the line you are writing, and a hint on an empty line"
+              onSelect={() => setElementGuides(!elementGuides)}
+            />
+          )}
           <div className={styles.label}>Guides</div>
           <Item
             label="Dialogue"

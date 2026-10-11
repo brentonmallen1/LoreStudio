@@ -9,6 +9,8 @@ Five analyses that together simulate a developmental editor reading the manuscri
   5. Marginal Commentary (passage-anchored notes)
 """
 
+from .core import for_script
+
 
 def build_fresh_eyes_prompt(
     story_title: str,
@@ -183,6 +185,7 @@ def build_voice_prompt(
     tone: str | None,
     sections: list[dict],  # [{"title": str, "content": str}]
     context_level: str,
+    script: bool = False,
 ) -> str:
     context_note = {
         "full": "You have the full manuscript to compare voice across.",
@@ -193,7 +196,7 @@ def build_voice_prompt(
     # For voice analysis, use actual prose only
     sections_block = "\n\n".join(f"=== {s['title']} ===\n{s['content'] or '(no content)'}" for s in sections)
 
-    return f"""You are a prose editor analyzing the narrative voice in "{story_title}".
+    prompt = f"""You are a prose editor analyzing the narrative voice in "{story_title}".
 {context_note}
 Genre: {genre or "unspecified"} | Tone: {tone or "unspecified"}
 
@@ -225,16 +228,41 @@ Rules:
 - Be concrete about voice — quote or describe specific stylistic choices
 - anchor must be a verbatim short excerpt or empty string ""
 - If context_level is "section" and there's only one section, still characterize that voice but note you cannot assess consistency"""
+    if not script:
+        return prompt
+    return for_script(
+        prompt,
+        {
+            "You are a prose editor analyzing the narrative voice in": "You are a script editor analyzing the voice of",
+            "Characterize the prose voice": "Characterize the script's voice",
+            "Voice includes: sentence length and rhythm, diction level (formal/casual), narrative distance "
+            "(close/distant POV), use of interiority, authorial personality, cadence.": SCRIPT_VOICE,
+            "Describe the prose voice": "Describe the script's voice",
+            "'first-person, clipped sentences, dry wit, close interiority'": (
+                "'spare present-tense action in short lines, white space doing the pacing; dialogue that undercuts itself'"
+            ),
+            "across chapters": "across acts",
+        },
+    )
+
+
+#: Where a script's voice lives (doc 25, P7): it has no narrator to judge.
+SCRIPT_VOICE = (
+    "In a script, voice lives in the action lines (their rhythm, white space, word choice, how they "
+    "direct the eye) and in how distinctly each character sounds in dialogue. A script has no "
+    "narrator, so there is no point of view or interiority to judge."
+)
 
 
 def build_marginal_notes_prompt(
     story_title: str,
     story_intent: str | None,
     sections: list[dict],  # [{"title": str, "content": str}]
+    script: bool = False,
 ) -> str:
     sections_block = "\n\n".join(f"=== {s['title']} ===\n{s['content'] or '(no content)'}" for s in sections)
 
-    return f"""You are a developmental editor leaving marginal notes on "{story_title}".
+    prompt = f"""You are a developmental editor leaving marginal notes on "{story_title}".
 Story intent: {story_intent or "Not specified"}
 
 Your task: Leave specific, anchored comments on individual passages — the way an editor writes in the margins. These are NOT high-level structural notes (those come from other analyses). These are passage-level observations.
@@ -266,3 +294,6 @@ Rules:
 - Leave 1-4 notes per section, mixing types (don't only flag concerns)
 - Comments should read like an editor talking to the author: direct, specific, collegial
 - Avoid generic advice ("show don't tell") — always tie the note to the specific passage"""
+    if not script:
+        return prompt
+    return for_script(prompt, {"where the prose buries the point": "where an action line buries the point"})

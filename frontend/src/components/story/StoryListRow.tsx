@@ -48,7 +48,9 @@ export default function StoryListRow({
             <span className={styles.track} aria-hidden>
               <span style={{ width: `${Math.min(100, progress.pct ?? 0)}%` }} />
             </span>
-            {words.toLocaleString()} of {progress.target_words.toLocaleString()}
+            {(progress.target_unit === "pages" ? (progress.target_current ?? 0) : words).toLocaleString()} of{" "}
+            {progress.target_words.toLocaleString()}
+            {progress.target_unit === "pages" ? " pages" : ""}
           </>
         ) : words > 0 ? (
           `${words.toLocaleString()} words`

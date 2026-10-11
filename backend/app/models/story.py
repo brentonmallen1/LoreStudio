@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -46,6 +46,8 @@ class Story(Base):
     description: Mapped[str] = mapped_column(Text, default="")
     intent: Mapped[str] = mapped_column(Text, default="")  # System-level LLM context
     structure_template_id: Mapped[str] = mapped_column(String, default="freeform")
+    #: What the story is written as: "prose" or "screenplay" (services/story_format.py, doc 25).
+    story_format: Mapped[str] = mapped_column(String, default="prose", server_default="prose")
 
     # Lorebook fields
     genre: Mapped[str] = mapped_column(String, default="")
@@ -62,6 +64,12 @@ class Story(Base):
     logline: Mapped[str] = mapped_column(String, default="")
     # Byline for exports and the title page. Optional; the account name is not assumed.
     author_name: Mapped[str] = mapped_column(String, default="", server_default="")
+    #: A script's title page beyond the title and byline (services/script_export.py, doc 25):
+    #: credit, based_on, contact, draft, date. Empty for prose.
+    title_page: Mapped[dict] = mapped_column(JSON, default=dict, server_default=text("'{}'"))
+    #: The novel this script adapts (services/adaptation.py, doc 25 P10). No foreign key, as a
+    #: scene's `era_id`: a script whose novel is gone simply has none.
+    adapted_from_id: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
 
     # Narrative perspective
     narrative_perspective: Mapped[str] = mapped_column(String, default="")

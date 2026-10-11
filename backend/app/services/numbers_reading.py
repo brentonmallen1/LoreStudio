@@ -40,9 +40,11 @@ from .findings import collect
 from .findings.runs import RUN_EVENTS, latest_runs
 from .numbers import CONTAINERS, STATUSES, form_for, prose_from_run, spoken_shares
 from .scene_cast import cast_patterns, on_the_page
+from .script_export import pages_in
 from .snapshot_service import _model_to_dict
+from .story_format import is_script, story_format
 from .structure_scaffold import FLAT
-from .word_count import get_word_count_status
+from .word_count import length_status
 
 #: The shape of a reading's ``data``. Raise it when the shape changes, and read older ones by it.
 READING_VERSION = 1
@@ -147,7 +149,7 @@ def _ordered(
     return out, children
 
 
-def _words(leaves: list[SimpleNamespace], form: str) -> dict[str, Any]:
+def _words(leaves: list[SimpleNamespace], story: Any) -> dict[str, Any]:
     """``services/numbers.words`` over the same leaves: an empty chapter is a leaf, not a scene."""
     scenes = [n for n in leaves if (n.level_type or "").lower() not in CONTAINERS]
     by_status = dict.fromkeys(STATUSES, 0)
@@ -155,7 +157,12 @@ def _words(leaves: list[SimpleNamespace], form: str) -> dict[str, Any]:
         by_status[n.status or "draft"] = by_status.get(n.status or "draft", 0) + (n.word_count or 0)
     written = [n.word_count or 0 for n in scenes if (n.word_count or 0) > 0]
     total = sum(n.word_count or 0 for n in scenes)
-    target = get_word_count_status(form, total)
+    form = story.intended_length or ""
+    if is_script(story):
+        fmt = story_format(story)
+        target = length_status(fmt, form, pages_in([n.content for n in leaves], fmt))
+    else:
+        target = length_status("prose", form, total)
     past = target is not None and target["warning_level"] == "exceeded"
     return {
         "total": total,
@@ -166,7 +173,7 @@ def _words(leaves: list[SimpleNamespace], form: str) -> dict[str, Any]:
         "median_per_scene": round(median(written)) if written else 0,
         "form": form,
         "target": target,
-        "reads_as": form_for(total) if past else None,
+        "reads_as": form_for(target["current"], story.story_format) if past and target else None,
     }
 
 
@@ -221,7 +228,7 @@ def measure(
     return {
         "version": READING_VERSION,
         "story_pov": story.pov_character_id,
-        "words": _words(leaves, story.intended_length or ""),
+        "words": _words(leaves, story),
         "scenes": [
             {
                 "id": n.id,

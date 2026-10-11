@@ -15,7 +15,7 @@ Keep every thought you want to come back to, without leaving the page.
 2. Choose **Note**, **Question** or **To-do** in the toolbar, or press {{key:inlineNote}}.
 3. Type it. The note sits in the margin, level with its words.
 
-Type `/todo` for a to-do on the current sentence. {{key:nextNote}} and {{key:prevNote}} move between notes.
+Type `/note` or `/todo` for a note or a to-do on the current sentence. {{key:nextNote}} and {{key:prevNote}} move between notes.
 
 **Resolve** a note when you are done with it. It leaves the margin but stays on the Notes page, where you can reopen it.
 

@@ -6,18 +6,20 @@ import type { ToolId } from "../../types/panel";
 import { TOOL_LABELS } from "../../types/panel";
 import NotesBoard from "../notes/NotesBoard";
 import DialogueTool from "./dialogue/DialogueTool";
+import NovelScene from "./scene/NovelScene";
 import { entityColor } from "./entityColor";
 import styles from "./Panel.module.css";
 
 /**
  * What a tool on the rail shows (doc 11, doc 24 D11): the Lorebook lists, the planning scratch
- * tools, and the open scene's dialogue as a thread.
+ * tools, the open scene's dialogue as a thread, and in an adaptation the novel's own scene.
  */
 export default function ToolTab({ tool }: { tool: ToolId }) {
   const { activeStory } = useStoryStore();
   if (!activeStory) return null;
   if (tool === "notes") return <NotesBoard compact />;
   if (tool === "dialogue") return <DialogueTool />;
+  if (tool === "novel") return <NovelScene />;
   return <EntityList tool={tool} />;
 }
 

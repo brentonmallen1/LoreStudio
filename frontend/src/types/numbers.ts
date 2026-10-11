@@ -1,4 +1,16 @@
 /** The story in numbers (doc 13 P3); mirrors backend/app/schemas/numbers.py. */
+
+/** Where a story stands against its intended length: words for prose, pages for a script (doc 25). */
+export interface WordCountTarget {
+  min: number | null;
+  max: number;
+  soft_warning_at: number | null;
+  current: number;
+  pct: number;
+  warning_level: "normal" | "approaching" | "exceeded";
+  unit?: "words" | "pages";
+}
+
 export interface NumbersWords {
   total: number;
   by_status: Record<string, number>;
@@ -7,14 +19,7 @@ export interface NumbersWords {
   mean_per_scene: number;
   median_per_scene: number;
   form: string;
-  target: {
-    min: number | null;
-    max: number;
-    soft_warning_at: number | null;
-    current: number;
-    pct: number;
-    warning_level: "normal" | "approaching" | "exceeded";
-  } | null;
+  target: WordCountTarget | null;
   reads_as: string | null;
 }
 
@@ -42,6 +47,21 @@ export interface StoryNumbers {
   dialogue: NumbersDialogue;
   prose: NumbersProse | null;
   summaries: NumbersSummaries;
+  /** A script's numbers in pages (doc 25, P5); null for prose. */
+  pages?: NumbersPages | null;
+}
+
+/** A script's length in pages (backend services/numbers_pages.py). */
+export interface NumbersPages {
+  total: number;
+  form: string;
+  target: WordCountTarget | null;
+  by_part: { id: string; title: string; pages: number }[];
+  /** How much of the printed script is speech (cues, parentheticals, dialogue) against action. */
+  dialogue_pct: number;
+  /** Scenes over three pages. */
+  long_scenes: { id: string; title: string; eighths: number }[];
+  mean_eighths: number;
 }
 
 /** The Assistant's scene summaries over the written scenes: current, out of date, not written. */

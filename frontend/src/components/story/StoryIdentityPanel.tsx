@@ -9,32 +9,23 @@ import BeatSheetSelector from "./BeatSheetSelector";
 import { SectionCard } from "../common";
 import PageHeader from "../layout/PageHeader";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
-import type { StoryGoal } from "../../types";
+import { formatOf } from "../../lib/storyFormat";
+import { lengthForm, lengthOptions } from "../../utils/wordCount";
+import { FormatField, PerspectiveField } from "./StoryFormFields";
+import type { StoryFormat, StoryGoal } from "../../types";
 import { CharCount, CompletionDots, GroupLabel, HeroStats, SeriesCard } from "./StoryIdentityBits";
 import { useWorkshopMenu } from "./useWorkshopMenu";
 import styles from "./StoryIdentityPanel.module.css";
 
-const LENGTH_OPTIONS = [
-  "",
-  "flash_fiction",
-  "short_story",
-  "novelette",
-  "novella",
-  "novel",
-  "epic_saga",
-  "series",
-] as const;
-
-const LENGTH_LABELS: Record<string, string> = {
-  "": "Not specified",
-  flash_fiction: "Flash fiction (<1K words)",
-  short_story: "Short story (1K–7.5K words)",
-  novelette: "Novelette (7.5K–17.5K words)",
-  novella: "Novella (17.5K–40K words)",
-  novel: "Novel (40K–100K words)",
-  epic_saga: "Epic / saga (100K+ words)",
-  series: "Series (multi-book)",
-};
+/** The format's forms, and a length kept from the other format (after a switch) as it was. */
+function lengthChoices(format: StoryFormat, current: string): [string, string][] {
+  const options = lengthOptions(format);
+  const kept = lengthForm(current);
+  if (current && kept && !options.some(([k]) => k === current)) {
+    options.push([current, `${kept.option}: a ${format === "prose" ? "script" : "prose"} length`]);
+  }
+  return options;
+}
 
 // ── Theme tag input ────────────────────────────────────────────────────────
 function ThemeInput({ themes, onChange }: { themes: string[]; onChange: (t: string[]) => void }) {
@@ -254,6 +245,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
     genre: "",
     tone: "",
     intended_length: "",
+    story_format: "prose" as StoryFormat,
     narrative_perspective: "",
     pov_character_id: "" as string,
     themes: [] as string[],
@@ -271,6 +263,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
       genre: activeStory.genre ?? "",
       tone: activeStory.tone ?? "",
       intended_length: activeStory.intended_length ?? "",
+      story_format: formatOf(activeStory),
       narrative_perspective: activeStory.narrative_perspective ?? "",
       pov_character_id: activeStory.pov_character_id ?? "",
       themes: activeStory.themes ?? [],
@@ -434,61 +427,40 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
               />
             </div>
           </div>
-          <div>
-            <p className={styles.subFieldLabel}>Narrative perspective</p>
-            <p className={styles.fieldHint}>
-              Point of view for the story. Guides AI tools on voice and perspective.
-            </p>
-            <select
-              value={fields.narrative_perspective}
-              onChange={(e) => update("narrative_perspective", e.target.value)}
-              className={styles.input}
-            >
-              <option value="">Not specified</option>
-              <option value="first_person">First person</option>
-              <option value="third_limited">Third person limited</option>
-              <option value="third_omniscient">Third person omniscient</option>
-              <option value="second_person">Second person</option>
-              <option value="multiple_pov">Multiple POV</option>
-            </select>
-            {(fields.narrative_perspective === "first_person" ||
-              fields.narrative_perspective === "third_limited") && (
-              <div className={styles.subField}>
-                <p className={styles.subFieldLabel}>POV character</p>
-                <select
-                  value={fields.pov_character_id}
-                  onChange={(e) => updatePovCharacter(e.target.value)}
-                  className={styles.input}
-                >
-                  <option value="">Not specified</option>
-                  {characters.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
+          {fields.story_format === "prose" && (
+            <PerspectiveField
+              perspective={fields.narrative_perspective}
+              povCharacterId={fields.pov_character_id}
+              characters={characters}
+              onPerspective={(v) => update("narrative_perspective", v)}
+              onPovCharacter={updatePovCharacter}
+            />
+          )}
         </SectionCard>
 
         {/* ── Form ── */}
         <GroupLabel label="Form" description="What shape does it take?" />
 
         <SectionCard title="Structure" collapsed={!!collapsed.structure} onToggle={() => toggle("structure")}>
+          <FormatField
+            value={fields.story_format}
+            onChange={(v) => update("story_format", v)}
+            storyId={storyId}
+          />
           <div>
             <p className={styles.subFieldLabel}>Intended length</p>
             <p className={styles.fieldHint}>
-              Target form and word count range. Used by Findings, Numbers and the Assistant.
+              Target form and its length, in {fields.story_format === "prose" ? "words" : "pages"}. Used by
+              Findings, Numbers and the Assistant.
             </p>
             <select
               value={fields.intended_length}
               onChange={(e) => update("intended_length", e.target.value)}
               className={styles.input}
             >
-              {LENGTH_OPTIONS.map((val) => (
+              {lengthChoices(fields.story_format, fields.intended_length).map(([val, label]) => (
                 <option key={val} value={val}>
-                  {LENGTH_LABELS[val]}
+                  {label}
                 </option>
               ))}
             </select>

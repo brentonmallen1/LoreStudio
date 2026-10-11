@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
-import type { LLMParams } from "../../types";
+import type { LLMParams, StoryFormat } from "../../types";
+import { AI_FEATURES_BY_ID, aiFeatureFits } from "./features.generated";
 
 /**
  * How much story context to include in the AI's context window.
@@ -178,4 +179,17 @@ export function getSessionType(id: string): SessionTypeConfig | undefined {
 
 export function getAllSessionTypes(): SessionTypeConfig[] {
   return Array.from(registry.values()).filter((t) => !t.hiddenFromNewMenu);
+}
+
+/** The session types a story of this format offers (doc 25, P7): a script has no use for
+ *  dialogue attribution, its cues say who speaks. */
+export function sessionTypesFor(format: StoryFormat): SessionTypeConfig[] {
+  return getAllSessionTypes().filter((t) => aiFeatureFits(t.backendFeatureId, format));
+}
+
+/** A session type's name for a story of this format ("Unfilmables" for a script). */
+export function sessionTypeLabel(type: SessionTypeConfig, format: StoryFormat): string {
+  const feature = type.backendFeatureId ? AI_FEATURES_BY_ID[type.backendFeatureId] : undefined;
+  if (format === "stage_play" && feature?.stageLabel) return feature.stageLabel;
+  return (format !== "prose" && feature?.scriptLabel) || type.label;
 }

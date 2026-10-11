@@ -26,6 +26,8 @@ from ..models.structure import StructureNode
 from .codex.presence import known_as, name_forms
 from .prose_html import paragraphs
 from .prose_syntax import Lexicon, find_mentions, find_quotes, find_speaker_tags
+from .script_dialogue import plan_script
+from .story_format import is_script
 from .text_utils import html_to_paragraphs as _html_to_paragraphs
 
 _NO_NAMES = Lexicon([])
@@ -344,6 +346,7 @@ _EXTRACTED = (
     "speaker_name",
     "character_id",
     "dialogue_type",
+    "direction",
 )
 #: All a hand-corrected line (attribution_method="manual") takes from extraction: where
 #: it now sits. Its speaker is the author's.
@@ -395,6 +398,7 @@ def _plan(content: str, characters: list[Character], pov_char: Character | None)
             raw.update(speaker_name=pov_char.name, attribution_method="pov_default", confidence=0.8)
     lines = speech + thoughts
     for raw in lines:
+        raw.setdefault("direction", "")
         char = resolve(raw["speaker_name"]) if raw["speaker_name"] else None
         raw["character_id"] = char.id if char else None
     return sorted(lines, key=lambda r: (r["paragraph_index"], r["position_in_paragraph"]))
@@ -435,6 +439,9 @@ def _rows(db: Session, scene_id: str, *, fresh: bool = False) -> list[DialogueBl
 
 def plan_scene(node: StructureNode, story: Story | None, characters: list[Character]) -> list[dict]:
     """Every line in the scene's prose as the reader attributes it, before any hand correction."""
+    if is_script(story):
+        # A script says who speaks with its cues (doc 25, P4).
+        return plan_script(node.content or "", _speaker_resolver(characters))
     pov_id = node.pov_character_id or (story.pov_character_id if story else None)
     first_person = bool(story and story.narrative_perspective in _FIRST_PERSON_PERSPECTIVES)
     pov_char = next((c for c in characters if c.id == pov_id), None) if first_person else None

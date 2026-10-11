@@ -7,7 +7,17 @@
  */
 
 export type NumbersSection =
-  "time" | "words" | "pacing" | "threads" | "cast" | "pov" | "dialogue" | "talk" | "prose" | "summaries";
+  | "time"
+  | "pages"
+  | "words"
+  | "pacing"
+  | "threads"
+  | "cast"
+  | "pov"
+  | "dialogue"
+  | "talk"
+  | "prose"
+  | "summaries";
 
 export interface AboutSection {
   measures: string[];
@@ -34,6 +44,23 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
     compared: [
       "The reading compared with is a solid rule with a ringed point on every line, and each figure says what it was then. Comparing two readings, the later one takes the place of now.",
     ],
+  },
+
+  pages: {
+    measures: [
+      "A script's length in pages, as its PDF prints them: Courier 12 point, 55 lines to a page, with every page break the export makes. A page runs about a minute on screen.",
+      "When the script has an intended length, the bar sets the pages against the upper end of that form's usual range: a short film 40 pages, a TV half-hour 38, a TV hour 65, a feature 120. The tick marks where it starts to come close.",
+      "Each act's pages are its scenes' lines laid end to end, the way a script breakdown counts them, so the acts can add up to a little less than the total. A scene's length is in eighths of a page.",
+      "Speech is the share of the printed lines that are character names, parentheticals and dialogue; the rest is action.",
+    ],
+    why: [
+      "Readers, producers and schedulers measure a script in pages and eighths, not words. The balance of acts and the share of speech say how a script will play before anyone reads it.",
+    ],
+    reading: [
+      "The ranges are conventions, not rules. A three-page scene is long for the screen but not wrong; some stories need one.",
+      "A script heavy in speech plays as talk; one heavy in action plays as pictures. Neither is better.",
+    ],
+    compared: ["Pages are the script as it is now: readings do not keep them yet."],
   },
 
   words: {

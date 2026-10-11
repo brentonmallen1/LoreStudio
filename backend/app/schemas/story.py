@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from ..services.story_format import StoryFormat
+
 
 class StoryGoal(BaseModel):
     id: str
@@ -14,8 +16,21 @@ class StoryCreate(BaseModel):
     description: str = ""
     intent: str = ""
     structure_template_id: str = "freeform"
+    story_format: StoryFormat = "prose"
     #: Lay out the template's first outline (services/structure_scaffold.py).
     scaffold: bool = True
+
+
+class TitlePage(BaseModel):
+    """A script's title page beyond its title and byline (doc 25, P3). Blank lines are left off."""
+
+    credit: str = "Written by"
+    based_on: str = ""
+    #: The contact block, bottom left: name, address, phone, email, one per line.
+    contact: str = ""
+    #: Bottom right: the draft ("Second draft") and its date, as the author writes them.
+    draft: str = ""
+    date: str = ""
 
 
 class StoryUpdate(BaseModel):
@@ -23,6 +38,7 @@ class StoryUpdate(BaseModel):
     description: str | None = None
     intent: str | None = None
     structure_template_id: str | None = None
+    story_format: StoryFormat | None = None
     genre: str | None = None
     tone: str | None = None
     themes: list[str] | None = None
@@ -34,6 +50,7 @@ class StoryUpdate(BaseModel):
     premise: str | None = None
     logline: str | None = None
     author_name: str | None = None
+    title_page: TitlePage | None = None
     discovery_enabled: bool | None = None
     discovery_auto_analyze: bool | None = None
     discovery_element_types: list[str] | None = None
@@ -52,6 +69,7 @@ class StoryOut(BaseModel):
     description: str
     intent: str
     structure_template_id: str
+    story_format: str = "prose"
     genre: str
     tone: str
     themes: list[str]
@@ -63,6 +81,9 @@ class StoryOut(BaseModel):
     premise: str
     logline: str
     author_name: str = ""
+    title_page: TitlePage = TitlePage()
+    #: The novel a script adapts (doc 25, P10).
+    adapted_from_id: str | None = None
     goals: list[StoryGoal]
     discovery_enabled: bool
     discovery_auto_analyze: bool
@@ -121,6 +142,8 @@ class DistributionEntry(BaseModel):
 class StoryOverview(BaseModel):
     word_count: int
     word_count_target: dict | None
+    #: A script's length in printed pages (doc 25, P5); None for prose.
+    page_count: int | None = None
     scene_count: int
     scenes_by_status: dict[str, int]
     character_count: int

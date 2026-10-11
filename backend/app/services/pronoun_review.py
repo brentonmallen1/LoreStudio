@@ -166,7 +166,15 @@ def _masked(text: str) -> str:
     return "".join(chars)
 
 
-def _quoted(text: str) -> list[tuple[int, int]]:
+#: A script's spoken blocks (doc 25): the whole block is speech, quote marks or not.
+SPOKEN = ("cue", "paren", "dialogue")
+
+
+def _quoted(text: str, element: str | None = None) -> list[tuple[int, int]]:
+    """Where the paragraph is speech, which a review of someone's pronouns leaves alone: they
+    say what they say. In a script a line of dialogue is speech with no quote marks round it."""
+    if element in SPOKEN:
+        return [(0, len(text))]
     spans = [(q.start, q.end) for q in find_quotes(text)]
     spans += [(t.quote_start, t.tag_start) for t in find_speaker_tags(text)]
     return spans
@@ -206,7 +214,7 @@ def review_scene(
             continue
         doc = nlp(_masked(text))
         hits = sorted((m.start(), cid) for cid, pats in patterns.items() for p in pats for m in p.finditer(text))
-        quoted = _quoted(text)
+        quoted = _quoted(text, para.element)
         sents = list(doc.sents)
         for si, sent in enumerate(sents):
             window = sents[si - 1].start_char if si > 0 else 0
@@ -248,7 +256,7 @@ def review_scene(
 
 def _name_proposals(node_id: str, pi: int, text: str, html: str, old: str, new: str) -> list[Proposal]:
     """Every use of the old name in a paragraph: mentions, speaker tags and plain text."""
-    marked = [(a, b) for i, _p, a, b in _uses(html, "character", old) if i == pi]
+    marked = [(a, b) for i, _p, a, b, _cue in _uses(html, "character", old) if i == pi]
     plain = [
         (a, b)
         for a, b in find_in_text(text, old, case_sensitive=True, whole_word=True)

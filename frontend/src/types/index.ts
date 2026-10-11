@@ -1,6 +1,19 @@
 import type { WhoAreThey } from "./whoAreThey";
 
 export type { Facet, FacetArea, Formative, Known, WhoAreThey } from "./whoAreThey";
+import type { AttributionMethod, DialogueType } from "./dialogue";
+import type { WordCountTarget } from "./numbers";
+export type { WordCountTarget } from "./numbers";
+export type { AttributionMethod, DialogueType } from "./dialogue";
+import type { TitlePage } from "./script";
+export type {
+  ExportOptions,
+  ScriptExportChoices,
+  ScriptExportFormat,
+  ScriptLayout,
+  ScriptLine,
+  TitlePage,
+} from "./script";
 
 export interface User {
   id: string;
@@ -18,6 +31,9 @@ export interface StoryGoal {
   completed: boolean;
 }
 
+/** What a story is written as (doc 25, lib/storyFormat.ts). */
+export type StoryFormat = "prose" | "screenplay" | "stage_play";
+
 export interface Story {
   id: string;
   user_id: string;
@@ -25,6 +41,7 @@ export interface Story {
   description: string;
   intent: string;
   structure_template_id: string;
+  story_format: StoryFormat;
   genre: string;
   tone: string;
   themes: string[];
@@ -36,6 +53,10 @@ export interface Story {
   premise: string;
   logline: string;
   author_name: string;
+  /** A script's title page (doc 25, P3). */
+  title_page?: TitlePage;
+  /** The novel a script adapts (doc 25, P10). */
+  adapted_from_id?: string | null;
   goals: StoryGoal[];
   discovery_enabled: boolean;
   discovery_auto_analyze: boolean;
@@ -82,6 +103,8 @@ export interface StoryStructureTemplate {
   starter_outline: string[];
   /** Levels are kinds of beat side by side (Single MICE), all at the top level. */
   flat: boolean;
+  /** The story format it was written for, or "" when it fits any (doc 25). */
+  format: "" | StoryFormat;
 }
 
 /** A margin note as the margin draws it: a note row (types/notes) tied to a passage. */
@@ -113,6 +136,13 @@ export interface StructureNode {
   content: string;
   position: number;
   word_count: number;
+  /** A script scene's length in lines of the printed page (doc 25); 0 in prose. */
+  line_count?: number;
+  /** What a script scene's heading says, read from it on save (doc 25, D3): INT, EXT… and when. */
+  interior?: string;
+  time_of_day?: string;
+  /** In a script adapted from a novel, the novel's scene this one tells (doc 25, P10). */
+  adapted_from_id?: string | null;
   /** "planned": a scene in the plan with no prose yet; the first words make it a draft. */
   status: "planned" | "draft" | "revised" | "final";
   purpose: string;
@@ -741,15 +771,6 @@ export interface BrainstormIntent {
 
 // ── Story Health ──
 
-export interface WordCountTarget {
-  min: number | null;
-  max: number;
-  soft_warning_at: number | null;
-  current: number;
-  pct: number;
-  warning_level: "normal" | "approaching" | "exceeded";
-}
-
 export interface RecentScene {
   id: string;
   title: string;
@@ -787,6 +808,8 @@ export interface DistributionEntry {
 export interface StoryOverview {
   word_count: number;
   word_count_target: WordCountTarget | null;
+  /** A script's length in printed pages (doc 25, P5); null for prose. */
+  page_count?: number | null;
   scene_count: number;
   scenes_by_status: Record<string, number>;
   character_count: number;
@@ -818,16 +841,6 @@ export interface Manuscript {
   title: string;
   total_words: number;
   sections: ManuscriptSection[];
-}
-
-export interface ExportOptions {
-  format: "docx" | "docx_manuscript" | "epub" | "markdown" | "html" | "odt" | "pdf" | "txt";
-  include_headers: boolean;
-  include_scene_titles: boolean;
-  title_page: boolean;
-  scene_break: string;
-  status_filter: string[] | null;
-  pdf_layout?: "default" | "novel" | "manuscript" | "compact" | "dark";
 }
 
 export interface AssetAttachment {
@@ -1421,10 +1434,12 @@ export interface DialogueBlock {
   raw_text: string;
   paragraph_index: number;
   position_in_paragraph: number;
-  attribution_method: "explicit" | "inferred" | "alternating" | "manual" | "unattributed" | "pov_default";
-  dialogue_type: "speech" | "thought" | null;
+  attribution_method: AttributionMethod;
+  dialogue_type: DialogueType | null;
   confidence: number;
   subtext: string | null;
+  /** A script's parenthetical before the line, "quietly" (doc 25, P4). */
+  direction?: string;
 }
 
 export interface DialogueBlockWithScene {
@@ -1434,8 +1449,8 @@ export interface DialogueBlockWithScene {
   character_id: string | null;
   speaker_name: string;
   content: string;
-  attribution_method: "explicit" | "inferred" | "alternating" | "manual" | "unattributed" | "pov_default";
-  dialogue_type: "speech" | "thought" | null;
+  attribution_method: AttributionMethod;
+  dialogue_type: DialogueType | null;
   confidence: number;
   paragraph_index: number;
   subtext?: string | null;

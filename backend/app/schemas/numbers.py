@@ -12,6 +12,8 @@ class WordTarget(BaseModel):
     current: int
     pct: float
     warning_level: str
+    #: "words" for prose, "pages" for a script (doc 25, P5).
+    unit: str = "words"
 
 
 class NumbersWords(BaseModel):
@@ -87,11 +89,41 @@ class NumbersSummaries(BaseModel):
     missing: int
 
 
+class PagesPart(BaseModel):
+    """An act (or the outline's top level) and about how many pages it runs."""
+
+    id: str
+    title: str
+    pages: float
+
+
+class LongScene(BaseModel):
+    id: str
+    title: str
+    eighths: int
+
+
+class NumbersPages(BaseModel):
+    """A script's length in pages (services/numbers_pages.py, doc 25 P5)."""
+
+    total: int
+    form: str
+    target: WordTarget | None
+    by_part: list[PagesPart]
+    #: How much of the printed script is speech (cues, parentheticals, dialogue) against action.
+    dialogue_pct: int
+    #: Scenes over three pages.
+    long_scenes: list[LongScene]
+    mean_eighths: int
+
+
 class NumbersOut(BaseModel):
     words: NumbersWords
     dialogue: NumbersDialogue
     prose: NumbersProse | None
     summaries: NumbersSummaries
+    #: A script's numbers in pages; None for prose.
+    pages: NumbersPages | None = None
 
 
 class ReadingSummary(BaseModel):

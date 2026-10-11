@@ -52,6 +52,8 @@ export function useFindingActions() {
             return f.fix.story_id === useSeriesStore.getState().storyId
               ? "Bring into this book"
               : `Bring into ${carryBook(f.fix.story_id)}`;
+          if (f.fix?.kind === "split") return "Start a new scene here";
+          if (f.fix?.kind === "add") return "Add to the Lorebook";
           return f.fix ? `Change to “${f.fix.new}”` : null;
         case "ask":
           return aiAvailable ? "Ask about this" : f.run_id ? "Read the run" : null;

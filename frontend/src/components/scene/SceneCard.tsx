@@ -43,7 +43,7 @@ export default function SceneCard({
   /** Changes when the places may have changed, to read them again. */
   refresh: unknown;
 }) {
-  const { who, where, beat, when } = useSceneFacts(node, story, refresh);
+  const { who, where, beat, when, shot } = useSceneFacts(node, story, refresh);
   const words = node.word_count ?? 0;
 
   return (
@@ -103,16 +103,14 @@ export default function SceneCard({
         </span>
         <span className={styles.factName}>Where</span>
         <span>
-          {where.length ? (
-            where.map((p, i) => (
-              <span key={p.name} className={p.role === "primary" ? undefined : styles.muted}>
-                {i > 0 && " · "}
-                {p.role === "primary" ? p.name : `${p.role} ${p.name}`}
-              </span>
-            ))
-          ) : (
-            <span className={styles.muted}>Not set</span>
-          )}
+          {where.map((p, i) => (
+            <span key={p.name} className={p.role === "primary" ? undefined : styles.muted}>
+              {i > 0 && " · "}
+              {p.role === "primary" ? p.name : `${p.role} ${p.name}`}
+            </span>
+          ))}
+          {shot && <span className={styles.muted}>{where.length > 0 ? ` · ${shot}` : shot}</span>}
+          {!where.length && !shot && <span className={styles.muted}>Not set</span>}
         </span>
         <span className={styles.factName}>Beat</span>
         <span className={beat ? undefined : styles.muted}>

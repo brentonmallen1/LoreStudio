@@ -7,6 +7,8 @@ export interface AssistantCheck {
   id: string;
   label: string;
   hint: string;
+  /** The hint for a script, where it differs (doc 25, P7). */
+  scriptHint?: string;
 }
 
 /** The local checks, in a line each: what they look for (services/findings/local.py, data.py). */
@@ -18,6 +20,11 @@ export const LOCAL_CHECKS = {
   prose: {
     label: "Prose habits, tense, point of view",
     hint: "Passive voice, adverbs, tags other than said, repeated words, slips of tense and point of view",
+  },
+  /** A script's checks read its action lines (doc 25, P5; story_format.SCRIPT_CHECKS). */
+  script: {
+    label: "Action lines: habits and tense",
+    hint: "Passive voice, adverbs and repeated words in the action, and action that slips out of the present tense",
   },
 };
 
@@ -56,6 +63,7 @@ export const ASSISTANT_CHECKS: AssistantCheck[] = [
     id: "first-pass",
     label: "First-pass editor",
     hint: "The prose against what you said you meant",
+    scriptHint: "The script against what you said you meant",
   },
   {
     id: "essential-questions",

@@ -26,6 +26,8 @@ export default function FontSettings() {
     setEditorLineWidth,
     highlightDialogue,
     setHighlightDialogue,
+    elementGuides,
+    setElementGuides,
   } = useUIStore();
   const currentFont = FONT_OPTIONS.find((f) => f.value === editorFontFamily);
 
@@ -96,6 +98,16 @@ export default function FontSettings() {
         <span>
           Highlight dialogue
           <span className={styles.toggleHint}>Tint quotes by attribution while you write</span>
+        </span>
+      </label>
+      <label className={styles.toggleRow}>
+        <input type="checkbox" checked={elementGuides} onChange={(e) => setElementGuides(e.target.checked)} />
+        <span>
+          Element guides in a script
+          <span className={styles.toggleHint}>
+            Each element&rsquo;s words in a colour of their own, its name beside the line you are writing, and
+            a hint on an empty line
+          </span>
         </span>
       </label>
     </div>

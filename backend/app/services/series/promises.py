@@ -141,11 +141,14 @@ class SeriesPromises:
         self.series = series
         pos = service.positions(series)
         self.books: list[Book] = []
-        for b in sorted(series.books, key=lambda b: pos.get(b.story_id, 0)):
+        # A script adapted from a novel retells it (doc 25, P10): it shares the canon, but its
+        # threads and twists are the novel's own again, not the next step of the series'.
+        told = [b for b in sorted(series.books, key=lambda b: pos.get(b.story_id, 0)) if not b.story.adapted_from_id]
+        for i, b in enumerate(told):
             facts = promise_facts(b.story_id, db)
             self.books.append(
                 Book(
-                    position=pos[b.story_id],
+                    position=i,
                     story_id=b.story_id,
                     title=b.story.title,
                     facts=facts,

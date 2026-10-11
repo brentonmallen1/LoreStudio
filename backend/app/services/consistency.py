@@ -180,7 +180,7 @@ def unknown_speakers(nodes: list[StructureNode], characters: list[Character], db
                 node_id=node.id,
                 node_title=node.title,
                 text=speaker,
-                suggestion="Add this character to the Lorebook or fix the speaker tag",
+                suggestion="Add them to the Lorebook, or correct the name where they speak.",
                 excerpt=(b.content or "")[:80],
             )
         )

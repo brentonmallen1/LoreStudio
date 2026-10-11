@@ -172,6 +172,57 @@ export const SHORTCUTS = {
   // No shortcut for Insert image (the editor's ⋯ menu) or the Writing coach (the selection
   // toolbar): ⇧⌘I and ⇧⌘R belong to browsers (developer tools, a hard reload), and so do
   // the ⌥⌘ forms.
+
+  // A screenplay's elements (doc 25), an extra for Final Draft hands. Not ⌘1–6: the browser
+  // keeps those for its tabs.
+  scriptHeading: {
+    combo: "mod+alt+1",
+    label: "Script: scene heading",
+    group: "Editor",
+    scope: "editor",
+    modes: BOTH,
+    commandId: "script-element-heading",
+  },
+  scriptAction: {
+    combo: "mod+alt+2",
+    label: "Script: action",
+    group: "Editor",
+    scope: "editor",
+    modes: BOTH,
+    commandId: "script-element-action",
+  },
+  scriptCue: {
+    combo: "mod+alt+3",
+    label: "Script: character",
+    group: "Editor",
+    scope: "editor",
+    modes: BOTH,
+    commandId: "script-element-cue",
+  },
+  scriptParen: {
+    combo: "mod+alt+4",
+    label: "Script: parenthetical",
+    group: "Editor",
+    scope: "editor",
+    modes: BOTH,
+    commandId: "script-element-paren",
+  },
+  scriptDialogue: {
+    combo: "mod+alt+5",
+    label: "Script: dialogue",
+    group: "Editor",
+    scope: "editor",
+    modes: BOTH,
+    commandId: "script-element-dialogue",
+  },
+  scriptTransition: {
+    combo: "mod+alt+6",
+    label: "Script: transition",
+    group: "Editor",
+    scope: "editor",
+    modes: BOTH,
+    commandId: "script-element-transition",
+  },
 } as const satisfies Record<string, ShortcutDef>;
 
 export type ShortcutId = keyof typeof SHORTCUTS;

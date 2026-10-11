@@ -274,12 +274,15 @@ export function readerText(text: string): string {
 }
 
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+/** A form as written, and a one-word form in capitals too. */
+const oneOrCapitals = (f: string) =>
+  f.includes(" ") || f === f.toUpperCase() ? escapeRe(f) : `${escapeRe(f)}|${escapeRe(f.toUpperCase())}`;
 
 /**
  * Who prose names, by the server's presence rule (codex/presence.name_patterns): each
  * character's name forms and other names, minus any form two characters share (two Vances
- * make "Vance" nobody's); a one-word form only as capitalised, so "will" is not Will; an
- * `@` before it is fine. Returns each character's patterns, longest form first.
+ * make "Vance" nobody's); a one-word form only as capitalised, so "will" is not Will, or all in
+ * capitals, as a script writes ELEANOR (doc 25, P4); an `@` before it is fine. Returns each character's patterns, longest form first.
  */
 export function presencePatterns(known: KnownName[]): Map<string, RegExp[]> {
   const cast = known.filter((k) => k.kind === "character");
@@ -298,7 +301,7 @@ export function presencePatterns(known: KnownName[]): Map<string, RegExp[]> {
         .map(
           (f) =>
             new RegExp(
-              `(?<![\\p{L}\\p{M}\\p{N}_@])@?${escapeRe(f)}(?![\\p{L}\\p{M}\\p{N}_])`,
+              `(?<![\\p{L}\\p{M}\\p{N}_@])@?(?:${oneOrCapitals(f)})(?![\\p{L}\\p{M}\\p{N}_])`,
               f.includes(" ") ? "giu" : "gu",
             ),
         ),

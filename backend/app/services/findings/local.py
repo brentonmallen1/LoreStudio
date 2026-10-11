@@ -13,6 +13,8 @@ from sqlalchemy.orm import Session
 from ...models.activity_log import ActivityLog
 from ...schemas.findings import Finding, FindingAnchor, FindingFix
 from ..consistency import name_drift, unknown_speakers
+from ..script_syntax import heading_at, scene_blocks
+from ..story_format import is_script
 from .make import make
 from .runs import result_of
 from .view import StoryView
@@ -62,8 +64,41 @@ def computed(view: StoryView, db: Session) -> list[Finding]:
                 passages=[f.excerpt] if f.excerpt else [],
                 suggestion=f.suggestion,
                 where=f.node_title or "Untitled scene",
+                action="fix",
+                fix=FindingFix(kind="add", old=f.text, new=f.text),
             )
         )
+    out += _second_headings(view)
+    return out
+
+
+def _second_headings(view: StoryView) -> list[Finding]:
+    """A script scene is one heading (doc 25, D3): a second one further down starts a scene the
+    outline does not have yet. The scene opens at it, where the editor offers to split."""
+    if not is_script(view.story):
+        return []
+    out: list[Finding] = []
+    for node in view.written:
+        blocks = scene_blocks(node.content or "")
+        below = blocks[heading_at(blocks) + 1 :]
+        headings = [text for el, text in below if el == "heading"]
+        for text in headings:
+            out.append(
+                make(
+                    "second_heading",
+                    "structure",
+                    "low",
+                    "local",
+                    f"“{text}” starts a new scene inside “{node.title or 'Untitled'}”",
+                    anchor=FindingAnchor(node_id=node.id),
+                    key=text,
+                    passages=[text],
+                    where=node.title or "Untitled scene",
+                    suggestion="Start a new scene there, or open the scene and keep it as a line.",
+                    action="fix",
+                    fix=FindingFix(kind="split", old=text, new=""),
+                )
+            )
     return out
 
 
@@ -159,7 +194,24 @@ def from_editorial_run(view: StoryView, log: ActivityLog) -> list[Finding]:
             continue
         tense = scene.get("tense_consistency") or {}
         shifts = [f for f in tense.get("findings", []) if view.still_there(node, f.get("sentence", ""))]
-        if shifts:
+        if shifts and is_script(view.story):
+            # A script's action happens as we watch (doc 25, P5).
+            out.append(
+                make(
+                    "past_in_action",
+                    "prose",
+                    "low",
+                    "local",
+                    "Action slips into the past tense " + ("once" if len(shifts) == 1 else f"{len(shifts)} times"),
+                    anchor=FindingAnchor(node_id=node.id),
+                    key="past_in_action",
+                    evidence=shifts[0].get("sentence", ""),
+                    passages=_quotes(f.get("sentence") for f in shifts),
+                    suggestion="A script's action is what we see as it happens: “She opens the door”, not “opened”.",
+                    **_run_fields(log, node),
+                )
+            )
+        elif shifts:
             dominant = tense.get("dominant_tense") or "the scene's tense"
             out.append(
                 make(

@@ -59,6 +59,71 @@ CLASS_RULES: dict[str, str] = {
     ),
 }
 
+#: Said on every call about a script (doc 25, P7), after the contract: what a screenplay is, and
+#: that "manuscript prose" means every line of it, dialogue included.
+SCRIPT_MARKER = "— This story is a screenplay —"
+SCRIPT_RULES = f"""{SCRIPT_MARKER}
+The story is written as a screenplay, and its scenes are shown to you as Fountain text: a scene
+heading (INT. or EXT., the place, the time), action, a character's name in capitals with their
+dialogue under it (and a parenthetical in brackets), and transitions such as CUT TO:. Read it
+with a screenwriter's craft: a page runs about a minute on screen; action is in the present tense
+and says only what a camera can see and a microphone can hear; a character's dialogue is theirs to
+say however they say it. Say "script", "scene" and "page", not "novel", "chapter" or "prose".
+The author writes every line of the script: never write action, dialogue, a scene heading or any
+other line of it."""
+
+
+STAGE_MARKER = "— This story is a stage play —"
+STAGE_RULES = f"""{STAGE_MARKER}
+The story is written as a play for the theatre, and its scenes are shown to you as Fountain text:
+an act or scene marker (ACT ONE, SCENE 2), stage directions, a character's name in capitals with
+their speech under it (and a parenthetical direction in brackets). Read it with a playwright's
+craft: a page runs about a minute on stage; stage directions are in the present tense and say only
+what an audience in the theatre can see and hear; a character's speech is theirs to say however
+they say it. Say "play", "scene", "stage" and "page", not "novel", "chapter", "prose" or "film".
+The author writes every line of the play: never write a stage direction, a speech or any other
+line of it."""
+
+#: A screenplay prompt's words for the theatre, in order (longest first where one holds another).
+_STAGE_WORDS = (
+    ("a camera could not film", "an audience could not see on stage"),
+    ("no camera could film and no actor could play", "no audience could see and no actor could play"),
+    ("what the camera sees", "what the audience sees"),
+    ("does the camera see", "does the audience see"),
+    ("a minute of screen time", "a minute of stage time"),
+    ("about a minute on screen", "about a minute on stage"),
+    ("runs long on screen", "runs long on stage"),
+    ("unfilmables", "unstageables"),
+    ("screenplay", "stage play"),
+    ("Screenplay", "Stage play"),
+    ("screenwriter", "playwright"),
+    ("screenwriting manager", "literary manager"),
+    ("a manager or producer", "a literary manager or artistic director"),
+    ("managers and producers", "literary managers and artistic directors"),
+    ("films or series", "plays"),
+    ("films and series", "plays"),
+    ("Film or Series Title", "Play Title"),
+    ("Writer, director or creator", "Playwright"),
+    ("dialogue heard in a thousand films", "lines heard in a thousand plays"),
+    ("(Star Wars, the Marvel films)", "(Hamilton, Death of a Salesman)"),
+    ("action line", "stage direction"),
+)
+
+
+def for_stage(prompt: str) -> str:
+    """A screenplay prompt's words for a stage play (doc 25, P9): the stage, not the camera."""
+    for old, new in _STAGE_WORDS:
+        prompt = prompt.replace(old, new)
+    return prompt
+
+
+def for_script(prompt: str, swaps: dict[str, str]) -> str:
+    """A prose prompt reworded for a script (doc 25, P7): each phrase swapped where it stands."""
+    for old, new in swaps.items():
+        prompt = prompt.replace(old, new)
+    return prompt
+
+
 #: Line the class contract is introduced with. Prompt tests look for it.
 CONTRACT_MARKER = "— How to answer —"
 

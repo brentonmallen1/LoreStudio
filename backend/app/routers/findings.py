@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.ai_job import AIJob
+from ..models.character import Character
 from ..models.finding_dismissal import FindingDismissal
 from ..models.story import Story
 from ..models.structure import StructureNode
@@ -21,13 +22,15 @@ from ..models.user import User
 from ..schemas.findings import Finding, FindingsCount, FindingsOut, FixResult
 from ..schemas.jobs import JobOut
 from ..services import change_log
-from ..services.dialogue_service import sync_story_dialogue
+from ..services.color_slots import next_slot
+from ..services.dialogue_service import sync_scene_dialogue, sync_story_dialogue
 from ..services.findings import all_findings, collect
 from ..services.findings.fingerprint import content_hash
 from ..services.findings.view import load_view
 from ..services.job_queue import enqueue, handler
 from ..services.nlp_runs import run_editorial_consistency, run_prose_analysis
 from ..services.prose_rewrite import replace_words
+from ..services.script_scene import cut_at_heading, split_scene
 from ..services.series import service as series_service
 
 router = APIRouter()
@@ -200,6 +203,10 @@ def fix_finding(
         return _fix_series(story, finding, db, user, client_id)
     if finding.fix is not None and finding.fix.kind == "carry":
         return _fix_carry(story, finding, db, user, client_id)
+    if finding.fix is not None and finding.fix.kind == "split":
+        return _fix_split(finding, db, user, client_id)
+    if finding.fix is not None and finding.fix.kind == "add":
+        return _fix_add(story, finding, db, user, client_id)
     node = db.get(StructureNode, finding.anchor.node_id) if finding.anchor.node_id else None
     if finding.fix is None or node is None:
         raise HTTPException(status_code=422, detail="This finding has no fix to make")
@@ -220,6 +227,45 @@ def fix_finding(
         node.summary_stale = True
         db.commit()
     return FixResult(node_id=node.id, replaced=replaced)
+
+
+def _fix_add(story: Story, finding: Finding, db: Session, user: User, client_id: str | None) -> FixResult:
+    """Someone who speaks but is not in the Lorebook, added as a character; their lines are
+    theirs from then on. Undoable."""
+    name = finding.fix.old.strip() if finding.fix else ""
+    taken = db.query(Character).filter(Character.story_id == story.id, Character.name == name).first()
+    if not name or taken:
+        raise HTTPException(status_code=422, detail="This finding has no fix to make")
+    slots = db.query(Character.color_slot).filter(Character.story_id == story.id).all()
+    character = Character(story_id=story.id, name=name, color_slot=next_slot(s for (s,) in slots))
+    db.add(character)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        character,
+        "characters",
+        entity_type="character",
+        story_id=story.id,
+        label=f"Add character {name}",
+        actor_id=user.id,
+        client_id=client_id,
+    )
+    db.commit()
+    sync_story_dialogue(story.id, db)
+    return FixResult(node_id=None, replaced=1)
+
+
+def _fix_split(finding: Finding, db: Session, user: User, client_id: str | None) -> FixResult:
+    """A script scene's second heading starts the scene after it (doc 25, D3), undoable whole."""
+    node = db.get(StructureNode, finding.anchor.node_id) if finding.anchor.node_id else None
+    cut = cut_at_heading(node.content or "", finding.fix.old) if node and finding.fix else None
+    if node is None or cut is None:
+        raise HTTPException(status_code=422, detail="This finding has no fix to make")
+    new = split_scene(db, node, *cut, actor_id=user.id, client_id=client_id)
+    db.commit()
+    sync_scene_dialogue(node, db)
+    sync_scene_dialogue(new, db)
+    return FixResult(node_id=node.id, replaced=1)
 
 
 def _fix_series(story: Story, finding: Finding, db: Session, user: User, client_id: str | None) -> FixResult:

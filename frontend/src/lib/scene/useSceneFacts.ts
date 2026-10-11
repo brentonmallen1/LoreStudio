@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { SceneSetting, Story, StructureNode } from "../../types";
+import { shotOf } from "../script/syntax";
 import { whoIsHere, type Present } from "./glance";
 
 export interface SceneFacts {
@@ -9,6 +10,8 @@ export interface SceneFacts {
   where: { name: string; role: string }[];
   beat: { name: string; position_pct: number } | null;
   when: string | null;
+  /** A script scene's heading: inside or out, and when ("INT. · NIGHT"), doc 25 D3. */
+  shot: string | null;
 }
 
 /**
@@ -39,5 +42,6 @@ export function useSceneFacts(node: StructureNode, story: Story, refresh: unknow
     where,
     beat,
     when: node.in_world_date?.trim() || null,
+    shot: shotOf(node),
   };
 }

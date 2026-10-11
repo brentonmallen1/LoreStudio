@@ -45,3 +45,22 @@ def test_curling_reads_across_italics_and_leaves_names_alone():
     # The name keeps its spelling; the possessive after it is prose, and curls.
     assert out == "<p>“the <em>Ardent</em>”&lt;O'Brien&gt; @O'Brien’s coat, isn’t it</p>"
     assert n == 4
+
+
+def test_rename_rewrites_a_scripts_cues_too():
+    html = (
+        '<p data-el="cue">ELEANOR</p><p data-el="dialogue">Don\'t.</p>'
+        '<p data-el="cue">ELEANOR (V.O.)</p><p data-el="dialogue">The glass.</p>'
+        '<p data-el="cue">ELEANOR VANCE</p><p data-el="dialogue">Me.</p>'
+        '<p data-el="action">ELEANOR waits.</p><p data-el="cue">ELEANORA</p>'
+    )
+    out, n = rename(html, "character", "Eleanor Vance", "Nell Hart")
+    assert n == 3
+    assert out == (
+        '<p data-el="cue">NELL</p><p data-el="dialogue">Don\'t.</p>'
+        '<p data-el="cue">NELL (V.O.)</p><p data-el="dialogue">The glass.</p>'
+        '<p data-el="cue">NELL HART</p><p data-el="dialogue">Me.</p>'
+        '<p data-el="action">ELEANOR waits.</p><p data-el="cue">ELEANORA</p>'
+    )
+    # A new surname leaves a first-name cue as it is.
+    assert rename('<p data-el="cue">ELEANOR</p>', "character", "Eleanor Vance", "Eleanor Hart")[1] == 0
