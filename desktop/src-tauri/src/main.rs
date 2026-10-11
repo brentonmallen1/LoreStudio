@@ -18,7 +18,7 @@ use std::net::{TcpListener, TcpStream};
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Mutex;
+use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
 use tauri::ipc::CapabilityBuilder;
@@ -72,10 +72,32 @@ fn ask(port: u16, request: &str) -> bool {
         return false;
     };
     let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
-    let mut reply = String::new();
-    stream.write_all(request.as_bytes()).is_ok()
-        && stream.read_to_string(&mut reply).is_ok()
-        && reply.starts_with("HTTP/1.1 200")
+    if stream.write_all(request.as_bytes()).is_err() {
+        return false;
+    }
+    // Only the status line matters. The read's own result does not: Windows often ends a
+    // local connection the server has closed with a reset, an error after the whole reply.
+    let mut reply = Vec::new();
+    let _ = stream.read_to_end(&mut reply);
+    reply.starts_with(b"HTTP/1.1 200")
+}
+
+/// The shell's own steps at start, kept from the latest launch in shell.log in the data
+/// folder, beside backend.log: what to read when the window stays on the starting page.
+static SHELL_LOG: OnceLock<PathBuf> = OnceLock::new();
+
+fn note(message: &str) {
+    static STARTED: OnceLock<Instant> = OnceLock::new();
+    let at = STARTED.get_or_init(Instant::now).elapsed().as_secs_f32();
+    if let Some(path) = SHELL_LOG.get() {
+        if let Ok(mut file) = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)
+        {
+            let _ = writeln!(file, "{at:7.2}s  {message}");
+        }
+    }
 }
 
 /// The backend answers once its database is migrated and it is listening.
@@ -298,11 +320,19 @@ fn main() {
         .setup(|app| {
             let handle = app.handle().clone();
             let data_dir = app.path().app_data_dir()?;
+            let _ = std::fs::create_dir_all(&data_dir);
+            let _ = std::fs::write(data_dir.join("shell.log"), "");
+            let _ = SHELL_LOG.set(data_dir.join("shell.log"));
+            note(&format!(
+                "LoreStudio {} starting",
+                app.package_info().version
+            ));
             let port = app_port(&data_dir);
             let key = launch_key();
             app.add_capability(app_pages(port))?;
 
             let child = start_backend(&handle, port, &key, &data_dir);
+            note(&format!("the backend started (process {})", child.id()));
             app.manage(Backend {
                 child: Mutex::new(Some(child)),
                 port,
@@ -319,8 +349,30 @@ fn main() {
                 let started = Instant::now();
                 let problem = loop {
                     if healthy(port) {
+                        note(&format!("the backend answered on port {port}"));
                         let open = format!("http://127.0.0.1:{port}/desktop/open?key={key}");
-                        let _ = window.navigate(open.parse().expect("a valid address"));
+                        match window.navigate(open.parse().expect("a valid address")) {
+                            Ok(()) => note("the window was sent to the app"),
+                            Err(e) => {
+                                note(&format!("the window could not be sent to the app: {e}"))
+                            }
+                        }
+                        // If it is still on the starting page, the page goes there itself.
+                        std::thread::sleep(Duration::from_secs(5));
+                        match window.url() {
+                            Ok(url) if url.host_str() == Some("127.0.0.1") => {
+                                note("the window is on the app")
+                            }
+                            other => {
+                                note(&format!(
+                                    "the window is still at {other:?}; the page goes itself"
+                                ));
+                                let go = serde_json::to_string(&open).expect("a string");
+                                if let Err(e) = window.eval(format!("location.replace({go})")) {
+                                    note(&format!("that failed too: {e}"));
+                                }
+                            }
+                        }
                         return;
                     }
                     if backend_exited(&handle) {
@@ -331,6 +383,7 @@ fn main() {
                     }
                     std::thread::sleep(Duration::from_millis(250));
                 };
+                note(problem);
                 let problem = format!(
                     "{problem} What it said is in {}. Quit and open it again.",
                     log.display()
