@@ -6,7 +6,7 @@
  */
 import { Clapperboard } from "lucide-react";
 import { commandRegistry } from "./registry";
-import { SHORTCUTS } from "../keyboard/shortcuts";
+import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
 import { useEditorBridge } from "../../stores/editorBridge";
 import { toast } from "../../stores/toastStore";
 import type { ScriptElement } from "../script/syntax";
@@ -27,7 +27,7 @@ for (const [key, el, keywords] of ELEMENTS) {
     keywords: ["script", "screenplay", "element", ...keywords],
     icon: Clapperboard,
     group: "Editor",
-    shortcut: SHORTCUTS[key].combo,
+    shortcut: formatCombo(SHORTCUTS[key].combo),
     when: () => !!useEditorBridge.getState().scriptElement,
     action: () => useEditorBridge.getState().scriptElement?.(el),
   });

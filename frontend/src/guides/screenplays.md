@@ -31,7 +31,7 @@ Every line of a script is one element: a **scene heading** (`INT. LIGHTHOUSE - N
 
 Type `/` for every element by name: `/heading`, `/action`, `/character`, `/parenthetical`, `/transition`, `/centred`, `/lyric`, and `/together` for two speaking at once. `/dialogue` gives someone a line, as `^` does. A word of what you want finds it too: `/slugline`, `/wryly`, `/cut`.
 
-As you type, the set words of a script are offered faintly after the cursor, and Tab takes them: `INT.` and `EXT.`, the places in your Lorebook after them, the time of day after ` - `, transitions such as `CUT TO:` and `DISSOLVE TO:`, and a cue's `(V.O.)`, `(O.S.)` or `(CONT'D)`. In a play: `SCENE`, `ACT`, `BLACKOUT.`, `CURTAIN.`. When nothing is offered, Tab switches the element as below.
+As you type, the set words of a script are offered faintly after the cursor, and Tab takes them: `INT.` and `EXT.`, the places in your Lorebook after them, the time of day after `-`, transitions such as `CUT TO:` and `DISSOLVE TO:`, and a cue's `(V.O.)`, `(O.S.)` or `(CONT'D)`. In a play: `SCENE`, `ACT`, `BLACKOUT.`, `CURTAIN.`. When nothing is offered, Tab switches the element as below.
 
 You never have to set an element by hand. If you know Final Draft, these work too:
 
@@ -63,11 +63,14 @@ Choose the script's form under **Intended length** in **Story identity**: a shor
 
 **Publish** shows the script as its printed pages, and exports it as a screenplay PDF, a Final Draft file or Fountain, with a title page. See _Import and export_.
 
+<!-- studio -->
+
 ## The Assistant (Studio)
 
 In Studio mode the Assistant knows it is reading a script. It sees each scene as a screenwriter would, with every heading, cue and line of dialogue in its place. It talks about pages rather than chapters, and like everywhere in LoreStudio it never writes a line of the script for you, dialogue included.
 
 Some tools change for a script. **Unfilmables** takes the place of Show, Don't Tell and points at action a camera could not film: a thought, a feeling stated, backstory. **Pacing**, **First-pass editor** and **Story economy** measure in pages and eighths of a page. **Clichés** also looks for lines heard in a thousand films. The editorial pass judges the voice of the action lines and how distinct each character sounds, since a script has no narrator. Under **Publish**, **Logline & Synopsis** replaces the book description, the query is written for a manager or producer, and **Comparable Films** suggests films and series. Dialogue attribution is not offered, because the cue above each line already says who speaks.
+<!-- /studio -->
 
 ## Stage plays
 
@@ -77,8 +80,12 @@ A stage play is written the same way, with the same elements, and laid out the w
 - Type the act's marker above the first scene of each act, as in `ACT TWO` then `SCENE 1`. Each act after the first starts on a new page.
 - The bottom right of the page calls the elements by their theatre names: a stage direction, a direction inside a speech, an act or scene.
 - Its intended length is a ten-minute play, a one-act or a full-length play, counted in pages.
-- The Assistant (Studio) reads it as a play: what an audience in the theatre can see and hear. **Unstageables** points at stage directions no audience could see, and **Comparable Plays** suggests plays it sits beside.
 - **Publish** prints it as a stage play PDF, and exports Final Draft and Fountain files too.
+
+<!-- studio -->
+
+In Studio mode the Assistant reads a play as a play: what an audience in the theatre can see and hear. **Unstageables** points at stage directions no audience could see, and **Comparable Plays** suggests plays it sits beside.
+<!-- /studio -->
 
 ## Adapting a novel
 
