@@ -1192,7 +1192,9 @@ button.typeBtn[aria-expanded="true"] {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-  overflow: hidden;
+  /* A script offers a dozen and more: the list scrolls, the chosen one kept in sight. */
+  max-height: 320px;
+  overflow-y: auto;
 }
 
 .slashDropdownHint {

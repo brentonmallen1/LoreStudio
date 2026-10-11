@@ -4,19 +4,36 @@
  * page as a share of the line (lib/script/syntax.ts LAYOUT, in sixtieths: dialogue from 10 and
  * 35 wide, a cue from 22, a parenthetical from 16 and 19 wide), so a wider line keeps the
  * script's shape. The page count and the export always use the printed page.
+ *
+ * Each element's left edge is its `--indent`, so a line changing element glides there (P3½)
+ * and the element guides can put its name in the same left margin whatever its indent.
  */
 .script {
   --font-editor: "Courier Prime", "Courier New", monospace;
-  /* One sixtieth of the line: a column of the printed page. */
-  --col: calc(100% / 60);
 }
 
+/* The line is the container, so a sixtieth of it means the same inside a line's own box (the
+   margin name's offset) as in the line's margins. */
 .script :global(.ProseMirror) {
+  container-type: inline-size;
   line-height: 1.3;
 }
 
 .script :global(.ProseMirror p) {
-  margin: 0 0 1.5em;
+  /* One sixtieth of the line: a column of the printed page. */
+  --col: calc(100cqw / 60);
+  --indent: 0px;
+  position: relative;
+  margin: 0 0 1.5em var(--indent);
+  transition:
+    margin-left 120ms ease-out,
+    max-width 120ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .script :global(.ProseMirror p) {
+    transition: none;
+  }
 }
 
 .script :global(.ProseMirror p[data-el="heading"]) {
@@ -24,19 +41,24 @@
   font-weight: 700;
 }
 
+/* A name is as wide as it is, so its wash hugs it (a play centres it across the line). */
 .script :global(.ProseMirror p[data-el="cue"]) {
-  margin: 0 0 0 calc(22 * var(--col));
+  --indent: calc(22 * var(--col));
+  margin-bottom: 0;
+  width: fit-content;
+  min-width: 2ch;
 }
 
 .script :global(.ProseMirror p[data-el="paren"]) {
-  margin: 0 0 0 calc(16 * var(--col));
+  --indent: calc(16 * var(--col));
+  margin-bottom: 0;
   max-width: calc(19 * var(--col));
   padding-left: 1ch;
   text-indent: -1ch;
 }
 
 .script :global(.ProseMirror p[data-el="dialogue"]) {
-  margin: 0 0 1.5em calc(10 * var(--col));
+  --indent: calc(10 * var(--col));
   max-width: calc(35 * var(--col));
 }
 
@@ -56,7 +78,7 @@
 }
 
 .script :global(.ProseMirror p[data-el="lyric"]) {
-  margin: 0 0 1.5em calc(10 * var(--col));
+  --indent: calc(10 * var(--col));
   max-width: calc(35 * var(--col));
   font-style: italic;
 }
@@ -75,24 +97,129 @@
    centred, the speech the full width under it, stage directions in italics from halfway. */
 .stage :global(.ProseMirror p[data-el="heading"]),
 .stage :global(.ProseMirror p[data-el="cue"]) {
-  margin-left: 0;
+  --indent: 0px;
+  width: auto;
   text-align: center;
 }
 
 .stage :global(.ProseMirror p:not([data-el])),
 .stage :global(.ProseMirror p[data-el="action"]) {
-  margin-left: calc(20 * var(--col));
+  --indent: calc(20 * var(--col));
   font-style: italic;
 }
 
 .stage :global(.ProseMirror p[data-el="paren"]) {
-  margin-left: calc(10 * var(--col));
+  --indent: calc(10 * var(--col));
   max-width: calc(30 * var(--col));
   font-style: italic;
 }
 
 .stage :global(.ProseMirror p[data-el="dialogue"]),
 .stage :global(.ProseMirror p[data-el="lyric"]) {
-  margin-left: 0;
+  --indent: 0px;
   max-width: none;
+}
+
+/*
+ * Element guides (doc 25, P3½; ScriptGuide.ts), a wash unless the author chooses coloured words
+ * or none: each element's colour from the palette's slots (action is the page itself), as a
+ * faint wash behind it or as the colour of its words; and with either, the element's name in
+ * the left margin beside the line being written and an empty line's hint at its own indent.
+ */
+.script :global(.ProseMirror p) {
+  --wash: transparent;
+  background: var(--wash);
+  box-shadow: 0 0 0 0.2em var(--wash);
+  border-radius: var(--radius-sm);
+}
+
+:root[data-element-guides="wash"] .script :global(.ProseMirror p[data-el="heading"]) {
+  --wash: color-mix(in srgb, var(--cat-1) 9%, transparent);
+}
+:root[data-element-guides="wash"] .script :global(.ProseMirror p[data-el="cue"]) {
+  --wash: color-mix(in srgb, var(--cat-4) 9%, transparent);
+}
+:root[data-element-guides="wash"] .script :global(.ProseMirror p[data-el="paren"]) {
+  --wash: color-mix(in srgb, var(--cat-6) 8%, transparent);
+}
+:root[data-element-guides="wash"] .script :global(.ProseMirror p[data-el="dialogue"]),
+:root[data-element-guides="wash"] .script :global(.ProseMirror p[data-el="lyric"]) {
+  --wash: color-mix(in srgb, var(--cat-7) 7%, transparent);
+}
+:root[data-element-guides="wash"] .script :global(.ProseMirror p[data-el="transition"]),
+:root[data-element-guides="wash"] .script :global(.ProseMirror p[data-el="centered"]) {
+  --wash: color-mix(in srgb, var(--cat-5) 8%, transparent);
+}
+
+/* Coloured words, like syntax highlighting: the same slots mixed into the body text, which the
+   palettes' contrast test holds to AA on the page (themes/contrast.test.ts, SYNTAX_MIX). Action
+   is the body text, as a program's plain words are. */
+:root[data-element-guides="ink"] .script :global(.ProseMirror p) {
+  --ink: var(--color-text);
+  color: var(--ink);
+}
+:root[data-element-guides="ink"] .script :global(.ProseMirror p[data-el="heading"]) {
+  --ink: color-mix(in srgb, var(--cat-1) 40%, var(--color-text));
+}
+:root[data-element-guides="ink"] .script :global(.ProseMirror p[data-el="cue"]) {
+  --ink: color-mix(in srgb, var(--cat-4) 40%, var(--color-text));
+}
+:root[data-element-guides="ink"] .script :global(.ProseMirror p[data-el="paren"]) {
+  --ink: color-mix(in srgb, var(--cat-6) 40%, var(--color-text));
+}
+:root[data-element-guides="ink"] .script :global(.ProseMirror p[data-el="dialogue"]),
+:root[data-element-guides="ink"] .script :global(.ProseMirror p[data-el="lyric"]) {
+  --ink: color-mix(in srgb, var(--cat-7) 40%, var(--color-text));
+}
+:root[data-element-guides="ink"] .script :global(.ProseMirror p[data-el="transition"]),
+:root[data-element-guides="ink"] .script :global(.ProseMirror p[data-el="centered"]) {
+  --ink: color-mix(in srgb, var(--cat-5) 40%, var(--color-text));
+}
+
+:root:not([data-element-guides="off"]) .script :global(.ProseMirror p.el-here)::before {
+  content: attr(data-label);
+  position: absolute;
+  top: 0.15em;
+  right: calc(100% + var(--indent) + 1.25rem);
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+:root:not([data-element-guides="off"]) .script :global(.ProseMirror p.el-empty[data-hint])::after {
+  content: attr(data-hint);
+  position: absolute;
+  inset: 0 auto auto 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.85em;
+  font-style: normal;
+  font-weight: 400;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* A transition and a centred line are not placed from the left: the hint follows their text. */
+:root:not([data-element-guides="off"]) .script :global(.ProseMirror p[data-el="transition"].el-empty)::after {
+  inset: 0 0 auto auto;
+}
+:root:not([data-element-guides="off"]) .script :global(.ProseMirror p[data-el="centered"].el-empty)::after,
+:root:not([data-element-guides="off"]) .stage :global(.ProseMirror p[data-el="cue"].el-empty)::after,
+:root:not([data-element-guides="off"]) .stage :global(.ProseMirror p[data-el="heading"].el-empty)::after {
+  inset: 0 0 auto 0;
+  text-align: center;
+}
+
+/* SmartType's offer (ScriptComplete.ts): the rest of the word, faint, until Tab takes it. */
+.script :global(.ProseMirror .script-ghost) {
+  color: var(--color-text-subtle);
+  pointer-events: none;
+  user-select: none;
 }

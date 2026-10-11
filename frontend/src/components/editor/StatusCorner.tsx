@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { StructureNode } from "../../types";
 import { formatMinutes } from "../../lib/writingToday";
 import { useHostFocusExit } from "../../lib/focusExit";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import FocusExit from "../layout/FocusExit";
+import KeysCard from "./script/KeysCard";
 import SprintTimer from "../story/SprintTimer";
 import type { AutosaveState } from "./useSceneAutosave";
 import { goalFor, ledFor, statusFigures } from "./statusFigures";
@@ -106,6 +107,7 @@ export default function StatusCorner({ node, autosave, wordCount, script }: Prop
           levelName={activeTemplate?.levels}
           goal={goalFor(intended)}
           today={today}
+          keys={script ? <KeysCard element={script.element} format={format} /> : null}
         />
       )}
       <span className={styles.srOnly} role="status">
@@ -125,6 +127,7 @@ function Figures({
   levelName,
   goal,
   today,
+  keys,
 }: {
   node: StructureNode;
   autosave: AutosaveState;
@@ -135,12 +138,15 @@ function Figures({
   levelName: { name: string }[] | undefined;
   goal: number | null;
   today: ReturnType<typeof useTodayWords>;
+  /** In a script, the keys from the line being written (doc 25, P3½). */
+  keys: ReactNode;
 }) {
   const f = statusFigures(structure, node.id, wordCount);
   const parentKind = f.parent ? (levelName?.[f.parent.node.level]?.name ?? f.parent.node.level_type) : "";
   const pct = goal ? Math.min(100, Math.round((f.book / goal) * 100)) : 0;
   return (
     <div className={styles.pop} role="dialog" aria-label="Words and saving">
+      {keys}
       <div className={styles.saveLine}>
         <span className={`${styles.led} ${styles[led]}`} aria-hidden />
         <span>{label}</span>

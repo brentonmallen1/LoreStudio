@@ -130,8 +130,10 @@ export default function SceneEditor() {
   const notes = useInlineNotes({ editor, activeNode, setActiveNode, popoverRef: notePopoverRef });
   const { slash } = useSlashCommands({
     editor,
+    format,
     openDialoguePicker: mention.openDialoguePicker,
-    addTodo: () => notes.triggerAdd("todo"),
+    addNote: (kind) => notes.triggerAdd(kind),
+    insertImage: () => setImagePickerOpen(true),
   });
   useSceneDialogue(editor, activeNode?.id, activeNode?.updated_at);
   const hover = useMentionHoverCard(

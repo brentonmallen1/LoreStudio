@@ -19,6 +19,7 @@ export const ACCOUNT_PREFS = [
   "ls_editor_line_width",
   "ls_ui_scale",
   "ls_highlight_dialogue",
+  "ls_element_guides",
   "ls_notes_margin",
   "ls_strip_colour",
 ] as const;

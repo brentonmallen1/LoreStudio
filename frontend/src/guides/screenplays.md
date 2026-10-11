@@ -25,7 +25,13 @@ A cue for someone not in your Lorebook shows in **Findings**, with **Add to the 
 
 ## Elements
 
-Every line of a script is one element: a **scene heading** (`INT. LIGHTHOUSE - NIGHT`), **action**, a **character** cue, a **parenthetical**, **dialogue**, or a **transition** (`CUT TO:`). The bottom right of the page shows the element the cursor is in and how long the scene runs, in eighths of a page, the way a script breakdown counts it.
+Every line of a script is one element: a **scene heading** (`INT. LIGHTHOUSE - NIGHT`), **action**, a **character** cue, a **parenthetical**, **dialogue**, or a **transition** (`CUT TO:`). The bottom right of the page shows the element the cursor is in and how long the scene runs, in eighths of a page, the way a script breakdown counts it. Click it for the keys from the line you are on: where Enter, Tab and Shift-Tab take you from there.
+
+**Element guides** help while the format is new. Each element has a colour of its own, the line you are writing has its element's name in the left margin, and an empty line says what it is for and where Tab takes it: _Who speaks, in capitals · Tab for transition_. The colour is a faint wash behind each element to begin with; choose **coloured words** instead for something like a code editor's syntax highlighting, where headings, names, directions and dialogue each have their own ink and action stays plain. Once you know the format, turn them off. All three are under the editor's **⋯ › Element guides** (each choice moves on to the next) and in **Type and width**.
+
+Type `/` for every element by name: `/heading`, `/action`, `/character`, `/parenthetical`, `/transition`, `/centred`, `/lyric`, and `/together` for two speaking at once. `/dialogue` gives someone a line, as `^` does. A word of what you want finds it too: `/slugline`, `/wryly`, `/cut`.
+
+As you type, the set words of a script are offered faintly after the cursor, and Tab takes them: `INT.` and `EXT.`, the places in your Lorebook after them, the time of day after ` - `, transitions such as `CUT TO:` and `DISSOLVE TO:`, and a cue's `(V.O.)`, `(O.S.)` or `(CONT'D)`. In a play: `SCENE`, `ACT`, `BLACKOUT.`, `CURTAIN.`. When nothing is offered, Tab switches the element as below.
 
 You never have to set an element by hand. If you know Final Draft, these work too:
 

@@ -9,6 +9,7 @@ import {
   Layers,
   Link,
   MoreHorizontal,
+  Palette,
   Quote,
   StickyNote,
   Tag,
@@ -22,12 +23,16 @@ import { navigateTo } from "../../lib/navigation";
 import { useStoryFormat } from "../../lib/storyFormat";
 import { sceneSheetPath } from "../../lib/scene/glance";
 import { useStoryStore } from "../../stores/storyStore";
+import { useUIStore } from "../../stores/uiStore";
 import type { WritingGuideTab } from "../help/WritingGuidesModal";
 import AIFeatureInfoModal from "../ai/AIFeatureInfoModal";
 import FontSettings from "../story/FontSettings";
 import { SprintSetup } from "../story/SprintTimer";
 import type { NotesView } from "../../lib/notes/view";
 import styles from "./EditorMoreMenu.module.css";
+
+const GUIDES = { wash: "Wash", ink: "Coloured words", off: "Off" } as const;
+const NEXT_GUIDES = { wash: "ink", ink: "off", off: "wash" } as const;
 
 interface Props {
   wordCount: number;
@@ -57,6 +62,7 @@ export default function EditorMoreMenu(p: Props) {
   // A script's cues say who speaks (doc 25, P4): there are no quotes to tag.
   const format = useStoryFormat();
   const script = format !== "prose";
+  const { elementGuides, setElementGuides } = useUIStore();
   const wrap = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const ai = useAIAvailable();
@@ -168,6 +174,16 @@ export default function EditorMoreMenu(p: Props) {
             }
             onSelect={then(() => p.onNotesView(p.notesView === "cards" ? "dots" : "cards"))}
           />
+          {script && (
+            <Item
+              label="Element guides"
+              icon={Palette}
+              checked={elementGuides !== "off"}
+              hint={GUIDES[elementGuides]}
+              title="Each element in its own colour (a wash, or its words), its name beside the line you are writing, and a hint on an empty line. Choose to go on to the next."
+              onSelect={then(() => setElementGuides(NEXT_GUIDES[elementGuides]))}
+            />
+          )}
           <div className={styles.label}>Guides</div>
           <Item
             label="Dialogue"

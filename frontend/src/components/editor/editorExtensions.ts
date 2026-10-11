@@ -12,6 +12,8 @@ import { SearchAndReplaceExtension } from "../story/SearchAndReplaceExtension";
 import { PassageFlashExtension } from "../story/PassageFlashExtension";
 import { UnifiedUndoExtension } from "./UnifiedUndoExtension";
 import { ScriptElementAttribute, ScriptKeys } from "./script/ScriptElementExtension";
+import { ScriptComplete } from "./script/ScriptComplete";
+import { ScriptGuide } from "./script/ScriptGuide";
 
 /**
  * The scene editor's extensions for a story's format (doc 25). Both formats write with the
@@ -32,7 +34,13 @@ export function editorExtensions(format: StoryFormat): AnyExtension[] {
             : "Begin writing…",
     }),
     CharacterCount,
-    ...(script ? [ScriptKeys.configure({ format })] : [Typography]),
+    ...(script
+      ? [
+          ScriptKeys.configure({ format }),
+          ScriptGuide.configure({ format }),
+          ScriptComplete.configure({ format }),
+        ]
+      : [Typography]),
     ScriptElementAttribute,
     InlineNoteExtension,
     InlineImageExtension,

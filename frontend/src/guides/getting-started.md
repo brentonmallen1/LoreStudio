@@ -17,7 +17,7 @@ Studio adds the **Assistant** and the other AI tools. They answer questions and 
 
 1. Choose **New story** on your stories page (logo menu › **All stories**). Give it a title and pick a **Story structure**: **Three-Act Structure** gives you acts, chapters and scenes; **Freeform** gives you sections and scenes.
 2. Under **How do you want to begin?**, choose one. New to writing a long story? **My first story** walks you from an idea in a sentence to your first scene in seven short steps. **Just write** opens the first scene.
-3. Write. The light at the bottom right turns green a moment after you pause: your words are saved.
+3. Write. The light at the bottom right turns green a moment after you pause: your words are saved. Type `/` in the text for its commands: `/dialogue` for a line someone says, `/note` and `/todo` for the margin, `/image`, `/character` and `/place` to name someone or somewhere from the Lorebook.
 4. Open **This scene** in the side panel to see the scene at a glance. Choose **Scene sheet** there to fill in what happens, who is there and why the scene matters.
 5. Add your next chapter or scene from the story strip: press {{key:cycleStrip}} to open it out, then use **+**.
 
@@ -60,6 +60,7 @@ LoreStudio also runs as an app on Macs with Apple silicon. **Settings › About 
 - [Planning a story](/guides/planning): from an idea to a list of scenes.
 - [Threads, twists and what the reader knows](/guides/promises): keep every promise you make the reader.
 - [Dialogue and quotes](/guides/dialogue-and-quotes): tag who is speaking.
+- [Screenplays and stage plays](/guides/screenplays): write a script, laid out as it prints.
 - [Notes, Freewrite and the scratch pad](/guides/notes-and-freewrite): somewhere for every loose thought.
 - [Snapshots, backups and undo](/guides/snapshots-and-backups): keep your work safe.
 - [Glossary](/guides/glossary): what each word in LoreStudio means.

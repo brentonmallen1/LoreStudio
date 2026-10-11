@@ -5,6 +5,7 @@ import {
   LINE_WIDTH_OPTIONS,
   type EditorFontFamily,
   type EditorFontSize,
+  type ElementGuides,
 } from "../../stores/uiStore";
 import styles from "./FontSettings.module.css";
 
@@ -26,6 +27,8 @@ export default function FontSettings() {
     setEditorLineWidth,
     highlightDialogue,
     setHighlightDialogue,
+    elementGuides,
+    setElementGuides,
   } = useUIStore();
   const currentFont = FONT_OPTIONS.find((f) => f.value === editorFontFamily);
 
@@ -98,6 +101,21 @@ export default function FontSettings() {
           <span className={styles.toggleHint}>Tint quotes by attribution while you write</span>
         </span>
       </label>
+      <div className={styles.section}>
+        <span className={styles.sectionLabel}>Element guides in a script</span>
+        <select
+          className={styles.fontSelect}
+          value={elementGuides}
+          onChange={(e) => setElementGuides(e.target.value as ElementGuides)}
+        >
+          <option value="wash">A faint wash behind each element</option>
+          <option value="ink">Coloured words, like syntax highlighting</option>
+          <option value="off">Off</option>
+        </select>
+        <span className={styles.toggleHint}>
+          Each with its name beside the line you are writing, and a hint on an empty line
+        </span>
+      </div>
     </div>
   );
 }
