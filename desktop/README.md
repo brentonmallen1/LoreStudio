@@ -16,10 +16,11 @@ The app is built on the platform it's for. Installers land in `build/desktop/out
 | macOS (Apple silicon or Intel) | `just desktop` | Rust, Node, uv, `brew install pango` | `LoreStudio_<version>_macos-<arch>.dmg` (about 140 MB) |
 | Linux, from any machine with Docker | `just desktop-linux` | Docker | `.AppImage` (about 240 MB) and `.deb` (about 190 MB), for the machine's architecture |
 | Windows | `python desktop/build.py` | Rust, Node, uv, MSYS2 with `mingw-w64-ucrt-x86_64-pango`, and `LORESTUDIO_LIBS` set to MSYS2's `ucrt64\bin` | `…_windows-x64-setup.exe` |
-| On GitHub | Actions › Desktop apps › Run workflow, or publish a release | | macOS arm64, as an artifact or attached to the release. The Intel, Windows and Linux rows in `desktop.yml` are commented out, ready to switch on |
+| On GitHub | Actions › Desktop apps › Run workflow, or publish a release | | By hand: the platforms picked under `targets` (`tested` is macOS arm64, Windows x64 and Linux x64), as artifacts. A release: what `RELEASED` in `desktop.yml` lists (macOS arm64), attached to it |
 
 `just desktop --version 2026.10.3` stamps a release's version. Without one, the build is a
-development build ("dev"). `just desktop-backend` rebuilds only the frozen backend.
+development build ("dev"). `just desktop-backend` rebuilds only the frozen backend, and
+`just desktop-smoke` runs it with no window (below).
 
 ## Installing a downloaded build
 
@@ -111,6 +112,11 @@ the next version by hand once.
 
 ## Checking a build
 
+`just desktop-smoke` (`smoke.py`) runs the frozen backend as the shell does, on a fresh data
+folder and with only the system's own paths: it waits for it to answer, exports the demo story
+in every format and runs spaCy (`backend/check_exports.py`), then asks it to quit and checks
+the database was checkpointed. CI runs it on every platform after building. By hand:
+
 ```bash
 # The frozen backend on its own, with no Homebrew in sight:
 env -i HOME=$HOME PATH=/usr/bin:/bin LORESTUDIO_DESKTOP_KEY=$(openssl rand -hex 32) \
@@ -137,6 +143,26 @@ python3 desktop/build.py --version 2026.10.9   # → build/desktop/update/macos-
 Write `latest.json` from that entry with the `url` on `http://127.0.0.1:8899/`, serve
 `build/desktop/out/` there (`python3 -m http.server 8899`), and set the older app's
 `update_check` row in `app_settings` to `{"latest": "2026.10.9", "desktop_ready": true}`.
+
+## Trying a Windows or Linux build
+
+Run the workflow by hand with `targets: tested` and download `lorestudio-windows-x64` and
+`lorestudio-linux-x64` from the run. One Windows 11 machine tries both: Linux runs in WSL2,
+which shows Linux windows on the Windows desktop (WSLg).
+
+- **Windows:** run the setup `.exe` (More info → Run anyway).
+- **Linux in WSL:** `wsl --install -d Ubuntu-24.04` once, then in Ubuntu
+  `sudo apt install ./LoreStudio_dev_linux-x64.deb` and open LoreStudio from the Start menu's
+  Ubuntu folder, or run the AppImage with `--appimage-extract-and-run` (WSL has no FUSE).
+
+On each, check:
+
+1. The splash, then "The Last Lighthouse", already signed in.
+2. Export PDF, Word and EPUB: a Save dialog opens in Downloads, and the files open.
+3. A character's dialogue analysis runs (spaCy).
+4. Opening LoreStudio again brings the open window forward.
+5. Quit and reopen: the theme, the panel layout and the stories are still there.
+6. After quitting, no `lorestudio-backend` is left running (Task Manager, or `pgrep -a lorestudio`).
 
 ## Not done yet
 

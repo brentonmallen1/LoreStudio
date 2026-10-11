@@ -212,6 +212,10 @@ desktop *ARGS:
 desktop-backend:
     python3 desktop/build.py --backend-only
 
+# Run the frozen backend with no window, as the shell does: exports, spaCy, a clean quit
+desktop-smoke:
+    python3 desktop/smoke.py
+
 # The Linux app from any machine with Docker, on a copy of the tree (your node_modules and .venv
 # stay as they are). Installers land in build/desktop/out/.
 desktop-linux *ARGS:

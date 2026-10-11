@@ -2,6 +2,8 @@
 WeasyPrint and pandoc serve, and run the local prose checks (spaCy).
 
     python desktop/backend/check_exports.py <port> <data-dir> [out-dir]
+
+Exits 1 if anything failed (desktop/smoke.py and CI rely on it).
 """
 
 import json
@@ -27,17 +29,21 @@ password = (data / ".admin_password").read_text().strip()
 token = call("/auth/login", {"username": "admin", "password": password})["access_token"]
 story = next(s for s in call("/stories", token=token) if s["title"] == "The Last Lighthouse")
 print("signed in; story:", story["title"])
+failed = []
 
 for fmt, magic in (("pdf", b"%PDF"), ("docx", b"PK"), ("epub", b"PK"), ("odt", b"PK"), ("markdown", b"")):
     try:
         body = call(f"/stories/{story['id']}/export", {"format": fmt}, token, raw=True)
         ok = body.startswith(magic) and len(body) > 1000
         print(f"export {fmt:9} {'ok' if ok else 'BAD'} {len(body):>9,} bytes")
+        if not ok:
+            failed.append(fmt)
         if out:
             out.mkdir(parents=True, exist_ok=True)
             (out / f"lighthouse.{fmt}").write_bytes(body)
     except Exception as e:  # noqa: BLE001 — a smoke check reports every failure
         print(f"export {fmt:9} FAILED {e}")
+        failed.append(fmt)
 
 # spaCy: the dialogue analysis parses a character's lines with the bundled English model.
 characters = call(f"/stories/{story['id']}/characters", token=token)
@@ -47,3 +53,7 @@ try:
     print("spaCy dialogue analysis ok:", ", ".join(sorted(result)[:4]))
 except Exception as e:  # noqa: BLE001
     print("spaCy dialogue analysis FAILED", e)
+    failed.append("spaCy")
+
+if failed:
+    sys.exit(f"failed: {', '.join(failed)}")
