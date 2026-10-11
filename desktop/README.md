@@ -74,6 +74,7 @@ works too.
 
 - **One copy at a time.** Opening LoreStudio while it's running brings its window forward. A second copy would start a second backend on the same database.
 - **Data:** the database, uploads and backups live in the app's data folder (listed under "Installing a downloaded build" above).
+- **The backend's output** goes to `backend.log` in that folder, from the latest launch. If the backend stops before it's ready, the starting page says so at once and names the file. (On Windows the app has no console, so without the file the backend would have no stdout at all, and uvicorn's logging won't start without one.)
 - **Port:** the app keeps the same `127.0.0.1` port from launch to launch, stored in `.port` in that folder. The window's storage (theme, panel layout, the unsaved-draft buffer) belongs to its address, so a new port would start it empty.
 - **Exports** open a Save dialog, starting in Downloads under the name the app gave the file. Cancelling it cancels the export.
 - **Updates:** the app's pages may call one shell command, `install_update`, and only from the backend's own address. The permission is granted at start, once the port is known. The command uses Tauri's updater: it reads `latest.json` from the latest release, downloads that platform's app, checks it against the public key in `tauri.conf.json`, puts it in place, stops the backend and restarts.

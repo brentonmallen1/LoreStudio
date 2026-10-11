@@ -52,11 +52,14 @@ def main() -> None:
 
     with log.open("w") as out:
         # Only the system's own paths: nothing from the build machine may be found by accident.
+        # With no stdout, as a windowed app's child may have (closed here where it can be: not
+        # on Windows); stderr, where the logging goes, is kept to show a failure.
         backend = subprocess.Popen(
             [str(exe), "--port", str(port), "--data-dir", str(data)],
             env={**minimal_env(), "LORESTUDIO_DESKTOP_KEY": key},
             stdout=out,
-            stderr=subprocess.STDOUT,
+            stderr=out,
+            preexec_fn=None if sys.platform == "win32" else lambda: os.close(1),  # noqa: PLW1509
         )
     try:
         started = time.monotonic()

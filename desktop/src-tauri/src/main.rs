@@ -16,7 +16,7 @@
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::PathBuf;
-use std::process::{Child, Command};
+use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
@@ -104,6 +104,11 @@ fn backend_path(app: &AppHandle) -> PathBuf {
         })
 }
 
+/// What the backend says, kept from its latest launch: where to look when it does not start.
+fn backend_log(data_dir: &std::path::Path) -> PathBuf {
+    data_dir.join("backend.log")
+}
+
 fn start_backend(app: &AppHandle, port: u16, key: &str, data_dir: &std::path::Path) -> Child {
     let mut command = Command::new(backend_path(app));
     command
@@ -112,6 +117,15 @@ fn start_backend(app: &AppHandle, port: u16, key: &str, data_dir: &std::path::Pa
         .arg("--data-dir")
         .arg(data_dir)
         .env("LORESTUDIO_DESKTOP_KEY", key);
+    // Its output goes to a file. On Windows the app has no console, so the backend would have
+    // no stdout or stderr at all, and its logging cannot start without them.
+    let _ = std::fs::create_dir_all(data_dir);
+    command.stdout(Stdio::null()).stderr(Stdio::null());
+    if let Ok(log) = std::fs::File::create(backend_log(data_dir)) {
+        if let Ok(copy) = log.try_clone() {
+            command.stdout(copy).stderr(log);
+        }
+    }
     #[cfg(windows)]
     {
         // No console window beside the app's own.
@@ -198,6 +212,13 @@ fn app_window<'a>(
                 None => false,
             }
         })
+}
+
+/// True once the backend has ended (it failed to start, or crashed).
+fn backend_exited(app: &AppHandle) -> bool {
+    let state = app.state::<Backend>();
+    let mut child = state.child.lock().unwrap();
+    matches!(child.as_mut().map(|c| c.try_wait()), Some(Ok(Some(_))))
 }
 
 /// Ask the backend to stop (it folds its write-ahead log into the database on the way out),
@@ -293,22 +314,33 @@ fn main() {
                 .min_inner_size(960.0, 600.0)
                 .build()?;
 
+            let log = backend_log(&data_dir);
             std::thread::spawn(move || {
                 let started = Instant::now();
-                while started.elapsed() < STARTUP_LIMIT {
+                let problem = loop {
                     if healthy(port) {
                         let open = format!("http://127.0.0.1:{port}/desktop/open?key={key}");
                         let _ = window.navigate(open.parse().expect("a valid address"));
                         return;
                     }
+                    if backend_exited(&handle) {
+                        break "Its backend stopped before it was ready.";
+                    }
+                    if started.elapsed() > STARTUP_LIMIT {
+                        break "Its backend did not answer within two minutes.";
+                    }
                     std::thread::sleep(Duration::from_millis(250));
-                }
-                let _ = window.eval(
+                };
+                let problem = format!(
+                    "{problem} What it said is in {}. Quit and open it again.",
+                    log.display()
+                );
+                let _ = window.eval(format!(
                     "document.getElementById('status').textContent = 'LoreStudio did not start.';\
                      document.getElementById('problem').style.display = 'block';\
-                     document.getElementById('problem').textContent = \
-                     'Its backend did not answer within two minutes. Quit and open it again.';",
-                );
+                     document.getElementById('problem').textContent = {};",
+                    serde_json::to_string(&problem).expect("a string")
+                ));
             });
             Ok(())
         })
