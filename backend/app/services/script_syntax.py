@@ -175,7 +175,9 @@ def cue_name(name: str) -> str:
     is cued by its first name ("Eleanor Vance" is ELEANOR); "The Visitor (Calder)" and a name
     with a title keep their words (THE VISITOR, DR. PRIYA SHARMA); another name the author
     typed ("Nell") is used as written. The editor's `cueName` is the same rule."""
-    plain = " ".join(re.sub(r"\s*\([^()]*\)", "", name).split())
+    # No \s* before the "(": the split below drops the spaces, and a run of spaces with no "("
+    # after it would be rescanned from every space (quadratic on the author's text).
+    plain = " ".join(re.sub(r"\([^()]*\)", "", name).split())
     words = plain.split(" ")
     return (words[0] if len(words) > 1 and not _TITLED.match(plain) else plain).upper()
 

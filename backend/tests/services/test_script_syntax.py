@@ -41,6 +41,15 @@ def test_cue_name(name, cue):
     assert ss.cue_name(name) == cue
 
 
+def test_cue_name_is_quick_on_a_long_run_of_spaces():
+    # A name is the author's text: a run of spaces with no "(" once took quadratic time.
+    import time
+
+    started = time.perf_counter()
+    assert ss.cue_name("A" + " " * 50_000 + "B") == "A"
+    assert time.perf_counter() - started < 0.5
+
+
 @pytest.mark.parametrize(("text", "name", "extensions", "dual"), CASES["cue"])
 def test_cue(text, name, extensions, dual):
     assert ss.parse_cue(text) == ss.Cue(name, tuple(extensions), dual)
