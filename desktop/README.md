@@ -1,7 +1,8 @@
 # LoreStudio for the desktop
 
-LoreStudio as a desktop app. Releases offer it for **macOS on Apple silicon**; the build also
-makes Intel Macs, Windows and Linux, untested so far and not published until there's demand.
+LoreStudio as a desktop app. Releases offer it for **macOS on Apple silicon** and **Windows x64**; the build also
+makes Linux (built and smoke-tested in CI, not yet tried by hand) and Intel Macs (untested),
+not published until they've been tried.
 It's the same web app the Docker image serves, in its own window, over its own copy of the
 backend. Python, WeasyPrint's
 libraries, spaCy and its English model, and pandoc are all inside the app. Only Ollama, for
@@ -16,7 +17,7 @@ The app is built on the platform it's for. Installers land in `build/desktop/out
 | macOS (Apple silicon or Intel) | `just desktop` | Rust, Node, uv, `brew install pango` | `LoreStudio_<version>_macos-<arch>.dmg` (about 140 MB) |
 | Linux, from any machine with Docker | `just desktop-linux` | Docker | `.AppImage` (about 240 MB) and `.deb` (about 190 MB), for the machine's architecture |
 | Windows | `python desktop/build.py` | Rust, Node, uv, MSYS2 with `mingw-w64-ucrt-x86_64-pango`, and `LORESTUDIO_LIBS` set to MSYS2's `ucrt64\bin` | `…_windows-x64-setup.exe` |
-| On GitHub | Actions › Desktop apps › Run workflow, or publish a release | | By hand: the platforms picked under `targets` (`tested` is macOS arm64, Windows x64 and Linux x64), as artifacts. A release: what `RELEASED` in `desktop.yml` lists (macOS arm64), attached to it |
+| On GitHub | Actions › Desktop apps › Run workflow, or publish a release | | By hand: the platforms picked under `targets` (`tested` is macOS arm64, Windows x64 and Linux x64), as artifacts. A release: what `RELEASED` in `desktop.yml` lists (macOS arm64 and Windows x64), attached to it |
 
 `just desktop --version 2026.10.3` stamps a release's version. Without one, the build is a
 development build ("dev"). `just desktop-backend` rebuilds only the frozen backend, and
@@ -168,5 +169,6 @@ On each, check:
 ## Not done yet
 
 - **No Developer ID, by choice.** The app is signed ad hoc, so a downloaded copy is approved once in Privacy & Security (above). The signature must stay valid, which is why the build re-signs the app after copying the backend in: a broken one reads "damaged", with no Open Anyway. A Developer ID and notarisation can be added in CI later without changing the build.
-- **Tested so far:** macOS on Apple silicon, the whole app. Linux arm64: built in Docker, with the backend from inside the AppImage run on a bare Ubuntu 22.04 (exports and spaCy work); the window itself is untested. Windows and the x64 builds exist only in CI and are untested.
+- **Tested so far:** macOS on Apple silicon and Windows 11 x64, the whole app by hand. Linux x64: built and smoke-tested in CI; the window is untested (the WSL steps above). Linux arm64: built in Docker, with the backend from inside the AppImage run on a bare Ubuntu 22.04. Intel Macs: untested.
+- **Start-up problems** show in `shell.log` (the shell's steps) and `backend.log` (the backend's output) in the data folder.
 - **No menu bar items** beyond Tauri's defaults.

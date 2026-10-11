@@ -1,4 +1,5 @@
-# Build the desktop app with desktop/build.py. Offered for now: macOS on Apple silicon (.dmg).
+# Build the desktop app with desktop/build.py. Offered for now: macOS on Apple silicon (.dmg)
+# and Windows x64 (setup .exe).
 # desktop/build.py also builds macOS on Intel, Windows (NSIS setup .exe) and Linux (AppImage,
 # .deb); a run by hand picks which (`targets`), and RELEASED in the plan job says which a
 # published release builds.
@@ -44,7 +45,7 @@ jobs:
       - id: pick
         env:
           # What a published release builds and offers. Add a target here to offer it.
-          RELEASED: macos-arm64
+          RELEASED: macos-arm64 windows-x64
           TESTED: macos-arm64 windows-x64 linux-x64
           PICKED: ${{ inputs.targets }}
         run: |
