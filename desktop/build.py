@@ -223,6 +223,8 @@ def merge(base: dict, extra: dict) -> dict:
 
 
 def main() -> None:
+    # The ✓ marks: a Windows console is cp1252 by default, which has neither.
+    sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--version", default=os.environ.get("LORESTUDIO_VERSION", "dev"), help="a release: 2026.10.3")
     parser.add_argument("--backend-only", action="store_true", help="freeze the backend, build no app")

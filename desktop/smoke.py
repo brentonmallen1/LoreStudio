@@ -39,6 +39,8 @@ def answers(url: str, key: str | None = None) -> bool:
 
 
 def main() -> None:
+    # The ✓ and ✗ below: a Windows console is cp1252 by default, which has neither.
+    sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--port", type=int, default=18091)
     port = parser.parse_args().port
