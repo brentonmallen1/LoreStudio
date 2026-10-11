@@ -1,16 +1,30 @@
-# Build the desktop app with desktop/build.py. Offered for now: macOS on Apple silicon (.dmg).
+# Build the desktop app with desktop/build.py. Offered for now: macOS on Apple silicon (.dmg)
+# and Windows x64 (setup .exe).
 # desktop/build.py also builds macOS on Intel, Windows (NSIS setup .exe) and Linux (AppImage,
-# .deb); to offer one, add its row below (the commented ones are ready, untested).
+# .deb); a run by hand picks which (`targets`), and RELEASED in the plan job says which a
+# published release builds.
 #
 # Run it by hand (Actions › Desktop apps › Run workflow) to get the installers as artifacts,
 # or let a published release run it: the installers are then attached to that release, with
 # latest.json, which the installed apps read to offer Install and restart. Updates are signed
 # with the TAURI_SIGNING_PRIVATE_KEY secret (its public key is in desktop/src-tauri/tauri.conf.json).
 # No installer is signed with an Apple Developer ID or a Windows certificate: see desktop/README.md.
+# Every build runs the frozen backend with no window first (desktop/smoke.py).
 name: Desktop apps
 
 on:
   workflow_dispatch:
+    inputs:
+      targets:
+        description: Which platforms to build
+        type: choice
+        default: tested
+        options:
+          - tested # macOS arm64, Windows x64, Linux x64
+          - macos-arm64
+          - macos-x64
+          - windows-x64
+          - linux-x64
   release:
     types: [published]
 
@@ -22,17 +36,43 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  plan:
+    name: platforms
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.pick.outputs.matrix }}
+    steps:
+      - id: pick
+        env:
+          # What a published release builds and offers. Add a target here to offer it.
+          RELEASED: macos-arm64 windows-x64
+          TESTED: macos-arm64 windows-x64 linux-x64
+          PICKED: ${{ inputs.targets }}
+        run: |
+          case "$PICKED" in
+            "") targets=$RELEASED ;;
+            tested) targets=$TESTED ;;
+            *) targets=$PICKED ;;
+          esac
+          python3 - "$targets" >> "$GITHUB_OUTPUT" <<'EOF'
+          import json, sys
+          runners = {
+              "macos-arm64": "macos-15",
+              "macos-x64": "macos-15-intel",
+              "windows-x64": "windows-2025",
+              # The oldest supported Ubuntu: an AppImage runs on distributions at least as new.
+              "linux-x64": "ubuntu-22.04",
+          }
+          include = [{"os": runners[t], "target": t} for t in sys.argv[1].split()]
+          print("matrix=" + json.dumps({"include": include}))
+          EOF
+
   build:
     name: build (${{ matrix.target }})
+    needs: plan
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - { os: macos-15, target: macos-arm64 }
-          # - { os: macos-15-intel, target: macos-x64 }
-          # - { os: windows-2025, target: windows-x64 }
-          # The oldest supported Ubuntu: an AppImage runs on distributions at least as new.
-          # - { os: ubuntu-22.04, target: linux-x64 }
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -97,6 +137,13 @@ jobs:
           name: lorestudio-${{ matrix.target }}
           path: build/desktop/out/*
           if-no-files-found: error
+
+      # The frozen backend as the shell runs it, with no window: exports, spaCy, a clean quit.
+      # After the upload, so a failing build's installers can still be looked at; before the
+      # release gets anything.
+      - name: Smoke test
+        shell: bash
+        run: uv run --no-project python desktop/smoke.py
 
       - uses: actions/upload-artifact@v7
         if: github.event_name == 'release'

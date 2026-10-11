@@ -234,7 +234,16 @@ def _stop_with_the_shell(stop) -> None:
     threading.Thread(target=watch, name="shell-watch", daemon=True).start()
 
 
+def _streams() -> None:
+    """Started with no stdout or stderr (a windowed app's child, if its output is not sent to a
+    file), Python leaves them as None, and uvicorn's logging fails to start. Discard instead."""
+    for name in ("stdout", "stderr"):
+        if getattr(sys, name) is None:
+            setattr(sys, name, open(os.devnull, "w", encoding="utf-8"))  # noqa: SIM115 — for the life of the process
+
+
 def main() -> None:
+    _streams()
     args = _args()
     key = os.environ.pop("LORESTUDIO_DESKTOP_KEY", "")
     if len(key) < 32:
