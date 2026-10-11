@@ -20,7 +20,7 @@ import { useAIAvailable } from "../../lib/mode";
 import CompTitlesSuggester from "../publish/CompTitlesSuggester";
 import { useAIStore } from "../../stores/aiStore";
 import { aiFeatureLabel } from "../../lib/ai/features.generated";
-import { useStoryFormat } from "../../lib/storyFormat";
+import { READING_RULE, readingTime, runningTimeRule, useStoryFormat } from "../../lib/storyFormat";
 import styles from "./ManuscriptView.module.css";
 
 type StatusFilter = "all" | "revised_final" | "final";
@@ -54,14 +54,6 @@ function headingTag(level: number): "h1" | "h2" | "h3" | "h4" | "h5" {
     5: "h5",
   };
   return tags[Math.min(level, 5)] ?? "h5";
-}
-
-function estimateReadingTime(words: number): string {
-  const mins = Math.ceil(words / 250);
-  if (mins < 60) return `${mins} min read`;
-  const hrs = Math.floor(mins / 60);
-  const rem = mins % 60;
-  return rem > 0 ? `${hrs}h ${rem}m read` : `${hrs}h read`;
 }
 
 function SceneSection({
@@ -179,7 +171,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
             preview.script && preview.layout
               ? `${pagesSummary(preview.layout.page_count, storyFormat)} · the script as it prints`
               : manuscript
-                ? `${manuscript.total_words.toLocaleString()} words · ${estimateReadingTime(manuscript.total_words)} · the manuscript as a reader will see it`
+                ? `${manuscript.total_words.toLocaleString()} words · ${readingTime(manuscript.total_words)} · the manuscript as a reader will see it`
                 : "The manuscript as a reader will see it"
           }
           aside={filterSelect}
@@ -213,13 +205,15 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
           <BookOpen size={14} className={styles.toolbarIcon} />
           <span className={styles.toolbarTitle}>{manuscript?.title ?? "Manuscript"}</span>
           {preview.script && preview.layout ? (
-            <span className={styles.toolbarMeta}>{pagesSummary(preview.layout.page_count, storyFormat)}</span>
+            <span className={styles.toolbarMeta} title={runningTimeRule(storyFormat)}>
+              {pagesSummary(preview.layout.page_count, storyFormat)}
+            </span>
           ) : (
             manuscript && (
-              <span className={styles.toolbarMeta}>
+              <span className={styles.toolbarMeta} title={READING_RULE}>
                 {manuscript.total_words.toLocaleString()} words
                 {" · "}
-                {estimateReadingTime(manuscript.total_words)}
+                {readingTime(manuscript.total_words)}
               </span>
             )
           )}

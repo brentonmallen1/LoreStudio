@@ -114,7 +114,7 @@ describe("compare", () => {
     expect([...c.added]).toEqual(["new"]);
     expect(c.removed).toEqual([{ id: "gone", title: "GONE" }]);
     expect(c.moved.map((m) => m.id).sort()).toEqual(["a", "b"]);
-    expect(c.wordsThen.get("b")).toBe(100);
+    expect(c.sizeThen.get("b")).toBe(100);
   });
 
   it("keeps what each character, thread and speaker had then", () => {
@@ -149,5 +149,38 @@ describe("compare", () => {
       }),
     );
     expect(whatChanged(then, measured)).toContain("Prose was not measured by then.");
+  });
+});
+
+/** A script's readings keep its pages and each scene's lines (doc 25, P11). */
+describe("a script compared", () => {
+  const pages = (total: number) => ({
+    total,
+    form: "feature",
+    target: null,
+    by_part: [],
+    dialogue_pct: 40,
+    long_scenes: [],
+    mean_eighths: 8,
+  });
+  const lined = (id: string, lines: number) => ({ ...scene(id, "c1", 200, ["el"]), lines });
+  const scriptThen = readingFigures(reading({ scenes: [lined("a", 55), lined("b", 110)], pages: pages(3) }));
+  const scriptNow = readingFigures(reading({ scenes: [lined("a", 55), lined("b", 165)], pages: pages(4) }));
+
+  it("measures scenes in eighths of a page, and the cast's screen time", () => {
+    expect(scriptNow.unit).toBe("eighths");
+    expect(scriptNow.bars.map((b) => b.size)).toEqual([8, 24]);
+    expect(scriptNow.cast.find((r) => r.character.id === "el")!.eighths).toBe(32);
+  });
+
+  it("says what changed in pages", () => {
+    expect(sceneChanges(scriptThen, scriptNow).sizeThen.get("b")).toBe(16);
+    expect(whatChanged(scriptThen, scriptNow)[0]).toBe("1 more page.");
+  });
+
+  it("does not hold eighths against an older reading's words", () => {
+    const old = readingFigures(reading({ scenes: [scene("a", "c1", 200, ["el"])] }));
+    expect(old.unit).toBe("words");
+    expect(sceneChanges(old, scriptNow).sizeThen.size).toBe(0);
   });
 });

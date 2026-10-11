@@ -116,3 +116,27 @@ def test_the_demo_has_a_history_to_compare(demo: Story, db_session: Session):
     first = readings[0].data
     assert len(first["chapters"]) == 4
     assert all("Staying" not in t["name"] for t in first["threads"])
+
+
+def test_a_script_reading_keeps_its_pages(db_session: Session, monkeypatch):
+    """A reading of a script keeps the Pages figures and each scene's lines (doc 25, P11), so
+    Compare and the trend count a script in pages, as the page does."""
+    from app.services import seed_screenplay
+    from app.services.numbers_pages import pages
+
+    monkeypatch.setattr(seed, "engine", db_session.get_bind())
+    monkeypatch.setattr(seed_screenplay, "engine", db_session.get_bind())
+    seed.seed_structure_templates()
+    seed.seed_admin()
+    seed_screenplay.seed_screenplay_demo()
+    script = db_session.query(Story).filter(Story.title == seed_screenplay.TITLE).one()
+
+    data = measure_now(script, db_session)
+    live = pages(load_view(script, db_session))
+    assert live is not None and data["pages"] == live.model_dump()
+    assert data["pages"]["total"] > 0
+    assert any(s["lines"] > 0 for s in data["scenes"])
+
+
+def test_a_prose_reading_has_no_pages(demo: Story, db_session: Session):
+    assert measure_now(demo, db_session)["pages"] is None

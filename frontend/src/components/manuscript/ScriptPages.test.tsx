@@ -30,9 +30,9 @@ describe("ScriptPages", () => {
     );
   });
 
-  it("counts pages as minutes on screen", () => {
-    expect(pagesSummary(1)).toBe("1 page · about a minute on screen");
-    expect(pagesSummary(12)).toBe("12 pages · about 12 minutes on screen");
-    expect(pagesSummary(12, "stage_play")).toBe("12 pages · about 12 minutes on stage");
+  it("counts pages as minutes on screen, and says so", () => {
+    expect(pagesSummary(1)).toBe("1 page · about a minute on screen, at a minute a page");
+    expect(pagesSummary(12)).toBe("12 pages · about 12 minutes on screen, at a minute a page");
+    expect(pagesSummary(12, "stage_play")).toBe("12 pages · about 12 minutes on stage, at a minute a page");
   });
 });

@@ -6,6 +6,7 @@ import { bySeverity } from "../../lib/findings/group";
 import { isStepDone, nextStep } from "../../lib/planning/methods";
 import { usePlanData } from "../../lib/planning/usePlanData";
 import { findRoute, sectionPath, storyPath } from "../../lib/routes";
+import { runningTime, runningTimeRule, useStoryFormat } from "../../lib/storyFormat";
 import { ago } from "../../lib/serverDate";
 import { useOpenFindings } from "../../stores/findingsStore";
 import { useStoryStore } from "../../stores/storyStore";
@@ -28,8 +29,12 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString
  */
 export function Vitals({ storyId, ov }: { storyId: string; ov: StoryOverview }) {
   const target = ov.word_count_target;
-  // A script is measured in the pages it prints (doc 25, P5).
+  const format = useStoryFormat();
+  // A script is measured in the pages it prints (doc 25, P5), and runs a minute a page (P11).
   const unit = ov.page_count != null ? "pages" : "words";
+  // The tile's detail is its tooltip, so the rule goes with the figure there.
+  const running =
+    ov.page_count != null ? `${runningTime(ov.page_count, format)}. ${runningTimeRule(format)}` : null;
   const states = (["draft", "revised", "final", "planned"] as const)
     .filter((s) => ov.scenes_by_status[s])
     .map((s) => `${ov.scenes_by_status[s]} ${s}`)
@@ -38,7 +43,9 @@ export function Vitals({ storyId, ov }: { storyId: string; ov: StoryOverview }) 
     {
       label: target ? `${unit} of ${target.max.toLocaleString()}` : unit,
       value: (ov.page_count ?? ov.word_count).toLocaleString(),
-      sub: target ? `${Math.round(target.pct)}% of ${target.max.toLocaleString()}` : "no target length set",
+      sub:
+        running ??
+        (target ? `${Math.round(target.pct)}% of ${target.max.toLocaleString()}` : "no target length set"),
       bar: target ? Math.min(100, target.pct) : null,
       warn: target?.warning_level,
       // The figures open the page that measures them (doc 13 P3).

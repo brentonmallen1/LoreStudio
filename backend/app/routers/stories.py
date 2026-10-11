@@ -36,7 +36,7 @@ from ..services.llm.prompts.snowflake import LAYER_SPECS, build_snowflake_guidan
 from ..services.llm.prompts.summaries import build_story_summary_prompt
 from ..services.llm.sse import sse_stream
 from ..services.series import service as series_service
-from ..services.story_format import is_script, story_format
+from ..services.story_format import TEMPLATE_LENGTHS, is_script, story_format
 from ..services.structure_scaffold import scaffold_story
 from ..services.text_utils import for_model, last_paragraphs
 from ..services.word_count import length_status, story_pages, story_target
@@ -96,6 +96,9 @@ def list_story_progress(db: Session = Depends(get_db), current_user: User = Depe
 @router.post("", response_model=StoryCreated, status_code=status.HTTP_201_CREATED)
 def create_story(body: StoryCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     story = Story(user_id=current_user.id, **body.model_dump(exclude={"scaffold"}))
+    # A TV template starts the story at its TV length, so its acts print (doc 25, P11).
+    if not story.intended_length and is_script(story):
+        story.intended_length = TEMPLATE_LENGTHS.get(story.structure_template_id or "", story.intended_length)
     db.add(story)
     db.flush()
     start = None

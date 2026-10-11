@@ -119,11 +119,10 @@ class StoryView:
         """Where the story stands against its intended length: in pages for a script, counted
         by the paginator its PDF prints with (doc 25, P5), in words for prose."""
         if is_script(self.story):
-            from ..script_export import pages_in
+            from ..script_export import leaves_pages
 
-            fmt = story_format(self.story)
-            pages = pages_in([n.content for n in self.leaves], fmt)
-            return length_status(fmt, self.story.intended_length or "", pages)
+            pages = leaves_pages(self.story, self.leaves, self.by_id)
+            return length_status(story_format(self.story), self.story.intended_length or "", pages)
         total = sum(n.word_count or 0 for n in self.leaves)
         return length_status("prose", self.story.intended_length or "", total)
 

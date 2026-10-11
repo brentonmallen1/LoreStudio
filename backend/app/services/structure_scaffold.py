@@ -21,6 +21,8 @@ TOP_LEVEL: dict[str, list[str]] = {
     "three-act": ["Act 1: Setup", "Act 2: Confrontation", "Act 3: Resolution"],
     "screenplay": ["Act One", "Act Two", "Act Three"],
     "screenplay-sequences": ["Act One", "Act Two", "Act Three"],
+    "tv-half-hour": ["Cold Open", "Act One", "Act Two", "Tag"],
+    "tv-hour": ["Teaser", "Act One", "Act Two", "Act Three", "Act Four", "Act Five"],
     "stage-play": ["Act One", "Act Two"],
     "seven-point": [
         "Hook",

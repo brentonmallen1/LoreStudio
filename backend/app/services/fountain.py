@@ -90,6 +90,8 @@ def to_fountain(doc: ScriptDoc, options: ScriptOptions) -> str:
     for i, block in enumerate(blocks):
         if block.element not in SPEECH and out:
             out.append("")
+        if block.act == "open":  # a TV script's act: a page break, and the act as a section
+            out += ["===", "", f"# {block.text.title()}", ""]
         follows = i + 1 < len(blocks) and blocks[i + 1].element in SPEECH
         out += _block(block.element, block.text, block.number, options, follows)
     return "\n".join(out).strip() + "\n"
@@ -191,12 +193,21 @@ def _read_chunk(chunk: list[str], notes: list[str], src: ScriptSource) -> None:
         k = text.count("\n") + 1
         mine = [n for line_notes in on_line[:k] for n in line_notes]
         on_line = on_line[k:]
+        if element == "centered" and _act_line(text, src):
+            continue  # a TV script's act lines: the section is the act (doc 25, P11)
         dual = element == "cue" and parse_cue(text).dual
         if dual:
             text = shown_cue(text)
         elif element == "heading":
             text = SCENE_NUMBER.sub("", text)  # the export numbers scenes itself
         src.block(element, _runs(text), mine, dual)
+
+
+def _act_line(text: str, src: ScriptSource) -> bool:
+    """A centred line that only names the act it is in, or ends it: "ACT ONE", "END OF ACT ONE"."""
+    act = next((i.title for i in reversed(src.items) if isinstance(i, Section) and i.depth == 1), None)
+    words = " ".join(text.split()).upper()
+    return act is not None and words in (act.upper(), f"END OF {act.upper()}")
 
 
 def parse(text: str) -> ScriptSource:

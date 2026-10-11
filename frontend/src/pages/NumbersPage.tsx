@@ -22,6 +22,7 @@ import { useNumbersCompare } from "../hooks/useNumbersCompare";
 import { useReloadOnUndo } from "../hooks/useUndoRedo";
 import { useAIAvailable } from "../lib/mode";
 import { liveFigures, readingFigures } from "../lib/numbers/figures";
+import { useStoryFormat } from "../lib/storyFormat";
 import { useFindingsStore } from "../stores/findingsStore";
 import { useStoryStore } from "../stores/storyStore";
 import { toast } from "../stores/toastStore";
@@ -38,6 +39,7 @@ export default function NumbersPage({ storyId }: { storyId: string }) {
   const [data, setData] = useState<StoryNumbers | null>(null);
   const [running, setRunning] = useState(false);
   const [naming, setNaming] = useState<string | null>(null);
+  const storyFormat = useStoryFormat();
   const { structure, activeTemplate, sceneCast, threads, characters, beatSheets, activeStory } =
     useStoryStore();
   const runLocal = useFindingsStore((s) => s.runLocal);
@@ -142,8 +144,10 @@ export default function NumbersPage({ storyId }: { storyId: string }) {
         {now && then && <WhatChanged then={then} now={now} />}
         {now && (
           <>
-            {/* A script in pages (doc 25, P5): the book as it is, not kept in readings yet. */}
-            {!compare.to && data?.pages && <Pages storyId={storyId} pages={data.pages} />}
+            {/* A script in pages (doc 25, P5), kept in readings since P11. */}
+            {now.pages && (
+              <Pages storyId={storyId} pages={now.pages} then={then?.pages} format={storyFormat} />
+            )}
             <Words words={now.words} then={then?.words} />
             {now.bars.length > 0 && (
               <>

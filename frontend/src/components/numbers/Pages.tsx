@@ -1,5 +1,8 @@
 import { Link } from "react-router-dom";
+import { signed } from "../../lib/numbers/compare";
 import { formatEighths } from "../../lib/script/syntax";
+import { runningTime, runningTimeRule } from "../../lib/storyFormat";
+import type { StoryFormat } from "../../types";
 import type { NumbersPages } from "../../types/numbers";
 import { lengthForm } from "../../utils/wordCount";
 import SectionHeading from "./SectionHeading";
@@ -7,9 +10,20 @@ import styles from "./Numbers.module.css";
 
 /**
  * A script's length in pages (doc 25, P5): the PDF's own count against its form, each act's
- * share, how much is speech, and the scenes that run past three pages.
+ * share, how much is speech, and the scenes that run past three pages. Its running time at a
+ * minute a page, and compared with a reading, the change (doc 25, P11).
  */
-export default function Pages({ storyId, pages }: { storyId: string; pages: NumbersPages }) {
+export default function Pages({
+  storyId,
+  pages,
+  then,
+  format,
+}: {
+  storyId: string;
+  pages: NumbersPages;
+  then?: NumbersPages | null;
+  format: StoryFormat;
+}) {
   const t = pages.target;
   const form = lengthForm(pages.form)?.phrase;
   const plural = (n: number) => `${n.toLocaleString()} ${n === 1 ? "page" : "pages"}`;
@@ -17,9 +31,10 @@ export default function Pages({ storyId, pages }: { storyId: string; pages: Numb
     <section className={styles.section} aria-labelledby="numbers-pages">
       <SectionHeading section="pages" title="Pages" />
       <p className={styles.lede}>
-        <strong>{plural(pages.total)}</strong>, about{" "}
-        {pages.total === 1 ? "a minute" : `${pages.total} minutes`} on screen. {pages.dialogue_pct}% of it is
-        speech, the rest action.
+        <strong>{plural(pages.total)}</strong>
+        {then && then.total !== pages.total && ` (${signed(pages.total - then.total)} since then)`},{" "}
+        {runningTime(pages.total, format)}. {pages.dialogue_pct}% of it is speech, the rest action.{" "}
+        {runningTimeRule(format)}
         {pages.mean_eighths > 0 && <> A scene runs {formatEighths(pages.mean_eighths)} on average.</>}
       </p>
       {t && form && (

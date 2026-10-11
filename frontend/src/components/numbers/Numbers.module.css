@@ -429,6 +429,11 @@
   border-top: 1px solid var(--color-border-light);
 }
 
+/* Three pages, in a script's Pacing: long for a scene on screen (doc 25, P11). */
+.gridline[data-long] {
+  border-top: 1px dashed var(--color-text-subtle);
+}
+
 .median {
   z-index: 1;
   border-top: 1px solid var(--color-text-muted);

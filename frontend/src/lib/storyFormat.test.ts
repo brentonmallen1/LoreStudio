@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { StoryStructureTemplate } from "../types";
-import { DEFAULT_TEMPLATE, formatOf, isScript, templatesFor } from "./storyFormat";
+import {
+  DEFAULT_TEMPLATE,
+  formatOf,
+  isScript,
+  readingTime,
+  runningTime,
+  runningTimeRule,
+  templatesFor,
+} from "./storyFormat";
 
 function template(id: string, format: "" | "screenplay"): StoryStructureTemplate {
   return {
@@ -37,5 +45,28 @@ describe("story format", () => {
   it("starts each format on a structure it offers", () => {
     for (const format of ["prose", "screenplay"] as const)
       expect(templatesFor(ALL, format).some((t) => t.id === DEFAULT_TEMPLATE[format])).toBe(true);
+  });
+});
+
+/** A script runs about a minute a page (doc 25, P11). */
+describe("running time", () => {
+  it("says hours and minutes, on screen or on stage, and the minute a page it assumes", () => {
+    expect(runningTime(1)).toBe("about a minute on screen, at a minute a page");
+    expect(runningTime(52)).toBe("about 52 minutes on screen, at a minute a page");
+    expect(runningTime(60, "stage_play")).toBe("about 1 hour on stage, at a minute a page");
+    expect(runningTime(112)).toBe("about 1 hour 52 minutes on screen, at a minute a page");
+    expect(runningTime(121)).toBe("about 2 hours 1 minute on screen, at a minute a page");
+  });
+
+  it("says what the rule leaves out, more loosely for a play", () => {
+    expect(runningTimeRule("screenplay")).toMatch(/rule of thumb/);
+    expect(runningTimeRule("stage_play")).toMatch(/rough guide for a play/);
+  });
+});
+
+describe("reading time", () => {
+  it("says the words a minute it assumes", () => {
+    expect(readingTime(1000)).toBe("about 4 minutes to read, at 250 words a minute");
+    expect(readingTime(65_000)).toBe("about 4 hours 20 minutes to read, at 250 words a minute");
   });
 });

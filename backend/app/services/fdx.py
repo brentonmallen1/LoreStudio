@@ -40,6 +40,9 @@ def _para(kind: str, text: str, extra: str = "", style: str = "") -> str:
 
 
 def _block_paras(block, options: ScriptOptions) -> list[str]:
+    if block.act:  # a TV script's act, as Final Draft's TV templates write one (doc 25, P11)
+        kind, extra = ("New Act", ' StartsNewPage="Yes"') if block.act == "open" else ("End of Act", "")
+        return [_para(kind, block.text, extra + ' Alignment="Center"')]
     kind = TYPES.get(block.element, "Action")
     text = shown_cue(block.text) if block.element == "cue" else block.text
     extra = ' Alignment="Center"' if block.element == "centered" else ""

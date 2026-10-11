@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { median, niceCeil, STATUS_LABEL, STATUSES } from "../../lib/numbers/charts";
 import { sceneChanges } from "../../lib/numbers/compare";
+import { formatEighths } from "../../lib/script/syntax";
 import type { Figures } from "../../lib/numbers/figures";
 import ChapterRow, { SceneTicks } from "./SceneAxis";
 import SectionHeading from "./SectionHeading";
@@ -11,7 +12,8 @@ import styles from "./Numbers.module.css";
  * on a scale with its top named, the median length drawn across for a reference, and
  * the beat sheet's beats in a row above, where the sheet expects them. Compared (doc 19),
  * each column's earlier height is an outline behind it, a scene new since then is ringed,
- * and the earlier median is a fainter line.
+ * and the earlier median is a fainter line. A script's scenes are measured in eighths of a page,
+ * as a script breakdown counts them, with a line at three pages (doc 25, P11).
  */
 export default function Pacing({
   storyId,
@@ -24,14 +26,23 @@ export default function Pacing({
 }) {
   const navigate = useNavigate();
   const { bars, beats, chapters } = now;
+  const script = now.unit === "eighths";
   const n = bars.length;
-  const written = bars.filter((b) => b.words > 0).map((b) => b.words);
+  const written = bars.filter((b) => b.size > 0).map((b) => b.size);
   const changes = then ? sceneChanges(then, now) : null;
-  const thenWritten = then ? then.bars.filter((b) => b.words > 0).map((b) => b.words) : [];
-  const top = niceCeil(Math.max(1, ...written, ...bars.map((b) => changes?.wordsThen.get(b.id) ?? 0)));
+  const thenWritten =
+    then && then.unit === now.unit ? then.bars.filter((b) => b.size > 0).map((b) => b.size) : [];
+  const longest = Math.max(1, ...written, ...bars.map((b) => changes?.sizeThen.get(b.id) ?? 0));
+  // A script's scale runs to a whole page.
+  const top = script ? Math.ceil(longest / 8) * 8 : niceCeil(longest);
   const mid = Math.round(median(written));
   const midThen = Math.round(median(thenWritten));
-  const y = (words: number) => `${(words / top) * 100}%`;
+  const y = (size: number) => `${(size / top) * 100}%`;
+  const measure = (size: number) =>
+    script ? formatEighths(size) || "nothing" : `${size.toLocaleString()} words`;
+  const figure = (size: number) => (script ? formatEighths(size) : size.toLocaleString());
+  // A scene longer than three pages is long for the screen (services/numbers_pages.LONG_SCENE).
+  const long = script && top > 24;
   const x = (i: number) => `${((i + 0.5) / n) * 100}%`;
   // A beat sits over the scene where the book's words pass the share the sheet puts it at.
   const column = (at: number) => {
@@ -45,8 +56,10 @@ export default function Pacing({
     <section className={styles.section} aria-labelledby="numbers-pacing">
       <SectionHeading section="pacing" title="Pacing" />
       <p className={styles.lede}>
-        Each column is a scene, as tall as its words and coloured by its state. The line across is the median
-        length: half the written scenes are longer, half shorter.
+        {script
+          ? "Each column is a scene, as tall as its length in eighths of a page and coloured by its state. The line across is the median length: half the written scenes are longer, half shorter."
+          : "Each column is a scene, as tall as its words and coloured by its state. The line across is the median length: half the written scenes are longer, half shorter."}
+        {long && " The dashed line is three pages, long for a scene on screen."}
         {beats.length > 0 && " The dots above are the beat sheet's beats where it expects them."}
       </p>
       <div className={styles.score} style={{ "--cols": n } as React.CSSProperties}>
@@ -74,34 +87,37 @@ export default function Pacing({
           </>
         )}
         <div className={styles.yAxis} aria-hidden>
-          <span style={{ bottom: "100%" }}>{top.toLocaleString()} words</span>
+          <span style={{ bottom: "100%" }}>
+            {script ? formatEighths(top) : `${top.toLocaleString()} words`}
+          </span>
           <span style={{ bottom: 0 }}>0</span>
         </div>
         <div className={styles.plot}>
           <span className={styles.gridline} style={{ bottom: "100%" }} aria-hidden />
+          {long && <span className={styles.gridline} data-long style={{ bottom: y(24) }} aria-hidden />}
           <div className={styles.cols}>
             {bars.map((b) => {
-              const was = changes?.wordsThen.get(b.id);
+              const was = changes?.sizeThen.get(b.id);
               const isNew = changes?.added.has(b.id);
               const note = isNew
                 ? ", new since then"
-                : was !== undefined && was !== b.words
-                  ? `, was ${was.toLocaleString()}`
+                : was !== undefined && was !== b.size
+                  ? `, was ${figure(was)}`
                   : "";
               return (
                 <button
                   key={b.id}
                   type="button"
                   className={styles.col}
-                  title={`${b.title}: ${b.words.toLocaleString()} words${note}, ${STATUS_LABEL[b.status] ?? b.status}`}
-                  aria-label={`${b.title}, ${b.words} words${note}, ${b.status}`}
+                  title={`${b.title}: ${measure(b.size)}${note}, ${STATUS_LABEL[b.status] ?? b.status}`}
+                  aria-label={`${b.title}, ${measure(b.size)}${note}, ${b.status}`}
                   onClick={() => navigate(`/stories/${storyId}/write/${b.id}`)}
                 >
                   <span
                     className={styles.bar}
-                    data-empty={b.words === 0 ? true : undefined}
+                    data-empty={b.size === 0 ? true : undefined}
                     data-new={isNew || undefined}
-                    style={{ height: y(b.words), background: `var(--status-${b.status})` }}
+                    style={{ height: y(b.size), background: `var(--status-${b.status})` }}
                   />
                   {was !== undefined && was > 0 && (
                     <span className={styles.barThen} style={{ height: y(was) }} aria-hidden />
@@ -116,7 +132,7 @@ export default function Pacing({
           )}
         </div>
         <div className={styles.yAxis} data-side="end" aria-hidden>
-          {written.length > 1 && <span style={{ bottom: y(mid) }}>median {mid.toLocaleString()}</span>}
+          {written.length > 1 && <span style={{ bottom: y(mid) }}>median {figure(mid)}</span>}
           {thenWritten.length > 1 && midThen !== mid && (
             <span
               style={{ bottom: y(midThen) }}
@@ -125,7 +141,7 @@ export default function Pacing({
                 Math.abs(mid - midThen) / top < 0.1 ? (midThen < mid ? "below" : "above") : undefined
               }
             >
-              was {midThen.toLocaleString()}
+              was {figure(midThen)}
             </span>
           )}
         </div>
