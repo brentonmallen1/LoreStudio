@@ -1,4 +1,4 @@
-"""System status for Settings › System: version, database, backups."""
+"""System status for Settings › System: version, database, backups; the example stories."""
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text
@@ -8,7 +8,7 @@ from ..auth.dependencies import get_current_user
 from ..config import settings
 from ..database import engine, get_db
 from ..models.user import User
-from ..services import automatic, updates
+from ..services import automatic, examples, updates
 from ..services.db_backup import backup_status, create_backup
 
 router = APIRouter()
@@ -69,3 +69,21 @@ def run_backup_now(db: Session = Depends(get_db), current_user: User = Depends(g
         "enabled": automatic.is_on(db, "db-backup"),
         "keep": automatic.option(db, "db-backup", "keep"),
     }
+
+
+@router.get("/system/examples")
+def example_stories(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Which example stories this account could add: none unless it is the admin account the
+    app made, which is where the examples go."""
+    if not examples.is_examples_account(current_user):
+        return {"available": False, "missing": []}
+    return {"available": True, "missing": examples.missing(db, current_user)}
+
+
+@router.post("/system/examples")
+def add_example_stories(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Add the example stories this account does not have yet (the dashboard, Settings › Account)."""
+    if not examples.is_examples_account(current_user):
+        raise HTTPException(status_code=403, detail="Only the admin account holds the example stories")
+    added = examples.add_missing(db, current_user)
+    return {"added": added, "missing": examples.missing(db, current_user)}

@@ -10,6 +10,7 @@ import {
   BookCopy,
   LayoutGrid,
   List,
+  Library,
 } from "lucide-react";
 import { api } from "../api/client";
 import { progressApi, type StoryProgress } from "../api/progress";
@@ -17,6 +18,7 @@ import { seriesApi, type SeriesSummary } from "../api/series";
 import { dashboardSegments } from "../lib/series/dashboard";
 import { bookLabel } from "../stores/seriesStore";
 import { useAuthStore } from "../stores/authStore";
+import { useExampleStories } from "../hooks/useExampleStories";
 import { useStoryStore } from "../stores/storyStore";
 import { formatRelative } from "../lib/utils";
 import CreateStoryDialog from "../components/story/CreateStoryDialog";
@@ -46,6 +48,7 @@ function savedLayout(): Layout {
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const { stories, setStories, removeStory } = useStoryStore();
+  const examples = useExampleStories();
   const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
   // The book a new one follows, when "Write a sequel" or a series' "New book" opened the dialog.
@@ -280,6 +283,12 @@ export default function DashboardPage() {
                   <FileInput size={14} />
                   Import existing work
                 </button>
+                {examples.canAdd && (
+                  <button onClick={examples.add} disabled={examples.adding} className={styles.emptyImportBtn}>
+                    <Library size={14} />
+                    {examples.adding ? "Adding…" : "Add example stories"}
+                  </button>
+                )}
               </div>
             </div>
           </div>

@@ -23,6 +23,7 @@ import ThinkingField from "./settings/ThinkingField";
 import AutomaticWorkSection from "../components/settings/AutomaticWorkSection";
 import AboutSection from "../components/settings/AboutSection";
 import DatabaseBackupCard from "../components/settings/DatabaseBackupCard";
+import ExampleStoriesCard from "../components/settings/ExampleStoriesCard";
 import ModeToggle from "../components/settings/ModeToggle";
 import TypographySection from "../components/settings/TypographySection";
 import ShortcutsSection from "../components/settings/ShortcutsSection";
@@ -530,6 +531,7 @@ export default function SettingsPage() {
               <p className={styles.accountUsername}>@{user?.username}</p>
               {user?.is_admin && <span className={styles.adminBadge}>Admin</span>}
             </div>
+            <ExampleStoriesCard />
           </section>
         </main>
       </div>
