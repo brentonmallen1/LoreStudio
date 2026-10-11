@@ -270,6 +270,8 @@ WHOLE_STORIES = (
     "POST /api/import/{session_id}/finalize",
     "POST /api/stories",
     "POST /api/stories/import",
+    # The example stories, added whole (the dashboard, Settings › Account).
+    "POST /api/system/examples",
 )
 
 NOT_UNDOABLE_GROUPS: dict[str, tuple[str, ...]] = {

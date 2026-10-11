@@ -13,8 +13,10 @@ moves). Configuration is `app/config.py` reading `.env` (see `.env.example`).
   nulling relationship (`test_delete_story_leaves_no_orphans` walks the metadata) and a snapshot
   key (`SNAPSHOT_KEYS_BY_TABLE` in `services/snapshot_service.py`).
 - `just db-reset`, then start the backend: migrations and seeds run on start. The admin,
-  templates and beat sheets always seed; "The Last Lighthouse" when `SEED_DEMO=true` and there
-  are no stories; the other demos with `SEED_EXTRA_DEMOS=true`. Seeds are idempotent.
+  templates and beat sheets always seed; the demo (`examples.DEMO`: the Lighthouse and its
+  screenplay and play) when `SEED_DEMO=true`; the rest (`examples.EXTRA`) with
+  `SEED_EXTRA_DEMOS=true`, or from "Add example stories" (`POST /system/examples`, the admin
+  account only). Seeds are idempotent: each skips a story whose title exists.
 
 ## Undo
 

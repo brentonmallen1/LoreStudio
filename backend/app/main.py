@@ -78,25 +78,14 @@ from .routers.users import router as users_router
 from .routers.whatif import router as whatif_router
 from .routers.world_systems import router as world_systems_router
 from .routers.worldbuilding_ai import router as worldbuilding_ai_router
+from .services import examples
 from .services.automatic import at_start, automatic_loop
 from .services.change_headers import EXPOSED as CHANGE_HEADERS
 from .services.change_headers import ChangeHeaders
 from .services.db_migrate import NewerDatabaseError, run_migrations
 from .services.job_queue import LANES, worker_loop
 from .services.llm.gateway import AIDisabledError
-from .services.seed import (
-    seed_admin,
-    seed_beat_sheets,
-    seed_demo_story,
-    seed_first_person_demo,
-    seed_flash_fiction_demo,
-    seed_scifi_demo_story,
-    seed_short_story_demo,
-    seed_structure_templates,
-)
-from .services.seed_screenplay import seed_screenplay_demo
-from .services.seed_series import seed_lighthouse_sequel
-from .services.seed_stage_play import seed_stage_play_demo
+from .services.seed import seed_admin, seed_beat_sheets, seed_structure_templates
 
 logging.basicConfig(level=settings.log_level.upper(), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("lorestudio")
@@ -118,15 +107,11 @@ def seed_all() -> None:
     seed_beat_sheets()
     seed_admin()
     if settings.seed_demo:
-        seed_demo_story()
-        seed_screenplay_demo()
-        seed_stage_play_demo()
+        for _, seeder in examples.DEMO:
+            seeder()
     if settings.seed_extra_demos:
-        seed_scifi_demo_story()
-        seed_flash_fiction_demo()
-        seed_short_story_demo()
-        seed_first_person_demo()
-        seed_lighthouse_sequel()
+        for _, seeder in examples.EXTRA:
+            seeder()
 
 
 @asynccontextmanager

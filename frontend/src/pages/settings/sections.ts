@@ -97,7 +97,13 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     modes: BOTH,
     keywords: ["version", "update", "upgrade", "release", "new version", "check for updates"],
   },
-  { id: "account", label: "Account", icon: User, modes: BOTH, keywords: ["user", "logout", "password"] },
+  {
+    id: "account",
+    label: "Account",
+    icon: User,
+    modes: BOTH,
+    keywords: ["user", "logout", "password", "example stories", "demo", "sample"],
+  },
 ];
 
 export function settingsPath(section: SettingsSection): string {
