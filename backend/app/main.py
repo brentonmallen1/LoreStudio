@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from .auth.router import router as auth_router
 from .config import settings
 from .database import Base, engine
+from .routers.adaptation import router as adaptation_router
 from .routers.ai_calls import router as ai_calls_router
 from .routers.ai_settings import router as ai_settings_router
 from .routers.analysis import router as analysis_router
@@ -191,6 +192,7 @@ app.include_router(numbers_router, prefix="/api", tags=["numbers"])
 app.include_router(promises_router, prefix="/api", tags=["promises"])
 app.include_router(proposals_router, prefix="/api", tags=["proposals"])
 app.include_router(series_router, prefix="/api", tags=["series"])
+app.include_router(adaptation_router, prefix="/api", tags=["series"])
 app.include_router(series_plan_router, prefix="/api", tags=["series"])
 app.include_router(series_promises_router, prefix="/api", tags=["series"])
 app.include_router(series_shared_router, prefix="/api", tags=["series"])

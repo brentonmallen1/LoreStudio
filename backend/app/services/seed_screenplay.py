@@ -22,6 +22,7 @@ from .script_syntax import shown_cue
 from .word_count import recount_story
 
 TITLE = "The Last Lighthouse: The Screenplay"
+NOVEL = "The Last Lighthouse"
 
 THE_LIGHT = [
     ("heading", "INT. LIGHTHOUSE, LAMP ROOM - DUSK"),
@@ -106,6 +107,19 @@ def script_html(blocks: list[tuple[str, str]]) -> str:
     return "".join(out)
 
 
+def adapted_from_novel(db: Session, script: Story, pairs: dict[str, str]) -> None:
+    """The demo script told from the novel (doc 25, P10): each scene paired with the novel's
+    scene it tells (script title -> novel title), so The novel shows its prose beside it. Not
+    put in the novel's series: the series demo is about its sequel."""
+    novel = db.query(Story).filter(Story.user_id == script.user_id, Story.title == NOVEL).first()
+    if novel is None:
+        return
+    script.adapted_from_id = novel.id
+    theirs = {n.title: n.id for n in db.query(StructureNode).filter(StructureNode.story_id == novel.id)}
+    for node in db.query(StructureNode).filter(StructureNode.story_id == script.id):
+        node.adapted_from_id = theirs.get(pairs.get(node.title, ""))
+
+
 def seed_screenplay_demo() -> None:
     with Session(engine) as db:
         admin = db.query(User).filter(User.username == settings.admin_username).first()
@@ -184,5 +198,6 @@ def seed_screenplay_demo() -> None:
             db.flush()
             derive_heading(scene, story, db)
 
+        adapted_from_novel(db, story, {t: t for t, *_ in scenes})
         recount_story(story.id, db)
         db.commit()

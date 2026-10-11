@@ -12,6 +12,7 @@ from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.structure import StructureNodeOut, StructureNodeUpdate
 from ..services import change_log
+from ..services.adaptation import AdaptError, check_source_scene
 from ..services.dangling import detach_scenes
 from ..services.dialogue_service import sync_scene_dialogue
 from ..services.linking_service import apply_entity_links, suggest_entity_links
@@ -63,7 +64,7 @@ def get_node(node_id: str, db: Session = Depends(get_db), current_user: User = D
     return _verify_node_access(node_id, db, current_user)
 
 
-_CLEARABLE = ("pov_character_id", "beat_id", "era_id")
+_CLEARABLE = ("pov_character_id", "beat_id", "era_id", "adapted_from_id")
 
 
 @router.patch("/{node_id}", response_model=StructureNodeOut)
@@ -80,6 +81,11 @@ def update_node(
     for key in _CLEARABLE:
         if key in body.model_fields_set and not getattr(body, key):
             data[key] = None
+    if data.get("adapted_from_id"):
+        try:
+            check_source_scene(db, node, data["adapted_from_id"])
+        except AdaptError as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e)) from e
     expected = data.pop("expected_updated_at", None)
     if expected is not None and node.updated_at is not None and _differs(expected, node.updated_at):
         # Someone (another tab, an undo, a restore) changed this node since the client loaded it.

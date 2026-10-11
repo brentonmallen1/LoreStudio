@@ -55,6 +55,8 @@ export interface Story {
   author_name: string;
   /** A script's title page (doc 25, P3). */
   title_page?: TitlePage;
+  /** The novel a script adapts (doc 25, P10). */
+  adapted_from_id?: string | null;
   goals: StoryGoal[];
   discovery_enabled: boolean;
   discovery_auto_analyze: boolean;
@@ -139,6 +141,8 @@ export interface StructureNode {
   /** What a script scene's heading says, read from it on save (doc 25, D3): INT, EXT… and when. */
   interior?: string;
   time_of_day?: string;
+  /** In a script adapted from a novel, the novel's scene this one tells (doc 25, P10). */
+  adapted_from_id?: string | null;
   /** "planned": a scene in the plan with no prose yet; the first words make it a draft. */
   status: "planned" | "draft" | "revised" | "final";
   purpose: string;

@@ -3,7 +3,7 @@
  * prose (doc 24 D2), show or hide the panel, close the tab you are on. Kept apart from
  * index.ts, which is at its size budget.
  */
-import { GitBranch, MapPin, MessageSquare, PanelRight, Users, X } from "lucide-react";
+import { BookOpen, GitBranch, MapPin, MessageSquare, PanelRight, Users, X } from "lucide-react";
 import { commandRegistry } from "./registry";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
@@ -16,33 +16,42 @@ import { openBesideTheProse } from "../panel/openBeside";
 
 const inStory = () => !!useStoryStore.getState().activeStory;
 
-const TOOLS: { tool: ToolId; label: string; keywords: string[]; icon: typeof Users }[] = [
-  {
-    tool: "characters",
-    label: "Characters beside the page",
-    keywords: ["cast", "people", "panel"],
-    icon: Users,
-  },
-  {
-    tool: "places",
-    label: "Places beside the page",
-    keywords: ["locations", "settings", "panel"],
-    icon: MapPin,
-  },
-  {
-    tool: "threads",
-    label: "Threads beside the page",
-    keywords: ["plot", "mice", "subplot", "panel"],
-    icon: GitBranch,
-  },
-  {
-    // The open scene's lines as a thread (doc 24 D8); it was "Dialogue only" in the scene's ⋯.
-    tool: "dialogue",
-    label: "Show the dialogue",
-    keywords: ["dialogue", "dialog", "speakers", "conversation", "quotes", "dialogue only", "panel"],
-    icon: MessageSquare,
-  },
-];
+const TOOLS: { tool: ToolId; label: string; keywords: string[]; icon: typeof Users; when?: () => boolean }[] =
+  [
+    {
+      tool: "characters",
+      label: "Characters beside the page",
+      keywords: ["cast", "people", "panel"],
+      icon: Users,
+    },
+    {
+      tool: "places",
+      label: "Places beside the page",
+      keywords: ["locations", "settings", "panel"],
+      icon: MapPin,
+    },
+    {
+      tool: "threads",
+      label: "Threads beside the page",
+      keywords: ["plot", "mice", "subplot", "panel"],
+      icon: GitBranch,
+    },
+    {
+      // The open scene's lines as a thread (doc 24 D8); it was "Dialogue only" in the scene's ⋯.
+      tool: "dialogue",
+      label: "Show the dialogue",
+      keywords: ["dialogue", "dialog", "speakers", "conversation", "quotes", "dialogue only", "panel"],
+      icon: MessageSquare,
+    },
+    {
+      // A script adapted from a novel: the novel's version of the open scene (doc 25, P10).
+      tool: "novel",
+      label: "The novel beside the script",
+      keywords: ["novel", "adaptation", "source", "book", "prose", "original", "panel"],
+      icon: BookOpen,
+      when: () => !!useStoryStore.getState().activeStory?.adapted_from_id,
+    },
+  ];
 
 for (const t of TOOLS) {
   commandRegistry.register({
@@ -51,7 +60,7 @@ for (const t of TOOLS) {
     keywords: t.keywords,
     icon: t.icon,
     group: "Manuscript",
-    when: inStory,
+    when: t.when ?? inStory,
     action: () => usePanelStore.getState().openTool(t.tool),
   });
 }

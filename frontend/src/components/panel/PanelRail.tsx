@@ -16,7 +16,7 @@ import { sceneTabLabel } from "../../lib/panel/tabLabel";
 import { useAIStore } from "../../stores/aiStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
-import { TOOLS, TOOL_LABELS, launcherId, pageTabId, type Launcher } from "../../types/panel";
+import { TOOL_LABELS, launcherId, pageTabId, toolsFor, type Launcher } from "../../types/panel";
 import { TOOL_ICONS } from "./toolIcons";
 import styles from "./Panel.module.css";
 
@@ -35,6 +35,7 @@ export default function PanelRail({ inWindow = false }: { inWindow?: boolean }) 
   const aiAvailable = useAIAvailable();
   const sessionCount = useAIStore((s) => s.sessions.length);
   const storyId = useStoryStore((s) => s.activeStory?.id);
+  const tools = toolsFor(useStoryStore((s) => s.activeStory));
   // Re-render when the open node changes: This scene is named for its level.
   useStoryStore((s) => s.activeNode?.id);
   const shown = (l: Launcher) => (open || inWindow) && showing === launcherId(l);
@@ -101,7 +102,7 @@ export default function PanelRail({ inWindow = false }: { inWindow?: boolean }) 
         >
           <FileText size={15} />
         </button>
-        {TOOLS.map((tool) => {
+        {tools.map((tool) => {
           const Icon = TOOL_ICONS[tool];
           return (
             <Fragment key={tool}>

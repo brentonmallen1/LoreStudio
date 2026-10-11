@@ -55,6 +55,8 @@ class StructureNode(Base):
     #: What a script scene's heading says (services/script_scene.py): INT, EXT, INT/EXT… and when.
     interior: Mapped[str] = mapped_column(String, default="", server_default="")
     time_of_day: Mapped[str] = mapped_column(String, default="", server_default="")
+    #: In a script adapted from a novel, the novel's scene this one tells (doc 25, P10).
+    adapted_from_id: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     status: Mapped[str] = mapped_column(String, default="draft")  # draft, revised, final
     entry_state: Mapped[str] = mapped_column(Text, default="")
     exit_state: Mapped[str] = mapped_column(Text, default="")

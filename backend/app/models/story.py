@@ -67,6 +67,9 @@ class Story(Base):
     #: A script's title page beyond the title and byline (services/script_export.py, doc 25):
     #: credit, based_on, contact, draft, date. Empty for prose.
     title_page: Mapped[dict] = mapped_column(JSON, default=dict, server_default=text("'{}'"))
+    #: The novel this script adapts (services/adaptation.py, doc 25 P10). No foreign key, as a
+    #: scene's `era_id`: a script whose novel is gone simply has none.
+    adapted_from_id: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
 
     # Narrative perspective
     narrative_perspective: Mapped[str] = mapped_column(String, default="")

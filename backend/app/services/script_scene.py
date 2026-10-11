@@ -153,6 +153,8 @@ def split_scene(
         title=scene_title(slug),
         position=node.position + 1,
         status="draft",
+        # Both halves still tell the novel's scene, in an adaptation (doc 25, P10).
+        adapted_from_id=node.adapted_from_id,
         content=after,
         word_count=count_words(after),
         line_count=count_lines(story, after),

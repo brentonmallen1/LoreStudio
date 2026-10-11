@@ -1,4 +1,5 @@
 import { formatCombo, SHORTCUTS } from "../../lib/keyboard/shortcuts";
+import { navigateTo } from "../../lib/navigation";
 import { FORMATS } from "../../lib/storyFormat";
 import type { Character, StoryFormat } from "../../types";
 import styles from "./StoryIdentityPanel.module.css";
@@ -61,8 +62,13 @@ export function PerspectiveField(props: {
   );
 }
 
-/** Prose or screenplay (doc 25). Switching rewrites nothing, and ⌘Z switches back. */
-export function FormatField(props: { value: StoryFormat; onChange: (value: StoryFormat) => void }) {
+/** Prose or screenplay (doc 25). Switching rewrites nothing, and ⌘Z switches back. A novel can
+ *  instead be adapted, a script beside it (P10). */
+export function FormatField(props: {
+  value: StoryFormat;
+  onChange: (value: StoryFormat) => void;
+  storyId?: string;
+}) {
   return (
     <div>
       <p className={styles.subFieldLabel}>Written as</p>
@@ -81,6 +87,19 @@ export function FormatField(props: { value: StoryFormat; onChange: (value: Story
           </option>
         ))}
       </select>
+      {props.value === "prose" && props.storyId && (
+        <p className={styles.fieldHint}>
+          To keep the novel and write a script of it,{" "}
+          <button
+            type="button"
+            className={styles.linkBtn}
+            onClick={() => navigateTo(`/?adapt=${props.storyId}`)}
+          >
+            adapt it as a screenplay or a play
+          </button>
+          .
+        </p>
+      )}
     </div>
   );
 }

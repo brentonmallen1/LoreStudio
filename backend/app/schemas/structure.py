@@ -47,6 +47,8 @@ class StructureNodeUpdate(BaseModel):
     pov_character_id: str | None = None
     purpose: str | None = None
     metadata_: dict | None = None
+    #: In a script adapted from a novel, the novel's scene this one tells (doc 25, P10).
+    adapted_from_id: str | None = None
     # Optimistic concurrency: the updated_at the client last saw. A mismatch is a 409.
     expected_updated_at: datetime | None = None
 
@@ -65,6 +67,7 @@ class StructureNodeOut(BaseModel):
     line_count: int = 0
     interior: str = ""
     time_of_day: str = ""
+    adapted_from_id: str | None = None
     status: str
     entry_state: str = ""
     exit_state: str = ""
@@ -101,6 +104,7 @@ class StructureNodeMeta(BaseModel):
     line_count: int = 0
     interior: str = ""
     time_of_day: str = ""
+    adapted_from_id: str | None = None
     status: str
     entry_state: str = ""
     exit_state: str = ""

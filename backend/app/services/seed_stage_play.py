@@ -13,7 +13,7 @@ from ..models import Character, Location, Story, User
 from ..models.location import SceneSetting
 from ..models.structure import StructureNode
 from .script_scene import derive_heading
-from .seed_screenplay import script_html
+from .seed_screenplay import adapted_from_novel, script_html
 from .word_count import recount_story
 
 TITLE = "The Last Lighthouse: A Play in One Act"
@@ -135,5 +135,6 @@ def seed_stage_play_demo() -> None:
             db.flush()
             derive_heading(scene, story, db)
 
+        adapted_from_novel(db, story, {"The Door": "Knock at the Door", "The Logs": "The Logbook"})
         recount_story(story.id, db)
         db.commit()

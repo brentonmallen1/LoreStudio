@@ -442,7 +442,11 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
         <GroupLabel label="Form" description="What shape does it take?" />
 
         <SectionCard title="Structure" collapsed={!!collapsed.structure} onToggle={() => toggle("structure")}>
-          <FormatField value={fields.story_format} onChange={(v) => update("story_format", v)} />
+          <FormatField
+            value={fields.story_format}
+            onChange={(v) => update("story_format", v)}
+            storyId={storyId}
+          />
           <div>
             <p className={styles.subFieldLabel}>Intended length</p>
             <p className={styles.fieldHint}>

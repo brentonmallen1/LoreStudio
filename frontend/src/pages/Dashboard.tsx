@@ -20,6 +20,7 @@ import { useAuthStore } from "../stores/authStore";
 import { useStoryStore } from "../stores/storyStore";
 import { formatRelative } from "../lib/utils";
 import CreateStoryDialog from "../components/story/CreateStoryDialog";
+import AdaptDialog from "../components/story/AdaptDialog";
 import NewSeriesDialog from "../components/series/NewSeriesDialog";
 import SeriesGroup from "../components/series/SeriesGroup";
 import { seriesPath } from "../lib/series/sections";
@@ -52,6 +53,8 @@ export default function DashboardPage() {
   const [sequelTo, setSequelTo] = useState<string | null>(() =>
     new URLSearchParams(window.location.search).get("sequel"),
   );
+  // "Adapt as a screenplay or a play" (doc 25, P10) arrives as ?adapt=<novel>.
+  const [adapting, setAdapting] = useState(() => new URLSearchParams(window.location.search).get("adapt"));
   const [seriesList, setSeriesList] = useState<SeriesSummary[]>([]);
   // Jobs › Open on a finished import reading comes back here with ?import (doc 21 R8).
   const [importing, setImporting] = useState(() => new URLSearchParams(window.location.search).has("import"));
@@ -317,6 +320,7 @@ export default function DashboardPage() {
           }}
         />
       )}
+      {adapting && <AdaptDialog novelId={adapting} onClose={() => setAdapting(null)} />}
       {importing && <ImportWizard onClose={() => setImporting(false)} />}
       {newSeries && <NewSeriesDialog onClose={() => setNewSeries(false)} />}
     </div>

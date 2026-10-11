@@ -21,11 +21,14 @@ export default function CarryOverStep({
   candidates,
   chosen,
   onChange,
+  lead,
 }: {
   previousTitle: string;
   candidates: CarryCandidate[] | null;
   chosen: Set<string>;
   onChange: (next: Set<string>) => void;
+  /** What the list is for, when it is not a sequel's (an adaptation, doc 25 P10). */
+  lead?: string;
 }) {
   const groups = useMemo(() => {
     const out = new Map<string, CarryCandidate[]>();
@@ -54,9 +57,8 @@ export default function CarryOverStep({
   return (
     <div className={styles.step}>
       <p className={styles.lead}>
-        Who and what carries over from “{previousTitle}”? Each one starts the new book as it stands at the end
-        of that one, and goes on changing there. Relationships come too when both people do. Threads still
-        open and twists not yet revealed come ticked: the questions the books have asked and not answered.
+        {lead ??
+          `Who and what carries over from “${previousTitle}”? Each one starts the new book as it stands at the end of that one, and goes on changing there. Relationships come too when both people do. Threads still open and twists not yet revealed come ticked: the questions the books have asked and not answered.`}
       </p>
       {groups.map(([kind, items]) => {
         const keys = items.map(carryKey);

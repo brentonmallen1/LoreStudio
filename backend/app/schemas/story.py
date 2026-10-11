@@ -82,6 +82,8 @@ class StoryOut(BaseModel):
     logline: str
     author_name: str = ""
     title_page: TitlePage = TitlePage()
+    #: The novel a script adapts (doc 25, P10).
+    adapted_from_id: str | None = None
     goals: list[StoryGoal]
     discovery_enabled: bool
     discovery_auto_analyze: bool

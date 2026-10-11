@@ -49,7 +49,7 @@ A script may open on `FADE IN:` above the first heading; that heading is still t
 
 ## The page
 
-A screenplay is counted in pages, about a minute of screen time each: Courier 12 point, 55 lines to a page, each element in its place. The page count LoreStudio shows comes from the same layout the printed script uses.
+A screenplay is counted in pages, about a minute of screen time each: Courier 12 point, 55 lines to a page, each element in its place. The page count LoreStudio shows comes from the same layout the printed script uses. A character's name starts at the same place on every cue, about a third of the way across, rather than being centred on its own length: that is how a screenplay is printed, so a name lines up with every other. (A stage play centres it.)
 
 Choose the script's form under **Intended length** in **Story identity**: a short film, a TV half-hour, a TV hour or a feature. Its length is counted in pages, and **Numbers** shows the pages against that form, each act's pages, how much of the script is speech, and any scene over three pages.
 
@@ -74,6 +74,16 @@ A stage play is written the same way, with the same elements, and laid out the w
 - The Assistant (Studio) reads it as a play: what an audience in the theatre can see and hear. **Unstageables** points at stage directions no audience could see, and **Comparable Plays** suggests plays it sits beside.
 - **Publish** prints it as a stage play PDF, and exports Final Draft and Fountain files too.
 
-The demo _The Last Lighthouse: A Play in One Act_ tells the same night on stage.
+## Adapting a novel
 
-The demo story _The Last Lighthouse: The Screenplay_ is the novel's first three scenes written for the screen.
+A novel you have written can be told again as a script, and the novel stays as it is. Choose **Adapt as a screenplay or a play** from the palette, or the link under **Written as** in the novel's **Story identity**.
+
+- The script is a new story after the novel in its series (the two become a series if the novel is not in one yet), so the novel and the script keep one canon.
+- Its Lorebook comes from the novel: everything is ticked, closed threads included, since the script tells the same story. Untick what the script leaves out.
+- It starts with the novel's outline: every part, chapter and scene with its synopsis and plan, the places each scene is set in, and the threads and twists it carries. Each scene opens on its heading, made from its place (`INT. KEEPER'S COTTAGE`; check inside or out, which is a guess from the place's name). In a play, each scene opens on its number, and on its act's marker when a new act begins.
+- Nothing of the novel is converted into the script. **The novel** on the side panel's rail shows the novel's version of the open scene, its prose whole, to write from. A scene you add or split can be paired with any scene of the novel there.
+- The title page says it is based on the novel, and by whom.
+
+The script is a whole new story, so {{key:undo}} does not unmake it; delete it from the dashboard if you change your mind.
+
+The demo story _The Last Lighthouse: The Screenplay_ is the novel's first three scenes written for the screen, and _A Play in One Act_ tells the same night on stage. Open **The novel** beside either to read the novel's version of each scene.
