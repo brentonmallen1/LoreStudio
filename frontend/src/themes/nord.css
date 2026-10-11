@@ -9,6 +9,13 @@
   --color-border: #bdc4d4;
   --color-border-light: #d2d9e4;
   --color-text: #1e222a;
+  /* A script's syntax colours (doc 25, P3½): each element's words, as a code theme colours
+     its syntax; dialogue is the string colour. AA on the page (contrast.test.ts). */
+  --syntax-heading: #4c688b;
+  --syntax-cue: #795f74;
+  --syntax-paren: #8b5a4b;
+  --syntax-dialogue: #5d6c50;
+  --syntax-transition: #9d5057;
   --color-text-muted: #4c566a;
   --color-text-subtle: #556376;
   --color-section-title: #434c5e;
@@ -106,6 +113,13 @@
   --color-border: #535b6b;
   --color-border-light: #434c5e;
   --color-text: #fdfefe;
+  /* A script's syntax colours (doc 25, P3½): each element's words, as a code theme colours
+     its syntax; dialogue is the string colour. AA on the page (contrast.test.ts). */
+  --syntax-heading: #88c0d0;
+  --syntax-cue: #c4a7bf;
+  --syntax-paren: #dba391;
+  --syntax-dialogue: #a3be8c;
+  --syntax-transition: #d9a2a7;
   --color-text-muted: #d8dee9;
   --color-text-subtle: #b4bdd1;
   --color-section-title: #c8d0e0;

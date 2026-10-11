@@ -31,9 +31,6 @@ import { SprintSetup } from "../story/SprintTimer";
 import type { NotesView } from "../../lib/notes/view";
 import styles from "./EditorMoreMenu.module.css";
 
-const GUIDES = { wash: "Wash", ink: "Coloured words", off: "Off" } as const;
-const NEXT_GUIDES = { wash: "ink", ink: "off", off: "wash" } as const;
-
 interface Props {
   wordCount: number;
   sprintRunning: boolean;
@@ -172,16 +169,17 @@ export default function EditorMoreMenu(p: Props) {
                 ? "Notes sit beside the text; choose to show them as dots"
                 : "Notes show as dots; choose to show them beside the text"
             }
-            onSelect={then(() => p.onNotesView(p.notesView === "cards" ? "dots" : "cards"))}
+            // A setting under Show changes the page in place, and the menu stays open to see it.
+            onSelect={() => p.onNotesView(p.notesView === "cards" ? "dots" : "cards")}
           />
           {script && (
             <Item
               label="Element guides"
               icon={Palette}
-              checked={elementGuides !== "off"}
-              hint={GUIDES[elementGuides]}
-              title="Each element in its own colour (a wash, or its words), its name beside the line you are writing, and a hint on an empty line. Choose to go on to the next."
-              onSelect={then(() => setElementGuides(NEXT_GUIDES[elementGuides]))}
+              checked={elementGuides}
+              hint={elementGuides ? "On" : "Off"}
+              title="Each element's words in a colour of their own, its name beside the line you are writing, and a hint on an empty line"
+              onSelect={() => setElementGuides(!elementGuides)}
             />
           )}
           <div className={styles.label}>Guides</div>

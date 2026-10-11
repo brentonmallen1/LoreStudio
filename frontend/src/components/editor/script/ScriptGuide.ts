@@ -23,6 +23,43 @@ export const ScriptGuide = Extension.create<{ format: string }>({
     return [
       new Plugin({
         key: new PluginKey("scriptGuide"),
+        // The element's name in the left margin, level with the line being written: placed
+        // from where the line is on screen, so a centred or right-set line keeps it in the
+        // same margin as every other. Outside the editable text, so ProseMirror never sees it.
+        view(view) {
+          const label = document.createElement("span");
+          label.className = "script-margin-label";
+          label.setAttribute("aria-hidden", "true");
+          const host = view.dom.parentElement;
+          if (host && getComputedStyle(host).position === "static") host.style.position = "relative";
+          host?.appendChild(label);
+          const place = () => {
+            const line = view.dom.querySelector<HTMLElement>("p.el-here");
+            if (!host || !line || !view.hasFocus()) {
+              label.hidden = true;
+              return;
+            }
+            const box = host.getBoundingClientRect();
+            const lineBox = line.getBoundingClientRect();
+            const editable = view.dom.getBoundingClientRect();
+            label.textContent = line.dataset.label ?? "";
+            label.style.top = `${lineBox.top - box.top}px`;
+            label.style.left = `${editable.left - box.left}px`;
+            label.hidden = false;
+          };
+          const onFocus = () => requestAnimationFrame(place);
+          view.dom.addEventListener("focus", onFocus);
+          view.dom.addEventListener("blur", onFocus);
+          requestAnimationFrame(place);
+          return {
+            update: () => requestAnimationFrame(place),
+            destroy: () => {
+              view.dom.removeEventListener("focus", onFocus);
+              view.dom.removeEventListener("blur", onFocus);
+              label.remove();
+            },
+          };
+        },
         props: {
           decorations(state) {
             const { $from } = state.selection;

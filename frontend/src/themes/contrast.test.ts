@@ -106,9 +106,8 @@ const TEXT: [string, string][] = [
 ];
 const FILLS = ["accent", "ai", "nlp", "editorial", "ai-coach", "planner", "brainstorm"];
 
-/** The slots a script's syntax colours use, and how much of the slot is in the mix. */
-const SYNTAX_SLOTS = [1, 4, 5, 6, 7];
-export const SYNTAX_MIX = 0.4;
+/** A script's syntax colours (doc 25, P3½), one per element, each palette its own. */
+const SYNTAX = ["heading", "cue", "paren", "dialogue", "transition"];
 
 const PAIRS: [string, string, number, string][] = [
   ...TEXT.flatMap(([fg, what]) =>
@@ -150,14 +149,13 @@ const PAIRS: [string, string, number, string][] = [
     ]),
     [`--cat-${n}-fg`, `--cat-${n}`, 4.5, `text on slot ${n}`],
   ]),
-  // A script's syntax colours (doc 25, P3½; ScriptEditor.module.css): a slot mixed into the body
-  // text, which then reads at AA on the page.
-  ...SYNTAX_SLOTS.flatMap((n) =>
+  // A script's syntax colours (doc 25, P3½; ScriptEditor.module.css): text on the page.
+  ...SYNTAX.flatMap((el) =>
     GROUNDS.slice(0, 2).map(([bg, where]): [string, string, number, string] => [
-      `syntax:--cat-${n}`,
+      `--syntax-${el}`,
       bg,
       4.5,
-      `script syntax colour ${n} on ${where}`,
+      `script ${el} colour on ${where}`,
     ]),
   ),
   // The edge of an input, select or toggle (WCAG 1.4.11), and the keyboard focus ring.
@@ -185,6 +183,7 @@ const PAIRS: [string, string, number, string][] = [
 
 /** Tokens every palette must define in hex, light and dark, or the pairs above are silently skipped. */
 const REQUIRED = [
+  ...SYNTAX.map((el) => `--syntax-${el}`),
   ...Array.from({ length: 8 }, (_, i) => [`--cat-${i + 1}`, `--cat-${i + 1}-fg`]).flat(),
   "--status-planned",
   "--status-draft",
@@ -228,11 +227,7 @@ describe("theme contrast (WCAG)", () => {
       it(`${file} ${block.selector.includes(".dark") ? "dark" : "light"} meets the minimum ratios`, () => {
         const failures: string[] = [];
         for (const [fg, bg, min, what] of PAIRS) {
-          const a = fg.startsWith("syntax:")
-            ? tokens[fg.slice(7)] &&
-              tokens["--color-text"] &&
-              tint(tokens[fg.slice(7)], tokens["--color-text"], SYNTAX_MIX)
-            : tokens[fg];
+          const a = tokens[fg];
           const ground = tokens[bg.replace(/^tint:/, "")];
           if (!a || !ground) continue; // derived value (rgba/color-mix) or not defined
           const b = bg.startsWith("tint:") ? tint(a, ground) : ground;
