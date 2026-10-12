@@ -84,6 +84,8 @@ export interface ReadingSummary {
   balance: number | null;
   passive_pct: number | null;
   open_findings: number | null;
+  /** A script's pages (doc 25, P11); null for prose and for older readings. */
+  pages?: number | null;
 }
 
 export interface ReadingsList {
@@ -101,6 +103,8 @@ export interface ReadingData {
     title: string;
     parent_id: string | null;
     words: number;
+    /** A script scene's lines laid end to end (doc 25, P11); absent from older readings. */
+    lines?: number;
     status: string;
     pov: string | null;
     beat_id: string | null;
@@ -115,6 +119,8 @@ export interface ReadingData {
   prose: (NumbersProse & { run_id: string }) | null;
   findings: Record<string, number> | null;
   summaries: NumbersSummaries;
+  /** A script's Pages (doc 25, P11); null for prose, absent from older readings. */
+  pages?: NumbersPages | null;
 }
 
 export interface Reading {

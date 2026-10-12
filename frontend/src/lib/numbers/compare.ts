@@ -20,8 +20,8 @@ export interface SceneChanges {
   removed: { id: string; title: string }[];
   /** Scenes whose place in the book changed (1-based, then and now). */
   moved: { id: string; title: string; from: number; to: number }[];
-  /** Each scene's words then. */
-  wordsThen: Map<string, number>;
+  /** Each scene's size then (its words, or a script's eighths), when both sides measure alike. */
+  sizeThen: Map<string, number>;
 }
 
 export function sceneChanges(then: Figures, now: Figures): SceneChanges {
@@ -39,7 +39,7 @@ export function sceneChanges(then: Figures, now: Figures): SceneChanges {
         ? []
         : [{ id: s.id, title: s.title, from: thenAt.get(s.id)! + 1, to: now.scenes.indexOf(s) + 1 }];
     }),
-    wordsThen: new Map(then.bars.map((b) => [b.id, b.words])),
+    sizeThen: new Map(then.unit === now.unit ? then.bars.map((b) => [b.id, b.size]) : []),
   };
 }
 
@@ -78,8 +78,18 @@ export function whatChanged(then: Figures, now: Figures): string[] {
   const out: string[] = [];
   const scenes = sceneChanges(then, now);
 
+  // A script is told in pages, when both sides kept them (doc 25, P11).
+  const dp = now.pages && then.pages ? now.pages.total - then.pages.total : null;
   const dw = now.words.total - then.words.total;
-  const parts = [dw === 0 ? "the same number of words" : moreOrFewer(dw, "word")];
+  const parts = [
+    dp !== null
+      ? dp === 0
+        ? "the same number of pages"
+        : moreOrFewer(dp, "page")
+      : dw === 0
+        ? "the same number of words"
+        : moreOrFewer(dw, "word"),
+  ];
   if (scenes.added.size) parts.push(`${count(scenes.added.size, "new scene")}`);
   if (scenes.removed.length)
     parts.push(

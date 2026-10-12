@@ -48,7 +48,8 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
 
   pages: {
     measures: [
-      "A script's length in pages, as its PDF prints them: Courier 12 point, 55 lines to a page, with every page break the export makes. A page runs about a minute on screen.",
+      "A script's length in pages, as its PDF prints them: Courier 12 point, 55 lines to a page, with every page break the export makes, a TV script's acts each on a new page included.",
+      "The running time is an estimate at a minute a page, the rule of thumb for a screenplay: quick dialogue plays faster, and a line of action can take a minute to play. For a play it is a rougher guide still: pauses, business and the production's pace move it either way.",
       "When the script has an intended length, the bar sets the pages against the upper end of that form's usual range: a short film 40 pages, a TV half-hour 38, a TV hour 65, a feature 120. The tick marks where it starts to come close.",
       "Each act's pages are its scenes' lines laid end to end, the way a script breakdown counts them, so the acts can add up to a little less than the total. A scene's length is in eighths of a page.",
       "Speech is the share of the printed lines that are character names, parentheticals and dialogue; the rest is action.",
@@ -60,7 +61,9 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
       "The ranges are conventions, not rules. A three-page scene is long for the screen but not wrong; some stories need one.",
       "A script heavy in speech plays as talk; one heavy in action plays as pictures. Neither is better.",
     ],
-    compared: ["Pages are the script as it is now: readings do not keep them yet."],
+    compared: [
+      "The total says how many pages it has gained or lost since then. A reading taken before readings kept pages has none to compare.",
+    ],
   },
 
   words: {
@@ -85,6 +88,7 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
   pacing: {
     measures: [
       "One column for each scene in reading order, numbered by chapter along the top. Its height is the scene's word count, on a scale from 0 to a round number just above the longest scene; its colour is the scene's state. The line across is the median length: half the written scenes are longer and half shorter. It is a length, not a position, so it can line up with any scene, the last included.",
+      "In a script a column's height is the scene's length in eighths of a page, its lines laid end to end as a script breakdown counts them, on a scale of whole pages, and a dashed line marks three pages: long for a scene on screen, not wrong.",
       "With a beat sheet chosen for the story, the row of dots above sits where the sheet places each beat, as a share of the book's words. A filled dot has a scene assigned to that beat; a hollow one has none.",
     ],
     why: [
@@ -125,6 +129,7 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
       "A row for each character who appears, with a square for every scene they are in. A character is in a scene when it is seen through them, when the prose names them (by name, by what they are known as, or in a speaker tag on their line), or when the scene has them placed in it by hand. Marked absent by hand, they are out even if named.",
       "A cell is filled in the character's colour where the scene is seen through them, in a lighter step of it where they are only on the page, and left empty where they are not in it. The page shows the six characters in the most scenes; Open the full grid shows every character, with each scene named. Rows are ordered by how many scenes each character is in. “Quiet lately” marks a character who was on the page earlier and is in none of the last three scenes that have words. “Arc 2/5” counts their arc milestones checked off.",
       "Characters in no scene yet are listed underneath.",
+      "In a script each name has its screen time: the pages of the scenes they are in, added up. It is an estimate that counts them there for the whole of each scene, so a character who only passes through, or who enters late, comes out higher than their time on screen.",
     ],
     why: [
       "Presence is how a reader comes to know a character. The grid shows how often each one is seen and where in the book, in the same columns as the pacing and threads above.",

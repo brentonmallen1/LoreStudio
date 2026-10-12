@@ -10,6 +10,16 @@ describe("Pages", () => {
       <MemoryRouter>
         <Pages
           storyId="s1"
+          format="screenplay"
+          then={{
+            total: 30,
+            form: "short_film",
+            target: null,
+            by_part: [],
+            dialogue_pct: 40,
+            long_scenes: [],
+            mean_eighths: 9,
+          }}
           pages={{
             total: 34,
             form: "short_film",
@@ -34,6 +44,10 @@ describe("Pages", () => {
       </MemoryRouter>,
     );
     expect(screen.getByText("34 pages")).toBeTruthy();
+    expect(
+      screen.getByText(/\(\+4 since then\), about 34 minutes on screen, at a minute a page/),
+    ).toBeTruthy();
+    expect(screen.getByText(/rule of thumb for a screenplay/)).toBeTruthy();
     expect(screen.getByText(/42% of it is speech/)).toBeTruthy();
     expect(screen.getByText("85% of the 40 pages a short film usually runs to.")).toBeTruthy();
     expect(screen.getByText("Act One about 9.5 · Act Two about 18")).toBeTruthy();

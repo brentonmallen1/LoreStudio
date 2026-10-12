@@ -20,8 +20,13 @@ SCRIPT_FORMATS: tuple[str, ...] = ("screenplay", "stage_play")
 TEMPLATE_FORMATS: dict[str, str] = {
     "screenplay": "screenplay",
     "screenplay-sequences": "screenplay",
+    "tv-half-hour": "screenplay",
+    "tv-hour": "screenplay",
     "stage-play": "stage_play",
 }
+#: The intended length a story made from a TV template starts with, so its acts print (doc 25,
+#: P11); the author can change it in Story identity.
+TEMPLATE_LENGTHS: dict[str, str] = {"tv-half-hour": "tv_half_hour", "tv-hour": "tv_hour"}
 
 
 #: The local checks a script runs (doc 25, P5), and what they read: its action lines, which are

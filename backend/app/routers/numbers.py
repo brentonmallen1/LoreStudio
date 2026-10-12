@@ -67,6 +67,7 @@ def _summary(r: NumbersReading) -> ReadingSummary:
         balance=(d.get("dialogue") or {}).get("balance"),
         passive_pct=prose.get("passive_pct"),
         open_findings=sum(findings.values()) if findings is not None else None,
+        pages=(d.get("pages") or {}).get("total"),
     )
 
 

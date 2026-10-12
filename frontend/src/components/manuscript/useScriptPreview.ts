@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { scriptApi } from "../../api/script";
-import { useStoryFormat } from "../../lib/storyFormat";
-import type { ScriptExportChoices, ScriptLayout } from "../../types";
+import { runningTime, useStoryFormat } from "../../lib/storyFormat";
+import type { ScriptExportChoices, ScriptLayout, StoryFormat } from "../../types";
 
 export const DEFAULT_CHOICES: ScriptExportChoices = {
   title_page: true,
@@ -37,9 +37,7 @@ export function useScriptPreview(storyId: string, statusFilter: string | undefin
   return { script, choices, setChoices, layout, reload };
 }
 
-/** "12 pages · about 12 minutes": a page of script is about a minute on screen. */
-export function pagesSummary(pages: number, format: string = "screenplay"): string {
-  const where = format === "stage_play" ? "on stage" : "on screen";
-  if (pages === 1) return `1 page · about a minute ${where}`;
-  return `${pages} pages · about ${pages} minutes ${where}`;
+/** "12 pages · about 12 minutes on screen, at a minute a page". */
+export function pagesSummary(pages: number, format: StoryFormat = "screenplay"): string {
+  return `${pages} ${pages === 1 ? "page" : "pages"} · ${runningTime(pages, format)}`;
 }

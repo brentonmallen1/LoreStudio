@@ -90,10 +90,12 @@ def story_pages(story, db) -> int:
     """A script's pages as its PDF prints them: the shared paginator over its scenes in
     reading order, title page aside (doc 25, D5)."""
     from .manuscript_builder import get_manuscript_sections
-    from .script_export import pages_in
+    from .script_export import pages_in, prints_acts, section_acts
     from .story_format import story_format
 
-    return pages_in([s.content for s in get_manuscript_sections(story, db) if s.is_leaf], story_format(story))
+    sections = get_manuscript_sections(story, db)
+    acts = section_acts(sections) if prints_acts(story) else None
+    return pages_in([s.content for s in sections if s.is_leaf], story_format(story), acts)
 
 
 def story_target(story, db, words: int) -> dict | None:

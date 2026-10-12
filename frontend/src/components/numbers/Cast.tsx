@@ -5,6 +5,7 @@ import { slotVar } from "../../lib/colorSlots";
 import { chapterStarts, type CastRow, type ChapterSpan } from "../../lib/numbers/charts";
 import { castThen, signed } from "../../lib/numbers/compare";
 import type { Figures } from "../../lib/numbers/figures";
+import { formatEighths } from "../../lib/script/syntax";
 import type { StructureNode } from "../../types";
 import ChapterRow, { SceneTicks } from "./SceneAxis";
 import SectionHeading from "./SectionHeading";
@@ -25,10 +26,12 @@ const ROWS = 6;
  * scene in the pacing chart's columns, a cell filled where they are in the scene and filled
  * fully where it is seen through them. The page shows the busiest few; the full grid, with
  * every character and every scene named, opens in a modal. Compared (doc 19), a cell gained
- * since then has a dot, a cell lost is a faint outline, and each count says its change.
+ * since then has a dot, a cell lost is a faint outline, and each count says its change. In a
+ * script each name has its screen time: the pages of the scenes they are in (doc 25, P11).
  */
 export default function Cast({ now, then }: { now: Figures; then: Figures | null }) {
   const { cast, scenes, chapters } = now;
+  const script = now.unit === "eighths";
   const [open, setOpen] = useState(false);
   const before = then
     ? {
@@ -49,8 +52,17 @@ export default function Cast({ now, then }: { now: Figures; then: Figures | null
       <p className={styles.lede}>
         A row per character, a column per scene: a cell is filled where they are in the scene (named in the
         prose or placed there by hand), and filled fully where the scene is seen through them.
+        {script &&
+          " Beside each name, their screen time: the pages of the scenes they are in, as a script breakdown counts it. It counts them there for the whole of each scene, so someone who only passes through comes out high."}
       </p>
-      <Grid rows={shown} scenes={scenes} chapters={chapters} hasPov={hasPov} before={before} />
+      <Grid
+        rows={shown}
+        scenes={scenes}
+        chapters={chapters}
+        hasPov={hasPov}
+        before={before}
+        script={script}
+      />
       <div className={styles.legend}>
         {hasPov ? (
           <>
@@ -89,7 +101,15 @@ export default function Cast({ now, then }: { now: Figures; then: Figures | null
         size="xl"
       >
         <div className={styles.scrollX}>
-          <Grid rows={cast} scenes={scenes} chapters={chapters} hasPov={hasPov} before={before} full />
+          <Grid
+            rows={cast}
+            scenes={scenes}
+            chapters={chapters}
+            hasPov={hasPov}
+            before={before}
+            script={script}
+            full
+          />
         </div>
       </Modal>
     </section>
@@ -102,6 +122,7 @@ function Grid({
   chapters,
   hasPov,
   before,
+  script,
   full = false,
 }: {
   rows: CastRow[];
@@ -109,6 +130,7 @@ function Grid({
   chapters: ChapterSpan[];
   hasPov: boolean;
   before: Before | null;
+  script: boolean;
   full?: boolean;
 }) {
   const starts = chapterStarts(chapters);
@@ -128,6 +150,7 @@ function Grid({
           hasPov={hasPov}
           starts={starts}
           before={before}
+          script={script}
         />
       ))}
       {full ? <SceneNames scenes={scenes} /> : <SceneTicks count={scenes.length} />}
@@ -141,6 +164,7 @@ function CastLine({
   hasPov,
   starts,
   before,
+  script,
 }: {
   row: CastRow;
   scenes: StructureNode[];
@@ -148,6 +172,7 @@ function CastLine({
   /** Columns that open a chapter: their cells carry the chapter rule. */
   starts: Set<number>;
   before: Before | null;
+  script: boolean;
 }) {
   const had = before?.cells.get(row.character.id);
   // Only scenes there then can gain or lose someone; a new scene is marked in Pacing.
@@ -159,6 +184,7 @@ function CastLine({
   };
   const delta = before ? signed(row.count - (before.counts.get(row.character.id) ?? 0)) : "";
   const { character, present, seenThrough, count, quiet, milestones } = row;
+  const screen = script && row.eighths ? ` · ${formatEighths(row.eighths)}` : "";
   const arc = milestones.total ? ` · arc ${milestones.done}/${milestones.total}` : "";
   const pov = seenThrough.filter(Boolean).length;
   const what = (i: number) =>
@@ -193,9 +219,13 @@ function CastLine({
           );
         })}
       </div>
-      <span className={styles.rowMeta} data-tone={quiet ? "warning" : undefined}>
+      <span
+        className={styles.rowMeta}
+        data-tone={quiet ? "warning" : undefined}
+        title={screen ? "Screen time counts the whole of each scene they are in" : undefined}
+      >
         {quiet ? "quiet lately · " : ""}
-        {`${count} scene${count === 1 ? "" : "s"}${delta ? ` (${delta})` : ""}${arc}`}
+        {`${count} scene${count === 1 ? "" : "s"}${delta ? ` (${delta})` : ""}${screen}${arc}`}
       </span>
     </>
   );

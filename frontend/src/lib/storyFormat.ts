@@ -42,6 +42,46 @@ export function isScript(story: Pick<Story, "story_format"> | null | undefined):
   return formatOf(story) !== "prose";
 }
 
+/**
+ * How long a script runs, at a minute a page (doc 25, P11): "about 1 hour 52 minutes on screen,
+ * at a minute a page". A figure built on a rule of thumb names the rule where it is shown, so
+ * the rule is part of the phrase; `runningTimeRule` says how far to trust it.
+ */
+export function runningTime(pages: number, format: StoryFormat = "screenplay"): string {
+  const where = format === "stage_play" ? "on stage" : "on screen";
+  return `about ${duration(pages)} ${where}, at a minute a page`;
+}
+
+/** "1 hour 52 minutes", "a minute". */
+function duration(minutes: number): string {
+  if (minutes <= 1) return "a minute";
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return [
+    hours ? `${hours} ${hours === 1 ? "hour" : "hours"}` : "",
+    rest ? `${rest} ${rest === 1 ? "minute" : "minutes"}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+/** The words a minute `readingTime` assumes: the middle of an adult's 200 to 300. */
+export const READING_WPM = 250;
+
+/** How long prose takes to read: "about 4 hours 20 minutes to read, at 250 words a minute". */
+export function readingTime(words: number): string {
+  return `about ${duration(Math.ceil(words / READING_WPM))} to read, at ${READING_WPM} words a minute`;
+}
+
+export const READING_RULE = "Most adults read 200 to 300 words a minute; 250 is the middle.";
+
+/** What the minute a page leaves out, for the reader of a running time. */
+export function runningTimeRule(format: StoryFormat = "screenplay"): string {
+  return format === "stage_play"
+    ? "A minute a page is only a rough guide for a play: pauses, business and the production's pace move it either way."
+    : "A minute a page is the rule of thumb for a screenplay: quick dialogue plays faster, and a line of action can take a minute to play.";
+}
+
 /** The format of the story open now. */
 export function useStoryFormat(): StoryFormat {
   return useStoryStore((s) => formatOf(s.activeStory));

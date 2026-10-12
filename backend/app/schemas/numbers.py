@@ -141,6 +141,8 @@ class ReadingSummary(BaseModel):
     balance: int | None
     passive_pct: float | None
     open_findings: int | None
+    #: A script's pages (doc 25, P11); None for prose and for a reading taken before they were kept.
+    pages: int | None = None
 
 
 class ReadingsOut(BaseModel):

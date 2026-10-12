@@ -21,6 +21,8 @@ interface Metric {
 }
 
 const METRICS: Metric[] = [
+  // A script's length is its pages (doc 25, P11); prose and older readings have none.
+  { key: "pages", name: "Pages", of: (r) => r.pages ?? null, now: (f) => f.pages?.total ?? null },
   { key: "words", name: "Words", of: (r) => r.words, now: (f) => f.words.total },
   { key: "scenes", name: "Scenes", of: (r) => r.scenes, now: (f) => f.words.scenes },
   { key: "balance", name: "Dialogue balance", of: (r) => r.balance, now: (f) => f.dialogue.balance },
@@ -68,6 +70,10 @@ export default function Trend({ compare, now }: { compare: NumbersCompare; now: 
     return () => seen.disconnect();
   }, [readings.length, open]);
   if (readings.length < 2) return null;
+  // Pages only for a script, and only once something has them.
+  const metrics = METRICS.filter(
+    (m) => m.key !== "pages" || !!now?.pages || readings.some((r) => r.pages != null),
+  );
 
   // Comparing two readings, the later one stands where the book as it is would.
   const toReading = now ? null : (readings.find((r) => r.id === toId) ?? null);
@@ -98,10 +104,11 @@ export default function Trend({ compare, now }: { compare: NumbersCompare; now: 
   const fmt = (m: Metric, v: number) =>
     `${m.digits ? v.toFixed(m.digits) : v.toLocaleString()}${m.unit ?? ""}`;
   const figures = (r: ReadingSummary) =>
-    METRICS.map((m) => {
-      const v = m.of(r);
-      return v === null ? null : `${m.name} ${fmt(m, v)}`;
-    })
+    metrics
+      .map((m) => {
+        const v = m.of(r);
+        return v === null ? null : `${m.name} ${fmt(m, v)}`;
+      })
       .filter(Boolean)
       .join(", ");
 
@@ -122,7 +129,7 @@ export default function Trend({ compare, now }: { compare: NumbersCompare; now: 
           </p>
           <div
             className={styles.time}
-            style={{ "--metrics": METRICS.length, "--mark-rows": markRows } as React.CSSProperties}
+            style={{ "--metrics": metrics.length, "--mark-rows": markRows } as React.CSSProperties}
             onMouseLeave={() => setHover(null)}
           >
             <div ref={plotRef} className={styles.timeMarks} aria-hidden>
@@ -139,7 +146,7 @@ export default function Trend({ compare, now }: { compare: NumbersCompare; now: 
               ))}
             </div>
 
-            {METRICS.map((m, row) => {
+            {metrics.map((m, row) => {
               const points = readings
                 .map((r, i) => ({ i, v: m.of(r) }))
                 .filter((p): p is { i: number; v: number } => p.v !== null);

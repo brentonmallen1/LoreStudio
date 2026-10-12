@@ -13,6 +13,7 @@ Each part of a reading matches the live part it is compared with:
   template's deepest level, or with words), each with who is on its page by the `/scene-cast`
   rule (``services/scene_cast.py``) and the threads it carries;
 - ``dialogue`` by the same shares function the page uses;
+- ``pages``, a script's, by ``numbers_pages.pages_of`` (doc 25, P11), and each scene's ``lines``;
 - ``prose`` copied from the run (restoring a snapshot replaces the activity log it lives in).
 """
 
@@ -39,8 +40,9 @@ from .dialogue_service import sync_story_dialogue
 from .findings import collect
 from .findings.runs import RUN_EVENTS, latest_runs
 from .numbers import CONTAINERS, STATUSES, form_for, prose_from_run, spoken_shares
+from .numbers_pages import pages_of
 from .scene_cast import cast_patterns, on_the_page
-from .script_export import pages_in
+from .script_export import leaves_pages
 from .snapshot_service import _model_to_dict
 from .story_format import is_script, story_format
 from .structure_scaffold import FLAT
@@ -149,7 +151,7 @@ def _ordered(
     return out, children
 
 
-def _words(leaves: list[SimpleNamespace], story: Any) -> dict[str, Any]:
+def _words(leaves: list[SimpleNamespace], story: Any, by_id: dict[str, SimpleNamespace]) -> dict[str, Any]:
     """``services/numbers.words`` over the same leaves: an empty chapter is a leaf, not a scene."""
     scenes = [n for n in leaves if (n.level_type or "").lower() not in CONTAINERS]
     by_status = dict.fromkeys(STATUSES, 0)
@@ -159,8 +161,7 @@ def _words(leaves: list[SimpleNamespace], story: Any) -> dict[str, Any]:
     total = sum(n.word_count or 0 for n in scenes)
     form = story.intended_length or ""
     if is_script(story):
-        fmt = story_format(story)
-        target = length_status(fmt, form, pages_in([n.content for n in leaves], fmt))
+        target = length_status(story_format(story), form, leaves_pages(story, leaves, by_id))
     else:
         target = length_status("prose", form, total)
     past = target is not None and target["warning_level"] == "exceeded"
@@ -225,16 +226,20 @@ def measure(
     missing = sum(1 for n in written if not (n.content_summary or "").strip())
     stale = sum(1 for n in written if (n.content_summary or "").strip() and n.summary_stale)
 
+    words = _words(leaves, story, by_id)
     return {
         "version": READING_VERSION,
         "story_pov": story.pov_character_id,
-        "words": _words(leaves, story),
+        "words": words,
+        # A script's Pages (doc 25, P11); an older reading has none and reads as before.
+        "pages": pages_of(story, leaves, children, by_id, words["target"]) if is_script(story) else None,
         "scenes": [
             {
                 "id": n.id,
                 "title": n.title or "",
                 "parent_id": n.parent_id,
                 "words": n.word_count or 0,
+                "lines": n.line_count or 0,
                 "status": n.status or "draft",
                 "pov": n.pov_character_id,
                 "beat_id": n.beat_id,

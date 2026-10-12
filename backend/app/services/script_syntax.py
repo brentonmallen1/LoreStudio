@@ -16,7 +16,7 @@ six lines to the inch, 55 lines to a Letter page under a one-inch top margin.
 from __future__ import annotations
 
 import re
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from dataclasses import dataclass, field
 from typing import NotRequired, TypedDict
 
@@ -553,16 +553,24 @@ def _keep_with(blocks: list[tuple[str, str]], i: int, fmt: str | None = None) ->
     return before + min(len(block_lines(element, text, fmt)), MIN_SPLIT)
 
 
-def paginate(blocks: list[tuple[str, str]], lines_per_page: int = LINES_PER_PAGE, fmt: str | None = None) -> list[Page]:
+def paginate(
+    blocks: list[tuple[str, str]],
+    lines_per_page: int = LINES_PER_PAGE,
+    fmt: str | None = None,
+    turns: Collection[int] = (),
+) -> list[Page]:
     """Lay the blocks out on pages, the way the PDF prints them.
 
     Blank lines before a block are dropped at the top of a page. A heading never ends a page:
     it goes over with the first lines after it. Action splits between lines with at least two
     on each side. A speech splits as `_Layout.speech` says. Otherwise a block that does not fit
-    starts the next page.
+    starts the next page. The blocks at `turns` (their places in `blocks`) start a new page, as
+    a TV script's acts do (doc 25, P11).
     """
     layout = _Layout(lines_per_page, fmt)
-    blocks = [(e, t) for e, t in blocks if t.strip()]
+    kept = [(k, (e, t)) for k, (e, t) in enumerate(blocks) if t.strip()]
+    turn_at = {j for j, (k, _) in enumerate(kept) if k in turns}
+    blocks = [b for _, b in kept]
     i = 0
     while i < len(blocks):
         element, text = blocks[i]
@@ -578,18 +586,18 @@ def paginate(blocks: list[tuple[str, str]], lines_per_page: int = LINES_PER_PAGE
             i = end
             continue
         keep = _keep_with(blocks, i, fmt) if element == "heading" else 0
-        if fmt == "stage_play" and is_act(element, text):
-            layout.turn()  # a play starts each act on a new page
+        if i in turn_at or (fmt == "stage_play" and is_act(element, text)):
+            layout.turn()  # a play starts each act on a new page, and so does a TV script
         layout.lines(element, block_lines(element, text, fmt), keep)
         i += 1
     return layout.pages
 
 
-def page_count(blocks: list[tuple[str, str]], fmt: str | None = None) -> int:
+def page_count(blocks: list[tuple[str, str]], fmt: str | None = None, turns: Collection[int] = ()) -> int:
     """How many pages the blocks print on (none for nothing)."""
     if not any(text.strip() for _, text in blocks):
         return 0
-    return len(paginate(blocks, fmt=fmt))
+    return len(paginate(blocks, fmt=fmt, turns=turns))
 
 
 def scene_lines(blocks: list[tuple[str, str]], fmt: str | None = None) -> int:

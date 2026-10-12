@@ -6,6 +6,15 @@
 import type { Beat } from "../../types/beats";
 import type { SceneCastEntry } from "../../types/panel";
 import type { Character, PlotThread, StructureNode, ThreadRole } from "../../types";
+import { eighths } from "../script/syntax";
+
+/** What a scene's length is measured in: words in prose, eighths of a page in a script (doc 25, P11). */
+export type Unit = "words" | "eighths";
+
+/** A scene's length in the unit: a script's from its lines, as the page and its PDF count them. */
+export function sceneSize(s: StructureNode, cast: Map<string, SceneCastEntry>, unit: Unit): number {
+  return unit === "eighths" ? eighths(s.line_count ?? 0) : (cast.get(s.id)?.word_count ?? s.word_count ?? 0);
+}
 
 /** Draft states in the order a scene moves through them, and their names. */
 export const STATUSES = ["final", "revised", "draft", "planned"] as const;
@@ -70,10 +79,12 @@ export interface PacingBar {
   id: string;
   title: string;
   words: number;
+  /** Its length in the figures' unit: its words, or a script's eighths of a page. */
+  size: number;
   status: string;
   /** Which chapter (or whatever holds the scenes) the bar belongs to, for the gaps between groups. */
   group: string;
-  /** How far through the book the bar ends, 0 to 1, by words. */
+  /** How far through the book the bar ends, 0 to 1, by size. */
   through: number;
 }
 
@@ -86,16 +97,21 @@ export interface BeatMark {
   sceneId: string | null;
 }
 
-export function pacing(scenes: StructureNode[], cast: Map<string, SceneCastEntry>): PacingBar[] {
-  const words = scenes.map((s) => cast.get(s.id)?.word_count ?? s.word_count ?? 0);
-  const total = words.reduce((a, b) => a + b, 0);
+export function pacing(
+  scenes: StructureNode[],
+  cast: Map<string, SceneCastEntry>,
+  unit: Unit = "words",
+): PacingBar[] {
+  const sizes = scenes.map((s) => sceneSize(s, cast, unit));
+  const total = sizes.reduce((a, b) => a + b, 0);
   let running = 0;
   return scenes.map((s, i) => {
-    running += words[i];
+    running += sizes[i];
     return {
       id: s.id,
       title: s.title,
-      words: words[i],
+      words: cast.get(s.id)?.word_count ?? s.word_count ?? 0,
+      size: sizes[i],
       status: cast.get(s.id)?.status ?? s.status ?? "draft",
       group: s.parent_id ?? "",
       through: total ? running / total : (i + 1) / scenes.length,
@@ -146,6 +162,8 @@ export interface CastRow {
   /** The scenes seen through them: a stronger mark than only being on the page. */
   seenThrough: boolean[];
   count: number;
+  /** Screen time in a script (doc 25, P11): the eighths of a page of the scenes they are in. */
+  eighths: number;
   first: number | null;
   last: number | null;
   /** Not on the page in the last `quietAfter` written scenes, though on it earlier. */
@@ -178,6 +196,7 @@ export function castGrid(
         present,
         seenThrough: scenes.map((_, i) => present[i] && povs[i] === character.id),
         count,
+        eighths: scenes.reduce((a, s, i) => a + (present[i] ? eighths(s.line_count ?? 0) : 0), 0),
         first: first < 0 ? null : first,
         last: last < 0 ? null : last,
         quiet,

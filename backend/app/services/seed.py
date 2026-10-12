@@ -120,6 +120,24 @@ STRUCTURE_TEMPLATES = [
         ],
     },
     {
+        "id": "tv-half-hour",
+        "name": "TV Half-Hour",
+        "description": "A cold open, two acts and a tag, about 30 pages. Each act prints on a new page, opening on its name and closing END OF ACT.",
+        "levels": [
+            {"name": "Act", "plural": "Acts"},
+            {"name": "Scene", "plural": "Scenes"},
+        ],
+    },
+    {
+        "id": "tv-hour",
+        "name": "TV One-Hour",
+        "description": "A teaser and five acts, about 55 pages. Each act prints on a new page, opening on its name and closing END OF ACT.",
+        "levels": [
+            {"name": "Act", "plural": "Acts"},
+            {"name": "Scene", "plural": "Scenes"},
+        ],
+    },
+    {
         "id": "stage-play",
         "name": "Stage Play",
         "description": "Acts of scenes for the theatre, each scene opening on its marker (SCENE 1); a one-act play keeps one act.",

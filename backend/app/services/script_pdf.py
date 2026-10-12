@@ -154,7 +154,7 @@ def layout(doc: ScriptDoc, options: ScriptOptions) -> Layout:
     """Every page of the script, every line placed: the paginator's pages, numbered from two."""
     width_in, height_in = PAGE_SIZES.get(options.page_size, PAGE_SIZES["letter"])
     out = Layout(width_in * PT_PER_IN, height_in * PT_PER_IN)
-    pages = paginate(doc.pairs, lines_per_page(options.page_size), doc.format) if doc.blocks else []
+    pages = paginate(doc.pairs, lines_per_page(options.page_size), doc.format, doc.turns) if doc.blocks else []
     if options.title_page:
         out.pages.append(_title_page(doc, out.height_pt))
     for k, (page, numbers) in enumerate(zip(pages, _numbered_lines(doc, pages), strict=True), start=1):

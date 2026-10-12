@@ -9,6 +9,7 @@ import type { SceneCastEntry } from "../../types/panel";
 import type { Character, PlotThread, StoryStructureTemplate, StructureNode } from "../../types";
 import type {
   NumbersDialogue,
+  NumbersPages,
   NumbersProse,
   NumbersSummaries,
   NumbersWords,
@@ -27,11 +28,16 @@ import {
   type ChapterSpan,
   type Lane,
   type PacingBar,
+  type Unit,
 } from "./charts";
 import { povRotation, type PovRotation } from "./pov";
 
 export interface Figures {
+  /** What a scene's length is measured in: words, or a script's eighths of a page (doc 25, P11). */
+  unit: Unit;
   words: NumbersWords;
+  /** A script's Pages; null for prose and for a reading taken before readings kept them. */
+  pages: NumbersPages | null;
   dialogue: Pick<NumbersDialogue, "total_lines" | "unattributed" | "balance" | "speakers"> &
     Partial<Pick<NumbersDialogue, "pairs" | "monologue_scenes">>;
   prose: NumbersProse | null;
@@ -57,10 +63,11 @@ function charts(
   characters: Character[],
   beats: Beat[],
   storyPov: string | null | undefined,
+  unit: Unit,
 ) {
   const rotation = povRotation(scenes, storyPov, characters);
   return {
-    bars: pacing(scenes, cast),
+    bars: pacing(scenes, cast, unit),
     beats: beatMarks(beats, scenes),
     lanes: threadLanes(threads, scenes),
     cast: castGrid(characters, scenes, cast, 3, rotation.perScene),
@@ -88,13 +95,25 @@ export function liveFigures(
   const scenes = sceneLeaves(live.structure, live.activeTemplate);
   const cast = new Map((live.sceneCast?.scenes ?? []).map((e) => [e.node_id, e]));
   const sheet = live.beatSheets.find((b) => b.id === live.beatSheetId);
+  const unit: Unit = data.pages ? "eighths" : "words";
   return {
     ...data,
+    unit,
+    pages: data.pages ?? null,
     findings: live.findings,
     scenes,
     characters: live.characters,
     threads: live.threads,
-    ...charts(scenes, cast, live.structure, live.threads, live.characters, sheet?.beats ?? [], live.storyPov),
+    ...charts(
+      scenes,
+      cast,
+      live.structure,
+      live.threads,
+      live.characters,
+      sheet?.beats ?? [],
+      live.storyPov,
+      unit,
+    ),
   };
 }
 
@@ -107,6 +126,7 @@ export function readingFigures(r: ReadingData): Figures {
         title: s.title,
         parent_id: s.parent_id,
         word_count: s.words,
+        line_count: s.lines ?? 0,
         status: s.status,
         beat_id: s.beat_id,
         pov_character_id: s.pov,
@@ -149,8 +169,12 @@ export function readingFigures(r: ReadingData): Figures {
   );
   const chapters = r.chapters.map((c) => ({ id: c.id, title: c.title }) as unknown as StructureNode);
   const beats = r.beats.map((b) => ({ id: b.id, name: b.name, position_pct: b.at * 100 }) as unknown as Beat);
+  // A script's reading from before readings kept pages is drawn in words, as it was measured.
+  const unit: Unit = r.pages ? "eighths" : "words";
   return {
+    unit,
     words: r.words,
+    pages: r.pages ?? null,
     dialogue: r.dialogue,
     prose: r.prose,
     summaries: r.summaries,
@@ -158,6 +182,6 @@ export function readingFigures(r: ReadingData): Figures {
     scenes,
     characters,
     threads,
-    ...charts(scenes, cast, chapters, threads, characters, beats, r.story_pov),
+    ...charts(scenes, cast, chapters, threads, characters, beats, r.story_pov, unit),
   };
 }
