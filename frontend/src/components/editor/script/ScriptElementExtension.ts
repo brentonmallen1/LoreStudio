@@ -20,6 +20,7 @@ import {
   TAB_NEXT,
   type ScriptElement,
 } from "../../../lib/script/syntax";
+import { markUsed } from "../../../stores/typingStore";
 
 /**
  * A screenplay in the editor (doc 25). Every block is one element (scene heading, action,
@@ -162,12 +163,15 @@ function enter(editor: Editor, format: string): boolean {
   ]);
   tr.setSelection(TextSelection.create(tr.doc, at + 2));
   view.dispatch(typed ? closeHistory(tr) : tr);
+  markUsed("script-enter");
   return true;
 }
 
 function cycle(editor: Editor, table: Record<ScriptElement, ScriptElement>): boolean {
   if (editor.state.selection.$from.parent.type.name !== "paragraph") return false;
-  return setElement(editor, table[elementAt(editor.state)]);
+  if (!setElement(editor, table[elementAt(editor.state)])) return false;
+  markUsed("script-tab");
+  return true;
 }
 
 /** Blocks from Fountain-style text, ready to paste. */
@@ -211,17 +215,21 @@ export const ScriptKeys = Extension.create<{ format: string }>({
       "Shift-Tab": ({ editor }) => !picking() && cycle(editor, SHIFT_TAB_NEXT),
     };
     for (const [id, el] of ELEMENT_KEYS)
-      keys[editorKey(SHORTCUTS[id].combo)] = ({ editor }) => setElement(editor, el);
+      keys[editorKey(SHORTCUTS[id].combo)] = ({ editor }) => {
+        if (!setElement(editor, el)) return false;
+        markUsed("script-keys");
+        return true;
+      };
     return keys;
   },
 
   addInputRules() {
     // "INT. " or "EXT. " at the start of an action line starts a scene heading; in a play,
     // "SCENE 2 " or "ACT ONE ".
-    const find =
-      this.options.format === "stage_play"
-        ? /^(act|scene) ([0-9]+|[ivxlc]+|one|two|three|four|five|six|seven|eight|nine|ten) $/i
-        : /^(int|ext|est|i\/e|int\.?\/ext|ext\.?\/int)\. $/i;
+    const play = this.options.format === "stage_play";
+    const find = play
+      ? /^(act|scene) ([0-9]+|[ivxlc]+|one|two|three|four|five|six|seven|eight|nine|ten) $/i
+      : /^(int|ext|est|i\/e|int\.?\/ext|ext\.?\/int)\. $/i;
     return [
       new InputRule({
         find,
@@ -231,6 +239,7 @@ export const ScriptKeys = Extension.create<{ format: string }>({
           if (el && el !== "action") return null;
           state.tr.insertText(match[0].toUpperCase(), range.from, range.to);
           state.tr.setNodeMarkup($from.before(), undefined, { ...$from.parent.attrs, el: "heading" });
+          markUsed(play ? "stage-marker" : "script-heading");
         },
       }),
     ];
@@ -255,6 +264,7 @@ export const ScriptKeys = Extension.create<{ format: string }>({
                 to,
               );
               view.dispatch(tr.setSelection(TextSelection.create(tr.doc, from + 1)));
+              markUsed("script-paren");
               return true;
             }
             if (text === ")" && from === to && state.doc.textBetween(from, from + 1) === ")") {
@@ -276,6 +286,7 @@ export const ScriptKeys = Extension.create<{ format: string }>({
             const nodes = blocksFrom(view.state.schema, text, format);
             if (!nodes.length) return false;
             view.dispatch(view.state.tr.replaceSelection(new Slice(Fragment.fromArray(nodes), 0, 0)));
+            markUsed("fountain-paste");
             return true;
           },
         },

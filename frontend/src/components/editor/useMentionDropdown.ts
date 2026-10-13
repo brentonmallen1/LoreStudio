@@ -26,6 +26,7 @@ import {
 } from "../story/MentionDropdown";
 import { FORCE_DIALOGUE_KEY, likelySpeaker } from "../story/DialogueExtension";
 import { writeSpokenLine } from "../../lib/prose/writeLine";
+import { markUsed } from "../../stores/typingStore";
 import { formatOf } from "../../lib/storyFormat";
 
 interface Args {
@@ -208,6 +209,22 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
         })
         .run();
       setOpen(false);
+      // Which helper did this (doc 26): the Typing guide and the tips know it from now on.
+      markUsed(
+        wrap
+          ? "attribute"
+          : mode === "mention"
+            ? choice.kind === "character"
+              ? "mention"
+              : "place"
+            : mode === "cue"
+              ? "script-cue"
+              : mode === "speaker"
+                ? "tag"
+                : mode === "line"
+                  ? "line"
+                  : "place",
+      );
     },
     [editor, setOpen],
   );

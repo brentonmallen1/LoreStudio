@@ -6,6 +6,7 @@ import { toast } from "../../stores/toastStore";
 import type { StoryFormat } from "../../types";
 import { toggleDual } from "./script/dualDialogue";
 import { setElement } from "./script/ScriptElementExtension";
+import { markUsed } from "../../stores/typingStore";
 
 interface Args {
   editor: Editor | null;
@@ -47,10 +48,15 @@ export function useSlashCommands({ editor, format, openDialoguePicker, addNote, 
     // The typed "/query" goes, and for a picker its own opening characters take its place.
     const text = action.kind === "type" ? action.text : "";
     editor.view.dispatch(editor.state.tr.insertText(text, slashFrom, slashTo));
+    markUsed("slash");
     if (action.kind === "dialogue") openDialoguePicker();
-    else if (action.kind === "note" || action.kind === "todo") addNote(action.kind);
-    else if (action.kind === "image") insertImage();
-    else if (action.kind === "element") setElement(editor, action.el);
+    else if (action.kind === "note" || action.kind === "todo") {
+      addNote(action.kind);
+      markUsed(action.kind);
+    } else if (action.kind === "image") {
+      insertImage();
+      markUsed("image");
+    } else if (action.kind === "element") setElement(editor, action.el);
     else if (action.kind === "together" && toggleDual(editor) === "none")
       toast.info(
         "Put the cursor in a speech that follows another; the two are then spoken at the same time.",
