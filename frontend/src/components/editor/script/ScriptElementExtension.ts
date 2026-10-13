@@ -101,11 +101,14 @@ function ownHeading(doc: PMNode): number {
   return headingAt(blocks);
 }
 
+/** A heading with words: an empty line set to heading (Enter after a transition) is not one yet. */
+const typedHeading = (node: PMNode) => node.attrs.el === "heading" && !!node.textContent.trim();
+
 /** Where the cursor's heading starts, when it is a heading below the scene's own. */
 export function headingBelowTop(editor: Editor): number | null {
   const { $from } = editor.state.selection;
   if ($from.depth < 1 || $from.index(0) <= ownHeading(editor.state.doc)) return null;
-  return $from.node(1).attrs.el === "heading" ? $from.before(1) : null;
+  return typedHeading($from.node(1)) ? $from.before(1) : null;
 }
 
 /** Where each heading below the scene's own starts: each starts another scene (several pasted). */
@@ -113,7 +116,7 @@ export function headingsBelowTop(doc: PMNode): number[] {
   const own = ownHeading(doc);
   const out: number[] = [];
   doc.forEach((node, offset, index) => {
-    if (index > own && node.attrs.el === "heading") out.push(offset);
+    if (index > own && typedHeading(node)) out.push(offset);
   });
   return out;
 }

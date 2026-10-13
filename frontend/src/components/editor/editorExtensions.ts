@@ -14,6 +14,7 @@ import { UnifiedUndoExtension } from "./UnifiedUndoExtension";
 import { ScriptElementAttribute, ScriptKeys } from "./script/ScriptElementExtension";
 import { ScriptComplete } from "./script/ScriptComplete";
 import { ScriptGuide } from "./script/ScriptGuide";
+import { LineOfferExtension } from "./script/LineOfferExtension";
 
 /**
  * The scene editor's extensions for a story's format (doc 25). Both formats write with the
@@ -39,6 +40,7 @@ export function editorExtensions(format: StoryFormat): AnyExtension[] {
           ScriptKeys.configure({ format }),
           ScriptGuide.configure({ format }),
           ScriptComplete.configure({ format }),
+          LineOfferExtension,
         ]
       : [Typography]),
     ScriptElementAttribute,

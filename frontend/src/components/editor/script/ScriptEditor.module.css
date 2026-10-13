@@ -195,6 +195,13 @@
   text-align: center;
 }
 
+/* An offer about the line above it (LineOffer.tsx): tucked under that line, in the gap before
+   the next, so it reads as part of the line and covers nothing. */
+.script :global(.ProseMirror .script-line-offer) {
+  margin: -1.1em 0 1.3em;
+  user-select: none;
+}
+
 /* SmartType's offer (ScriptComplete.ts): the rest of the word, faint, until Tab takes it. */
 .script :global(.ProseMirror .script-ghost) {
   color: var(--color-text-subtle);

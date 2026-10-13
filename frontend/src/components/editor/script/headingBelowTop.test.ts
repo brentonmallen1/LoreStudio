@@ -56,4 +56,13 @@ describe("headingBelowTop", () => {
     expect(below).toHaveLength(2);
     expect(getHTMLFromFragment(ed.state.doc.content.cut(0, below[0]), ed.state.schema)).toBe(TOP);
   });
+
+  it("is nothing on an empty line set to heading, as Enter after a transition leaves one", () => {
+    const empty = TOP + '<p data-el="transition">BLACKOUT.</p><p data-el="heading"></p>';
+    editor = new Editor({ extensions: [proseStarterKit(), ScriptElementAttribute], content: empty });
+    const end = editor.state.doc.content.size - 1;
+    editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, end)));
+    expect(headingBelowTop(editor)).toBeNull();
+    expect(headingsBelowTop(editor.state.doc)).toEqual([]);
+  });
 });

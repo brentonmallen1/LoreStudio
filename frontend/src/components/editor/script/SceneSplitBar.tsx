@@ -7,13 +7,13 @@ import { reloadStructure } from "../../../lib/story/loadStory";
 import { loadScene } from "../../../lib/undo/sceneHistory";
 import { useStoryStore } from "../../../stores/storyStore";
 import { toast } from "../../../stores/toastStore";
-import banner from "../DraftBanner.module.css";
+import { LineOffer } from "./LineOffer";
 import styles from "./SceneSplitBar.module.css";
 import { headingBelowTop, headingsBelowTop, setElementAt } from "./ScriptElementExtension";
 
 /**
  * A script scene is one heading (doc 25, D3). A heading typed further down starts another
- * scene: this quiet bar offers to start it there, or to keep the words as an action line.
+ * scene: a quiet line under it offers to start it there, or to keep the words as an action line.
  * The split saves first, then the server cuts the scene in one change ⌘Z takes back whole.
  * Several scenes pasted at once are offered as a whole: each starts at its heading (P6).
  */
@@ -77,34 +77,36 @@ export default function SceneSplitBar({ editor, flush }: { editor: Editor; flush
     editor.commands.focus();
   }
 
+  const centred = useStoryStore((s) => s.activeStory?.story_format === "stage_play");
   if (many >= 2) {
     return (
-      <div className={styles.bar} role="status">
-        <span>This scene holds {many} more scenes, each with its own heading.</span>
-        <span className={banner.actions}>
-          <button className={banner.btn} disabled={busy} onClick={() => void splitAll()}>
+      <LineOffer editor={editor} id="split" pos={below[0]}>
+        <span className={styles.offer} data-centred={centred || undefined} role="status">
+          <span>This scene holds {many} more scenes, each with its own heading</span>
+          <button className={styles.action} disabled={busy} onClick={() => void splitAll()}>
             Start each as a scene
           </button>
-          <button className={banner.btn} disabled={busy} onClick={keepAsLines}>
+          <button className={styles.action} disabled={busy} onClick={keepAsLines}>
             Keep as one scene
           </button>
         </span>
-      </div>
+      </LineOffer>
     );
   }
 
-  if (at === null) return null;
   return (
-    <div className={styles.bar} role="status">
-      <span>This heading starts another scene.</span>
-      <span className={banner.actions}>
-        <button className={banner.btn} disabled={busy} onClick={() => void split(at)}>
-          Start a new scene here
-        </button>
-        <button className={banner.btn} disabled={busy} onClick={() => keepAsLine(at)}>
-          Keep as a line
-        </button>
-      </span>
-    </div>
+    <LineOffer editor={editor} id="split" pos={at}>
+      {at !== null && (
+        <span className={styles.offer} data-centred={centred || undefined} role="status">
+          <span>Starts another scene</span>
+          <button className={styles.action} disabled={busy} onClick={() => void split(at)}>
+            Start it here
+          </button>
+          <button className={styles.action} disabled={busy} onClick={() => keepAsLine(at)}>
+            Keep as a line
+          </button>
+        </span>
+      )}
+    </LineOffer>
   );
 }
