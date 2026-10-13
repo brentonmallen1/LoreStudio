@@ -39,15 +39,38 @@ EXTRA: list[tuple[str, Seeder]] = [
 SAMPLE_TITLES = sample_titles.ALL
 
 
+#: A sample built on another: the series carries on from the novel, so loading it loads that.
+NEEDS: dict[str, str] = {sample_titles.SERIES: sample_titles.NOVEL}
+
+TITLES = [title for title, _ in DEMO + EXTRA]
+
+
 def missing(db: Session, user: User) -> list[str]:
     """The samples this account does not have (by title: one it renamed counts as missing)."""
     have = {title for (title,) in db.query(Story.title).filter(Story.user_id == user.id)}
-    return [title for title, _ in DEMO + EXTRA if title not in have and sample_titles.OLD[title] not in have]
+    return [title for title in TITLES if title not in have and sample_titles.OLD[title] not in have]
 
 
-def add_missing(db: Session, user: User) -> list[str]:
-    """Add every missing sample to this account; the titles added, in order."""
-    wanted = missing(db, user)
+def listing(db: Session, user: User) -> list[dict]:
+    """Every sample, in order: whether this account has it, and what loading it loads first."""
+    gone = set(missing(db, user))
+    return [
+        {
+            "title": title,
+            "loaded": title not in gone,
+            "needs": [NEEDS[title]] if title in NEEDS and NEEDS[title] in gone else [],
+        }
+        for title in TITLES
+    ]
+
+
+def add_missing(db: Session, user: User, titles: list[str] | None = None) -> list[str]:
+    """Add the chosen samples this account is missing (every one, without a choice), and what
+    they are built on; the titles added, in order."""
+    gone = missing(db, user)
+    chosen = set(gone if titles is None else titles)
+    chosen |= {NEEDS[t] for t in chosen if t in NEEDS}
+    wanted = [title for title in gone if title in chosen]
     for title, seeder in DEMO + EXTRA:
         if title in wanted:
             seeder(user.id)  # in its own session: what it adds is committed when it returns

@@ -74,18 +74,36 @@ def run_backup_now(db: Session = Depends(get_db), current_user: User = Depends(g
     }
 
 
+def _samples(db: Session, user: User) -> dict:
+    return {"available": True, "missing": examples.missing(db, user), "samples": examples.listing(db, user)}
+
+
 @router.get("/system/examples")
 def example_stories(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """Which samples this account does not have yet (doc 26, P7: every account can load them)."""
-    return {"available": True, "missing": examples.missing(db, current_user)}
+    """Every sample, and which this account does not have yet (doc 26, P7: every account can
+    load them, one at a time or all)."""
+    return _samples(db, current_user)
+
+
+class SampleChoice(BaseModel):
+    #: The samples to load; none named, every one missing.
+    titles: list[str] | None = None
 
 
 @router.post("/system/examples")
-def add_example_stories(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """Load the samples this account does not have yet (Getting started, Settings › Account,
-    the empty dashboard)."""
-    added = examples.add_missing(db, current_user)
-    return {"added": added, "missing": examples.missing(db, current_user)}
+def add_example_stories(
+    body: SampleChoice | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Load the chosen samples, or every one this account does not have yet (Getting started,
+    Settings › Account)."""
+    titles = body.titles if body else None
+    unknown = sorted(set(titles or ()) - set(examples.TITLES))
+    if unknown:
+        raise HTTPException(status_code=400, detail=f"No sample called “{unknown[0]}”.")
+    added = examples.add_missing(db, current_user, titles)
+    return {"added": added, **_samples(db, current_user)}
 
 
 @router.post("/system/tutorial")

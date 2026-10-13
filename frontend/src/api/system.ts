@@ -1,10 +1,18 @@
 import { request } from "./request";
 import type { UpdateStatus } from "../types/system";
 
-/** Which example stories this account could add (only the admin account the app made can). */
+/** One sample (doc 26, P7): whether this library has it, and what loading it loads first. */
+export interface Sample {
+  title: string;
+  loaded: boolean;
+  needs: string[];
+}
+
+/** Every sample, and the ones this account does not have yet. */
 export interface ExampleStories {
   available: boolean;
   missing: string[];
+  samples: Sample[];
 }
 
 /** Updates and the example stories: kept out of client.ts (size budget). */
@@ -14,9 +22,12 @@ export const systemApi = {
   /** Ask GitHub now. */
   checkForUpdate: () => request<UpdateStatus>("/system/update/check", { method: "POST" }),
   exampleStories: () => request<ExampleStories>("/system/examples"),
-  /** Adds what is missing; the titles added, and what is still missing. */
-  addExampleStories: () =>
-    request<{ added: string[]; missing: string[] }>("/system/examples", { method: "POST" }),
+  /** Loads the samples named, or every one missing; the titles added, and the list again. */
+  addExampleStories: (titles?: string[]) =>
+    request<ExampleStories & { added: string[] }>("/system/examples", {
+      method: "POST",
+      body: JSON.stringify(titles ? { titles } : {}),
+    }),
   /** The tutorial stories, made the first time an account asks (doc 26, P6); the titles made. */
   ensureTutorial: () => request<{ made: string[] }>("/system/tutorial", { method: "POST" }),
   /** A fresh copy of one tutorial story (Guides › Start the tutorial again). */

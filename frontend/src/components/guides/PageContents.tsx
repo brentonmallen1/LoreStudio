@@ -94,12 +94,31 @@ export default function PageContents({
       chosen.current = null;
       return;
     }
-    const frame = requestAnimationFrame(() => {
+    const go = () => {
       scrollToId(id, false);
       setActive(id);
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [hash, guideKey]);
+    };
+    const frame = requestAnimationFrame(go);
+    // A piece above or at the section can still be loading (the samples' list): while the
+    // guide settles, it goes there again each time the page changes size, until the reader
+    // scrolls themselves.
+    const root = article.current;
+    const settle = root && typeof ResizeObserver !== "undefined" ? new ResizeObserver(go) : null;
+    if (root) settle?.observe(root);
+    const stop = () => settle?.disconnect();
+    const timer = window.setTimeout(stop, 2000);
+    window.addEventListener("wheel", stop, { once: true, passive: true });
+    window.addEventListener("touchmove", stop, { once: true, passive: true });
+    window.addEventListener("keydown", stop, { once: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+      stop();
+      window.removeEventListener("wheel", stop);
+      window.removeEventListener("touchmove", stop);
+      window.removeEventListener("keydown", stop);
+    };
+  }, [article, hash, guideKey]);
 
   if (headings.length < 2) return <div className={styles.empty} />;
 

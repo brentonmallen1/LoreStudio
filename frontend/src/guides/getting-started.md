@@ -62,7 +62,7 @@ Two stories teach LoreStudio by doing: **Learn LoreStudio** for prose and **Lear
 
 ## Samples
 
-Stories filled in to show what LoreStudio does, each titled for what it is: _Sample: Novel · The Last Lighthouse_, the same story as a screenplay and a stage play, a short story, flash fiction, a first-person story and a series. None is loaded until you ask: load them here, or with **Load samples** on your stories page while any is missing. Delete any you are done with; load them again the same way.
+Stories filled in to show what LoreStudio does, each titled for what it is: _Sample: Novel · The Last Lighthouse_, the same story as a screenplay and a stage play, a short story, flash fiction, a first-person story and a series. None is loaded until you ask: load one at a time, or all of them, here or in **Settings › Account**. **Load samples** on your stories page brings you here while any is missing. Delete any you are done with and load it again whenever you like.
 
 <!-- samples -->
 

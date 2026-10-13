@@ -15,6 +15,14 @@ from app.services.series import service as series_service
 ALL = [title for title, _ in examples.DEMO + examples.EXTRA]
 
 
+def _load(client, *titles):
+    """POST /system/examples (every missing sample, or the ones named): what was added and
+    what is still missing."""
+    body = {"titles": list(titles)} if titles else None
+    out = client.post("/api/system/examples", json=body).json()
+    return {"added": out["added"], "missing": out["missing"]}
+
+
 @pytest.fixture
 def seeds(db_session: Session, monkeypatch):
     """The seeders write through the test database."""
@@ -25,15 +33,17 @@ def seeds(db_session: Session, monkeypatch):
 
 
 def test_an_account_loads_every_missing_sample_once(client, db_session, test_user, seeds):
-    assert client.get("/api/system/examples").json() == {"available": True, "missing": ALL}
+    listed = client.get("/api/system/examples").json()
+    assert listed["missing"] == ALL
+    assert [(x["title"], x["loaded"]) for x in listed["samples"]] == [(t, False) for t in ALL]
 
-    first = client.post("/api/system/examples").json()
+    first = _load(client)
     assert first == {"added": ALL, "missing": []}
     titles = {t for (t,) in db_session.query(Story.title).filter(Story.user_id == test_user.id)}
     assert titles >= set(ALL), "the series also plans its third book"
     count = db_session.query(Story).count()
 
-    assert client.post("/api/system/examples").json() == {"added": [], "missing": []}
+    assert _load(client) == {"added": [], "missing": []}
     assert db_session.query(Story).count() == count
 
 
@@ -44,7 +54,7 @@ def test_only_what_was_deleted_comes_back(client, db_session, seeds):
     db_session.commit()
 
     assert client.get("/api/system/examples").json()["missing"] == [sample_titles.SHORT]
-    assert client.post("/api/system/examples").json() == {"added": [sample_titles.SHORT], "missing": []}
+    assert _load(client) == {"added": [sample_titles.SHORT], "missing": []}
 
 
 def test_a_sample_under_its_old_title_is_not_loaded_again(client, db_session, test_user, seeds):
@@ -74,7 +84,7 @@ def test_two_accounts_can_both_load_every_sample(client, db_session, test_user, 
     db_session.commit()
     for _, seeder in examples.DEMO + examples.EXTRA:
         seeder(other.id)
-    assert client.post("/api/system/examples").json() == {"added": ALL, "missing": []}
+    assert _load(client) == {"added": ALL, "missing": []}
 
 
 def _delete(client, db_session, *titles):
@@ -102,7 +112,7 @@ def test_the_series_comes_back_with_book_one_kept(client, db_session, seeds, gon
     client.post("/api/system/examples")
     _delete(client, db_session, *gone)
 
-    assert client.post("/api/system/examples").json() == {"added": [sample_titles.SERIES], "missing": []}
+    assert _load(client) == {"added": [sample_titles.SERIES], "missing": []}
     assert _series_books(db_session) == SERIES_BOOKS
 
 
@@ -136,7 +146,7 @@ def test_the_novel_loaded_again_is_book_one_of_the_series(client, db_session, se
     client.post("/api/system/examples")
     _delete(client, db_session, sample_titles.NOVEL)
 
-    assert client.post("/api/system/examples").json() == {"added": [sample_titles.NOVEL], "missing": []}
+    assert _load(client) == {"added": [sample_titles.NOVEL], "missing": []}
     assert _series_books(db_session) == SERIES_BOOKS
     novel = db_session.query(Story).filter(Story.title == sample_titles.NOVEL).one()
     eleanor = (
@@ -145,3 +155,25 @@ def test_the_novel_loaded_again_is_book_one_of_the_series(client, db_session, se
     assert series_service.element_for_row(db_session, "characters", eleanor.id) is not None, (
         "carried on into the sequel"
     )
+
+
+def test_one_sample_loads_on_its_own(client, db_session, seeds):
+    assert _load(client, sample_titles.SHORT) == {
+        "added": [sample_titles.SHORT],
+        "missing": [t for t in ALL if t != sample_titles.SHORT],
+    }
+    listed = {x["title"]: x["loaded"] for x in client.get("/api/system/examples").json()["samples"]}
+    assert listed[sample_titles.SHORT] and not listed[sample_titles.NOVEL], "every sample is still listed"
+    assert _load(client, sample_titles.SHORT)["added"] == [], "one already loaded is not loaded again"
+
+
+def test_the_series_loads_the_novel_it_is_built_on(client, db_session, seeds):
+    series = next(x for x in client.get("/api/system/examples").json()["samples"] if x["title"] == sample_titles.SERIES)
+    assert series["needs"] == [sample_titles.NOVEL]
+
+    assert _load(client, sample_titles.SERIES)["added"] == [sample_titles.NOVEL, sample_titles.SERIES]
+    assert _series_books(db_session) == SERIES_BOOKS
+
+
+def test_a_sample_not_in_the_list_is_refused(client, seeds):
+    assert client.post("/api/system/examples", json={"titles": ["Sample: Poem · Nothing"]}).status_code == 400
