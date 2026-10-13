@@ -76,18 +76,14 @@ def run_backup_now(db: Session = Depends(get_db), current_user: User = Depends(g
 
 @router.get("/system/examples")
 def example_stories(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """Which example stories this account could add: none unless it is the admin account the
-    app made, which is where the examples go."""
-    if not examples.is_examples_account(current_user):
-        return {"available": False, "missing": []}
+    """Which samples this account does not have yet (doc 26, P7: every account can load them)."""
     return {"available": True, "missing": examples.missing(db, current_user)}
 
 
 @router.post("/system/examples")
 def add_example_stories(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """Add the example stories this account does not have yet (the dashboard, Settings › Account)."""
-    if not examples.is_examples_account(current_user):
-        raise HTTPException(status_code=403, detail="Only the admin account holds the example stories")
+    """Load the samples this account does not have yet (Getting started, Settings › Account,
+    the empty dashboard)."""
     added = examples.add_missing(db, current_user)
     return {"added": added, "missing": examples.missing(db, current_user)}
 

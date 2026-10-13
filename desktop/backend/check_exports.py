@@ -1,4 +1,4 @@
-"""Smoke-check a running desktop backend: sign in, export the demo story in each format
+"""Smoke-check a running desktop backend: sign in, load the samples, export the sample novel in each format
 WeasyPrint and pandoc serve, and run the local prose checks (spaCy).
 
     python desktop/backend/check_exports.py <port> <data-dir> [out-dir]
@@ -27,7 +27,9 @@ def call(path, body=None, token=None, raw=False):
 
 password = (data / ".admin_password").read_text().strip()
 token = call("/auth/login", {"username": "admin", "password": password})["access_token"]
-story = next(s for s in call("/stories", token=token) if s["title"] == "The Last Lighthouse")
+# A fresh install holds only the tutorials; the samples load on request (doc 26, P7).
+call("/system/examples", {}, token)
+story = next(s for s in call("/stories", token=token) if s["title"] == "Sample: Novel · The Last Lighthouse")
 print("signed in; story:", story["title"])
 failed = []
 

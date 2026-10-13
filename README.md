@@ -170,7 +170,7 @@ One switch turns it off, and Writer mode removes it entirely.
 ### Desktop app
 
 LoreStudio runs as an app in its own window, with no server to set up and nothing else to
-install: exports, the writing checks and the demo story are all inside. Only
+install: exports, the writing checks, the tutorials and the samples are all inside. Only
 [Ollama](https://ollama.com), for the optional AI, is separate. Download it from the
 [latest release](https://github.com/brentonmallen1/LoreStudio/releases/latest).
 
@@ -211,8 +211,9 @@ echo "ADMIN_PASSWORD=a-strong-password" > .env
 docker compose up -d
 ```
 
-Open <http://localhost:8080> and sign in as `admin`. The demo story, "The Last Lighthouse", shows
-how everything is meant to be used. For AI, point `OLLAMA_BASE_URL` at your Ollama and
+Open <http://localhost:8080> and sign in as `admin`. Two tutorial stories, Learn LoreStudio and
+Learn Screenplays, teach it a lesson a scene; the samples, loaded from Guides › Getting started,
+show how everything is meant to be used. For AI, point `OLLAMA_BASE_URL` at your Ollama and
 `ollama pull gemma4`.
 
 **On Unraid**, add `https://github.com/brentonmallen1/LoreStudio` under *Docker → Template

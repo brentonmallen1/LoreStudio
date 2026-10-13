@@ -103,4 +103,4 @@ A novel you have written can be told again as a script, and the novel stays as i
 
 The script is a whole new story, so {{key:undo}} does not unmake it; delete it from the dashboard if you change your mind.
 
-The demo story _The Last Lighthouse: The Screenplay_ is the novel's first three scenes written for the screen, and _A Play in One Act_ tells the same night on stage. Open **The novel** beside either to read the novel's version of each scene.
+The samples _Sample: Screenplay · The Last Lighthouse_ and _Sample: Stage play · The Last Lighthouse_ tell the novel's first night for the screen and the stage; load them from [Getting started](/guides/getting-started). Open **The novel** beside either to read the novel's version of each scene.

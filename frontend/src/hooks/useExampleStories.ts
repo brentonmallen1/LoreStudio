@@ -4,8 +4,9 @@ import { systemApi, type ExampleStories } from "../api/system";
 import { useStoryStore } from "../stores/storyStore";
 import { toast } from "../stores/toastStore";
 
-/** The example stories the admin account does not have yet, and a way to add them (the
- * dashboard's empty state, Settings › Account). The story list is refreshed after adding. */
+/** The samples this account does not have yet, and a way to load them (doc 26, P7: Getting
+ * started, Settings › Account, the palette, the empty dashboard). The story list is refreshed
+ * after loading. */
 export function useExampleStories() {
   const [state, setState] = useState<ExampleStories>({ available: false, missing: [] });
   const [adding, setAdding] = useState(false);
@@ -24,9 +25,9 @@ export function useExampleStories() {
       const { added, missing } = await systemApi.addExampleStories();
       setState({ available: true, missing });
       setStories(await api.listStories());
-      toast.success(added.length === 1 ? `Added "${added[0]}".` : `Added ${added.length} example stories.`);
+      toast.success(added.length === 1 ? `Loaded "${added[0]}".` : `Loaded ${added.length} samples.`);
     } catch {
-      toast.error("The example stories could not be added.");
+      toast.error("The samples could not be loaded.");
     } finally {
       setAdding(false);
     }

@@ -12,8 +12,8 @@ The all-in-one container is the simple way: one container, one port, one appdata
    - **Admin Password** (required): the password for the `admin` account.
    - **Data**: `/mnt/user/appdata/lorestudio` unless you keep appdata elsewhere.
    - **Ollama URL** and **Ollama Model** if you want the AI features (see below).
-4. **Apply**, wait for the container to show *healthy* (the first start migrates and seeds the
-   demo story, about a minute), then open the WebUI and sign in as `admin`.
+4. **Apply**, wait for the container to show *healthy* (the first start migrates the database,
+   about a minute), then open the WebUI and sign in as `admin`.
 
 Left empty, **Secret Key** is made on first start and kept in the data folder
 (`.secret_key`), so sign-ins survive restarts and updates. **PUID/PGID** default to Unraid's

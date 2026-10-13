@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.models.activity_log import ActivityLog
 from app.models.ai_job import AIJob
 from app.models.story import Story
-from app.services import seed
+from app.services import sample_titles, seed
 from app.services.findings import collect
 
 
@@ -16,7 +16,7 @@ def test_the_lighthouse_has_a_check_finished_while_away_and_a_stopped_pass(db_se
     seed.seed_admin()
     seed.seed_demo_story()
 
-    story = db_session.query(Story).filter(Story.title == "The Last Lighthouse").one()
+    story = db_session.query(Story).filter(Story.title == sample_titles.NOVEL).one()
     jobs = {j.kind: j for j in db_session.query(AIJob).filter(AIJob.story_id == story.id)}
     check, stopped = jobs["check"], jobs["editorial-pass"]
     # Only the check is unseen: the header opens on its dot, not on old work.

@@ -23,7 +23,7 @@ Studio adds the **Assistant** and the other AI tools. They answer questions and 
 
 Already have a draft? **Import** on your stories page brings it in. See [Import and export](/guides/import-and-export).
 
-> **Tip:** If _The Last Lighthouse_ is on your stories page, open it. It is a demo story with every part of LoreStudio filled in, so you can see what each page looks like in use.
+> **Tip:** The samples, under Samples below, are stories with every part of LoreStudio filled in. Load them and open _Sample: Novel · The Last Lighthouse_ to see what each page looks like in use.
 
 ## Finding your way around
 
@@ -59,6 +59,12 @@ LoreStudio also runs as an app on Macs with Apple silicon. **Settings › About 
 Two stories teach LoreStudio by doing: **Learn LoreStudio** for prose and **Learn Screenplays** for scripts. Each scene is a lesson, with a card above the text saying what to try and ticking off what you do. A new account starts with both; delete them when you are done. Make a copy here at any time; one you already have stays, with whatever you wrote in it.
 
 <!-- tutorial -->
+
+## Samples
+
+Stories filled in to show what LoreStudio does, each titled for what it is: _Sample: Novel · The Last Lighthouse_, the same story as a screenplay and a stage play, a short story, flash fiction, a first-person story and a series. None is loaded until you ask. Delete any you are done with; load them again here.
+
+<!-- samples -->
 
 ## Where to go next
 

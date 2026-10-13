@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.models.dialogue import DialogueBlock
 from app.models.story import Story
 from app.models.structure import StructureNode
-from app.services import seed
+from app.services import sample_titles, seed
 from app.services.dialogue_service import sync_story_dialogue
 from app.services.proposals.sources import unattributed
 
@@ -18,7 +18,7 @@ def test_the_demo_leaves_only_one_scene_for_tag_them(db_session: Session, monkey
     seed.seed_beat_sheets()
     seed.seed_admin()
     seed.seed_demo_story()
-    story = db_session.query(Story).filter(Story.title == "The Last Lighthouse").one()
+    story = db_session.query(Story).filter(Story.title == sample_titles.NOVEL).one()
 
     sync_story_dialogue(story.id, db_session)
 

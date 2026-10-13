@@ -12,17 +12,17 @@ from html import escape
 
 from sqlalchemy.orm import Session
 
-from ..config import settings
 from ..database import engine
-from ..models import Character, Location, Story, User
+from ..models import Character, Location, Story
 from ..models.location import SceneSetting
 from ..models.structure import StructureNode
+from . import sample_titles
 from .script_scene import derive_heading
 from .script_syntax import shown_cue
 from .word_count import recount_story
 
-TITLE = "The Last Lighthouse: The Screenplay"
-NOVEL = "The Last Lighthouse"
+TITLE = sample_titles.SCREENPLAY
+NOVEL = sample_titles.NOVEL
 
 THE_LIGHT = [
     ("heading", "INT. LIGHTHOUSE, LAMP ROOM - DUSK"),
@@ -111,7 +111,7 @@ def adapted_from_novel(db: Session, script: Story, pairs: dict[str, str]) -> Non
     """The demo script told from the novel (doc 25, P10): each scene paired with the novel's
     scene it tells (script title -> novel title), so The novel shows its prose beside it. Not
     put in the novel's series: the series demo is about its sequel."""
-    novel = db.query(Story).filter(Story.user_id == script.user_id, Story.title == NOVEL).first()
+    novel = sample_titles.find(db, script.user_id, NOVEL)
     if novel is None:
         return
     script.adapted_from_id = novel.id
@@ -120,14 +120,14 @@ def adapted_from_novel(db: Session, script: Story, pairs: dict[str, str]) -> Non
         node.adapted_from_id = theirs.get(pairs.get(node.title, ""))
 
 
-def seed_screenplay_demo() -> None:
+def seed_screenplay_demo(user_id: str | None = None) -> None:
     with Session(engine) as db:
-        admin = db.query(User).filter(User.username == settings.admin_username).first()
-        if not admin or db.query(Story).filter(Story.title == TITLE).first():
+        owner = sample_titles.owner(db, user_id)
+        if not owner or sample_titles.find(db, owner.id, TITLE):
             return
 
         story = Story(
-            user_id=admin.id,
+            user_id=owner.id,
             title=TITLE,
             story_format="screenplay",
             structure_template_id="screenplay",

@@ -108,10 +108,10 @@ def seed_all() -> None:
     seed_admin()
     if settings.seed_demo:
         for _, seeder in examples.DEMO:
-            seeder()
+            seeder(None)
     if settings.seed_extra_demos:
         for _, seeder in examples.EXTRA:
-            seeder()
+            seeder(None)
 
 
 @asynccontextmanager

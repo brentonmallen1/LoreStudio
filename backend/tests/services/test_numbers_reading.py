@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.models.story import Story
 from app.models.structure import StructureNode
-from app.services import seed
+from app.services import sample_titles, seed
 from app.services.findings.view import load_view
 from app.services.nlp_runs import run_prose_analysis
 from app.services.numbers import dialogue, summaries, words
@@ -22,7 +22,7 @@ def demo(db_session: Session, monkeypatch) -> Story:
     seed.seed_beat_sheets()
     seed.seed_admin()
     seed.seed_demo_story()
-    return db_session.query(Story).filter(Story.title == "The Last Lighthouse").one()
+    return db_session.query(Story).filter(Story.title == sample_titles.NOVEL).one()
 
 
 def test_a_reading_matches_the_page(demo: Story, db_session: Session, client, test_user):

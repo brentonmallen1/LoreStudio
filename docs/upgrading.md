@@ -81,6 +81,16 @@ and dragging it over the old app does the same. See [desktop/README.md](../deskt
 
 ## Breaking changes
 
+### 2026.10, the tutorials and samples
+
+- **A fresh install loads no demo story.** Each account starts with two tutorial stories, Learn
+  LoreStudio and Learn Screenplays; the example stories are now samples, titled "Sample: Kind ·
+  Title", loaded by any account from Guides › Getting started or Settings › Account.
+  `SEED_DEMO` is off by default; set it to `true` for the old first start.
+- **An existing library is left as it is.** Samples it already holds keep their old titles and
+  are not loaded twice, and an account that already has stories of its own is not given the
+  tutorials (Getting started makes them on request).
+
 ### 2026.10 (doc 23)
 
 - **The images build from the repository root** and the web front listens on

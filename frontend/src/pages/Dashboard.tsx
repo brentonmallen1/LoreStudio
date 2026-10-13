@@ -286,7 +286,7 @@ export default function DashboardPage() {
                 {examples.canAdd && (
                   <button onClick={examples.add} disabled={examples.adding} className={styles.emptyImportBtn}>
                     <Library size={14} />
-                    {examples.adding ? "Adding…" : "Add example stories"}
+                    {examples.adding ? "Loading…" : "Load samples"}
                   </button>
                 )}
               </div>

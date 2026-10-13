@@ -29,7 +29,7 @@
   <!-- Advanced -->
   <Config Name="Admin Username" Target="ADMIN_USERNAME" Default="admin" Mode="" Description="The admin account's username." Type="Variable" Display="advanced" Required="false" Mask="false">admin</Config>
   <Config Name="Secret Key" Target="SECRET_KEY" Default="" Mode="" Description="Optional - signs sign-in tokens. Left empty, one is made on first start and kept in the data folder. Set your own with: openssl rand -hex 32" Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
-  <Config Name="Demo Story" Target="SEED_DEMO" Default="true" Mode="" Description="Add the demo story 'The Last Lighthouse' on first start (only when there are no stories)." Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
+  <Config Name="Samples on first start" Target="SEED_DEMO" Default="false" Mode="" Description="Load the Lighthouse samples into the admin account on first start. Off, each account loads the samples from Guides &#8250; Getting started." Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
   <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="The user that owns the data folder (Unraid: 99, nobody)." Type="Variable" Display="advanced" Required="false" Mask="false">99</Config>
   <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="The group that owns the data folder (Unraid: 100, users)." Type="Variable" Display="advanced" Required="false" Mask="false">100</Config>
   <Config Name="Timezone" Target="TZ" Default="America/New_York" Mode="" Description="Timezone for dates in the app and the schedule of automatic work." Type="Variable" Display="advanced" Required="false" Mask="false">America/New_York</Config>

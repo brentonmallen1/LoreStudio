@@ -2,7 +2,7 @@
 
 Plan the promises your story makes to the reader, and check each one is kept.
 
-A question on page one promises an answer; a strange detail promises it matters. Readers turn pages to see promises kept. The examples here are from the demo story, _The Last Lighthouse_, so you can open each one.
+A question on page one promises an answer; a strange detail promises it matters. Readers turn pages to see promises kept. The examples here are from the sample novel, _The Last Lighthouse_ (load it from [Getting started](/guides/getting-started)), so you can open each one.
 
 ## See every promise at once
 

@@ -26,7 +26,6 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from ..config import settings
 from ..database import engine
 from ..models.character import Character
 from ..models.compendium import CompendiumEntry
@@ -38,12 +37,12 @@ from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.story import Story
 from ..models.structure import StoryStructureTemplate, StructureNode
 from ..models.twist import Twist, TwistClue
-from ..models.user import User
+from . import sample_titles
 from .series import plan, service, setups, sync
 from .structure_scaffold import scaffold_story
 from .word_count import recount_story
 
-SEQUEL = "The Keeper's Daughter"
+SEQUEL = sample_titles.SERIES
 
 CARRIED_CHARACTERS = ("Eleanor Vance", "Thomas Vance")
 CARRIED_PLACES = ("Harrow Island", "The Lighthouse", "Keeper's Cottage", "The Village")
@@ -233,7 +232,7 @@ def _shared_research(db: Session, series, book_one: Story) -> None:
         sync.share(db, series, kind, book_one.id, row.id, actor_id=None, client_id=None, log=False)
 
 
-BOOK_THREE = "After the Light"
+BOOK_THREE = sample_titles.SERIES_PLANNED
 
 #: The series' arc, each beat with the books (from 0) that carry it.
 ARC = (
@@ -331,13 +330,13 @@ def _series_plan(db: Session, series, book_one: Story, sequel: Story, chars: dic
     db.flush()
 
 
-def seed_lighthouse_sequel() -> None:
+def seed_lighthouse_sequel(user_id: str | None = None) -> None:
     with Session(engine) as db:
-        admin = db.query(User).filter(User.username == settings.admin_username).first()
-        if not admin:
+        owner = sample_titles.owner(db, user_id)
+        if not owner:
             return
-        book_one = db.query(Story).filter(Story.user_id == admin.id, Story.title == "The Last Lighthouse").first()
-        if book_one is None or db.query(Story).filter(Story.user_id == admin.id, Story.title == SEQUEL).first():
+        book_one = sample_titles.find(db, owner.id, sample_titles.NOVEL)
+        if book_one is None or sample_titles.find(db, owner.id, SEQUEL):
             return
         if service.membership(db, book_one.id) is not None:
             return
@@ -349,7 +348,7 @@ def seed_lighthouse_sequel() -> None:
         carry += _book_one_promises(db, book_one)
 
         sequel = Story(
-            user_id=admin.id,
+            user_id=owner.id,
             title=SEQUEL,
             description="A year after the storm, Eleanor is offered a way off the island.",
             logline="A year after the truth about the Ardent came out, a lighthouse keeper is offered the mainland, and has to decide whether staying was ever her choice.",

@@ -92,7 +92,7 @@ def start(data: Path, procs: list[subprocess.Popen]) -> None:
 def pages(token: str) -> list[tuple[str, str, bool]]:
     """(name, path, panel open) for each page worth showing."""
     stories = {s["title"]: s for s in call("/stories", token)}
-    sid = stories["The Last Lighthouse"]["id"]
+    sid = stories["Sample: Novel · The Last Lighthouse"]["id"]
     tree = call(f"/stories/{sid}/structure", token)
     flat = []
 

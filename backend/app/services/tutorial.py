@@ -23,6 +23,7 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from ..models import Character, Location, Story, User
 from ..models.structure import StructureNode
+from . import sample_titles
 from .script_scene import derive_heading
 from .word_count import recount_story
 
@@ -386,9 +387,7 @@ def _remember(user: User, kind: str, story_id: str) -> None:
 
 def has_own_stories(db: Session, user: User) -> bool:
     """A story the writer made: not a sample, and not a tutorial."""
-    from .examples import SAMPLE_TITLES  # examples imports the seeds, which are heavy
-
-    given = {PROSE, SCRIPT, *SAMPLE_TITLES}
+    given = {PROSE, SCRIPT, *sample_titles.ALL}
     return any(title not in given for (title,) in db.query(Story.title).filter(Story.user_id == user.id))
 
 

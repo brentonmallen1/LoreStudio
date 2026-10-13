@@ -6,7 +6,7 @@ from app.models.character import Character
 from app.models.series import Series
 from app.models.story import Story
 from app.models.structure import StructureNode
-from app.services import seed, seed_series
+from app.services import sample_titles, seed, seed_series
 from app.services.findings import collect
 from app.services.proposals import gather
 from app.services.proposals.sources import scene_titles
@@ -22,7 +22,7 @@ def _seed(db_session: Session, monkeypatch) -> tuple[Story, Story]:
     seed.seed_demo_story()
     seed_series.seed_lighthouse_sequel()
     seed_series.seed_lighthouse_sequel()
-    one = db_session.query(Story).filter(Story.title == "The Last Lighthouse").one()
+    one = db_session.query(Story).filter(Story.title == sample_titles.NOVEL).one()
     two = db_session.query(Story).filter(Story.title == seed_series.SEQUEL).one()
     return one, two
 

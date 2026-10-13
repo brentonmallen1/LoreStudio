@@ -7,16 +7,16 @@ speeches, a line said at once, and END OF PLAY.
 
 from sqlalchemy.orm import Session
 
-from ..config import settings
 from ..database import engine
-from ..models import Character, Location, Story, User
+from ..models import Character, Location, Story
 from ..models.location import SceneSetting
 from ..models.structure import StructureNode
+from . import sample_titles
 from .script_scene import derive_heading
 from .seed_screenplay import adapted_from_novel, script_html
 from .word_count import recount_story
 
-TITLE = "The Last Lighthouse: A Play in One Act"
+TITLE = sample_titles.STAGE_PLAY
 
 THE_DOOR = [
     ("heading", "SCENE 1"),
@@ -62,14 +62,14 @@ THE_LOGS = [
 ]
 
 
-def seed_stage_play_demo() -> None:
+def seed_stage_play_demo(user_id: str | None = None) -> None:
     with Session(engine) as db:
-        admin = db.query(User).filter(User.username == settings.admin_username).first()
-        if not admin or db.query(Story).filter(Story.title == TITLE).first():
+        owner = sample_titles.owner(db, user_id)
+        if not owner or sample_titles.find(db, owner.id, TITLE):
             return
 
         story = Story(
-            user_id=admin.id,
+            user_id=owner.id,
             title=TITLE,
             story_format="stage_play",
             structure_template_id="stage-play",
