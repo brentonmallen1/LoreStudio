@@ -46,6 +46,7 @@ import SceneSplitBar from "./script/SceneSplitBar";
 import { toggleDual } from "./script/dualDialogue";
 import ScriptLineHint from "./script/ScriptLineHint";
 import StatusCorner from "./StatusCorner";
+import { contextsAt } from "../../lib/typing/context";
 import { useAIAvailable } from "../../lib/mode";
 import { SHORTCUTS, matchesCombo } from "../../lib/keyboard/shortcuts";
 import EmptyManuscript from "./EmptyManuscript";
@@ -367,6 +368,7 @@ export default function SceneEditor() {
             ? { element: elementAt(editor.state), lines: sceneLines(docBlocks(editor.state.doc)) }
             : null
         }
+        contexts={editor ? contextsAt(editor.state, format) : ["anywhere"]}
       />
 
       <WritingGuidesModal

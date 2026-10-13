@@ -6,6 +6,8 @@ import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import FocusExit from "../layout/FocusExit";
 import KeysCard from "./script/KeysCard";
+import TypeHere from "../typing/TypeHere";
+import type { HelperContext } from "../../lib/typing/helpers";
 import SprintTimer from "../story/SprintTimer";
 import type { AutosaveState } from "./useSceneAutosave";
 import { goalFor, ledFor, statusFigures } from "./statusFigures";
@@ -20,6 +22,8 @@ interface Props {
   wordCount: number;
   /** In a script (doc 25): the element the cursor is in, and the scene's length in lines. */
   script?: { element: ScriptElement; lines: number } | null;
+  /** Where the cursor is, for what you can type there (doc 26, P3). */
+  contexts?: HelperContext[];
 }
 
 /**
@@ -27,9 +31,10 @@ interface Props {
  * saving, red offline or a conflict) and the scene's words. A click opens the figures for
  * the scene, its chapter, the book and today, and the goal; a conflict opens it by itself
  * with Keep mine and Take theirs. A running sprint shows beside it, and in focus mode so
- * does the way out, which GlobalLayout then leaves to it.
+ * does the way out, which GlobalLayout then leaves to it. At the card's foot, what you can type
+ * where the cursor is (doc 26, P3).
  */
-export default function StatusCorner({ node, autosave, wordCount, script }: Props) {
+export default function StatusCorner({ node, autosave, wordCount, script, contexts = ["anywhere"] }: Props) {
   const { saveState, conflict } = autosave;
   const [open, setOpen] = useState(false);
   // A conflict opens the popover; closing it hides that conflict, not the next one.
@@ -108,6 +113,7 @@ export default function StatusCorner({ node, autosave, wordCount, script }: Prop
           goal={goalFor(intended)}
           today={today}
           keys={script ? <KeysCard element={script.element} format={format} /> : null}
+          typing={<TypeHere format={format} contexts={contexts} />}
         />
       )}
       <span className={styles.srOnly} role="status">
@@ -128,6 +134,7 @@ function Figures({
   goal,
   today,
   keys,
+  typing,
 }: {
   node: StructureNode;
   autosave: AutosaveState;
@@ -140,6 +147,8 @@ function Figures({
   today: ReturnType<typeof useTodayWords>;
   /** In a script, the keys from the line being written (doc 25, P3½). */
   keys: ReactNode;
+  /** What you can type where the cursor is (doc 26, P3). */
+  typing: ReactNode;
 }) {
   const f = statusFigures(structure, node.id, wordCount);
   const parentKind = f.parent ? (levelName?.[f.parent.node.level]?.name ?? f.parent.node.level_type) : "";
@@ -205,6 +214,7 @@ function Figures({
           </div>
         </div>
       )}
+      {typing}
     </div>
   );
 }
