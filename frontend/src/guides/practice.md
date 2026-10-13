@@ -1,6 +1,6 @@
 # Try them out
 
-A scrap of prose to try the typing helpers in. Each step ticks off as you do it. The cast is Eleanor and Tom, and the places are the Lighthouse and the Harbour, so the pickers have names to offer. Nothing here is saved, and a name you add goes nowhere.
+A scrap of prose to try the typing helpers in. Each step ticks off as you do it. The cast is Eleanor and Tom, and the places are the Lighthouse and the Harbor, so the pickers have names to offer. Nothing here is saved, and a name you add goes nowhere.
 
 <!-- practice -->
 

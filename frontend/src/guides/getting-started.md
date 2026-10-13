@@ -54,6 +54,12 @@ A few keys worth learning early:
 
 LoreStudio also runs as an app on Macs with Apple silicon. **Settings › About and updates** shows your version and checks for a new one.
 
+## The tutorial
+
+Two stories teach LoreStudio by doing: **Learn LoreStudio** for prose and **Learn Screenplays** for scripts. Each scene is a lesson, with a card above the text saying what to try and ticking off what you do. A new account starts with both; delete them when you are done. Make a copy here at any time; one you already have stays, with whatever you wrote in it.
+
+<!-- tutorial -->
+
 ## Where to go next
 
 - [Structure and templates](/guides/structure): chapters, scenes and the outline.

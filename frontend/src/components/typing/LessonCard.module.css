@@ -1,0 +1,128 @@
+/* A tutorial scene's lesson, above its text (doc 26, P6; option A). The UI's type, not the prose's. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0 0 2rem;
+  padding: 1rem 1.25rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--color-text);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.head {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.fold {
+  min-height: 24px;
+  padding: 0 0.6rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.fold:hover,
+.folded:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.fold:focus-visible,
+.folded:focus-visible,
+.next:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.text {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.text kbd {
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  padding: 0 0.3rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  white-space: nowrap;
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.count {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.next {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.next:hover {
+  text-decoration: underline;
+}
+
+/* Folded: one line to open it again. */
+.folded {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 24px;
+  margin: 0 0 1.5rem;
+  padding: 0.3rem 0.6rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  text-align: left;
+  cursor: pointer;
+}
+
+.foldedTitle {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text);
+}

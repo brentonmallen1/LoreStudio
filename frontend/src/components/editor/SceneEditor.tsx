@@ -25,6 +25,8 @@ import { useSceneAutosave } from "./useSceneAutosave";
 import { useMentionDropdown } from "./useMentionDropdown";
 import { useSlashCommands } from "./useSlashCommands";
 import { useTipWatch } from "./useTipWatch";
+import LessonCard from "../typing/LessonCard";
+import { lessonOf } from "../../lib/typing/lesson";
 import { useInlineNotes } from "./useInlineNotes";
 import { useMentionHoverCard } from "./useMentionHoverCard";
 import { useSceneDialogue } from "./useSceneDialogue";
@@ -140,6 +142,8 @@ export default function SceneEditor() {
   });
   useSceneDialogue(editor, activeNode?.id, activeNode?.updated_at);
   useTipWatch(editor, format);
+  // A tutorial scene's lesson, above its text (doc 26, P6).
+  const lesson = lessonOf(activeNode);
   const hover = useMentionHoverCard(
     scrollAreaRef,
     hoverCardRef,
@@ -343,6 +347,7 @@ export default function SceneEditor() {
                 .filter(Boolean)
                 .join(" ")}
             >
+              {lesson && <LessonCard key={activeNode.id} node={activeNode} lesson={lesson} />}
               {editor?.isEmpty && (
                 <ScenePlanCard
                   node={activeNode}

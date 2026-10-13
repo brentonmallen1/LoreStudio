@@ -1,6 +1,9 @@
 """System status for Settings › System: version, database, backups; the example stories."""
 
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -8,7 +11,7 @@ from ..auth.dependencies import get_current_user
 from ..config import settings
 from ..database import engine, get_db
 from ..models.user import User
-from ..services import automatic, examples, updates
+from ..services import automatic, examples, tutorial, updates
 from ..services.db_backup import backup_status, create_backup
 
 router = APIRouter()
@@ -87,3 +90,23 @@ def add_example_stories(db: Session = Depends(get_db), current_user: User = Depe
         raise HTTPException(status_code=403, detail="Only the admin account holds the example stories")
     added = examples.add_missing(db, current_user)
     return {"added": added, "missing": examples.missing(db, current_user)}
+
+
+@router.post("/system/tutorial")
+def ensure_tutorial(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """The tutorial stories, made the first time an account signs in (doc 26, P6); the app asks
+    once it has signed in. The titles made, none after the first time."""
+    return {"made": tutorial.ensure(db, current_user)}
+
+
+class TutorialRestart(BaseModel):
+    kind: Literal["prose", "screenplay"]
+
+
+@router.post("/system/tutorial/restart")
+def restart_tutorial(
+    body: TutorialRestart, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+):
+    """A fresh copy of one tutorial story (Guides › Start the tutorial again)."""
+    story = tutorial.restart(db, current_user, body.kind)
+    return {"story_id": story.id, "title": story.title}

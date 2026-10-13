@@ -8,13 +8,15 @@ import { useMode } from "../lib/mode";
 import { formatCombo } from "../lib/keyboard/shortcuts";
 import TypingGuide from "../components/typing/TypingGuide";
 import PracticeSandbox from "../components/typing/PracticeSandbox";
+import TutorialAgain from "../components/typing/TutorialAgain";
 import styles from "./GuidePage.module.css";
 
 /** `<!-- name -->` on a line of its own; split keeps the name. */
-const INSERT = /^<!-- (helpers|practice) -->$/m;
+const INSERT = /^<!-- (helpers|practice|tutorial) -->$/m;
 const INSERTS: Record<string, () => ReactNode> = {
   helpers: () => <TypingGuide />,
   practice: () => <PracticeSandbox />,
+  tutorial: () => <TutorialAgain />,
 };
 
 function Markdown({ text }: { text: string }) {

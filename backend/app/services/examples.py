@@ -33,6 +33,10 @@ EXTRA: list[tuple[str, Callable[[], None]]] = [
 ]
 
 
+#: Every sample's title, for telling them from the writer's own stories.
+SAMPLE_TITLES = frozenset(title for title, _ in DEMO + EXTRA)
+
+
 def is_examples_account(user: User) -> bool:
     """The examples go to the admin account the app made, so only it can add them."""
     return user.username == settings.admin_username

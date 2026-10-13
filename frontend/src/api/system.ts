@@ -17,4 +17,12 @@ export const systemApi = {
   /** Adds what is missing; the titles added, and what is still missing. */
   addExampleStories: () =>
     request<{ added: string[]; missing: string[] }>("/system/examples", { method: "POST" }),
+  /** The tutorial stories, made the first time an account asks (doc 26, P6); the titles made. */
+  ensureTutorial: () => request<{ made: string[] }>("/system/tutorial", { method: "POST" }),
+  /** A fresh copy of one tutorial story (Guides › Start the tutorial again). */
+  restartTutorial: (kind: "prose" | "screenplay") =>
+    request<{ story_id: string; title: string }>("/system/tutorial/restart", {
+      method: "POST",
+      body: JSON.stringify({ kind }),
+    }),
 };

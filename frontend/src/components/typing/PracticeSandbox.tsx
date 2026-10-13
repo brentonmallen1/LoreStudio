@@ -26,7 +26,7 @@ const CAST = [
 const PRACTICE = {
   places: [
     { id: "practice-lighthouse", name: "The Lighthouse", aliases: [], color_slot: 3 },
-    { id: "practice-harbour", name: "The Harbour", aliases: [], color_slot: 4 },
+    { id: "practice-harbor", name: "The Harbor", aliases: [], color_slot: 4 },
   ] as unknown as Location[],
 };
 
