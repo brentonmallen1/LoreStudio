@@ -1,0 +1,105 @@
+/* The Typing guide's list (doc 26, P2): what to type on the left, what it does beside it. */
+.guide {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.count {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Inside a guide's article, whose own list and heading styles would otherwise apply. */
+.guide .groupTitle {
+  margin: 0 0 0.25rem;
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+
+.guide .rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.guide .row {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr) 1.25rem;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.ways {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.kbd {
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+.or {
+  margin: 0 0.3rem 0 0.1rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.what {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.label {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.where {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.does {
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.tick {
+  color: var(--color-accent);
+  align-self: center;
+}
+
+@media (max-width: 640px) {
+  .guide .row {
+    grid-template-columns: minmax(0, 1fr) 1.25rem;
+  }
+
+  .ways {
+    grid-column: 1 / -1;
+  }
+}

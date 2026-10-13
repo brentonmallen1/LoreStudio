@@ -6,7 +6,7 @@ const names = (format: "prose" | "screenplay" | "stage_play", q: string) =>
 
 describe("slash commands (doc 25, P3½)", () => {
   it("offers prose what the editor already does another way", () => {
-    expect(names("prose", "")).toEqual(["dialogue", "character", "note", "todo", "image", "place"]);
+    expect(names("prose", "")).toEqual(["dialogue", "character", "note", "todo", "image", "place", "help"]);
     expect(slashCommandsFor("prose").find((c) => c.name === "character")!.action).toEqual({
       kind: "type",
       text: "@",
@@ -33,5 +33,28 @@ describe("slash commands (doc 25, P3½)", () => {
     const play = slashCommandsFor("stage_play");
     expect(play.find((c) => c.name === "action")!.label).toBe("Stage direction");
     expect(names("stage_play", "stage")).toContain("action");
+  });
+});
+
+/** The menu teaches the quicker way, and /help opens the Typing guide (doc 26, P2). */
+describe("slash commands and the typing helpers", () => {
+  const faster = (format: "prose" | "screenplay" | "stage_play", name: string) =>
+    slashCommandsFor(format).find((c) => c.name === name)?.faster;
+
+  it("name the quicker way where there is one", () => {
+    expect(faster("prose", "dialogue")).toBe("line");
+    expect(faster("prose", "character")).toBe("mention");
+    expect(faster("prose", "place")).toBe("place");
+    expect(faster("prose", "note")).toBe("note");
+    expect(faster("prose", "todo")).toBeUndefined();
+    expect(faster("screenplay", "heading")).toBe("script-heading");
+    expect(faster("stage_play", "heading")).toBe("stage-marker");
+    expect(faster("screenplay", "parenthetical")).toBe("script-paren");
+  });
+
+  it("offer /help in every format", () => {
+    for (const format of ["prose", "screenplay", "stage_play"] as const)
+      expect(names(format, "help")).toContain("help");
+    expect(names("prose", "shortcuts")).toEqual(["help"]);
   });
 });

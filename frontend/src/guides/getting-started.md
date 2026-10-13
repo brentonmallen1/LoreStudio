@@ -59,6 +59,7 @@ LoreStudio also runs as an app on Macs with Apple silicon. **Settings › About 
 - [Structure and templates](/guides/structure): chapters, scenes and the outline.
 - [Planning a story](/guides/planning): from an idea to a list of scenes.
 - [Threads, twists and what the reader knows](/guides/promises): keep every promise you make the reader.
+- [What you can type](/guides/typing): every quick way to do something as you write.
 - [Dialogue and quotes](/guides/dialogue-and-quotes): tag who is speaking.
 - [Screenplays and stage plays](/guides/screenplays): write a script, laid out as it prints.
 - [Notes, Freewrite and the scratch pad](/guides/notes-and-freewrite): somewhere for every loose thought.

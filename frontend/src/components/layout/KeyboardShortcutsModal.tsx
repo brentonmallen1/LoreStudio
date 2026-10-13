@@ -1,8 +1,11 @@
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { X } from "lucide-react";
 import { commandRegistry } from "../../lib/commands/registry";
 import { formatCombo, shortcutsFor } from "../../lib/keyboard/shortcuts";
 import { useMode } from "../../lib/mode";
+import { useStoryFormat } from "../../lib/storyFormat";
+import { helpersFor } from "../../lib/typing/helpers";
 import styles from "./KeyboardShortcutsModal.module.css";
 
 interface Props {
@@ -10,9 +13,13 @@ interface Props {
   onClose: () => void;
 }
 
-/** The `?` overlay. Rendered from lib/keyboard/shortcuts.ts plus any palette command that declares a shortcut. */
+/**
+ * The `?` overlay. Rendered from lib/keyboard/shortcuts.ts plus any palette command that declares a
+ * shortcut, and what you can type in the open story's format from lib/typing/helpers.ts (doc 26).
+ */
 export default function KeyboardShortcutsModal({ isOpen, onClose }: Props) {
   const mode = useMode();
+  const format = useStoryFormat();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -38,6 +45,10 @@ export default function KeyboardShortcutsModal({ isOpen, onClose }: Props) {
     (rows[action.group] ??= []).push({ label: action.label, keys: action.shortcut });
   }
   rows["Editor"] = [...(rows["Editor"] ?? []), { label: "New line without paragraph", keys: "Shift+Enter" }];
+  // What you type rather than press: the keys above are already listed.
+  rows["What you can type"] = helpersFor(format).flatMap((h) =>
+    h.typed ? [{ label: h.label, keys: h.typed.trim() || h.typed }] : [],
+  );
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -67,7 +78,10 @@ export default function KeyboardShortcutsModal({ isOpen, onClose }: Props) {
           ))}
         </div>
         <p className={styles.footer}>
-          Everything here is also in the command palette ({formatCombo("mod+k")}).
+          Everything here is also in the command palette ({formatCombo("mod+k")}).{" "}
+          <Link to="/guides/typing" onClick={onClose}>
+            What each one does →
+          </Link>
         </p>
       </div>
     </div>

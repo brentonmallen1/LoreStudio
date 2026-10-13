@@ -5,6 +5,7 @@ import { Compass } from "lucide-react";
 import { GUIDES, forMode, guidesFor } from "../guides";
 import { useMode } from "../lib/mode";
 import { formatCombo } from "../lib/keyboard/shortcuts";
+import TypingGuide from "../components/typing/TypingGuide";
 import styles from "./GuidePage.module.css";
 
 /** /guides and /guides/:guideId — how to use LoreStudio, rendered from src/guides/*.md. */
@@ -38,22 +39,26 @@ export default function GuidePage() {
       </nav>
       <article className={styles.article}>
         {guide ? (
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              // A link to another guide or page stays in the app; anything else opens apart.
-              a: ({ href = "", children }) =>
-                href.startsWith("/") ? (
-                  <Link to={href}>{children}</Link>
-                ) : (
-                  <a href={href} target="_blank" rel="noreferrer">
-                    {children}
-                  </a>
-                ),
-            }}
-          >
-            {forMode(guide.body, mode)}
-          </ReactMarkdown>
+          <>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                // A link to another guide or page stays in the app; anything else opens apart.
+                a: ({ href = "", children }) =>
+                  href.startsWith("/") ? (
+                    <Link to={href}>{children}</Link>
+                  ) : (
+                    <a href={href} target="_blank" rel="noreferrer">
+                      {children}
+                    </a>
+                  ),
+              }}
+            >
+              {forMode(guide.body, mode)}
+            </ReactMarkdown>
+            {/* Drawn from the helpers' list, with a tick on each one used (doc 26, P2). */}
+            {guide.id === "typing" && <TypingGuide />}
+          </>
         ) : (
           <p>No guide selected.</p>
         )}

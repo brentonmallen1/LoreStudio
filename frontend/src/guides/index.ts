@@ -13,6 +13,7 @@ import jobs from "./jobs.md?raw";
 import importExport from "./import-and-export.md?raw";
 import search from "./search-and-replace.md?raw";
 import glossary from "./glossary.md?raw";
+import typing from "./typing.md?raw";
 import type { UIMode } from "../lib/mode";
 import { SHORTCUTS, formatCombo, type ShortcutId } from "../lib/keyboard/shortcuts";
 
@@ -111,6 +112,13 @@ const GUIDE_LIST: Guide[] = [
       "saga",
       "duology",
     ],
+  },
+  {
+    id: "typing",
+    title: "What you can type",
+    body: typing,
+    modes: BOTH,
+    keywords: ["typing", "shortcuts", "keys", "slash", "commands", "help", "quick", "faster", "tips"],
   },
   {
     id: "dialogue-and-quotes",

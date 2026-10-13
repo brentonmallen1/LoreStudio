@@ -1,4 +1,5 @@
 import type { StoryFormat } from "../../types";
+import type { HelperId } from "../typing/helpers";
 import { elementLabel, type ScriptElement } from "../script/syntax";
 
 /**
@@ -14,7 +15,9 @@ export type SlashAction =
   /** Type the characters that open a picker: `@` for a character, `[[` for a place. */
   | { kind: "type"; text: string }
   | { kind: "element"; el: ScriptElement }
-  | { kind: "together" };
+  | { kind: "together" }
+  /** The Typing guide (doc 26). */
+  | { kind: "help" };
 
 export interface SlashCommandDef {
   name: string;
@@ -23,6 +26,8 @@ export interface SlashCommandDef {
   /** Other words it answers to, `/speech` for /dialogue. */
   keywords: string[];
   action: SlashAction;
+  /** The quicker way to the same thing, which the menu names beside it (doc 26, P2). */
+  faster?: HelperId;
 }
 
 const DIALOGUE: SlashCommandDef = {
@@ -31,6 +36,7 @@ const DIALOGUE: SlashCommandDef = {
   description: "Pick who speaks, then type what they say",
   keywords: ["speech", "say", "line", "speaker", "quote"],
   action: { kind: "dialogue" },
+  faster: "line",
 };
 
 const SHARED: SlashCommandDef[] = [
@@ -40,6 +46,7 @@ const SHARED: SlashCommandDef[] = [
     description: "A note in the margin, on the sentence at the cursor",
     keywords: ["comment", "margin", "remark"],
     action: { kind: "note" },
+    faster: "note",
   },
   {
     name: "todo",
@@ -58,17 +65,26 @@ const SHARED: SlashCommandDef[] = [
   {
     name: "place",
     label: "Link a place",
-    description: "Pick a place from the Lorebook, as [[ does",
+    description: "Pick a place from the Lorebook",
     keywords: ["location", "setting", "where"],
     action: { kind: "type", text: "[[" },
+    faster: "place",
+  },
+  {
+    name: "help",
+    label: "What you can type",
+    description: "Every quick way to do something as you write, in a guide",
+    keywords: ["help", "keys", "shortcuts", "typing", "guide", "how"],
+    action: { kind: "help" },
   },
 ];
 
 const MENTION = {
   label: "Mention a character",
-  description: "Pick a character from the Lorebook, as @ does",
+  description: "Pick a character from the Lorebook",
   keywords: ["mention", "person", "who", "name"],
   action: { kind: "type", text: "@" } as SlashAction,
+  faster: "mention" as HelperId,
 };
 
 /** A script's elements, in the order a scene usually runs. */
@@ -87,6 +103,12 @@ const ELEMENTS: [string, ScriptElement, string[], string][] = [
   ["lyric", "lyric", ["song", "sing", "verse"], "Words sung, in italics"],
 ];
 
+/** An element with a quicker way in than `/`: typed at the start of a line, or in a speech. */
+const ELEMENT_FASTER: Partial<Record<ScriptElement, (format: StoryFormat) => HelperId>> = {
+  heading: (format) => (format === "stage_play" ? "stage-marker" : "script-heading"),
+  paren: () => "script-paren",
+};
+
 export function slashCommandsFor(format: StoryFormat): SlashCommandDef[] {
   if (format === "prose") return [DIALOGUE, { name: "character", ...MENTION }, ...SHARED];
   const elements = ELEMENTS.map(([name, el, keywords, description]) => ({
@@ -95,6 +117,7 @@ export function slashCommandsFor(format: StoryFormat): SlashCommandDef[] {
     description,
     keywords,
     action: { kind: "element", el } as SlashAction,
+    faster: ELEMENT_FASTER[el]?.(format),
   }));
   return [
     ...elements,

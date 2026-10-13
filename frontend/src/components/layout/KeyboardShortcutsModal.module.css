@@ -108,3 +108,7 @@
   font-size: var(--text-xs);
   color: var(--color-text-subtle);
 }
+
+.footer a {
+  color: var(--color-accent);
+}
