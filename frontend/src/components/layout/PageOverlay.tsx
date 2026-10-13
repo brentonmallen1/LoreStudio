@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { useUIStore } from "../../stores/uiStore";
+import { mentionIsOpen } from "../story/MentionDropdown";
+import { slashIsOpen } from "../story/SlashCommandExtension";
 import styles from "./PageOverlay.module.css";
 
 interface Props {
@@ -29,6 +31,8 @@ export default function PageOverlay({ title, backTo, onClose, children }: Props)
     function onKey(e: KeyboardEvent) {
       if (e.key !== "Escape" || e.defaultPrevented) return;
       if (useUIStore.getState().commandPaletteOpen) return;
+      // A picker open in a guide's practice text (doc 26, P5) closes first.
+      if (mentionIsOpen() || slashIsOpen()) return;
       const frame = frameRef.current;
       const otherLayer = Array.from(document.querySelectorAll('[role="dialog"]')).some(
         (el) => el !== frame && !el.closest("[inert]"),

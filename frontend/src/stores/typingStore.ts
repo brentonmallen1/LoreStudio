@@ -36,9 +36,18 @@ export const useTypingStore = create<TypingState>((set, get) => ({
   },
 }));
 
+const listeners = new Set<(id: HelperId) => void>();
+
 /** A helper did its work: from an editor extension or a hook, outside React. */
 export function markUsed(id: HelperId): void {
   useTypingStore.getState().markUsed(id);
+  listeners.forEach((l) => l(id));
+}
+
+/** Every use of a helper, the first or not: practice ticks off what was just tried (doc 26, P5). */
+export function onHelperUsed(listener: (id: HelperId) => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
 }
 
 if (typeof window !== "undefined") {

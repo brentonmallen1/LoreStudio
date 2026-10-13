@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -7,9 +7,15 @@ import { GUIDES, forMode, guidesFor } from "../guides";
 import { useMode } from "../lib/mode";
 import { formatCombo } from "../lib/keyboard/shortcuts";
 import TypingGuide from "../components/typing/TypingGuide";
+import PracticeSandbox from "../components/typing/PracticeSandbox";
 import styles from "./GuidePage.module.css";
 
-const HELPERS_HERE = "<!-- helpers -->";
+/** `<!-- name -->` on a line of its own; split keeps the name. */
+const INSERT = /^<!-- (helpers|practice) -->$/m;
+const INSERTS: Record<string, () => ReactNode> = {
+  helpers: () => <TypingGuide />,
+  practice: () => <PracticeSandbox />,
+};
 
 function Markdown({ text }: { text: string }) {
   return (
@@ -64,16 +70,14 @@ export default function GuidePage() {
       <article className={styles.article}>
         {guide ? (
           <>
-            {/* The Typing guide's list is drawn from the helpers, with a tick on each one used
-                (doc 26, P2); `<!-- helpers -->` in its text says where. */}
+            {/* A guide's text can hold a piece of the app at a marker: the Typing guide's list,
+                drawn from the helpers with a tick on each one used (doc 26, P2), and the practice
+                page's sandbox (P5). */}
             {forMode(guide.body, mode)
-              .split(HELPERS_HERE)
-              .map((part, i) => (
-                <Fragment key={i}>
-                  {i > 0 && <TypingGuide />}
-                  <Markdown text={part} />
-                </Fragment>
-              ))}
+              .split(INSERT)
+              .map((part, i) =>
+                i % 2 ? <Fragment key={i}>{INSERTS[part]?.()}</Fragment> : <Markdown key={i} text={part} />,
+              )}
           </>
         ) : (
           <p>No guide selected.</p>

@@ -34,6 +34,11 @@ interface Args {
   activeStory: Story | null;
   characters: Character[];
   setCharacters: (chars: Character[]) => void;
+  /**
+   * The practice page (doc 26, P5): no story, a fixed cast and these places, prose, and a
+   * new name is written without being added anywhere.
+   */
+  practice?: { places: Location[] };
 }
 
 /** The quoted line just before a "<" being typed, for the speaker picker to rank by. */
@@ -50,14 +55,15 @@ const LINE_BEFORE_TAG = new RegExp(
  * Also owns the flat location list for the story, which feeds the scene settings picker
  * and the hover card.
  */
-export function useMentionDropdown({ editor, activeStory, characters, setCharacters }: Args) {
+export function useMentionDropdown({ editor, activeStory, characters, setCharacters, practice }: Args) {
   // Characters and places both come from the store (the workspace loads places once,
   // doc 11); the mention entries follow whichever list changes.
-  const flatLocations: Location[] = useStoryStore((s) => s.locations);
+  const storyLocations: Location[] = useStoryStore((s) => s.locations);
+  const flatLocations = practice?.places ?? storyLocations;
   const upsertLocation = useStoryStore((s) => s.upsertLocation);
   const entries = useMemo<Entry[]>(
     () =>
-      activeStory
+      activeStory || practice
         ? [
             ...characters.map((c) => ({
               kind: "character" as const,
@@ -74,7 +80,7 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
             })),
           ]
         : [],
-    [activeStory, characters, flatLocations],
+    [activeStory, practice, characters, flatLocations],
   );
 
   // What the series has that this book does not yet: offered, never decorated as known.
@@ -171,7 +177,7 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
       const wrap = wrapRef.current;
       const quotes = quotePair(editor.state.doc.textContent);
       // A spoken line is written the same way in prose and in a script (doc 25, D6).
-      const format = formatOf(useStoryStore.getState().activeStory);
+      const format = practice ? "prose" : formatOf(useStoryStore.getState().activeStory);
       const spoken = (kind: "line" | "wrap" | "tag", from: number, to: number) => ({
         kind,
         from,
@@ -226,7 +232,7 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
                   : "place",
       );
     },
-    [editor, setOpen],
+    [editor, setOpen, practice],
   );
 
   const accept = useCallback(
