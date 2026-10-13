@@ -242,6 +242,19 @@ export default function DashboardPage() {
                 </button>
               </div>
             )}
+            {/* A new account starts with the tutorials, so the page is rarely empty: the samples
+                are offered here while any is missing (doc 26, P7). */}
+            {stories.length > 0 && examples.canAdd && (
+              <button
+                onClick={examples.add}
+                disabled={examples.adding}
+                className={styles.importBtn}
+                title={`Stories filled in to show what LoreStudio does (${examples.missing.length} not in your library)`}
+              >
+                <Library size={14} />
+                {examples.adding ? "Loading…" : "Load samples"}
+              </button>
+            )}
             <button onClick={() => setImporting(true)} className={styles.importBtn}>
               <FileInput size={14} />
               Import

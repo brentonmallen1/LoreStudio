@@ -23,7 +23,7 @@ Studio adds the **Assistant** and the other AI tools. They answer questions and 
 
 Already have a draft? **Import** on your stories page brings it in. See [Import and export](/guides/import-and-export).
 
-> **Tip:** The samples, under Samples below, are stories with every part of LoreStudio filled in. Load them and open _Sample: Novel · The Last Lighthouse_ to see what each page looks like in use.
+> **Tip:** The samples, under [Samples](#samples) below, are stories with every part of LoreStudio filled in. Load them and open _Sample: Novel · The Last Lighthouse_ to see what each page looks like in use.
 
 ## Finding your way around
 
@@ -62,7 +62,7 @@ Two stories teach LoreStudio by doing: **Learn LoreStudio** for prose and **Lear
 
 ## Samples
 
-Stories filled in to show what LoreStudio does, each titled for what it is: _Sample: Novel · The Last Lighthouse_, the same story as a screenplay and a stage play, a short story, flash fiction, a first-person story and a series. None is loaded until you ask. Delete any you are done with; load them again here.
+Stories filled in to show what LoreStudio does, each titled for what it is: _Sample: Novel · The Last Lighthouse_, the same story as a screenplay and a stage play, a short story, flash fiction, a first-person story and a series. None is loaded until you ask: load them here, or with **Load samples** on your stories page while any is missing. Delete any you are done with; load them again the same way.
 
 <!-- samples -->
 

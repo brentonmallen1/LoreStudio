@@ -11,41 +11,59 @@
   animation: rise 140ms ease-out;
 }
 
+/* The app's header (GlobalHeader.module.css): floating chrome, no ground of its own and no
+   rule under it (DESIGN.md), the same height and inset, so nothing moves as it opens. */
 .bar {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  height: 2.933rem;
-  padding: 0 1rem;
-  /* Floating chrome (DESIGN.md): no ground of its own and no rule under it. */
+  gap: 0.35rem;
+  height: var(--header-height);
+  padding: 0 0.9rem 0 0.6rem;
   flex-shrink: 0;
 }
 
+/* Where the header says "LoreStudio". */
 .title {
-  flex: 1;
-  margin: 0;
-  font-size: 0.9rem;
+  padding: 0.3rem 0.4rem;
+  font-size: var(--text-md);
   font-weight: 600;
   color: var(--color-text);
+  letter-spacing: -0.01em;
 }
 
-.close {
+/* As a story's trail ends in the way back to the scene (StoryCrumbs.module.css, .back). */
+.back {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.35rem 0.7rem;
+  min-width: 2rem;
+  max-width: 14rem;
+  height: 1.733rem;
+  margin-left: 0.5rem;
+  padding: 0 0.5rem;
   border: none;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--color-text-muted);
-  font-size: 0.8rem;
+  color: var(--color-accent);
+  font: inherit;
+  font-size: var(--text-sm);
+  white-space: nowrap;
   cursor: pointer;
 }
 
-.close:hover,
-.close:focus-visible {
-  background: var(--color-hover);
-  color: var(--color-text);
+.back:hover {
+  background: var(--color-surface-3);
+}
+
+.back:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.backLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .body {

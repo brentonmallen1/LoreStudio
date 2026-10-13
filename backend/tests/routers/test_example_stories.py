@@ -4,9 +4,13 @@ import pytest
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.models.character import Character
+from app.models.series import Series
 from app.models.story import Story
+from app.models.structure import StructureNode
 from app.models.user import User
 from app.services import examples, sample_titles, seed, seed_screenplay, seed_series, seed_stage_play
+from app.services.series import service as series_service
 
 ALL = [title for title, _ in examples.DEMO + examples.EXTRA]
 
@@ -71,3 +75,73 @@ def test_two_accounts_can_both_load_every_sample(client, db_session, test_user, 
     for _, seeder in examples.DEMO + examples.EXTRA:
         seeder(other.id)
     assert client.post("/api/system/examples").json() == {"added": ALL, "missing": []}
+
+
+def _delete(client, db_session, *titles):
+    """Through the route, as the dashboard deletes: out of the series first."""
+    for title in titles:
+        story = db_session.query(Story).filter(Story.title == title).one()
+        assert client.delete(f"/api/stories/{story.id}").status_code == 204
+    db_session.expire_all()
+
+
+def _series_books(db_session) -> list[str]:
+    (series,) = db_session.query(Series).all()
+    return [b.story.title for b in sorted(series.books, key=lambda b: b.position)]
+
+
+SERIES_BOOKS = [sample_titles.NOVEL, sample_titles.SERIES, sample_titles.SERIES_PLANNED]
+
+
+@pytest.mark.parametrize(
+    "gone", [[sample_titles.SERIES], [sample_titles.SERIES, sample_titles.SERIES_PLANNED]], ids=["sequel", "both"]
+)
+def test_the_series_comes_back_with_book_one_kept(client, db_session, seeds, gone):
+    """Its first book still in what was left of the series, the sequel was listed as missing
+    and Load did nothing."""
+    client.post("/api/system/examples")
+    _delete(client, db_session, *gone)
+
+    assert client.post("/api/system/examples").json() == {"added": [sample_titles.SERIES], "missing": []}
+    assert _series_books(db_session) == SERIES_BOOKS
+
+
+def test_a_planned_book_written_in_is_kept_out_of_the_series(client, db_session, seeds):
+    client.post("/api/system/examples")
+    third = db_session.query(Story).filter(Story.title == sample_titles.SERIES_PLANNED).one()
+    db_session.add(StructureNode(story_id=third.id, level_type="scene", title="Mine", content="<p>Mine.</p>"))
+    db_session.commit()
+    _delete(client, db_session, sample_titles.SERIES)
+
+    client.post("/api/system/examples")
+    assert db_session.get(Story, third.id) is not None
+    assert db_session.query(Story).filter(Story.title == sample_titles.SERIES_PLANNED).count() == 2
+
+
+def test_a_series_with_the_writers_own_book_is_left_alone(client, db_session, test_user, seeds):
+    client.post("/api/system/examples")
+    _delete(client, db_session, sample_titles.SERIES)
+    (series,) = db_session.query(Series).all()
+    mine = Story(user_id=test_user.id, title="My book four", story_format="prose")
+    db_session.add(mine)
+    db_session.flush()
+    series_service.attach_story(db_session, series, mine)
+    db_session.commit()
+
+    assert client.post("/api/system/examples").json()["added"] == []
+    assert db_session.query(Series).count() == 1
+
+
+def test_the_novel_loaded_again_is_book_one_of_the_series(client, db_session, seeds):
+    client.post("/api/system/examples")
+    _delete(client, db_session, sample_titles.NOVEL)
+
+    assert client.post("/api/system/examples").json() == {"added": [sample_titles.NOVEL], "missing": []}
+    assert _series_books(db_session) == SERIES_BOOKS
+    novel = db_session.query(Story).filter(Story.title == sample_titles.NOVEL).one()
+    eleanor = (
+        db_session.query(Character).filter(Character.story_id == novel.id, Character.name == "Eleanor Vance").one()
+    )
+    assert series_service.element_for_row(db_session, "characters", eleanor.id) is not None, (
+        "carried on into the sequel"
+    )

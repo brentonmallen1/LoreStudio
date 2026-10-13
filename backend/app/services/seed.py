@@ -27,7 +27,7 @@ from ..models.structure import StoryStructureTemplate, StructureNode
 from ..models.twist import Twist, TwistClue
 from ..models.user import User
 from ..models.world_system import WorldSystem
-from . import sample_titles
+from . import sample_titles, seed_series
 from .seed_chronicle import seed_lighthouse_chronicle
 from .seed_jobs import seed_lighthouse_jobs
 from .seed_numbers import seed_lighthouse_numbers
@@ -2544,6 +2544,10 @@ def seed_demo_story(user_id: str | None = None):  # noqa: PLR0915
 
         # Who they are (doc 20): from the canon above, and Margaret's arthritis.
         seed_lighthouse_who(db, story.id)
+        db.commit()
+
+        # Loaded again after it was deleted from the series sample: Book 1 of it again.
+        seed_series.rejoin_series(db, story)
         db.commit()
 
         # A few weeks of Numbers readings, so Compare has a history to show (doc 19).

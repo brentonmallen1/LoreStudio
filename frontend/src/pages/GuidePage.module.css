@@ -1,17 +1,19 @@
+/* The guides, the guide, and "On this page" (Brenton, 2026-10-13, after the scikit-learn
+   docs): three columns across the width, the text at a reading measure in the middle. */
 .page {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  gap: 2rem;
-  max-width: 980px;
+  grid-template-columns: 220px minmax(0, 1fr) 210px;
+  gap: 3rem;
+  max-width: 1360px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 2rem 2rem 5rem;
   background: var(--color-ground);
   min-height: 100%;
 }
 
 .nav {
   position: sticky;
-  top: 1rem;
+  top: 2rem;
   align-self: start;
   display: flex;
   flex-direction: column;
@@ -35,13 +37,14 @@
   text-decoration: none;
 }
 
+/* As Settings' list: the hover ground under the pointer, the guide open on the same ground. */
 .navLink:hover {
-  background: var(--color-surface);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
 .navLinkActive {
-  background: var(--color-surface);
+  background: var(--color-surface-2);
   color: var(--color-text);
   font-weight: 500;
 }
@@ -54,7 +57,9 @@
 }
 
 .article {
-  max-width: 64ch;
+  width: 100%;
+  max-width: 50rem;
+  justify-self: center;
   font-size: 0.95rem;
   line-height: 1.65;
   color: var(--color-text);
@@ -74,6 +79,12 @@
   margin-bottom: 1.5rem;
   font-size: 1.05rem;
   color: var(--color-text-muted);
+}
+
+/* A section opened from "On this page" stops a little under the top, not against it. */
+.article h2,
+.article h3 {
+  scroll-margin-top: 1.5rem;
 }
 
 /* Sections by type and space, no rules (DESIGN.md §4). */
@@ -176,6 +187,17 @@
 
 .article tr + tr td {
   border-top: 1px solid var(--color-border-light);
+}
+
+/* Narrower, the contents go: the guide keeps the room. */
+@media (max-width: 1180px) {
+  .page {
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+  .page > :last-child {
+    display: none;
+  }
 }
 
 @media (max-width: 720px) {

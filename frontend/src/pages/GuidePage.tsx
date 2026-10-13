@@ -1,5 +1,5 @@
-import { Fragment, type ReactNode } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Fragment, useRef, type ReactNode } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Compass } from "lucide-react";
@@ -10,6 +10,8 @@ import TypingGuide from "../components/typing/TypingGuide";
 import PracticeSandbox from "../components/typing/PracticeSandbox";
 import TutorialAgain from "../components/typing/TutorialAgain";
 import SamplesLoader from "../components/samples/SamplesLoader";
+import PageContents from "../components/guides/PageContents";
+import { headingId, textOf } from "../lib/guides/headings";
 import styles from "./GuidePage.module.css";
 
 /** `<!-- name -->` on a line of its own; split keeps the name. */
@@ -22,13 +24,28 @@ const INSERTS: Record<string, () => ReactNode> = {
 };
 
 function Markdown({ text }: { text: string }) {
+  const navigate = useNavigate();
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
-        // A link to another guide or page stays in the app; anything else opens apart.
+        // Sections carry an id, for "On this page" and a link to #section.
+        h2: ({ children }) => <h2 id={headingId(textOf(children))}>{children}</h2>,
+        h3: ({ children }) => <h3 id={headingId(textOf(children))}>{children}</h3>,
+        // A link to a section of this guide, another guide or a page stays in the app; anything
+        // else opens apart.
         a: ({ href = "", children }) =>
-          href.startsWith("/") ? (
+          href.startsWith("#") ? (
+            <a
+              href={href}
+              onClick={(e) => {
+                e.preventDefault();
+                navigate({ hash: href.slice(1) }, { replace: true });
+              }}
+            >
+              {children}
+            </a>
+          ) : href.startsWith("/") ? (
             <Link to={href}>{children}</Link>
           ) : (
             <a href={href} target="_blank" rel="noreferrer">
@@ -48,6 +65,7 @@ export default function GuidePage() {
   const mode = useMode();
   const guides = guidesFor(mode);
   const guide = GUIDES.find((g) => g.id === guideId) ?? guides[0];
+  const article = useRef<HTMLElement>(null);
 
   return (
     <div className={styles.page}>
@@ -71,7 +89,7 @@ export default function GuidePage() {
           Type ? in the palette ({formatCombo("mod+k")}) to open a guide from anywhere.
         </p>
       </nav>
-      <article className={styles.article}>
+      <article className={styles.article} ref={article}>
         {guide ? (
           <>
             {/* A guide's text can hold a piece of the app at a marker: the Typing guide's list,
@@ -87,6 +105,7 @@ export default function GuidePage() {
           <p>No guide selected.</p>
         )}
       </article>
+      <PageContents article={article} guideKey={`${guide?.id}:${mode}`} />
     </div>
   );
 }
