@@ -101,6 +101,15 @@ function ownHeading(doc: PMNode): number {
   return headingAt(blocks);
 }
 
+/** Inside the start of the doc's `index`th block, where a cursor goes to write in it. */
+export function blockStartPos(doc: PMNode, index: number): number {
+  let at = 1;
+  doc.forEach((_node, offset, i) => {
+    if (i === index) at = offset + 1;
+  });
+  return at;
+}
+
 /** A heading with words: an empty line set to heading (Enter after a transition) is not one yet. */
 const typedHeading = (node: PMNode) => node.attrs.el === "heading" && !!node.textContent.trim();
 
@@ -119,6 +128,13 @@ export function headingsBelowTop(doc: PMNode): number[] {
     if (index > own && typedHeading(node)) out.push(offset);
   });
   return out;
+}
+
+/** Who starts a new scene when Enter ends a heading below the scene's own (SceneSplitBar). */
+let onHeadingEnter: ((pos: number) => void) | null = null;
+
+export function setHeadingEnter(fn: ((pos: number) => void) | null): void {
+  onHeadingEnter = fn;
 }
 
 /** Set the element of the block the cursor is in (the palette, ⌥⌘1–6, Tab). */
@@ -158,6 +174,14 @@ function enter(editor: Editor, format: string): boolean {
     // Its own step: ⌘Z after Enter takes the new line back first, then this.
     view.dispatch(setElementAt(state.tr, $from.before(), typed));
     now = typed;
+  }
+  // A heading typed further down, finished with Enter: the new scene starts here, and the
+  // writer carries on in it (Brenton, 2026-10-12). ⌘Z takes the split back whole.
+  const below = now === "heading" && onHeadingEnter ? headingBelowTop(editor) : null;
+  if (below !== null) {
+    onHeadingEnter!(below);
+    markUsed(format === "stage_play" ? "stage-marker" : "script-heading");
+    return true;
   }
   const after = view.state;
   const at = after.selection.$from.end();

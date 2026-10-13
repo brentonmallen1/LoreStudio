@@ -28,7 +28,7 @@ import { useMentionHoverCard } from "./useMentionHoverCard";
 import { useSceneDialogue } from "./useSceneDialogue";
 import { usePassageJump } from "./usePassageJump";
 import { editorExtensions } from "./editorExtensions";
-import { docBlocks, elementAt, setElement } from "./script/ScriptElementExtension";
+import { blockStartPos, docBlocks, elementAt, setElement } from "./script/ScriptElementExtension";
 import { sceneLines } from "../../lib/script/syntax";
 import { useStoryFormat } from "../../lib/storyFormat";
 import scriptStyles from "./script/ScriptEditor.module.css";
@@ -186,6 +186,11 @@ export default function SceneEditor() {
       return;
     }
     loadScene(editor, activeNode.content ?? "");
+    const { openAt, setOpenAt } = useEditorBridge.getState();
+    if (openAt?.nodeId === activeNode.id) {
+      setOpenAt(null);
+      requestAnimationFrame(() => editor.commands.focus(blockStartPos(editor.state.doc, openAt.block)));
+    }
   }, [activeNode?.id, needsProse, editor]); // eslint-disable-line react-hooks/exhaustive-deps
   // This editor's typing is a history ⌘Z reaches from anywhere in the story (doc 23 P5b).
   useEffect(() => {
