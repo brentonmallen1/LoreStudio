@@ -8,13 +8,18 @@
 <h1 align="center">LoreStudio</h1>
 
 <p align="center">
-  <strong>Begin with an idea, forge an adventure.<br/>A private workspace for writing your story, organising its pieces and building the world it lives in. A Mac app, or self-hosted on your own server.</strong>
+  <strong>Begin with an idea, forge an adventure.<br/>A private workspace for writing your story, organising its pieces and building the world it lives in. A desktop app for Mac and Windows, or self-hosted on your own server.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/brentonmallen1/LoreStudio/releases/latest"><img src="https://img.shields.io/github/v/release/brentonmallen1/LoreStudio?style=for-the-badge&label=Download%20the%20desktop%20app&color=3a6c49" alt="Download the desktop app (latest release)" /></a>
 </p>
 
 <p align="center">
   <a href="#features">Features</a> •
   <a href="#screenshots">Screenshots</a> •
   <a href="#getting-started">Getting started</a> •
+  <a href="#desktop-app">Desktop app</a> •
   <a href="docs/deployment.md">Deployment</a> •
   <a href="CONTRIBUTING.md">Contributing</a>
 </p>
@@ -25,7 +30,7 @@
   <img src="https://img.shields.io/badge/FastAPI-SQLite-3a6c49" alt="FastAPI and SQLite" />
   <img src="https://img.shields.io/badge/React-19-3a6c49" alt="React 19" />
   <img src="https://img.shields.io/badge/AI-Ollama%2C%20optional-765783" alt="Ollama, optional" />
-  <img src="https://img.shields.io/badge/runs%20on-macOS%20%7C%20Docker%20%7C%20Unraid-3a6c49" alt="macOS, Docker and Unraid" />
+  <img src="https://img.shields.io/badge/runs%20on-macOS%20%7C%20Windows%20%7C%20Docker%20%7C%20Unraid-3a6c49" alt="macOS, Windows, Docker and Unraid" />
   <img src="https://img.shields.io/badge/license-AGPL--3.0-6a675f" alt="AGPL-3.0" />
 </p>
 
@@ -162,22 +167,28 @@ One switch turns it off, and Writer mode removes it entirely.
 
 ## Getting started
 
-### On a Mac
+### Desktop app
 
-Download **`LoreStudio_<version>_macos-arm64.dmg`** from the
-[latest release](https://github.com/brentonmallen1/LoreStudio/releases/latest), open it and drag
-LoreStudio into Applications. It runs as an app in its own window, with no server to set up and
-nothing else to install: exports, the writing checks and the demo story are all inside. Only
-[Ollama](https://ollama.com), for the optional AI, is separate.
+LoreStudio runs as an app in its own window, with no server to set up and nothing else to
+install: exports, the writing checks and the demo story are all inside. Only
+[Ollama](https://ollama.com), for the optional AI, is separate. Download it from the
+[latest release](https://github.com/brentonmallen1/LoreStudio/releases/latest).
 
-The first time, macOS says it can't verify LoreStudio, because it isn't signed with an Apple
-Developer ID. Open **System Settings › Privacy & Security** and click **Open Anyway**
-([step by step](desktop/README.md#installing-a-downloaded-build)). After that it opens like any
-other app, and new versions install from inside it: *Settings › About and updates › Install and
-restart*. Your stories stay in `~/Library/Application Support/app.lorestudio.desktop`.
+**On a Mac** (Apple silicon, M1 and later): download **`LoreStudio_<version>_macos-arm64.dmg`**,
+open it and drag LoreStudio into Applications. The first time, macOS says it can't verify
+LoreStudio, because it isn't signed with an Apple Developer ID. Open **System Settings › Privacy &
+Security** and click **Open Anyway**
+([step by step](desktop/README.md#installing-a-downloaded-build)). Your stories stay in
+`~/Library/Application Support/app.lorestudio.desktop`.
 
-The app is for Macs with Apple silicon (M1 and later). Windows, Linux and Intel Mac builds exist
-but aren't published yet; [desktop/README.md](desktop/README.md) has how to build one.
+**On Windows** (64-bit): download **`LoreStudio_<version>_windows-x64-setup.exe`** and run it.
+SmartScreen may say "Windows protected your PC", because the app isn't signed with a
+code-signing certificate: click **More info**, then **Run anyway**. Your stories stay in
+`%APPDATA%\app.lorestudio.desktop`.
+
+After that it opens like any other app, and new versions install from inside it: *Settings ›
+About and updates › Install and restart*. Linux and Intel Mac builds exist but aren't published
+yet; [desktop/README.md](desktop/README.md) has how to build one.
 
 ### On a server
 
