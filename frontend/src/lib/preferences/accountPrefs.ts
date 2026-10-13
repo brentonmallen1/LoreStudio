@@ -24,6 +24,8 @@ export const ACCOUNT_PREFS = [
   "ls_notes_margin",
   "ls_strip_colour",
   "ls_typing_used",
+  "ls_tips",
+  "ls_tips_seen",
 ] as const;
 
 export type AccountPref = (typeof ACCOUNT_PREFS)[number];

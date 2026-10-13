@@ -9,6 +9,7 @@ import { commandRegistry } from "./registry";
 import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
 import { useEditorBridge } from "../../stores/editorBridge";
 import { toast } from "../../stores/toastStore";
+import { offerTip } from "../../stores/tipStore";
 import type { ScriptElement } from "../script/syntax";
 
 const ELEMENTS: [keyof typeof SHORTCUTS, ScriptElement, string[]][] = [
@@ -29,7 +30,11 @@ for (const [key, el, keywords] of ELEMENTS) {
     group: "Editor",
     shortcut: formatCombo(SHORTCUTS[key].combo),
     when: () => !!useEditorBridge.getState().scriptElement,
-    action: () => useEditorBridge.getState().scriptElement?.(el),
+    action: () => {
+      useEditorBridge.getState().scriptElement?.(el);
+      // From the palette is the long way; Tab does it while typing (doc 26, P4).
+      offerTip("script-tab");
+    },
   });
 }
 

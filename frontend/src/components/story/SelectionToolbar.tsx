@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { CircleHelp, Diamond, Orbit, Feather, ListTodo, MessageSquare, Quote, Triangle } from "lucide-react";
 import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
 import type { NoteKind } from "../../types/notes";
+import { offerTip } from "../../stores/tipStore";
 import styles from "./SelectionToolbar.module.css";
 
 interface Props {
@@ -79,7 +80,10 @@ export default function SelectionToolbar({
       )}
       <button
         className={styles.btn}
-        onClick={() => onAddNote("note")}
+        onClick={() => {
+          onAddNote("note");
+          offerTip("note");
+        }}
         title={`Add a note (${formatCombo(SHORTCUTS.inlineNote.combo)})`}
       >
         <MessageSquare size={12} />
@@ -89,7 +93,14 @@ export default function SelectionToolbar({
         <CircleHelp size={12} />
         Question
       </button>
-      <button className={styles.btn} onClick={() => onAddNote("todo")} title="Something to do here">
+      <button
+        className={styles.btn}
+        onClick={() => {
+          onAddNote("todo");
+          offerTip("todo");
+        }}
+        title="Something to do here"
+      >
         <ListTodo size={12} />
         To-do
       </button>

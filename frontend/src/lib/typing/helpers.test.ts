@@ -38,6 +38,16 @@ describe("typing helpers", () => {
     expect(silent).toEqual([]);
   });
 
+  it("are each offered as a tip by the code that does it the long way", () => {
+    const offered = sources(SRC)
+      .filter((path) => !path.endsWith("tipStore.ts"))
+      .map((path) => readFileSync(path, "utf8"))
+      .filter((text) => text.includes("offerTip("))
+      .join("\n");
+    const withLongWay = HELPERS.filter((h) => "longWay" in h).map((h) => h.id);
+    expect(withLongWay.filter((id) => !offered.includes(`offerTip("${id}")`))).toEqual([]);
+  });
+
   it("say what to type, or which keys", () => {
     for (const h of HELPERS) expect("typed" in h || "shortcuts" in h, h.id).toBe(true);
   });

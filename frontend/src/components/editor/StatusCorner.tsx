@@ -7,6 +7,7 @@ import { useUIStore } from "../../stores/uiStore";
 import FocusExit from "../layout/FocusExit";
 import KeysCard from "./script/KeysCard";
 import TypeHere from "../typing/TypeHere";
+import TipLine from "../typing/TipLine";
 import type { HelperContext } from "../../lib/typing/helpers";
 import SprintTimer from "../story/SprintTimer";
 import type { AutosaveState } from "./useSceneAutosave";
@@ -32,7 +33,7 @@ interface Props {
  * the scene, its chapter, the book and today, and the goal; a conflict opens it by itself
  * with Keep mine and Take theirs. A running sprint shows beside it, and in focus mode so
  * does the way out, which GlobalLayout then leaves to it. At the card's foot, what you can type
- * where the cursor is (doc 26, P3).
+ * where the cursor is (doc 26, P3); above the corner, a tip at a pause (P4).
  */
 export default function StatusCorner({ node, autosave, wordCount, script, contexts = ["anywhere"] }: Props) {
   const { saveState, conflict } = autosave;
@@ -86,6 +87,7 @@ export default function StatusCorner({ node, autosave, wordCount, script, contex
         }
       }}
     >
+      <TipLine hidden={shown} />
       {sprintActive && <SprintTimer currentWordCount={wordCount} />}
       {focused && <FocusExit inline />}
       <button

@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -7,6 +8,29 @@ import { useMode } from "../lib/mode";
 import { formatCombo } from "../lib/keyboard/shortcuts";
 import TypingGuide from "../components/typing/TypingGuide";
 import styles from "./GuidePage.module.css";
+
+const HELPERS_HERE = "<!-- helpers -->";
+
+function Markdown({ text }: { text: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        // A link to another guide or page stays in the app; anything else opens apart.
+        a: ({ href = "", children }) =>
+          href.startsWith("/") ? (
+            <Link to={href}>{children}</Link>
+          ) : (
+            <a href={href} target="_blank" rel="noreferrer">
+              {children}
+            </a>
+          ),
+      }}
+    >
+      {text}
+    </ReactMarkdown>
+  );
+}
 
 /** /guides and /guides/:guideId — how to use LoreStudio, rendered from src/guides/*.md. */
 export default function GuidePage() {
@@ -40,24 +64,16 @@ export default function GuidePage() {
       <article className={styles.article}>
         {guide ? (
           <>
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                // A link to another guide or page stays in the app; anything else opens apart.
-                a: ({ href = "", children }) =>
-                  href.startsWith("/") ? (
-                    <Link to={href}>{children}</Link>
-                  ) : (
-                    <a href={href} target="_blank" rel="noreferrer">
-                      {children}
-                    </a>
-                  ),
-              }}
-            >
-              {forMode(guide.body, mode)}
-            </ReactMarkdown>
-            {/* Drawn from the helpers' list, with a tick on each one used (doc 26, P2). */}
-            {guide.id === "typing" && <TypingGuide />}
+            {/* The Typing guide's list is drawn from the helpers, with a tick on each one used
+                (doc 26, P2); `<!-- helpers -->` in its text says where. */}
+            {forMode(guide.body, mode)
+              .split(HELPERS_HERE)
+              .map((part, i) => (
+                <Fragment key={i}>
+                  {i > 0 && <TypingGuide />}
+                  <Markdown text={part} />
+                </Fragment>
+              ))}
           </>
         ) : (
           <p>No guide selected.</p>

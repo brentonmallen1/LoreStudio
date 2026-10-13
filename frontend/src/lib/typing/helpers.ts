@@ -123,6 +123,7 @@ export const HELPERS = [
     where: ALL,
     context: "anywhere",
     group: "margin",
+    longWay: "the To-do button on a selection",
     guide: "notes-and-freewrite",
   },
   {

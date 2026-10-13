@@ -8,6 +8,7 @@ import { useUIStore } from "../../stores/uiStore";
 import { useAIStore } from "../../stores/aiStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { useEditorBridge } from "../../stores/editorBridge";
+import { offerTip } from "../../stores/tipStore";
 import { insertInlineImage } from "../story/InlineImageExtension";
 import { FORCE_MENTION_KEY, mentionLexicon, setMentionHighlight } from "../story/MentionDropdown";
 import ImageInsertModal from "../story/ImageInsertModal";
@@ -23,6 +24,7 @@ import EditorSearchBar from "../story/EditorSearchBar";
 import { useSceneAutosave } from "./useSceneAutosave";
 import { useMentionDropdown } from "./useMentionDropdown";
 import { useSlashCommands } from "./useSlashCommands";
+import { useTipWatch } from "./useTipWatch";
 import { useInlineNotes } from "./useInlineNotes";
 import { useMentionHoverCard } from "./useMentionHoverCard";
 import { useSceneDialogue } from "./useSceneDialogue";
@@ -137,6 +139,7 @@ export default function SceneEditor() {
     insertImage: () => setImagePickerOpen(true),
   });
   useSceneDialogue(editor, activeNode?.id, activeNode?.updated_at);
+  useTipWatch(editor, format);
   const hover = useMentionHoverCard(
     scrollAreaRef,
     hoverCardRef,
@@ -288,7 +291,10 @@ export default function SceneEditor() {
         notesView={notesView}
         noteCount={notes.sceneNotes.filter((n) => !n.done).length}
         onNotesView={(v) => setNotesView(saveNotesView(v))}
-        onOpenImagePicker={() => setImagePickerOpen(true)}
+        onOpenImagePicker={() => {
+          setImagePickerOpen(true);
+          offerTip("image");
+        }}
         onOpenAutoTag={() => setShowAutoTag(true)}
         onOpenAutoLink={() => setShowAutoLink(true)}
         onOpenGuides={(tab) => {

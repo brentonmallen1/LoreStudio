@@ -15,6 +15,9 @@ import { ScriptElementAttribute, ScriptKeys } from "./script/ScriptElementExtens
 import { ScriptComplete } from "./script/ScriptComplete";
 import { ScriptGuide } from "./script/ScriptGuide";
 import { LineOfferExtension } from "./script/LineOfferExtension";
+import { placeholderFor } from "../../lib/typing/tips";
+import { useTypingStore } from "../../stores/typingStore";
+import { useTipStore } from "../../stores/tipStore";
 
 /**
  * The scene editor's extensions for a story's format (doc 25). Both formats write with the
@@ -26,13 +29,9 @@ export function editorExtensions(format: StoryFormat): AnyExtension[] {
   const script = format !== "prose";
   return [
     proseStarterKit(),
+    // An empty scene names one helper not yet used, while tips are on (doc 26, P4).
     Placeholder.configure({
-      placeholder:
-        format === "stage_play"
-          ? "Write what the audience sees. ^ gives someone a line."
-          : script
-            ? "Write what we see. ^ gives someone a line."
-            : "Begin writing…",
+      placeholder: () => placeholderFor(format, useTypingStore.getState().used, useTipStore.getState().on),
     }),
     CharacterCount,
     ...(script

@@ -292,6 +292,10 @@
   color: var(--color-text-subtle);
 }
 
+.toggleHint a {
+  color: var(--color-accent);
+}
+
 .toggle {
   position: relative;
   width: 2.533rem;
