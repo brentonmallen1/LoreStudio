@@ -188,7 +188,7 @@ export default function SceneEditor() {
       });
       return;
     }
-    loadScene(editor, activeNode.content ?? "");
+    loadScene(editor, activeNode.content ?? "", { nodeId: activeNode.id });
     const { openAt, setOpenAt } = useEditorBridge.getState();
     if (openAt?.nodeId === activeNode.id) {
       setOpenAt(null);

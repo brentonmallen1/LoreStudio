@@ -6,7 +6,7 @@ import { scriptApi } from "../../../api/script";
 import { navigateTo } from "../../../lib/navigation";
 import { isAct } from "../../../lib/script/syntax";
 import { reloadStructure } from "../../../lib/story/loadStory";
-import { loadScene } from "../../../lib/undo/sceneHistory";
+import { keepBeforeCut, loadScene } from "../../../lib/undo/sceneHistory";
 import { useEditorBridge } from "../../../stores/editorBridge";
 import { useStoryStore } from "../../../stores/storyStore";
 import { toast } from "../../../stores/toastStore";
@@ -37,6 +37,7 @@ export default function SceneSplitBar({ editor, flush }: { editor: Editor; flush
     try {
       await flush();
       const content = await run(node.id, useStoryStore.getState().activeNode?.updated_at);
+      keepBeforeCut(editor, node.id);
       loadScene(editor, content);
       const store = useStoryStore.getState();
       if (store.activeNode?.id === node.id) store.setActiveNode(await api.getNode(node.id));
@@ -95,7 +96,9 @@ export default function SceneSplitBar({ editor, flush }: { editor: Editor; flush
           new_content: after,
           expected_updated_at: useStoryStore.getState().activeNode?.updated_at,
         });
-        // This scene as it now reads, so nothing saves the old text back over the cut.
+        // This scene as it now reads, so nothing saves the old text back over the cut; ⌘Z
+        // brings back the editor as it was, typing and all.
+        keepBeforeCut(editor, node.id);
         loadScene(editor, before);
         await reloadStructure();
         useEditorBridge.getState().setOpenAt({ nodeId: made.id, block: 1 });
