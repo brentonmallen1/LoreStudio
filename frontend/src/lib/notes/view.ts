@@ -27,3 +27,19 @@ export function saveNotesView(view: NotesView): NotesView {
 export function marginMode(view: NotesView, room: number, minRoom: number): "cards" | "markers" {
   return view === "cards" && room >= minRoom ? "cards" : "markers";
 }
+
+/** A full card and its gaps: how much room the margin wants beside the prose. */
+export const CARD_ROOM = 300;
+
+/**
+ * How far to move the prose right so the notes' cards fit beside it (Brenton 2026-10-12: the
+ * text is centred, and moves over only while cards are showing). `room` is the margin with
+ * the prose centred, `spare` the space to its right. Nothing when cards fit already, or when
+ * even the whole of `spare` would not make room for the narrowest card.
+ */
+export function notesShift(room: number, spare: number, minRoom: number): number {
+  if (room >= CARD_ROOM) return 0;
+  // Keep a little space on the right: the highlighted name's marks run down that edge.
+  const shift = Math.min(CARD_ROOM - room, Math.max(0, spare - 24));
+  return room + shift >= minRoom ? Math.round(shift) : 0;
+}

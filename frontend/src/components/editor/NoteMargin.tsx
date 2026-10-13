@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type RefObject } from "react";
 import { layoutCards, type MarginAnchor } from "../../lib/notes/marginLayout";
 import { NewNoteCard, NoteCard, NotePeek } from "./NoteCard";
 import { KIND_LABEL } from "../notes/kinds";
-import { marginMode, type NotesView } from "../../lib/notes/view";
+import { marginMode, notesShift, type NotesView } from "../../lib/notes/view";
 import type { InlineNotesState } from "./useInlineNotes";
 import styles from "./NoteMargin.module.css";
 
@@ -97,7 +97,12 @@ export default function NoteMargin({
       }
       const areaRect = area.getBoundingClientRect();
       const proseRect = prose.getBoundingClientRect();
-      const proseLeft = proseRect.left - areaRect.left;
+      // The prose is centred, the same space each side; while cards are showing it moves right
+      // to make room for them. Worked out from the widths, not where it is drawn, which slides.
+      const half = (area.clientWidth - proseRect.width) / 2;
+      const shift = view === "cards" && ids.length ? notesShift(half - 24, half, MIN_MARGIN) : 0;
+      area.style.setProperty("--notes-shift", `${shift}px`);
+      const proseLeft = half + shift;
       const room = proseLeft - 24;
       const anchors = ids.flatMap((id) => {
         const el = prose.querySelector<HTMLElement>(`[data-note-id="${CSS.escape(id)}"]`);

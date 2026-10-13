@@ -17,14 +17,9 @@
   line-height: 1.3;
 }
 
-/* The printed page's margins are not even (1.5in left, 1in right), so a script's speeches sit
-   at the middle of the paper, not of its text. The line moves right by half the difference
-   (2.5 of its 60 columns), so a speech sits at the middle of the screen as on the paper. A
-   play centres on its text, as its PDF does. */
-.script:not(.stage) :global(.ProseMirror) {
-  position: relative;
-  left: calc(2.5 / 60 * 100%);
-}
+/* The line is centred on the screen like prose. It once moved right by half the printed page's
+   uneven margins (2.5 of its 60 columns) so a speech sat mid-screen as on paper, but the
+   whole script then read as off to the right (Brenton, 2026-10-12). */
 
 .script :global(.ProseMirror p) {
   /* One sixtieth of the line: a column of the printed page. */
