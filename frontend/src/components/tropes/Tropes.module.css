@@ -47,6 +47,7 @@
 .stance,
 .place {
   flex: none;
+  max-width: 14rem;
   min-height: 1.6rem;
   padding: 0.1rem 0.6rem;
   border: 1px solid var(--color-control-border);

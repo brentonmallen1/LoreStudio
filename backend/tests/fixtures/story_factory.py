@@ -29,6 +29,8 @@ from app.models import (
     Era,
     FindingDismissal,
     HistoricalEvent,
+    ImportedItem,
+    ImportRecord,
     Location,
     LocationTravel,
     Note,
@@ -120,6 +122,11 @@ def build_full_story(db: Session, user: User, title: str = "Factory Story") -> S
     db.flush()
     db.add(TwistClue(id=_uid(), twist_id=twist.id, node_id=scene1.id, text="He hesitates"))
     db.add(ReaderKnowledgeEvent(id=_uid(), story_id=sid, node_id=scene2.id, twist_id=twist.id, subject="Tomas lied"))
+
+    record = ImportRecord(id=_uid(), story_id=sid, source="novelcrafter", filename="export.zip")
+    db.add(record)
+    db.flush()
+    db.add(ImportedItem(id=_uid(), story_id=sid, record_id=record.id, name="The Lifesaving Service"))
 
     trope = Trope(id=_uid(), story_id=sid, name="Mentor's Betrayal", stance="subverted", thread_id=thread.id)
     db.add(trope)

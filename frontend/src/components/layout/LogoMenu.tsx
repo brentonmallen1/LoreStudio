@@ -15,6 +15,7 @@ import { backupNeedsEye, useBackupStatus } from "../../hooks/useBackupStatus";
 import { relativeTime } from "../../utils/relativeTime";
 import LogoMenuPages from "./LogoMenuPages";
 import styles from "./LogoMenu.module.css";
+import { QUIET_KINDS } from "../../types/proposals";
 
 const COLOUR_MODES: { value: ColorMode; label: string; Icon: LucideIcon }[] = [
   { value: "light", label: "Light", Icon: Sun },
@@ -42,7 +43,7 @@ export default function LogoMenu() {
   const inStory = !!storyId && activeStory?.id === storyId;
 
   const findings = useOpenFindings().length;
-  const proposals = useOpenProposals().length;
+  const proposals = useOpenProposals().filter((p) => !QUIET_KINDS.has(p.kind)).length;
   const counts: Record<string, number> = inStory ? { findings, proposals } : {};
   const waiting = inStory ? findings + proposals : 0;
   const backup = useBackupStatus(inStory ? storyId : undefined);

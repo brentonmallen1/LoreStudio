@@ -168,6 +168,11 @@ export function buildLine(
       });
   }
 
+  // Stops with no parent group under "root"; in a tree of mixed depth (an imported draft whose
+  // chapters hold prose beside chapters with scenes) that can happen more than once.
+  uniqueKeys(stations);
+  uniqueKeys(acts);
+
   const currentIndex = stops.findIndex((s) => s.node.id === activeNodeId);
   const currentStation =
     stations.find((st) => st.node?.id === activeNodeId) ??
@@ -305,4 +310,14 @@ export function stripPx(width: StripWidth, expandedPx: number): number {
 /** Collapse to the line, or expand to the outline. */
 export function toggleStrip(width: StripWidth): StripWidth {
   return width === "strip" ? "scenes" : "strip";
+}
+
+/** Give a key that repeats a suffix, so each group renders as itself. */
+function uniqueKeys(groups: { key: string }[]): void {
+  const seen = new Map<string, number>();
+  for (const g of groups) {
+    const n = seen.get(g.key) ?? 0;
+    seen.set(g.key, n + 1);
+    if (n) g.key = `${g.key}:${n}`;
+  }
 }

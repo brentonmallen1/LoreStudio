@@ -23,6 +23,22 @@ In Studio mode, the importer can also ask the AI to find scene breaks (**Auto-se
 
 A script in **Fountain** (`.fountain`, `.spmd`) or **Final Draft** (`.fdx`) comes in as a screenplay, with nothing guessed: a scene starts at each scene heading and is named for its place, `#` sections (Final Draft's New Act) become acts, and an opening `FADE IN:` stays with the first scene. Its title page, each scene's synopsis (`=` in Fountain, the scene summary in Final Draft) and its notes come with it, a note beside the line it was written on. The characters it suggests are the names in its cues, for anyone who speaks twice or more, and its places are the ones its headings name. Italics and bold are kept. Two characters speaking at once (`^` in Fountain, dual dialogue in Final Draft) come in as speeches spoken at the same time, centred lines and lyrics as themselves, and the Fountain boneyard (`/* … */`) is left out.
 
+### From Novelcrafter
+
+In Novelcrafter, export the whole story (the **full** export, a `.zip`) and drop that file into the importer. Nothing is dropped without telling you:
+
+- **The manuscript** comes in through **Review structure** as any draft does: acts, chapters, and a scene at each `* * *`. Novelcrafter's "Chapter 1: Scene 1:" numbering is taken off the titles. If it reads like a script (scene headings, character cues), **What comes over** offers to import it as a screenplay.
+- **What comes over** lists every codex entry, snippet and conversation, where each will go, and a menu to send it somewhere else. Characters, places and subplots (as threads) come over with their other names, images and links. An entry such as _Richard (Physical)_ folds into Richard's appearance; one tagged _Trope_ becomes a trope in play, and one tagged _Theme_ a theme. Snippets become notes; one called _Logline_ becomes the logline, if you have none.
+- **Decide later** is for anything with no clear home, such as lore. It waits in **Proposals** › **Imported**, where you make each one a character, a place, a note or anything else, keep it in the Compendium, or let it go. **Keep the rest in the Compendium** settles the lot at once, and one undo puts it back.
+- **No place in LoreStudio** names what the file holds that LoreStudio has nowhere for, such as tags on characters. It is kept in the import's record. **Not in the file** lists what Novelcrafter keeps but leaves out of its export, such as scene summaries and POV: copy those across by hand.
+
+<!-- studio -->
+
+In Studio mode, the AI conversations come into the Chronicle, marked as from Novelcrafter. In Writer mode they stay in the file.
+<!-- /studio -->
+
+When the story is made, its report opens: Chronicle › **Imports** says what came over, what is still waiting, and what had no place, and keeps the original file to download.
+
 ## Export your manuscript
 
 Open the **Manuscript** page and choose **Export**, or choose **Export manuscript…** in the command palette ({{key:palette}}). Pick a format and your options, then choose **Download**.

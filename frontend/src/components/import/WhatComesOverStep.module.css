@@ -1,0 +1,198 @@
+/* What comes over (doc 28): one list per destination, rows divided by hairlines, the
+   destination a field at the end of each row (DESIGN.md: lists and feeds). */
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.lead {
+  margin: 0;
+  font-size: var(--text-base);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-tone);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.option input {
+  margin-top: 0.2rem;
+  accent-color: var(--color-accent);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-section-title);
+}
+
+.count {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.bulk {
+  margin-left: auto;
+}
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.what {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-family: var(--font-editor);
+  font-size: var(--text-base);
+  color: var(--color-text);
+}
+
+.into {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.excerpt {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clash {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--text-xs);
+  color: var(--color-warning);
+}
+
+.target,
+.bulk {
+  flex: none;
+  min-height: 1.75rem;
+  max-width: 13rem;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0 0 0 1.1rem;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.why {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.quiet {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.5rem;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.867rem;
+  padding: 0 0.875rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.backBtn:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.nextBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.867rem;
+  padding: 0 1.125rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.nextBtn:hover {
+  background: var(--color-accent-hover);
+}

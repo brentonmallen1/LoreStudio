@@ -6,6 +6,7 @@ import Modal from "../components/common/Modal";
 import type { MenuItem } from "../components/common/PopoverMenu";
 import DiscoverySettings from "../components/discovery/DiscoverySettings";
 import PageHeader from "../components/layout/PageHeader";
+import ImportedGroups from "../components/proposals/ImportedGroups";
 import ProposalRow from "../components/proposals/ProposalRow";
 import { useAIAvailable } from "../lib/mode";
 import { sectionPath } from "../lib/routes";
@@ -22,7 +23,18 @@ const KINDS: { id: ProposalKind; label: string; heading: string }[] = [
   { id: "fact", label: "Facts", heading: "What the reader learns" },
   { id: "relationship", label: "Relationships", heading: "Between characters" },
   { id: "dialogue", label: "Dialogue", heading: "Lines with no speaker" },
+  { id: "imported", label: "Imported", heading: "From an import" },
 ];
+
+/** Where a "yes" put it, for the notice's link and words. */
+const MADE: Record<string, { route: string; section: string; words: string }> = {
+  character: { route: "lorebook", section: "characters", words: "in the Lorebook" },
+  location: { route: "lorebook", section: "places", words: "in the Lorebook" },
+  plot_thread: { route: "promises", section: "threads", words: "in Promises" },
+  compendium_entry: { route: "compendium", section: "research", words: "in the Compendium" },
+  world_system: { route: "lorebook", section: "systems", words: "in the Lorebook" },
+  culture: { route: "lorebook", section: "cultures", words: "in the Lorebook" },
+};
 
 /**
  * Proposals (doc 12 P5): everything the app noticed and the author has not decided, in one
@@ -64,13 +76,11 @@ export default function ProposalsPage({ storyId }: { storyId: string }) {
   async function onAct(p: Proposal, action: string) {
     const result = await act(p, action);
     if (result.open) return setTagging(result.open);
-    const where =
-      result.entity_type === "character"
-        ? sectionPath(storyId, "lorebook", "characters", result.entity_id ?? undefined)
-        : result.entity_type === "location"
-          ? sectionPath(storyId, "lorebook", "places", result.entity_id ?? undefined)
-          : undefined;
-    setNotice({ text: p.subject ? `${p.subject} is in the Lorebook.` : "Done.", to: where });
+    const made = MADE[result.entity_type ?? ""];
+    const where = made
+      ? sectionPath(storyId, made.route, made.section, result.entity_id ?? undefined)
+      : undefined;
+    setNotice({ text: p.subject ? `${p.subject} is ${made?.words ?? "in the story"}.` : "Done.", to: where });
   }
 
   const more: MenuItem[] = aiAvailable
@@ -148,24 +158,28 @@ export default function ProposalsPage({ storyId }: { storyId: string }) {
               </button>
             </div>
           )}
-          {groups.map((g) => (
-            <section key={g.id} className={styles.group} aria-label={g.heading}>
-              <h2 className={styles.groupTitle}>
-                {g.heading}
-                <span className={styles.groupSub}>{g.items.length}</span>
-              </h2>
-              {g.items.map((p) => (
-                <ProposalRow
-                  key={p.id}
-                  proposal={p}
-                  storyId={storyId}
-                  onAct={onAct}
-                  onDecline={decline}
-                  onMerged={() => useProposalsStore.getState().refetch()}
-                />
-              ))}
-            </section>
-          ))}
+          {groups.map((g) =>
+            g.id === "imported" ? (
+              <ImportedGroups key={g.id} storyId={storyId} items={g.items} onAct={onAct} />
+            ) : (
+              <section key={g.id} className={styles.group} aria-label={g.heading}>
+                <h2 className={styles.groupTitle}>
+                  {g.heading}
+                  <span className={styles.groupSub}>{g.items.length}</span>
+                </h2>
+                {g.items.map((p) => (
+                  <ProposalRow
+                    key={p.id}
+                    proposal={p}
+                    storyId={storyId}
+                    onAct={onAct}
+                    onDecline={decline}
+                    onMerged={() => useProposalsStore.getState().refetch()}
+                  />
+                ))}
+              </section>
+            ),
+          )}
           {data && (
             <p className={styles.footer}>
               A yes can be undone like any edit. A no keeps it from asking again; dialogue asks again when the

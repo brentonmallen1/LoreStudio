@@ -32,6 +32,7 @@ from ..schemas.import_extraction import (
     ExtractionOptions,
     ExtractionPreview,
 )
+from ..schemas.import_novelcrafter import NovelcrafterChoices
 from ..schemas.import_schemas import (
     AIAnalyzeResponse,
     FinalizeImportRequest,
@@ -41,6 +42,7 @@ from ..schemas.import_schemas import (
     UploadResponse,
 )
 from ..schemas.jobs import JobOut
+from ..services import import_records
 from ..services.import_script import (
     SCRIPT_EXTENSIONS,
     ScriptImport,
@@ -64,6 +66,10 @@ from ..services.import_service import (
     parse_document,
 )
 from ..services.job_queue import enqueue, handler
+from ..services.novelcrafter.importing import TEMPLATE as NC_TEMPLATE
+from ..services.novelcrafter.importing import NovelcrafterImport, as_script_import, open_export, retitle
+from ..services.novelcrafter.importing import finish as finish_novelcrafter
+from ..services.novelcrafter.reader import looks_like_export
 
 router = APIRouter()
 
@@ -82,12 +88,19 @@ class _ImportSession:
         paragraphs: list[ParsedParagraph],
         preview: ImportPreviewTree,
         script: ScriptImport | None = None,
+        novelcrafter: NovelcrafterImport | None = None,
+        filename: str = "",
+        original: bytes = b"",
     ):
         self.session_id = session_id
         self.user_id = user_id
         self.paragraphs = paragraphs
         self.preview = preview
         self.script = script
+        self.novelcrafter = novelcrafter
+        #: The file as uploaded: kept with the story, so the import can always be checked (doc 28).
+        self.filename = filename
+        self.original = original
         self.created_at = time.monotonic()
 
     def is_expired(self) -> bool:
@@ -132,7 +145,7 @@ ALLOWED_MIME_TYPES = {
     "application/octet-stream",
 }
 
-ALLOWED_EXTENSIONS = {".docx", ".doc", ".rtf", ".md", ".markdown", ".txt", ".epub", *SCRIPT_EXTENSIONS}
+ALLOWED_EXTENSIONS = {".docx", ".doc", ".rtf", ".md", ".markdown", ".txt", ".epub", ".zip", *SCRIPT_EXTENSIONS}
 MAX_FILE_SIZE = 30 * 1024 * 1024  # 30 MB
 
 
@@ -209,11 +222,19 @@ async def upload_for_import(
 
     mime = file.content_type or "application/octet-stream"
 
-    # Parse document via pandoc; a script file reads itself
+    # Parse document via pandoc; a script file reads itself; a Novelcrafter export opens its manuscript
     script: ScriptImport | None = None
+    nc: NovelcrafterImport | None = None
     try:
         if is_script_file(filename):
             paragraphs, detected_title, source_format, script = read_script(content, filename)
+        elif ext == ".zip":
+            if not looks_like_export(content):
+                raise HTTPException(status_code=415, detail="This zip is not a Novelcrafter export")
+            paragraphs, detected_title, nc = open_export(content)
+            source_format = "novelcrafter"
+            if template_id == "freeform" and _get_template(NC_TEMPLATE, db):
+                template_id = NC_TEMPLATE
         else:
             paragraphs, detected_title, source_format = parse_document(content, filename, mime)
     except (RuntimeError, ValueError) as e:
@@ -228,6 +249,8 @@ async def upload_for_import(
 
     session_id = str(uuid.uuid4())
     preview = _preview(paragraphs, script, session_id, template_id, template_levels, source_format, detected_title)
+    if nc:
+        preview = retitle(preview)
 
     # Check if Ollama is reachable (non-blocking check)
     ai_available = False
@@ -254,6 +277,9 @@ async def upload_for_import(
         paragraphs=paragraphs,
         preview=preview,
         script=script,
+        novelcrafter=nc,
+        filename=filename,
+        original=content,
     )
 
     return UploadResponse(
@@ -263,6 +289,7 @@ async def upload_for_import(
         preview=preview,
         has_unstructured_blocks=has_unstructured,
         ai_available=ai_available,
+        novelcrafter=nc.preview if nc else None,
     )
 
 
@@ -583,11 +610,19 @@ def finalize_import(
             preview.source_format,
             preview.detected_title,
         )
+        if session.novelcrafter:
+            preview = retitle(preview)
+
+    # A Novelcrafter manuscript written as a script, imported as one when the author chose to.
+    choices = body.novelcrafter or NovelcrafterChoices()
+    paragraphs, script = session.paragraphs, session.script
+    if session.novelcrafter and choices.screenplay:
+        paragraphs, script = as_script_import(paragraphs, session.novelcrafter.author)
 
     try:
         story = create_story_from_import(
             preview=preview,
-            paragraphs=session.paragraphs,
+            paragraphs=paragraphs,
             request=body,
             user_id=current_user.id,
             db=db,
@@ -606,10 +641,42 @@ def finalize_import(
             entity_counts = create_entities_from_extraction(candidates, selected_ids, story.id, db)
         except Exception as e:
             logger.warning("Entity extraction creation failed (non-fatal): %s", e)
-    if session.script:
-        finish_script(story, session.script, preview, db)
+    if script:
+        finish_script(story, script, preview, db)
+
+    record_id = _record(session, story, choices, db, current_user.id)
 
     # Clean up session
     _sessions.pop(session_id, None)
 
-    return {"id": story.id, "title": story.title, **entity_counts}
+    return {"id": story.id, "title": story.title, "record_id": record_id, **entity_counts}
+
+
+def _record(session: _ImportSession, story, choices: NovelcrafterChoices, db: Session, user_id: str) -> str | None:
+    """The import's record (doc 28). A Novelcrafter export's Lorebook is made here too: if that
+    fails the new story goes with it, rather than standing there half made."""
+    if session.novelcrafter:
+        try:
+            nc = session.novelcrafter
+            record = finish_novelcrafter(
+                story, nc, choices, filename=session.filename, data=session.original, user_id=user_id, db=db
+            )
+            return record.id
+        except Exception as e:
+            logger.exception("Novelcrafter import failed")
+            db.rollback()
+            db.delete(story)
+            db.commit()
+            raise HTTPException(status_code=500, detail=f"Import failed: {e}")
+    try:
+        source = "script" if session.script else "document"
+        record = import_records.start(
+            story, source=source, filename=session.filename, data=session.original, user_id=user_id, db=db
+        )
+        import_records.manuscript(record, story, db)
+        db.commit()
+        return record.id
+    except Exception as e:  # the story stands; only its record is missing
+        logger.warning("Import record failed (non-fatal): %s", e)
+        db.rollback()
+        return None

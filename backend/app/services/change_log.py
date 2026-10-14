@@ -31,6 +31,7 @@ from ..models.diagram import Diagram
 from ..models.dialogue import DialogueBlock
 from ..models.finding_dismissal import FindingDismissal
 from ..models.historical_event import Era, HistoricalEvent
+from ..models.import_record import ImportedItem
 from ..models.interview import CharacterInterview
 from ..models.location import Location, ScenePresence, SceneSetting
 from ..models.location_travel import LocationTravel
@@ -75,6 +76,8 @@ ENTITY_MODELS: dict[str, type] = {
     # Tropes in play (doc 27): the trope and where it plays.
     "trope": Trope,
     "trope_link": TropeLink,
+    # Something an import brought, placed or declined from Proposals › Imported (doc 28).
+    "imported_item": ImportedItem,
     "finding_dismissal": FindingDismissal,
     "proposal_decline": ProposalDecline,
     "scene_presence": ScenePresence,

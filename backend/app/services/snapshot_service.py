@@ -24,6 +24,7 @@ from ..models.dialogue import DialogueBlock
 from ..models.discovered_element import DiscoveredElement
 from ..models.finding_dismissal import FindingDismissal
 from ..models.historical_event import Era, HistoricalEvent
+from ..models.import_record import ImportedItem, ImportRecord
 from ..models.interview import CharacterInterview
 from ..models.location import Location, ScenePresence, SceneSetting
 from ..models.location_travel import LocationTravel
@@ -335,6 +336,13 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
     ]
     data["finding_dismissals"] = [
         _model_to_dict(d) for d in db.query(FindingDismissal).filter(FindingDismissal.story_id == story_id).all()
+    ]
+    # What an import brought (doc 28)
+    data["import_records"] = [
+        _model_to_dict(r) for r in db.query(ImportRecord).filter(ImportRecord.story_id == story_id).all()
+    ]
+    data["imported_items"] = [
+        _model_to_dict(i) for i in db.query(ImportedItem).filter(ImportedItem.story_id == story_id).all()
     ]
     data["proposal_declines"] = [
         _model_to_dict(d) for d in db.query(ProposalDecline).filter(ProposalDecline.story_id == story_id).all()
@@ -806,7 +814,17 @@ def _delete_story_content(story_id: str, db: Session, state: dict | None = None)
     _bulk_delete(LocationTravel, LocationTravel.from_location_id, loc_ids)
     _bulk_delete(OutlineItem, OutlineItem.outline_id, outline_ids)
     _bulk_delete(CompendiumAttachment, CompendiumAttachment.entry_id, entry_ids)
-    for model in (SceneLink, Note, ReaderKnowledgeEvent, DiscoveredElement, FindingDismissal, ProposalDecline, Trope):
+    for model in (
+        SceneLink,
+        Note,
+        ReaderKnowledgeEvent,
+        DiscoveredElement,
+        FindingDismissal,
+        ProposalDecline,
+        Trope,
+        ImportedItem,
+        ImportRecord,
+    ):
         _delete_by_story(model)
 
     if _has("interviews"):
@@ -915,6 +933,8 @@ def _insert_story_content(state: dict, db: Session) -> None:  # noqa: PLR0915
     _insert_all(DiscoveredElement, state.get("discovered_elements", []))
     _insert_all(FindingDismissal, state.get("finding_dismissals", []))
     _insert_all(ProposalDecline, state.get("proposal_declines", []))
+    _insert_all(ImportRecord, state.get("import_records", []))
+    _insert_all(ImportedItem, state.get("imported_items", []))
     _insert_all(LocationTravel, state.get("location_travel", []))
     _insert_all(DialogueBlock, state.get("dialogue_blocks", []))
     _insert_all(CharacterJourneySummary, state.get("character_journey_summaries", []))

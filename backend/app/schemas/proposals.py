@@ -10,7 +10,9 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-ProposalKind = Literal["place", "person", "dialogue", "fact", "presence", "relationship"]
+ProposalKind = Literal["place", "person", "dialogue", "fact", "presence", "relationship", "imported"]
+#: Kinds that wait on the author without asking for attention: kept out of the logo's badge.
+QUIET_KINDS = {"imported"}
 ProposalSource = Literal["local", "ai"]
 
 
@@ -35,6 +37,8 @@ class Proposal(BaseModel):
     #: The label for "no": what declining does differs by source (delete a stub, forget a name).
     decline: str = "Not this"
     created_at: datetime | None = None
+    #: Proposals that belong together and can be settled together: an import's record (doc 28).
+    group: str = ""
 
 
 class ProposalsOut(BaseModel):

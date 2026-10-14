@@ -17,6 +17,7 @@ from .dialogue import DialogueBlock
 from .discovered_element import DiscoveredElement
 from .finding_dismissal import FindingDismissal
 from .historical_event import Era, HistoricalEvent
+from .import_record import ImportedItem, ImportRecord
 from .interview import CharacterInterview
 from .location import Location, ScenePresence, SceneSetting
 from .location_travel import LocationTravel
@@ -80,6 +81,8 @@ __all__ = [
     "TwistClue",
     "Trope",
     "TropeLink",
+    "ImportRecord",
+    "ImportedItem",
     "OutlineItem",
     "StorySnapshot",
     "NumbersReading",

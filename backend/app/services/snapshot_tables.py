@@ -77,6 +77,9 @@ SNAPSHOT_KEYS_BY_TABLE: dict[str, str] = {
     "discovered_elements": "discovered_elements",
     "finding_dismissals": "finding_dismissals",
     "proposal_declines": "proposal_declines",
+    # What an import brought (doc 28): the record, and what still waits to be sorted.
+    "import_records": "import_records",
+    "imported_items": "imported_items",
 }
 
 #: Story-owned tables that have no story_id column of their own.

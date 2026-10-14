@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from .discovered_element import DiscoveredElement
     from .finding_dismissal import FindingDismissal
     from .historical_event import Era, HistoricalEvent
+    from .import_record import ImportedItem, ImportRecord
     from .location import Location
     from .media import StoryAsset
     from .note import Note
@@ -148,6 +149,10 @@ class Story(Base):
     calendars: Mapped[list["Calendar"]] = relationship("Calendar", back_populates="story", cascade="all, delete-orphan")
     twists: Mapped[list["Twist"]] = relationship("Twist", back_populates="story", cascade="all, delete-orphan")
     tropes: Mapped[list["Trope"]] = relationship("Trope", back_populates="story", cascade="all, delete-orphan")
+    import_records: Mapped[list["ImportRecord"]] = relationship(
+        "ImportRecord", back_populates="story", cascade="all, delete-orphan"
+    )
+    imported_items: Mapped[list["ImportedItem"]] = relationship("ImportedItem", cascade="all, delete-orphan")
     outlines: Mapped[list["Outline"]] = relationship(
         "Outline",
         back_populates="story",

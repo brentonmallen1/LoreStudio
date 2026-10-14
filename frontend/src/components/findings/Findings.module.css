@@ -200,6 +200,42 @@
   color: var(--color-text-muted);
 }
 
+/* What an import brought (doc 28): its own words, line breaks kept, the rest on request. */
+.quote[data-imported] {
+  white-space: pre-line;
+}
+
+.inlineLink {
+  margin-left: 0.4rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent);
+  font: inherit;
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.inlineLink:hover {
+  text-decoration: underline;
+}
+
+.groupActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+  font-family: var(--font-ui);
+}
+
+.groupActions a.verb {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
 .source {
   flex-shrink: 0;
   margin-top: 0.15rem;

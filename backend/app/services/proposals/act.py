@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from ...models.character import Character, CharacterRelationship
 from ...models.codex import CodexEdge, CodexNode
 from ...models.discovered_element import DiscoveredElement
+from ...models.import_record import ImportedItem
 from ...models.location import Location, ScenePresence
 from ...models.proposal_decline import ProposalDecline
 from ...models.reader_knowledge import ReaderKnowledgeEvent
@@ -50,6 +51,15 @@ def act(story_id: str, p: Proposal, action: str, db: Session, actor: str, client
             return act_series(story_id, p, db, actor, client)
         except SeriesError as e:
             raise CannotAct(str(e)) from e
+
+    if source == "imported":
+        from .imported import place
+
+        item = db.get(ImportedItem, ref)
+        assert item is not None
+        result = place(story_id, item, action, db, actor, client)
+        db.commit()
+        return result
 
     if source == "stub":
         loc = db.get(Location, ref)
@@ -231,7 +241,13 @@ def _add_knowledge(story_id: str, p: Proposal, db: Session, actor: str, client: 
 
 def decline(story_id: str, p: Proposal, db: Session, actor: str, client: str | None) -> None:
     source, _, ref = p.id.partition(":")
-    if source == "stub":
+    if source == "imported":
+        from .imported import decline_item
+
+        item = db.get(ImportedItem, ref)
+        assert item is not None
+        decline_item(story_id, item, db, actor, client)
+    elif source == "stub":
         loc = db.get(Location, ref)
         assert loc is not None
         change_log.record(
