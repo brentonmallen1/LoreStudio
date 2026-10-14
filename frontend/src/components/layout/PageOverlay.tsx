@@ -1,6 +1,9 @@
 import { useEffect, useRef } from "react";
-import { X } from "lucide-react";
+import { Undo2 } from "lucide-react";
 import { useUIStore } from "../../stores/uiStore";
+import { mentionIsOpen } from "../story/MentionDropdown";
+import { slashIsOpen } from "../story/SlashCommandExtension";
+import LogoMenu from "./LogoMenu";
 import styles from "./PageOverlay.module.css";
 
 interface Props {
@@ -13,7 +16,8 @@ interface Props {
 
 /**
  * The frame Settings and Guides open in (lib/overlay.ts): full-window, with one way out
- * that says where it goes, and Esc as the other.
+ * that says where it goes, and Esc as the other. Its bar is the app's header (doc 24): the
+ * logo menu, the page's name, and the way back as a story's trail ends in it, ↩ and the page.
  */
 export default function PageOverlay({ title, backTo, onClose, children }: Props) {
   const frameRef = useRef<HTMLDivElement>(null);
@@ -29,6 +33,8 @@ export default function PageOverlay({ title, backTo, onClose, children }: Props)
     function onKey(e: KeyboardEvent) {
       if (e.key !== "Escape" || e.defaultPrevented) return;
       if (useUIStore.getState().commandPaletteOpen) return;
+      // A picker open in a guide's practice text (doc 26, P5) closes first.
+      if (mentionIsOpen() || slashIsOpen()) return;
       const frame = frameRef.current;
       const otherLayer = Array.from(document.querySelectorAll('[role="dialog"]')).some(
         (el) => el !== frame && !el.closest("[inert]"),
@@ -51,10 +57,17 @@ export default function PageOverlay({ title, backTo, onClose, children }: Props)
       tabIndex={-1}
     >
       <header className={styles.bar}>
+        <LogoMenu />
         <span className={styles.title}>{title}</span>
-        <button type="button" className={styles.close} onClick={onClose} title="Close (Esc)">
-          <X size={14} />
-          <span>Back to {backTo}</span>
+        <button
+          type="button"
+          className={styles.back}
+          onClick={onClose}
+          title={`Back to ${backTo} (Esc)`}
+          aria-label={`Back to ${backTo}`}
+        >
+          <Undo2 size={14} aria-hidden />
+          <span className={styles.backLabel}>{backTo}</span>
         </button>
       </header>
       <div className={styles.body}>{children}</div>

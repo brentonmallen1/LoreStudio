@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import type { SlashState } from "./useSlashCommands";
 import { clampPopup } from "./segmentMeta";
+import { helper } from "../../lib/typing/helpers";
+import { ways } from "../../lib/typing/show";
 import styles from "./SceneEditor.module.css";
 
 export function SlashPicker({ slash }: { slash: SlashState }) {
@@ -28,7 +30,11 @@ export function SlashPicker({ slash }: { slash: SlashState }) {
           <span className={styles.slashItemLabel}>
             {cmd.label} <span className={styles.slashItemDesc}>/{cmd.name}</span>
           </span>
-          <span className={styles.slashItemDesc}>{cmd.description}</span>
+          <span className={styles.slashItemDesc}>
+            {cmd.description}
+            {/* The quicker way, so knowing / is enough to find the rest (doc 26, P2). */}
+            {cmd.faster && ` · or ${ways(helper(cmd.faster))[0]}`}
+          </span>
           <kbd className={styles.slashItemKbd}>Tab</kbd>
         </button>
       ))}

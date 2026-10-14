@@ -27,6 +27,9 @@ interface EditorBridge {
   /** Open the image picker in the open scene (the palette's Insert image); null with no editor. */
   insertImage: (() => void) | null;
   setInsertImage: (open: (() => void) | null) => void;
+  /** Put the cursor at the start of a block of a scene about to open (a split's new scene). */
+  openAt: { nodeId: string; block: number } | null;
+  setOpenAt: (at: { nodeId: string; block: number } | null) => void;
   /** Set the element of the line the cursor is in, while a script scene is open (doc 25). */
   scriptElement: ((el: ScriptElement) => void) | null;
   setScriptElement: (fn: ((el: ScriptElement) => void) | null) => void;
@@ -40,6 +43,8 @@ export const useEditorBridge = create<EditorBridge>((set) => ({
   setNotes: (notes) => set({ notes }),
   pendingPassage: null,
   showPassage: (pending) => set({ pendingPassage: pending && { ...pending, at: Date.now() } }),
+  openAt: null,
+  setOpenAt: (openAt) => set({ openAt }),
   insertImage: null,
   setInsertImage: (insertImage) => set({ insertImage }),
   scriptElement: null,

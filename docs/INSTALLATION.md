@@ -35,9 +35,10 @@ just dev          # the API on :8000 and the app on :5173
 Open <http://localhost:5173> and sign in as `admin` with the `ADMIN_PASSWORD` from `.env`
 (`change-me` until you change it; fine for `ENV=dev`).
 
-The first start creates the database in `data/`, runs the migrations and adds the demo story
-"The Last Lighthouse". `SEED_EXTRA_DEMOS=true` adds the other demo stories and the
-Lighthouse's sequel, which makes a series.
+The first start creates the database in `data/` and runs the migrations. Each account starts
+with two tutorial stories; the samples ("Sample: Novel · The Last Lighthouse" and the rest) load
+from Guides › Getting started. For development, `SEED_DEMO=true` loads the Lighthouse samples
+into the admin account on first start, and `SEED_EXTRA_DEMOS=true` the rest.
 
 `just dev-stop` frees the two ports if something was left running. If another app already uses
 8000 or 5173, set `PORT` and `FRONTEND_PORT` in `.env`; the Vite proxy follows `PORT`.

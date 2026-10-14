@@ -272,6 +272,9 @@ WHOLE_STORIES = (
     "POST /api/stories/import",
     # The example stories, added whole (the dashboard, Settings › Account).
     "POST /api/system/examples",
+    # The tutorial stories, made whole on first sign-in and by Start the tutorial again.
+    "POST /api/system/tutorial",
+    "POST /api/system/tutorial/restart",
 )
 
 NOT_UNDOABLE_GROUPS: dict[str, tuple[str, ...]] = {

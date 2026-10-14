@@ -2,7 +2,13 @@ import { afterEach, describe, expect, it } from "vitest";
 import { Editor, getHTMLFromFragment } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
 import { proseStarterKit } from "../starterKit";
-import { headingBelowTop, headingsBelowTop, ScriptElementAttribute } from "./ScriptElementExtension";
+import {
+  headingBelowTop,
+  headingsBelowTop,
+  ScriptElementAttribute,
+  ScriptKeys,
+  setHeadingEnter,
+} from "./ScriptElementExtension";
 
 /**
  * A script scene is one heading (doc 25, D3): a heading below the first line is where the
@@ -55,5 +61,60 @@ describe("headingBelowTop", () => {
     const below = headingsBelowTop(ed.state.doc);
     expect(below).toHaveLength(2);
     expect(getHTMLFromFragment(ed.state.doc.content.cut(0, below[0]), ed.state.schema)).toBe(TOP);
+  });
+
+  it("is nothing on an empty line set to heading, as Enter after a transition leaves one", () => {
+    const empty = TOP + '<p data-el="transition">BLACKOUT.</p><p data-el="heading"></p>';
+    editor = new Editor({ extensions: [proseStarterKit(), ScriptElementAttribute], content: empty });
+    const end = editor.state.doc.content.size - 1;
+    editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, end)));
+    expect(headingBelowTop(editor)).toBeNull();
+    expect(headingsBelowTop(editor.state.doc)).toEqual([]);
+  });
+});
+
+/** Enter at the end of a heading typed further down starts the new scene (Brenton, 2026-10-12). */
+describe("Enter on a heading below the scene's own", () => {
+  const enter = (ed: Editor) =>
+    ed.view.someProp("handleKeyDown", (f) => f(ed.view, new KeyboardEvent("keydown", { key: "Enter" })));
+
+  function atEnd(content: string): Editor {
+    editor = new Editor({ extensions: [proseStarterKit(), ScriptElementAttribute, ScriptKeys], content });
+    const end = editor.state.doc.content.size - 1;
+    editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, end)));
+    return editor;
+  }
+
+  it("hands the heading to the split, and leaves its own heading and an empty one to Enter", () => {
+    const asked: number[] = [];
+    setHeadingEnter((pos) => asked.push(pos));
+    try {
+      const ed = atEnd(TOP + '<p data-el="heading">EXT. SEA - DAY</p>');
+      expect(enter(ed)).toBe(true);
+      expect(asked).toEqual([headingsBelowTop(ed.state.doc)[0]]);
+      ed.destroy();
+
+      atEnd(TOP + '<p data-el="heading"></p>');
+      enter(editor!);
+      editor!.destroy();
+      atEnd('<p data-el="heading">INT. COTTAGE - NIGHT</p>');
+      enter(editor!);
+      expect(asked).toHaveLength(1);
+    } finally {
+      setHeadingEnter(null);
+    }
+  });
+
+  it("starts the scene when the words were typed as action and read as a heading", () => {
+    const asked: number[] = [];
+    setHeadingEnter((pos) => asked.push(pos));
+    try {
+      const ed = atEnd(TOP + '<p data-el="action">EXT. SEA - DAY</p>');
+      enter(ed);
+      expect(asked).toHaveLength(1);
+      expect(ed.state.doc.nodeAt(asked[0])?.attrs.el).toBe("heading");
+    } finally {
+      setHeadingEnter(null);
+    }
   });
 });

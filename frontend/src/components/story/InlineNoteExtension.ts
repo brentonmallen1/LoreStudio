@@ -1,6 +1,7 @@
 import { Mark, mergeAttributes } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { SHORTCUTS, editorKey } from "../../lib/keyboard/shortcuts";
+import { markUsed } from "../../stores/typingStore";
 
 export interface InlineNoteCallbacks {
   onNoteActivate: (noteId: string, rect: DOMRect) => void;
@@ -60,6 +61,7 @@ export const InlineNoteExtension = Mark.create({
     return {
       [editorKey(SHORTCUTS.inlineNote.combo)]: () => {
         _cb.onShortcut();
+        markUsed("note");
         return true;
       },
       [editorKey(SHORTCUTS.nextNote.combo)]: () => {

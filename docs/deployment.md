@@ -36,8 +36,9 @@ docker compose up -d
 Your stories are kept in `./data` beside it. From a checkout, `cp .env.example .env` and
 `docker compose -f docker-compose.aio.yml up -d` do the same.
 
-Open `http://<host>:8080` and sign in as `admin`. The first start migrates the database and adds
-the demo story; give it a minute.
+Open `http://<host>:8080` and sign in as `admin`. The first start migrates the database; give it
+a minute. Each account starts with the two tutorial stories, and loads the samples from Guides ›
+Getting started.
 
 - **`SECRET_KEY`**: leave it unset and one is made on first start and kept in
   `/data/.secret_key`, so sign-ins survive restarts and updates. Set your own to manage it
@@ -132,4 +133,4 @@ what to check and how to go back.
 ## Starting over
 
 Stop the container and empty the data folder (keep a copy). The next start makes a fresh
-database, the admin account and the demo story.
+database and the admin account.

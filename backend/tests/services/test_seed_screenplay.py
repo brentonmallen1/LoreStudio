@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.models.story import Story
 from app.models.structure import StructureNode
-from app.services import script_syntax, seed, seed_screenplay
+from app.services import sample_titles, script_syntax, seed, seed_screenplay
 
 
 def test_the_screenplay_demo_is_a_script_in_elements(db_session: Session, monkeypatch):
@@ -81,7 +81,7 @@ def test_the_demo_scripts_are_told_from_the_novel(db_session: Session, monkeypat
     seed_screenplay.seed_screenplay_demo()
     seed_stage_play.seed_stage_play_demo()
 
-    novel = db_session.query(Story).filter(Story.title == "The Last Lighthouse").one()
+    novel = db_session.query(Story).filter(Story.title == sample_titles.NOVEL).one()
     titles = {n.id: n.title for n in db_session.query(StructureNode).filter(StructureNode.story_id == novel.id)}
     for title, pairs in [
         (seed_screenplay.TITLE, {"Knock at the Door": "Knock at the Door", "The Light": "The Light"}),

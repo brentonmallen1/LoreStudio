@@ -44,8 +44,8 @@ start while `SECRET_KEY` or `ADMIN_PASSWORD` is a default value. The all-in-one 
 
 | Variable | Default | What it does |
 |---|---|---|
-| `SEED_DEMO` | `true` | Add "The Last Lighthouse" to an empty database |
-| `SEED_EXTRA_DEMOS` | `false` | Also add the other demo stories and the Lighthouse's sequel, which makes a series |
+| `SEED_DEMO` | `false` | Load the Lighthouse samples (novel, screenplay, play) into the admin account on first start; otherwise each account loads samples from Guides › Getting started |
+| `SEED_EXTRA_DEMOS` | `false` | Also load the other samples and the Lighthouse's sequel, which makes a series |
 
 ### AI (Ollama)
 

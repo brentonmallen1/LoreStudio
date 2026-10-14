@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { ProposedDialogueTag, StructureNode } from "../../types";
 import { saveOpenScene } from "../../lib/panel/panelSync";
+import { offerTip } from "../../stores/tipStore";
 import styles from "./AutoTagDialoguePanel.module.css";
 
 interface Props {
@@ -204,6 +205,8 @@ export default function AutoTagDialoguePanel({
       await saveOpenScene(sceneId); // the rewrite is of the current text, typing included
       const updated = await api.applyDialogueTags(sceneId, tags);
       onApplied(updated);
+      // Tagged after the fact; < does it while writing (doc 26, P4).
+      offerTip("tag");
       // Rescan so the panel shows remaining untagged dialogue
       const fresh = await api.suggestDialogueTags(sceneId);
       setProposals(fresh);

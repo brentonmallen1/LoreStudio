@@ -41,7 +41,9 @@ class Settings(BaseSettings):
     admin_password: str = "change-me"
 
     # Demo content, seeded only into an empty database.
-    seed_demo: bool = True
+    # The Lighthouse samples on first start (development, the QA copy). A fresh install holds
+    # only the tutorials; the samples load on request (doc 26, P7).
+    seed_demo: bool = False
     seed_extra_demos: bool = False
 
     ollama_base_url: str = "http://localhost:11434"

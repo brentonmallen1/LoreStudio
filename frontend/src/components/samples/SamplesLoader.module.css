@@ -1,0 +1,123 @@
+/* The samples (doc 26, P7): every one listed, a hairline between rows (DESIGN.md §4: a long
+   list), each with Load or a word saying it is in the library. */
+.loader {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 0.5rem 0 1.25rem;
+}
+
+/* Two classes: a guide's own list rules (.article ul, li) must not indent or space these. */
+.loader .list {
+  width: 100%;
+  max-width: 38rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.loader .row {
+  display: flex;
+  margin: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2.4rem;
+  padding: 0.35rem 0;
+}
+
+.row + .row {
+  border-top: 1px solid var(--color-border-light);
+}
+
+.name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.6rem;
+  min-width: 0;
+  font-size: var(--text-sm);
+}
+
+.kind {
+  min-width: 6.5rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.title {
+  color: var(--color-text);
+}
+
+.needs {
+  flex-basis: 100%;
+  padding-left: 7.1rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.have {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* Ghost tier (DESIGN.md §5): no ground until the pointer is on it. */
+.load {
+  flex-shrink: 0;
+  min-height: 1.75rem;
+  padding: 0 0.7rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-accent);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.load:hover:not(:disabled) {
+  background: var(--color-hover);
+}
+
+.button {
+  min-height: 2rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+  background: var(--color-hover);
+}
+
+.load:disabled,
+.button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.load:focus-visible,
+.button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .kind {
+    min-width: 0;
+  }
+  .needs {
+    padding-left: 0;
+  }
+}

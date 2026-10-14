@@ -78,14 +78,24 @@ export default function StoryStrip() {
         <StripEdge px={stripPx(width, expandedPx)} onDrag={setDragPx} onCommit={setStripPx} />
       )}
 
-      {/* The colour picker on top, so the line runs the strip's full height (doc 24). The
-          book's name in the trail is the Overview, so the strip has no Book button. */}
+      {/* At the top, so the line runs the strip's full height (doc 24): first the way to
+          expand or collapse, in the same place either way (it was at the foot of the line and
+          the head of the outline, Brenton 2026-10-13), then the colour picker. The book's name
+          in the trail is the Overview, so the strip has no Book button. */}
       {width === "strip" ? (
-        <div className={`${styles.head} ${styles.headNarrow}`}>{picker}</div>
+        <div className={`${styles.head} ${styles.headNarrow}`}>
+          <button
+            className={styles.iconBtn}
+            onClick={cycle}
+            aria-label="Expand the story strip"
+            title={`Expand (${formatCombo(SHORTCUTS.cycleStrip.combo)})`}
+          >
+            <ChevronsRight size={16} />
+          </button>
+          {picker}
+        </div>
       ) : (
         <div className={styles.head}>
-          {picker}
-          <span className={styles.headSpacer} />
           <button
             className={styles.iconBtn}
             onClick={() => setStripWidth("strip")}
@@ -94,6 +104,7 @@ export default function StoryStrip() {
           >
             <ChevronsLeft size={16} />
           </button>
+          {picker}
         </div>
       )}
 
@@ -111,18 +122,6 @@ export default function StoryStrip() {
         {width === "scenes" && <FullTree storyId={storyId} />}
       </div>
 
-      {width === "strip" && (
-        <div className={styles.expandRow}>
-          <button
-            className={styles.iconBtn}
-            onClick={cycle}
-            aria-label="Expand the story strip"
-            title={`Expand (${formatCombo(SHORTCUTS.cycleStrip.combo)})`}
-          >
-            <ChevronsRight size={16} />
-          </button>
-        </div>
-      )}
       {(hovering || pickerOpen) && <StripKey mode={stripColourMode} line={line} ctx={ctx} />}
     </nav>
   );

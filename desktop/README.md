@@ -159,7 +159,7 @@ which shows Linux windows on the Windows desktop (WSLg).
 
 On each, check:
 
-1. The splash, then "The Last Lighthouse", already signed in.
+1. The splash, then the library with Learn LoreStudio and Learn Screenplays, already signed in.
 2. Export PDF, Word and EPUB: a Save dialog opens in Downloads, and the files open.
 3. A character's dialogue analysis runs (spaCy).
 4. Opening LoreStudio again brings the open window forward.

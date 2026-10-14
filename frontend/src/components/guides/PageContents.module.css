@@ -1,0 +1,59 @@
+/* "On this page", beside a guide: the quiet tier, a ground under the pointer only (DESIGN.md
+   Press Rule); the section being read is set in ink. */
+.contents {
+  position: sticky;
+  top: 2rem;
+  align-self: start;
+  max-height: calc(100vh - var(--header-height) - 4rem);
+  overflow-y: auto;
+}
+
+.empty {
+  min-width: 0;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  padding: 0 0.5rem;
+  font-size: var(--text-xs);
+  color: var(--color-section-title);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: block;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.sub .link {
+  padding-left: 1.25rem;
+  font-size: var(--text-xs);
+}
+
+.link:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.active {
+  color: var(--color-text);
+  font-weight: 600;
+}

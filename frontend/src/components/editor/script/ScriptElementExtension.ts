@@ -20,6 +20,7 @@ import {
   TAB_NEXT,
   type ScriptElement,
 } from "../../../lib/script/syntax";
+import { markUsed } from "../../../stores/typingStore";
 
 /**
  * A screenplay in the editor (doc 25). Every block is one element (scene heading, action,
@@ -100,11 +101,23 @@ function ownHeading(doc: PMNode): number {
   return headingAt(blocks);
 }
 
+/** Inside the start of the doc's `index`th block, where a cursor goes to write in it. */
+export function blockStartPos(doc: PMNode, index: number): number {
+  let at = 1;
+  doc.forEach((_node, offset, i) => {
+    if (i === index) at = offset + 1;
+  });
+  return at;
+}
+
+/** A heading with words: an empty line set to heading (Enter after a transition) is not one yet. */
+const typedHeading = (node: PMNode) => node.attrs.el === "heading" && !!node.textContent.trim();
+
 /** Where the cursor's heading starts, when it is a heading below the scene's own. */
 export function headingBelowTop(editor: Editor): number | null {
   const { $from } = editor.state.selection;
   if ($from.depth < 1 || $from.index(0) <= ownHeading(editor.state.doc)) return null;
-  return $from.node(1).attrs.el === "heading" ? $from.before(1) : null;
+  return typedHeading($from.node(1)) ? $from.before(1) : null;
 }
 
 /** Where each heading below the scene's own starts: each starts another scene (several pasted). */
@@ -112,9 +125,16 @@ export function headingsBelowTop(doc: PMNode): number[] {
   const own = ownHeading(doc);
   const out: number[] = [];
   doc.forEach((node, offset, index) => {
-    if (index > own && node.attrs.el === "heading") out.push(offset);
+    if (index > own && typedHeading(node)) out.push(offset);
   });
   return out;
+}
+
+/** Who starts a new scene when Enter ends a heading below the scene's own (SceneSplitBar). */
+let onHeadingEnter: ((pos: number) => void) | null = null;
+
+export function setHeadingEnter(fn: ((pos: number) => void) | null): void {
+  onHeadingEnter = fn;
 }
 
 /** Set the element of the block the cursor is in (the palette, ⌥⌘1–6, Tab). */
@@ -155,6 +175,14 @@ function enter(editor: Editor, format: string): boolean {
     view.dispatch(setElementAt(state.tr, $from.before(), typed));
     now = typed;
   }
+  // A heading typed further down, finished with Enter: the new scene starts here, and the
+  // writer carries on in it (Brenton, 2026-10-12). ⌘Z takes the split back whole.
+  const below = now === "heading" && onHeadingEnter ? headingBelowTop(editor) : null;
+  if (below !== null) {
+    onHeadingEnter!(below);
+    markUsed(format === "stage_play" ? "stage-marker" : "script-heading");
+    return true;
+  }
   const after = view.state;
   const at = after.selection.$from.end();
   const tr = after.tr.split(at, 1, [
@@ -162,12 +190,15 @@ function enter(editor: Editor, format: string): boolean {
   ]);
   tr.setSelection(TextSelection.create(tr.doc, at + 2));
   view.dispatch(typed ? closeHistory(tr) : tr);
+  markUsed("script-enter");
   return true;
 }
 
 function cycle(editor: Editor, table: Record<ScriptElement, ScriptElement>): boolean {
   if (editor.state.selection.$from.parent.type.name !== "paragraph") return false;
-  return setElement(editor, table[elementAt(editor.state)]);
+  if (!setElement(editor, table[elementAt(editor.state)])) return false;
+  markUsed("script-tab");
+  return true;
 }
 
 /** Blocks from Fountain-style text, ready to paste. */
@@ -211,17 +242,21 @@ export const ScriptKeys = Extension.create<{ format: string }>({
       "Shift-Tab": ({ editor }) => !picking() && cycle(editor, SHIFT_TAB_NEXT),
     };
     for (const [id, el] of ELEMENT_KEYS)
-      keys[editorKey(SHORTCUTS[id].combo)] = ({ editor }) => setElement(editor, el);
+      keys[editorKey(SHORTCUTS[id].combo)] = ({ editor }) => {
+        if (!setElement(editor, el)) return false;
+        markUsed("script-keys");
+        return true;
+      };
     return keys;
   },
 
   addInputRules() {
     // "INT. " or "EXT. " at the start of an action line starts a scene heading; in a play,
     // "SCENE 2 " or "ACT ONE ".
-    const find =
-      this.options.format === "stage_play"
-        ? /^(act|scene) ([0-9]+|[ivxlc]+|one|two|three|four|five|six|seven|eight|nine|ten) $/i
-        : /^(int|ext|est|i\/e|int\.?\/ext|ext\.?\/int)\. $/i;
+    const play = this.options.format === "stage_play";
+    const find = play
+      ? /^(act|scene) ([0-9]+|[ivxlc]+|one|two|three|four|five|six|seven|eight|nine|ten) $/i
+      : /^(int|ext|est|i\/e|int\.?\/ext|ext\.?\/int)\. $/i;
     return [
       new InputRule({
         find,
@@ -231,6 +266,7 @@ export const ScriptKeys = Extension.create<{ format: string }>({
           if (el && el !== "action") return null;
           state.tr.insertText(match[0].toUpperCase(), range.from, range.to);
           state.tr.setNodeMarkup($from.before(), undefined, { ...$from.parent.attrs, el: "heading" });
+          markUsed(play ? "stage-marker" : "script-heading");
         },
       }),
     ];
@@ -255,6 +291,7 @@ export const ScriptKeys = Extension.create<{ format: string }>({
                 to,
               );
               view.dispatch(tr.setSelection(TextSelection.create(tr.doc, from + 1)));
+              markUsed("script-paren");
               return true;
             }
             if (text === ")" && from === to && state.doc.textBetween(from, from + 1) === ")") {
@@ -276,6 +313,7 @@ export const ScriptKeys = Extension.create<{ format: string }>({
             const nodes = blocksFrom(view.state.schema, text, format);
             if (!nodes.length) return false;
             view.dispatch(view.state.tr.replaceSelection(new Slice(Fragment.fromArray(nodes), 0, 0)));
+            markUsed("fountain-paste");
             return true;
           },
         },

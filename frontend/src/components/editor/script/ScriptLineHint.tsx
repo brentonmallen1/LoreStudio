@@ -4,7 +4,7 @@ import { nameForms } from "../../../lib/prose/syntax";
 import { makeItTheirLine, spokenInAction } from "../../../lib/script/spokenInAction";
 import { cueName } from "../../../lib/script/syntax";
 import { useStoryStore } from "../../../stores/storyStore";
-import banner from "../DraftBanner.module.css";
+import { LineOffer } from "./LineOffer";
 import styles from "./SceneSplitBar.module.css";
 
 /**
@@ -15,6 +15,38 @@ import styles from "./SceneSplitBar.module.css";
 export default function ScriptLineHint({ editor }: { editor: Editor }) {
   const characters = useStoryStore((s) => s.characters);
   const [kept, setKept] = useState<string[]>([]);
+  const offer = lineOffer(editor, characters, kept);
+  return (
+    <LineOffer editor={editor} id="their-line" pos={offer?.at ?? null}>
+      {offer && (
+        <span className={styles.offer} role="status">
+          <span>In a script, {offer.cue}&rsquo;s words go under their name</span>
+          <button
+            className={styles.action}
+            onClick={() => {
+              const tr = editor.state.tr;
+              makeItTheirLine(tr, offer.base, offer.found);
+              editor.view.dispatch(tr);
+              editor.commands.focus();
+            }}
+          >
+            Make it {offer.cue}&rsquo;s line
+          </button>
+          <button className={styles.action} onClick={() => setKept([...kept, offer.text])}>
+            Keep as action
+          </button>
+        </span>
+      )}
+    </LineOffer>
+  );
+}
+
+/** The action line at the cursor, when it holds a line written the prose way. */
+function lineOffer(
+  editor: Editor,
+  characters: { name: string; aliases?: string[] | null }[],
+  kept: string[],
+) {
   const { $from } = editor.state.selection;
   if ($from.depth < 1) return null;
   const block = $from.node(1);
@@ -24,28 +56,5 @@ export default function ScriptLineHint({ editor }: { editor: Editor }) {
   const names = characters.flatMap((c) => [c.name, ...(c.aliases ?? [])].flatMap((n) => [...nameForms(n)]));
   const found = spokenInAction(text, names);
   if (!found) return null;
-  const base = $from.start(1);
-  const cue = cueName(found.speaker);
-
-  return (
-    <div className={styles.bar} role="status">
-      <span>Make this {cue}&rsquo;s line? In a script, a character&rsquo;s words go under their name.</span>
-      <span className={banner.actions}>
-        <button
-          className={banner.btn}
-          onClick={() => {
-            const tr = editor.state.tr;
-            makeItTheirLine(tr, base, found);
-            editor.view.dispatch(tr);
-            editor.commands.focus();
-          }}
-        >
-          Make it {cue}&rsquo;s line
-        </button>
-        <button className={banner.btn} onClick={() => setKept([...kept, text])}>
-          Keep as action
-        </button>
-      </span>
-    </div>
-  );
+  return { at: $from.before(1), base: $from.start(1), cue: cueName(found.speaker), found, text };
 }

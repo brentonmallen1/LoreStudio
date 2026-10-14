@@ -76,7 +76,7 @@ export function useSceneAutosave(editor: Editor | null) {
       api.getNode(node.id).then((fresh) => {
         if (useStoryStore.getState().activeNode?.id !== fresh.id) return;
         setActiveNode(fresh);
-        patchScene(editor, fresh.content ?? "");
+        patchScene(editor, fresh.content ?? "", fresh.id);
         clearDraft(fresh.id);
       });
     }

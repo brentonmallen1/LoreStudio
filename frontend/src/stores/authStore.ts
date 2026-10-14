@@ -2,6 +2,25 @@ import { create } from "zustand";
 import type { User } from "../types";
 import { api } from "../api/client";
 import { adoptAccountPrefs } from "../lib/preferences/accountPrefs";
+import { systemApi } from "../api/system";
+import { useStoryStore } from "./storyStore";
+import { toast } from "./toastStore";
+
+/**
+ * The first sign-in of an account: the two tutorial stories go into its library (doc 26, P6).
+ * Asked once; the account remembers, so a deleted one is not brought back.
+ */
+async function welcome(user: User): Promise<void> {
+  if ((user.settings as Record<string, unknown> | undefined)?.tutorial) return;
+  try {
+    const { made } = await systemApi.ensureTutorial();
+    if (!made.length) return;
+    useStoryStore.getState().setStories(await api.listStories());
+    toast.success(`${made.join(" and ")} are in your library: a lesson a scene.`);
+  } catch {
+    /* offline or an older server: asked again at the next sign-in */
+  }
+}
 
 interface AuthState {
   user: User | null;
@@ -25,6 +44,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const user = await api.me();
       adoptAccountPrefs(user.settings);
       set({ token: access_token, user, isLoading: false });
+      void welcome(user);
     } catch (err) {
       set({ isLoading: false });
       throw err;
@@ -43,6 +63,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const user = await api.me();
       adoptAccountPrefs(user.settings);
       set({ user, token });
+      void welcome(user);
     } catch {
       localStorage.removeItem("ls_token");
       set({ user: null, token: null });

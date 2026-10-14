@@ -55,8 +55,8 @@ coverage thresholds, and the ESLint warning cap. Never raise a debt number to ge
 - **Schema changes come with an Alembic migration** in the same change.
 - **Test as you build:** pure logic gets unit tests; a bug fix starts with a failing test.
 - **Shipping a feature:** tick it in `notes/FUTURE_FEATURES.md` with a line on what was built,
-  update its "Last updated" line, and show the feature off in the demo story, "The Last
-  Lighthouse" (`services/seed.py`).
+  update its "Last updated" line, and show the feature off in the sample novel, "Sample: Novel ·
+  The Last Lighthouse" (`services/seed.py`).
 
 Planning docs live in `notes/refactor-2026-09/` (gitignored): read `CHECKLIST.md` before starting
 planned work.

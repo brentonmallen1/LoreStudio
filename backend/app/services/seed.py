@@ -27,6 +27,7 @@ from ..models.structure import StoryStructureTemplate, StructureNode
 from ..models.twist import Twist, TwistClue
 from ..models.user import User
 from ..models.world_system import WorldSystem
+from . import sample_titles, seed_series
 from .seed_chronicle import seed_lighthouse_chronicle
 from .seed_jobs import seed_lighthouse_jobs
 from .seed_numbers import seed_lighthouse_numbers
@@ -464,18 +465,18 @@ def seed_admin():
             db.commit()
 
 
-def seed_demo_story():  # noqa: PLR0915
+def seed_demo_story(user_id: str | None = None):  # noqa: PLR0915
     with Session(engine) as db:
-        admin = db.query(User).filter(User.username == settings.admin_username).first()
-        if not admin:
+        owner = sample_titles.owner(db, user_id)
+        if not owner:
             return
 
-        if db.query(Story).filter(Story.title == "The Last Lighthouse").first():
+        if sample_titles.find(db, owner.id, sample_titles.NOVEL):
             return
 
         story = Story(
-            user_id=admin.id,
-            title="The Last Lighthouse",
+            user_id=owner.id,
+            title=sample_titles.NOVEL,
             description="A lighthouse keeper on a remote island discovers something unexpected when a stranger arrives during a storm.",
             structure_template_id="three-act",
             intent="A quiet, atmospheric story about solitude, memory, and the things we keep hidden.",
@@ -938,9 +939,12 @@ def seed_demo_story():  # noqa: PLR0915
         )
         db.add(scene1)
         db.flush()
+        # A fresh id each copy: every account can load the samples (doc 26, P7).
+        note_id = str(uuid.uuid4())
+        scene1.content = scene1.content.replace("demo-note-1", note_id)
         db.add(
             Note(
-                id="demo-note-1",
+                id=note_id,
                 story_id=story.id,
                 kind="note",
                 node_id=scene1.id,
@@ -2526,13 +2530,13 @@ def seed_demo_story():  # noqa: PLR0915
         db.flush()
         seed_lighthouse_chronicle(
             db,
-            user=admin,
+            user=owner,
             story=story,
             scenes=[scene1, scene2, scene3, scene4, scene5, scene6, scene7, scene8, scene9, scene10],
             cast=[eleanor.name, visitor.name, thomas.name],
         )
         # Jobs (doc 21): a check that finished while the author was away, a stopped pass.
-        seed_lighthouse_jobs(db, user=admin, story=story)
+        seed_lighthouse_jobs(db, user=owner, story=story)
 
         # Counted from the prose, as the editor counts, not written in by hand.
         recount_story(story.id, db)
@@ -2542,22 +2546,26 @@ def seed_demo_story():  # noqa: PLR0915
         seed_lighthouse_who(db, story.id)
         db.commit()
 
+        # Loaded again after it was deleted from the series sample: Book 1 of it again.
+        seed_series.rejoin_series(db, story)
+        db.commit()
+
         # A few weeks of Numbers readings, so Compare has a history to show (doc 19).
         seed_lighthouse_numbers(db, story)
 
 
-def seed_scifi_demo_story():  # noqa: PLR0915
+def seed_scifi_demo_story(user_id: str | None = None):  # noqa: PLR0915
     with Session(engine) as db:
-        admin = db.query(User).filter(User.username == settings.admin_username).first()
-        if not admin:
+        owner = sample_titles.owner(db, user_id)
+        if not owner:
             return
 
-        if db.query(Story).filter(Story.title == "The Last Signal").first():
+        if sample_titles.find(db, owner.id, sample_titles.SCIFI):
             return
 
         story = Story(
-            user_id=admin.id,
-            title="The Last Signal",
+            user_id=owner.id,
+            title=sample_titles.SCIFI,
             description="A communications officer on humanity's most remote relay station intercepts an anomalous signal that could be the first contact with alien intelligence — or a distress call from a colony ship that vanished thirty years ago.",
             structure_template_id="three-act",
             intent="A hopeful, tension-filled story about connection, isolation, and the courage to reach out across the void.",
@@ -2951,9 +2959,12 @@ def seed_scifi_demo_story():  # noqa: PLR0915
         )
         db.add(scene1)
         db.flush()
+        # A fresh id each copy: every account can load the samples (doc 26, P7).
+        note_id = str(uuid.uuid4())
+        scene1.content = scene1.content.replace("scifi-note-1", note_id)
         db.add(
             Note(
-                id="scifi-note-1",
+                id=note_id,
                 story_id=story.id,
                 kind="note",
                 node_id=scene1.id,
@@ -4095,7 +4106,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
         db.commit()
 
 
-def seed_flash_fiction_demo():
+def seed_flash_fiction_demo(user_id: str | None = None):
     """
     Flash fiction demo: 'The Weight of Keys'
 
@@ -4105,15 +4116,15 @@ def seed_flash_fiction_demo():
     MICE quotient tracking, and the scenes where the plot thread opens and closes.
     """
     with Session(engine) as db:
-        admin = db.query(User).filter(User.username == settings.admin_username).first()
-        if not admin:
+        owner = sample_titles.owner(db, user_id)
+        if not owner:
             return
-        if db.query(Story).filter(Story.title == "The Weight of Keys").first():
+        if sample_titles.find(db, owner.id, sample_titles.FLASH):
             return
 
         story = Story(
-            user_id=admin.id,
-            title="The Weight of Keys",
+            user_id=owner.id,
+            title=sample_titles.FLASH,
             description="A grieving woman sits outside the house she shared with her late husband, key in hand, unable to go in.",
             structure_template_id="mice-single",
             intent="A small story about the difference between holding on and holding still.",
@@ -4322,7 +4333,7 @@ def seed_flash_fiction_demo():
         db.commit()
 
 
-def seed_short_story_demo():  # noqa: PLR0915
+def seed_short_story_demo(user_id: str | None = None):  # noqa: PLR0915
     """
     Short story demo: 'The Audition'
 
@@ -4336,15 +4347,15 @@ def seed_short_story_demo():  # noqa: PLR0915
     of Movement 2, the Character thread closes at the end of Movement 3.
     """
     with Session(engine) as db:
-        admin = db.query(User).filter(User.username == settings.admin_username).first()
-        if not admin:
+        owner = sample_titles.owner(db, user_id)
+        if not owner:
             return
-        if db.query(Story).filter(Story.title == "The Audition").first():
+        if sample_titles.find(db, owner.id, sample_titles.SHORT):
             return
 
         story = Story(
-            user_id=admin.id,
-            title="The Audition",
+            user_id=owner.id,
+            title=sample_titles.SHORT,
             description="A concert pianist with early-stage Parkinson's prepares for what may be her last performance — and discovers that endings can be gifts.",
             structure_template_id="mice-nested",
             intent="A story about what it means to give something away before it can be taken.",
@@ -4934,7 +4945,7 @@ def seed_short_story_demo():  # noqa: PLR0915
         db.commit()
 
 
-def seed_first_person_demo():
+def seed_first_person_demo(user_id: str | None = None):
     """
     First-person demo: 'Sixty Minutes'
 
@@ -4950,15 +4961,15 @@ def seed_first_person_demo():
     Ideal for testing the Auto-Tag Dialogue panel and first-person POV features.
     """
     with Session(engine) as db:
-        admin = db.query(User).filter(User.username == settings.admin_username).first()
-        if not admin:
+        owner = sample_titles.owner(db, user_id)
+        if not owner:
             return
-        if db.query(Story).filter(Story.title == "Sixty Minutes").first():
+        if sample_titles.find(db, owner.id, sample_titles.FIRST_PERSON):
             return
 
         story = Story(
-            user_id=admin.id,
-            title="Sixty Minutes",
+            user_id=owner.id,
+            title=sample_titles.FIRST_PERSON,
             description="An investigative journalist sits across from a tech CEO with sixty minutes to get him to say the one thing he doesn't want to say.",
             structure_template_id="mice-single",
             intent="A story about the patience required to ask the right question at the right moment.",

@@ -49,7 +49,7 @@ You never have to set an element by hand. If you know Final Draft, these work to
 
 Each scene in your structure opens on one heading, typed as its first line. LoreStudio reads it as you write: inside or out (`INT.`, `EXT.`, `INT./EXT.`), the place, and the time of day. The scene's glance and the Timeline show them, and a place your Lorebook already has becomes the scene's place, unless you have chosen one yourself.
 
-A heading typed further down a scene starts another scene. A bar above the page offers **Start a new scene here**: everything from the heading on becomes the next scene, and its lines of dialogue and margin notes go with it. **Keep as a line** turns the heading into action instead. Splitting is one step, and {{key:undo}} puts the scene back together. Findings lists any scene with a second heading, with the same fix. Paste several scenes at once and the bar offers **Start each as a scene**, which makes a scene at every heading in one step.
+A heading typed further down a scene starts another scene. Press Enter at the end of it and the new scene starts there: everything from the heading on becomes the next scene, its lines of dialogue and margin notes go with it, and you carry on writing in it under its heading. Leave the heading without pressing Enter and a line under it offers **Start it here** or **Keep as a line**, which turns the heading into action instead. Starting a scene is one step, and {{key:undo}} puts the scene back together. Findings lists any scene with a second heading, with the same fix. Paste several scenes at once and the line under the first offers **Start each as a scene**, which makes a scene at every heading in one step.
 
 A script may open on `FADE IN:` above the first heading; that heading is still the scene's own.
 
@@ -103,4 +103,4 @@ A novel you have written can be told again as a script, and the novel stays as i
 
 The script is a whole new story, so {{key:undo}} does not unmake it; delete it from the dashboard if you change your mind.
 
-The demo story _The Last Lighthouse: The Screenplay_ is the novel's first three scenes written for the screen, and _A Play in One Act_ tells the same night on stage. Open **The novel** beside either to read the novel's version of each scene.
+The samples _Sample: Screenplay · The Last Lighthouse_ and _Sample: Stage play · The Last Lighthouse_ tell the novel's first night for the screen and the stage; load them from [Getting started](/guides/getting-started). Open **The novel** beside either to read the novel's version of each scene.

@@ -1,6 +1,9 @@
 """System status for Settings › System: version, database, backups; the example stories."""
 
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -8,7 +11,7 @@ from ..auth.dependencies import get_current_user
 from ..config import settings
 from ..database import engine, get_db
 from ..models.user import User
-from ..services import automatic, examples, updates
+from ..services import automatic, examples, tutorial, updates
 from ..services.db_backup import backup_status, create_backup
 
 router = APIRouter()
@@ -71,19 +74,53 @@ def run_backup_now(db: Session = Depends(get_db), current_user: User = Depends(g
     }
 
 
+def _samples(db: Session, user: User) -> dict:
+    return {"available": True, "missing": examples.missing(db, user), "samples": examples.listing(db, user)}
+
+
 @router.get("/system/examples")
 def example_stories(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """Which example stories this account could add: none unless it is the admin account the
-    app made, which is where the examples go."""
-    if not examples.is_examples_account(current_user):
-        return {"available": False, "missing": []}
-    return {"available": True, "missing": examples.missing(db, current_user)}
+    """Every sample, and which this account does not have yet (doc 26, P7: every account can
+    load them, one at a time or all)."""
+    return _samples(db, current_user)
+
+
+class SampleChoice(BaseModel):
+    #: The samples to load; none named, every one missing.
+    titles: list[str] | None = None
 
 
 @router.post("/system/examples")
-def add_example_stories(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """Add the example stories this account does not have yet (the dashboard, Settings › Account)."""
-    if not examples.is_examples_account(current_user):
-        raise HTTPException(status_code=403, detail="Only the admin account holds the example stories")
-    added = examples.add_missing(db, current_user)
-    return {"added": added, "missing": examples.missing(db, current_user)}
+def add_example_stories(
+    body: SampleChoice | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Load the chosen samples, or every one this account does not have yet (Getting started,
+    Settings › Account)."""
+    titles = body.titles if body else None
+    unknown = sorted(set(titles or ()) - set(examples.TITLES))
+    if unknown:
+        raise HTTPException(status_code=400, detail=f"No sample called “{unknown[0]}”.")
+    added = examples.add_missing(db, current_user, titles)
+    return {"added": added, **_samples(db, current_user)}
+
+
+@router.post("/system/tutorial")
+def ensure_tutorial(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """The tutorial stories, made the first time an account signs in (doc 26, P6); the app asks
+    once it has signed in. The titles made, none after the first time."""
+    return {"made": tutorial.ensure(db, current_user)}
+
+
+class TutorialRestart(BaseModel):
+    kind: Literal["prose", "screenplay"]
+
+
+@router.post("/system/tutorial/restart")
+def restart_tutorial(
+    body: TutorialRestart, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+):
+    """A fresh copy of one tutorial story (Guides › Start the tutorial again)."""
+    story = tutorial.restart(db, current_user, body.kind)
+    return {"story_id": story.id, "title": story.title}

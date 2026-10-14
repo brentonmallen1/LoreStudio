@@ -7,6 +7,7 @@ import { CAPITALS, isElement } from "../../../lib/script/syntax";
 import { useStoryStore } from "../../../stores/storyStore";
 import { mentionIsOpen } from "../../story/MentionDropdown";
 import { slashIsOpen } from "../../story/SlashCommandExtension";
+import { markUsed } from "../../../stores/typingStore";
 
 /**
  * SmartType for a script (doc 25, P3½; lib/script/smartType.ts): the rest of a heading's
@@ -29,6 +30,7 @@ function take(editor: Editor, format: string): boolean {
   const text = offer(editor.state, format);
   if (!text) return false;
   editor.view.dispatch(editor.state.tr.insertText(text));
+  markUsed("smart-type");
   return true;
 }
 

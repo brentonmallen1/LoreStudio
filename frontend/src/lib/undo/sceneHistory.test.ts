@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { Editor } from "@tiptap/core";
 import { proseStarterKit } from "../../components/editor/starterKit";
 import { undoDepth } from "@tiptap/pm/history";
-import { liveScene, loadScene, patchScene, setLiveScene } from "./sceneHistory";
+import { canUndoTyping, keepBeforeCut, liveScene, loadScene, patchScene, setLiveScene } from "./sceneHistory";
 
 let editor: Editor | null = null;
 
@@ -68,5 +68,42 @@ describe("the open scene's history", () => {
     expect(liveScene()!.session).toBe(first);
     loadScene(ed, "<p>B</p>");
     expect(liveScene()!.session).not.toBe(first);
+  });
+
+  it("a split undone brings the scene back as it stood, typing and all (doc 25)", () => {
+    const ed = make("<p>INT. COTTAGE</p><p>Rain.</p>");
+    setLiveScene({ editor: ed, nodeId: "s1", title: "Scene 1", flush: async () => {} });
+    type(ed, " EXT. CLIFF");
+    const session = liveScene()!.session;
+    const before = ed.getHTML();
+    keepBeforeCut(ed, "s1");
+    loadScene(ed, "<p>INT. COTTAGE</p>");
+    // The new scene opens in the same editor; then ⌘Z undoes the split on the server.
+    loadScene(ed, "<p>EXT. CLIFF</p>");
+    loadScene(ed, "<p>Elsewhere</p>", { nodeId: "s1" });
+    expect(undoDepth(ed.state)).toBe(0);
+    loadScene(ed, before, { nodeId: "s1" });
+    expect(liveScene()!.session).toBe(session);
+    expect(canUndoTyping("s1", session)).toBe(true);
+    ed.commands.undo();
+    expect(ed.getHTML()).toBe("<p>INT. COTTAGE</p><p>Rain.</p>");
+  });
+
+  it("and into a new editor, when opening the scene builds one", () => {
+    const ed = make("<p>INT. COTTAGE</p><p>Rain.</p>");
+    setLiveScene({ editor: ed, nodeId: "s1", title: "Scene 1", flush: async () => {} });
+    type(ed, " EXT. CLIFF");
+    const session = liveScene()!.session;
+    const before = ed.getHTML();
+    keepBeforeCut(ed, "s1");
+    setLiveScene(null);
+    ed.destroy();
+    const next = make("<p></p>");
+    loadScene(next, before, { nodeId: "s1" });
+    setLiveScene({ editor: next, nodeId: "s1", title: "Scene 1", flush: async () => {} });
+    expect(liveScene()!.session).toBe(session);
+    expect(undoDepth(next.state)).toBe(1);
+    next.commands.undo();
+    expect(next.getHTML()).toBe("<p>INT. COTTAGE</p><p>Rain.</p>");
   });
 });

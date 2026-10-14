@@ -1,9 +1,17 @@
-/* A series on the dashboard: its books are tone boxes already, so the group is held by its
-   head and the space round it, not by an edge or a ground of its own (never a box in a box). */
+/* A series on the dashboard is a shelf: the tone box, with its books on it as paper cards
+   (Dashboard.module.css, .seriesGrid), so it is plain which books belong to it (Brenton,
+   2026-10-13) and there is still only one tone box (DESIGN.md §4). */
 .group {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  padding: 0.6rem 0.875rem 0.875rem;
+  border-radius: 18px;
+  background: var(--color-tone);
+}
+
+.group:has(> .head:only-child) {
+  padding-bottom: 0.6rem;
 }
 
 .head {

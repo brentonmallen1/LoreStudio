@@ -808,6 +808,8 @@ button.typeBtn[aria-expanded="true"] {
 }
 
 .scrollArea {
+  /* How far the prose moves right for the notes' cards; NoteMargin sets it while they show. */
+  --notes-shift: 0px;
   position: relative;
   flex: 1;
   overflow-y: auto;
@@ -843,6 +845,16 @@ button.typeBtn[aria-expanded="true"] {
   max-width: calc(var(--editor-max-width) + 4rem);
   margin: 0 auto;
   padding: 3rem 2rem 6rem;
+  /* Centred; moved right only while the notes' cards need the room (NoteMargin). */
+  position: relative;
+  left: var(--notes-shift);
+  transition: left 160ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editorWrap {
+    transition: none;
+  }
 }
 
 /* Tiptap prose styles */

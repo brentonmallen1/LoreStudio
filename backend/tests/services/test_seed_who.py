@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.models.character import Character
 from app.models.compendium import CompendiumEntry
 from app.models.story import Story
-from app.services import seed
+from app.services import sample_titles, seed
 from app.services.findings.view import load_view
 from app.services.talk import talk
 
@@ -39,6 +39,6 @@ def test_the_lighthouse_shows_a_wound_a_body_and_women_talking(db_session: Sessi
     margaret = _person(db_session, "Margaret Holt")
     assert calder.formative[0]["wound"] and calder.formative[0]["notes"] == ["grief", "drowning"]
     assert margaret.facets[0]["name"] == "arthritis" and margaret.facets[0]["known"] == "everyone"
-    story = db_session.query(Story).filter(Story.title == "The Last Lighthouse").one()
+    story = db_session.query(Story).filter(Story.title == sample_titles.NOVEL).one()
     found = talk(load_view(story, db_session), db_session, None)
     assert found["group"] == ["woman"] and found["scenes"], "the demo's own dialogue has women talking"

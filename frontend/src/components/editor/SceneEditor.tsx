@@ -8,6 +8,7 @@ import { useUIStore } from "../../stores/uiStore";
 import { useAIStore } from "../../stores/aiStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { useEditorBridge } from "../../stores/editorBridge";
+import { offerTip } from "../../stores/tipStore";
 import { insertInlineImage } from "../story/InlineImageExtension";
 import { FORCE_MENTION_KEY, mentionLexicon, setMentionHighlight } from "../story/MentionDropdown";
 import ImageInsertModal from "../story/ImageInsertModal";
@@ -23,12 +24,15 @@ import EditorSearchBar from "../story/EditorSearchBar";
 import { useSceneAutosave } from "./useSceneAutosave";
 import { useMentionDropdown } from "./useMentionDropdown";
 import { useSlashCommands } from "./useSlashCommands";
+import { useTipWatch } from "./useTipWatch";
+import LessonCard from "../typing/LessonCard";
+import { lessonOf } from "../../lib/typing/lesson";
 import { useInlineNotes } from "./useInlineNotes";
 import { useMentionHoverCard } from "./useMentionHoverCard";
 import { useSceneDialogue } from "./useSceneDialogue";
 import { usePassageJump } from "./usePassageJump";
 import { editorExtensions } from "./editorExtensions";
-import { docBlocks, elementAt, setElement } from "./script/ScriptElementExtension";
+import { blockStartPos, docBlocks, elementAt, setElement } from "./script/ScriptElementExtension";
 import { sceneLines } from "../../lib/script/syntax";
 import { useStoryFormat } from "../../lib/storyFormat";
 import scriptStyles from "./script/ScriptEditor.module.css";
@@ -46,6 +50,7 @@ import SceneSplitBar from "./script/SceneSplitBar";
 import { toggleDual } from "./script/dualDialogue";
 import ScriptLineHint from "./script/ScriptLineHint";
 import StatusCorner from "./StatusCorner";
+import { contextsAt } from "../../lib/typing/context";
 import { useAIAvailable } from "../../lib/mode";
 import { SHORTCUTS, matchesCombo } from "../../lib/keyboard/shortcuts";
 import EmptyManuscript from "./EmptyManuscript";
@@ -136,6 +141,9 @@ export default function SceneEditor() {
     insertImage: () => setImagePickerOpen(true),
   });
   useSceneDialogue(editor, activeNode?.id, activeNode?.updated_at);
+  useTipWatch(editor, format);
+  // A tutorial scene's lesson, above its text (doc 26, P6).
+  const lesson = lessonOf(activeNode);
   const hover = useMentionHoverCard(
     scrollAreaRef,
     hoverCardRef,
@@ -184,7 +192,12 @@ export default function SceneEditor() {
       });
       return;
     }
-    loadScene(editor, activeNode.content ?? "");
+    loadScene(editor, activeNode.content ?? "", { nodeId: activeNode.id });
+    const { openAt, setOpenAt } = useEditorBridge.getState();
+    if (openAt?.nodeId === activeNode.id) {
+      setOpenAt(null);
+      requestAnimationFrame(() => editor.commands.focus(blockStartPos(editor.state.doc, openAt.block)));
+    }
   }, [activeNode?.id, needsProse, editor]); // eslint-disable-line react-hooks/exhaustive-deps
   // This editor's typing is a history ⌘Z reaches from anywhere in the story (doc 23 P5b).
   useEffect(() => {
@@ -282,7 +295,10 @@ export default function SceneEditor() {
         notesView={notesView}
         noteCount={notes.sceneNotes.filter((n) => !n.done).length}
         onNotesView={(v) => setNotesView(saveNotesView(v))}
-        onOpenImagePicker={() => setImagePickerOpen(true)}
+        onOpenImagePicker={() => {
+          setImagePickerOpen(true);
+          offerTip("image");
+        }}
         onOpenAutoTag={() => setShowAutoTag(true)}
         onOpenAutoLink={() => setShowAutoLink(true)}
         onOpenGuides={(tab) => {
@@ -331,6 +347,7 @@ export default function SceneEditor() {
                 .filter(Boolean)
                 .join(" ")}
             >
+              {lesson && <LessonCard key={activeNode.id} node={activeNode} lesson={lesson} />}
               {editor?.isEmpty && (
                 <ScenePlanCard
                   node={activeNode}
@@ -367,6 +384,7 @@ export default function SceneEditor() {
             ? { element: elementAt(editor.state), lines: sceneLines(docBlocks(editor.state.doc)) }
             : null
         }
+        contexts={editor ? contextsAt(editor.state, format) : ["anywhere"]}
       />
 
       <WritingGuidesModal

@@ -23,7 +23,7 @@ Studio adds the **Assistant** and the other AI tools. They answer questions and 
 
 Already have a draft? **Import** on your stories page brings it in. See [Import and export](/guides/import-and-export).
 
-> **Tip:** If _The Last Lighthouse_ is on your stories page, open it. It is a demo story with every part of LoreStudio filled in, so you can see what each page looks like in use.
+> **Tip:** The samples, under [Samples](#samples) below, are stories with every part of LoreStudio filled in. Load them and open _Sample: Novel · The Last Lighthouse_ to see what each page looks like in use.
 
 ## Finding your way around
 
@@ -54,11 +54,24 @@ A few keys worth learning early:
 
 LoreStudio also runs as an app on Macs with Apple silicon. **Settings › About and updates** shows your version and checks for a new one.
 
+## The tutorial
+
+Two stories teach LoreStudio by doing: **Learn LoreStudio** for prose and **Learn Screenplays** for scripts. Each scene is a lesson, with a card above the text saying what to try and ticking off what you do. A new account starts with both; delete them when you are done. Make a copy here at any time; one you already have stays, with whatever you wrote in it.
+
+<!-- tutorial -->
+
+## Samples
+
+Stories filled in to show what LoreStudio does, each titled for what it is: _Sample: Novel · The Last Lighthouse_, the same story as a screenplay and a stage play, a short story, flash fiction, a first-person story and a series. None is loaded until you ask: load one at a time, or all of them, here or in **Settings › Account**. **Load samples** on your stories page brings you here while any is missing. Delete any you are done with and load it again whenever you like.
+
+<!-- samples -->
+
 ## Where to go next
 
 - [Structure and templates](/guides/structure): chapters, scenes and the outline.
 - [Planning a story](/guides/planning): from an idea to a list of scenes.
 - [Threads, twists and what the reader knows](/guides/promises): keep every promise you make the reader.
+- [What you can type](/guides/typing): every quick way to do something as you write.
 - [Dialogue and quotes](/guides/dialogue-and-quotes): tag who is speaking.
 - [Screenplays and stage plays](/guides/screenplays): write a script, laid out as it prints.
 - [Notes, Freewrite and the scratch pad](/guides/notes-and-freewrite): somewhere for every loose thought.

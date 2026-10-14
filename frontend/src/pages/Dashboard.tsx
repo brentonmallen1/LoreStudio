@@ -35,6 +35,8 @@ import styles from "./Dashboard.module.css";
 
 type Layout = "cards" | "list";
 const LAYOUT_KEY = "ls_dashboard_layout";
+/** Where the samples are chosen, one at a time or all. */
+const SAMPLES = "/guides/getting-started#samples";
 
 /** Cards or a list, as this browser last left it. */
 function savedLayout(): Layout {
@@ -242,6 +244,18 @@ export default function DashboardPage() {
                 </button>
               </div>
             )}
+            {/* A new account starts with the tutorials, so the page is rarely empty: the samples
+                are offered here while any is missing, and chosen in Getting started (doc 26, P7). */}
+            {stories.length > 0 && examples.canAdd && (
+              <button
+                onClick={() => navigate(SAMPLES)}
+                className={styles.importBtn}
+                title={`Stories filled in to show what LoreStudio does (${examples.missing.length} not in your library)`}
+              >
+                <Library size={14} />
+                Load samples
+              </button>
+            )}
             <button onClick={() => setImporting(true)} className={styles.importBtn}>
               <FileInput size={14} />
               Import
@@ -284,9 +298,9 @@ export default function DashboardPage() {
                   Import existing work
                 </button>
                 {examples.canAdd && (
-                  <button onClick={examples.add} disabled={examples.adding} className={styles.emptyImportBtn}>
+                  <button onClick={() => navigate(SAMPLES)} className={styles.emptyImportBtn}>
                     <Library size={14} />
-                    {examples.adding ? "Adding…" : "Add example stories"}
+                    Load samples
                   </button>
                 )}
               </div>

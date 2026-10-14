@@ -6,6 +6,8 @@ import { toast } from "../../stores/toastStore";
 import type { StoryFormat } from "../../types";
 import { toggleDual } from "./script/dualDialogue";
 import { setElement } from "./script/ScriptElementExtension";
+import { markUsed } from "../../stores/typingStore";
+import { navigateTo } from "../../lib/navigation";
 
 interface Args {
   editor: Editor | null;
@@ -15,20 +17,34 @@ interface Args {
   addNote: (kind: "note" | "todo") => void;
   /** `/image`: the image picker, as ⋯ › Insert image. */
   insertImage: () => void;
+  /** The practice page (doc 26, P5): no scene, so no notes or images. */
+  practice?: boolean;
 }
+
+const NEEDS_A_SCENE = new Set(["note", "todo", "image"]);
 
 /**
  * The `/` command picker (lib/editor/slashCommands.ts) and what its commands drive: the
  * dialogue speaker picker, a margin note or to-do, the image picker, the `@` and `[[` pickers,
  * and in a script the element of the line (doc 25, P3½).
  */
-export function useSlashCommands({ editor, format, openDialoguePicker, addNote, insertImage }: Args) {
+export function useSlashCommands({
+  editor,
+  format,
+  openDialoguePicker,
+  addNote,
+  insertImage,
+  practice,
+}: Args) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ bottom: 0, left: 0 });
   const [query, setQuery] = useState("");
   const [range, setRange] = useState<{ from: number; to: number } | null>(null);
   const [selIdx, setSelIdx] = useState(0);
-  const commands = useMemo(() => slashCommandsFor(format), [format]);
+  const commands = useMemo(
+    () => slashCommandsFor(format).filter((c) => !practice || !NEEDS_A_SCENE.has(c.action.kind)),
+    [format, practice],
+  );
   const matching = useMemo(() => matchSlash(commands, query), [commands, query]);
   useEffect(() => {
     setSlashCommands(commands);
@@ -47,10 +63,16 @@ export function useSlashCommands({ editor, format, openDialoguePicker, addNote, 
     // The typed "/query" goes, and for a picker its own opening characters take its place.
     const text = action.kind === "type" ? action.text : "";
     editor.view.dispatch(editor.state.tr.insertText(text, slashFrom, slashTo));
+    markUsed("slash");
     if (action.kind === "dialogue") openDialoguePicker();
-    else if (action.kind === "note" || action.kind === "todo") addNote(action.kind);
-    else if (action.kind === "image") insertImage();
-    else if (action.kind === "element") setElement(editor, action.el);
+    else if (action.kind === "note" || action.kind === "todo") {
+      addNote(action.kind);
+      markUsed(action.kind);
+    } else if (action.kind === "image") {
+      insertImage();
+      markUsed("image");
+    } else if (action.kind === "element") setElement(editor, action.el);
+    else if (action.kind === "help") return navigateTo("/guides/typing");
     else if (action.kind === "together" && toggleDual(editor) === "none")
       toast.info(
         "Put the cursor in a speech that follows another; the two are then spoken at the same time.",

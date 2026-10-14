@@ -21,6 +21,7 @@ import { useStoryStore } from "../../stores/storyStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { useEditorBridge } from "../../stores/editorBridge";
 import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
+import { offerTip } from "../../stores/tipStore";
 
 /** Show the scene's notes in the side panel, going to the Write page first if need be. */
 /** The open scene's sheet, on one of its pages (doc 24 D19): its notes or its plan. */
@@ -57,7 +58,10 @@ commandRegistry.register({
   icon: ImageIcon,
   group: "Editor",
   when: () => !!useEditorBridge.getState().insertImage,
-  action: () => useEditorBridge.getState().insertImage?.(),
+  action: () => {
+    useEditorBridge.getState().insertImage?.();
+    offerTip("image");
+  },
 });
 
 for (const [id, dir, key] of [

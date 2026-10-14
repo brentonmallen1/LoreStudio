@@ -24,9 +24,9 @@ And its promises across the books (v1.5):
 
 from __future__ import annotations
 
+from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
 
-from ..config import settings
 from ..database import engine
 from ..models.character import Character
 from ..models.compendium import CompendiumEntry
@@ -35,15 +35,17 @@ from ..models.historical_event import Era
 from ..models.location import Location
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.reader_knowledge import ReaderKnowledgeEvent
+from ..models.series import Series
 from ..models.story import Story
 from ..models.structure import StoryStructureTemplate, StructureNode
 from ..models.twist import Twist, TwistClue
-from ..models.user import User
+from . import sample_titles
 from .series import plan, service, setups, sync
+from .series.kinds import name_of
 from .structure_scaffold import scaffold_story
 from .word_count import recount_story
 
-SEQUEL = "The Keeper's Daughter"
+SEQUEL = sample_titles.SERIES
 
 CARRIED_CHARACTERS = ("Eleanor Vance", "Thomas Vance")
 CARRIED_PLACES = ("Harrow Island", "The Lighthouse", "Keeper's Cottage", "The Village")
@@ -233,7 +235,7 @@ def _shared_research(db: Session, series, book_one: Story) -> None:
         sync.share(db, series, kind, book_one.id, row.id, actor_id=None, client_id=None, log=False)
 
 
-BOOK_THREE = "After the Light"
+BOOK_THREE = sample_titles.SERIES_PLANNED
 
 #: The series' arc, each beat with the books (from 0) that carry it.
 ARC = (
@@ -331,15 +333,68 @@ def _series_plan(db: Session, series, book_one: Story, sequel: Story, chars: dic
     db.flush()
 
 
-def seed_lighthouse_sequel() -> None:
+def _is(story: Story, title: str) -> bool:
+    return story.title in (title, sample_titles.OLD[title])
+
+
+def _clear_leftover(db: Session, series: Series, book_one: Story) -> bool:
+    """The series sample with its sequel deleted (doc 26, P7): Book 1 comes out of what is
+    left, the planned third book goes if nothing was ever made in it, and so does the series,
+    so loading the sample makes it whole again. A series holding any other book is the
+    writer's own: it is left alone (False)."""
+    others = [b.story for b in series.books if b.story_id != book_one.id]
+    if not all(_is(story, BOOK_THREE) for story in others):
+        return False
+    for story in others:
+        service.detach_story(db, story.id)
+        if not db.query(StructureNode.id).filter(StructureNode.story_id == story.id).first():
+            db.delete(story)
+    service.detach_story(db, book_one.id)
+    if not sa_inspect(series).was_deleted:
+        db.delete(series)
+    db.flush()
+    return True
+
+
+def rejoin_series(db: Session, book_one: Story) -> None:
+    """The novel loaded again while the series sample was kept (doc 26, P7): it is Book 1 of
+    that series again, and the people and places the sequel carried on from it are linked to
+    its own by name. Shared research comes in as for any book joining a series."""
+    if service.membership(db, book_one.id) is not None:
+        return
+    series = next(
+        (
+            s
+            for s in db.query(Series).filter(Series.user_id == book_one.user_id)
+            if any(_is(b.story, SEQUEL) for b in s.books)
+            and not any(_is(b.story, sample_titles.NOVEL) for b in s.books)
+        ),
+        None,
+    )
+    if series is None:
+        return
+    service.attach_story(db, series, book_one, 0)
+    for element in series.elements:
+        if service.member_in(element, book_one.id) is not None:
+            continue
+        kind = service.kind_of(element.kind)
+        rows = db.query(kind.model).filter(kind.model.story_id == book_one.id)
+        row = next((r for r in rows if name_of(r, kind) == element.name), None)
+        if row is not None and service.element_for_row(db, kind.table, row.id) is None:
+            service.link_existing(db, series, element, book_one.id, row.id)
+    db.flush()
+
+
+def seed_lighthouse_sequel(user_id: str | None = None) -> None:
     with Session(engine) as db:
-        admin = db.query(User).filter(User.username == settings.admin_username).first()
-        if not admin:
+        owner = sample_titles.owner(db, user_id)
+        if not owner:
             return
-        book_one = db.query(Story).filter(Story.user_id == admin.id, Story.title == "The Last Lighthouse").first()
-        if book_one is None or db.query(Story).filter(Story.user_id == admin.id, Story.title == SEQUEL).first():
+        book_one = sample_titles.find(db, owner.id, sample_titles.NOVEL)
+        if book_one is None or sample_titles.find(db, owner.id, SEQUEL):
             return
-        if service.membership(db, book_one.id) is not None:
+        book = service.membership(db, book_one.id)
+        if book is not None and not _clear_leftover(db, book.series, book_one):
             return
 
         chars = {c.name: c for c in db.query(Character).filter(Character.story_id == book_one.id)}
@@ -349,7 +404,7 @@ def seed_lighthouse_sequel() -> None:
         carry += _book_one_promises(db, book_one)
 
         sequel = Story(
-            user_id=admin.id,
+            user_id=owner.id,
             title=SEQUEL,
             description="A year after the storm, Eleanor is offered a way off the island.",
             logline="A year after the truth about the Ardent came out, a lighthouse keeper is offered the mainland, and has to decide whether staying was ever her choice.",

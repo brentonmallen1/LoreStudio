@@ -27,6 +27,7 @@ import ExampleStoriesCard from "../components/settings/ExampleStoriesCard";
 import ModeToggle from "../components/settings/ModeToggle";
 import TypographySection from "../components/settings/TypographySection";
 import ShortcutsSection from "../components/settings/ShortcutsSection";
+import WritingSection from "../components/settings/WritingSection";
 import AISwitchCard from "../components/settings/AISwitchCard";
 import BackupDefaultsCard from "../components/settings/BackupDefaultsCard";
 import CodexSection from "../components/settings/CodexSection";
@@ -326,6 +327,11 @@ export default function SettingsPage() {
           <section className={styles.section} id="typography">
             <h2 className={styles.sectionLabel}>Typography</h2>
             <TypographySection />
+          </section>
+
+          <section className={styles.section} id="writing">
+            <h2 className={styles.sectionLabel}>Writing</h2>
+            <WritingSection />
           </section>
 
           <section className={styles.section} id="shortcuts">

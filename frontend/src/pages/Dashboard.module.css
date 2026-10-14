@@ -504,6 +504,15 @@
   gap: 1.25rem;
 }
 
+/* A series' books sit on its shelf (SeriesGroup, the tone box) as paper cards. */
+.seriesGrid .storyCard {
+  background: var(--color-surface);
+}
+
+.seriesGrid .storyCard:hover {
+  background: var(--color-hover);
+}
+
 /* A series' first book is not the page's most recent story: no feature card inside. */
 @media (min-width: 520px) {
   .seriesGrid .storyCardWrap:first-child:not(:only-child) {

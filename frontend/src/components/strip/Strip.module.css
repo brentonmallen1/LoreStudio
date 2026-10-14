@@ -59,11 +59,8 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.35rem 0.5rem 0.25rem;
-}
-
-.headSpacer {
-  flex: 1;
+  /* The toggle sits where it does on the collapsed line, centred in its 64px: (64 - 32) / 2. */
+  padding: 0.35rem 0.5rem 0.25rem 16px;
 }
 
 .headNarrow {
@@ -382,13 +379,6 @@
 }
 
 /* ── The foot of the line: only the way to widen it, no rule (doc 24) ── */
-.expandRow {
-  flex-shrink: 0;
-  display: flex;
-  justify-content: center;
-  padding: 0.25rem 0 0.6rem;
-}
-
 /* What the stops are coloured by, at the top of the strip: a ghost with the mode's colours. */
 .modeBtn {
   display: flex;
