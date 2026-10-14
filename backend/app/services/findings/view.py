@@ -17,6 +17,7 @@ from ...models.character import Character
 from ...models.plot_thread import PlotThread
 from ...models.story import Story
 from ...models.structure import StoryStructureTemplate, StructureNode
+from ...models.trope import Trope
 from ...schemas.findings import FindingsSizing
 from ..story_format import is_script, story_format
 from ..text_utils import html_to_text
@@ -37,6 +38,7 @@ class StoryView:
     characters: list[Character]
     threads: list[PlotThread]
     template: StoryStructureTemplate | None = None
+    tropes: list[Trope] = field(default_factory=list)
     _text: dict[str, str] = field(default_factory=dict)
 
     @cached_property
@@ -143,4 +145,5 @@ def load_view(story: Story, db: Session) -> StoryView:
         characters=db.query(Character).filter(Character.story_id == story.id).all(),
         threads=db.query(PlotThread).filter(PlotThread.story_id == story.id).all(),
         template=db.get(StoryStructureTemplate, story.structure_template_id),
+        tropes=db.query(Trope).filter(Trope.story_id == story.id).all(),
     )

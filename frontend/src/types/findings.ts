@@ -14,6 +14,8 @@ export interface FindingAnchor {
   twist_id: string | null;
   /** A series element: the same finding stands in every book of its series. */
   series_element_id?: string | null;
+  /** A trope in play (doc 27). */
+  trope_id?: string | null;
 }
 
 export interface Finding {

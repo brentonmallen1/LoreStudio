@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from .reader_knowledge import ReaderKnowledgeEvent
     from .scene_link import SceneLink
     from .story import Story
+    from .trope import TropeLink
     from .twist import Twist, TwistClue
 
 
@@ -113,6 +114,9 @@ class StructureNode(Base):
     )
     journey_summaries: Mapped[list["CharacterJourneySummary"]] = relationship(
         "CharacterJourneySummary", back_populates="up_to_node", cascade="all, delete-orphan"
+    )
+    trope_links: Mapped[list["TropeLink"]] = relationship(
+        "TropeLink", back_populates="node", cascade="all, delete-orphan"
     )
     # Rows that merely point at the node: their reference is nulled on delete.
     reader_knowledge_events: Mapped[list["ReaderKnowledgeEvent"]] = relationship(

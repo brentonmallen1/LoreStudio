@@ -23,8 +23,11 @@ def anchor_key(anchor: FindingAnchor) -> str:
     key = "|".join(
         v or "" for v in (anchor.node_id, anchor.character_id, anchor.location_id, anchor.thread_id, anchor.twist_id)
     )
-    # Appended only when set, so every finding older than series keeps its id (and dismissal).
-    return f"{key}|series:{anchor.series_element_id}" if anchor.series_element_id else key
+    # Appended only when set, so every finding older than series (or tropes) keeps its id
+    # (and dismissal).
+    if anchor.series_element_id:
+        key = f"{key}|series:{anchor.series_element_id}"
+    return f"{key}|trope:{anchor.trope_id}" if anchor.trope_id else key
 
 
 def fingerprint(check: str, anchor: FindingAnchor, text: str) -> str:

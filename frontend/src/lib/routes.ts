@@ -182,7 +182,7 @@ export const STORY_ROUTES: StoryRoute[] = [
         path: "",
         label: "Story Identity",
         icon: Fingerprint,
-        keywords: ["logline", "premise", "goals", "themes", "identity", "intent"],
+        keywords: ["logline", "premise", "goals", "themes", "identity", "intent", "tropes"],
       },
       {
         id: "characters",

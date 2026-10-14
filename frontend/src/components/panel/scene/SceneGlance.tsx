@@ -16,6 +16,8 @@ import { useOpenFindings } from "../../../stores/findingsStore";
 import type { Story, StructureNode } from "../../../types";
 import { useStoryNotes } from "../../notes/useStoryNotes";
 import styles from "./SceneGlance.module.css";
+import { stanceLabel } from "../../../lib/tropes/stances";
+import { tropesAt, useTropes } from "../../../lib/tropes/useTropes";
 
 const STATUS_LABEL: Record<string, string> = {
   planned: "Planned",
@@ -72,6 +74,11 @@ export default function SceneGlance({
       : (promises?.twists ?? []).filter(
           (tw) => tw.reveal_index === index || tw.clues.some((c) => c.index === index),
         ).length;
+
+  const { tropes: allTropes } = useTropes(story.id);
+  const tropes = tropesAt(allTropes ?? [], { nodeId: node.id }).map(
+    (t) => `${t.name}, ${stanceLabel(t.stance)}`,
+  );
 
   const planned = node.entry_state || node.exit_state || node.synopsis;
 
@@ -180,6 +187,7 @@ export default function SceneGlance({
               .join(" · ")}
           />
         )}
+        {tropes.length > 0 && <Row to={`${sheet}#promises`} label="Tropes" line={tropes.join(" · ")} />}
         {notes.length > 0 && (
           <Row to={`${sheet}#notes`} label="Notes" count={notes.length} line={notes[0].content} />
         )}

@@ -44,6 +44,7 @@ from ..models.scene_link import SceneLink
 from ..models.series import SeriesElementMember, SeriesSceneLink, SeriesStory
 from ..models.story import Story
 from ..models.structure import StructureNode
+from ..models.trope import Trope, TropeLink
 from ..models.twist import Twist, TwistClue
 from ..models.world_system import WorldSystem
 from . import change_headers
@@ -71,6 +72,9 @@ ENTITY_MODELS: dict[str, type] = {
     "twist_clue": TwistClue,
     "plot_thread": PlotThread,
     "plot_thread_appearance": PlotThreadAppearance,
+    # Tropes in play (doc 27): the trope and where it plays.
+    "trope": Trope,
+    "trope_link": TropeLink,
     "finding_dismissal": FindingDismissal,
     "proposal_decline": ProposalDecline,
     "scene_presence": ScenePresence,
@@ -120,6 +124,9 @@ BUNDLE_MODELS: dict[str, type] = {
     "compendium_attachments": CompendiumAttachment,
     "twists": Twist,
     "twist_clues": TwistClue,
+    # After the scenes, characters and relationships they point at.
+    "tropes": Trope,
+    "trope_links": TropeLink,
     "finding_dismissals": FindingDismissal,
     "proposal_declines": ProposalDecline,
     # Answers to the Codex's proposals (doc 13 P4): who is here, and what the reader learns.
@@ -322,6 +329,7 @@ def capture_node_tree(node: StructureNode, db: Session) -> dict[str, list[dict]]
             _row(a) for a in db.query(PlotThreadAppearance).filter(PlotThreadAppearance.node_id.in_(ids)).all()
         ],
         "dialogue_blocks": [_row(b) for b in db.query(DialogueBlock).filter(DialogueBlock.scene_id.in_(ids)).all()],
+        "trope_links": [_row(t) for t in db.query(TropeLink).filter(TropeLink.node_id.in_(ids)).all()],
     }
 
 
@@ -335,11 +343,23 @@ def capture_character(character: Character, db: Session) -> dict[str, list[dict]
         .all()
     )
     interviews = db.query(CharacterInterview).filter(CharacterInterview.character_id == character.id).all()
+    trope_links = (
+        db.query(TropeLink)
+        .filter((TropeLink.character_id == character.id) | (TropeLink.relationship_id.in_([r.id for r in rels])))
+        .all()
+    )
     return {
         "characters": [_row(character)],
         "character_relationships": [_row(r) for r in rels],
         "character_interviews": [_row(i) for i in interviews],
+        "trope_links": [_row(t) for t in trope_links],
     }
+
+
+def capture_relationship(rel: CharacterRelationship, db: Session) -> dict[str, list[dict]]:
+    """A relationship and the tropes that play in it (doc 27)."""
+    links = db.query(TropeLink).filter(TropeLink.relationship_id == rel.id).all()
+    return {"character_relationships": [_row(rel)], "trope_links": [_row(t) for t in links]}
 
 
 def capture_location(location: Location, db: Session) -> dict[str, list[dict]]:
@@ -478,6 +498,11 @@ def capture_twist(twist: Twist, db: Session) -> dict[str, list[dict]]:
     return {"twists": [_row(twist)], "twist_clues": [_row(c) for c in clues]}
 
 
+def capture_trope(trope: Trope, db: Session) -> dict[str, list[dict]]:
+    links = db.query(TropeLink).filter(TropeLink.trope_id == trope.id).all()
+    return {"tropes": [_row(trope)], "trope_links": [_row(t) for t in links]}
+
+
 #: Models whose delete takes child rows with it; everything else is a single-row bundle.
 _CAPTURES: dict[type, Callable[[Any, Session], dict[str, list[dict]]]] = {
     StructureNode: capture_node_tree,
@@ -488,6 +513,8 @@ _CAPTURES: dict[type, Callable[[Any, Session], dict[str, list[dict]]]] = {
     CompendiumEntry: capture_compendium_entry,
     PlotThread: capture_plot_thread,
     Twist: capture_twist,
+    Trope: capture_trope,
+    CharacterRelationship: capture_relationship,
 }
 
 

@@ -73,6 +73,7 @@ from .routers.streams import router as streams_router
 from .routers.structure import router as structure_router
 from .routers.system import router as system_router
 from .routers.templates import router as templates_router
+from .routers.tropes import router as tropes_router
 from .routers.twists import router as twists_router
 from .routers.users import router as users_router
 from .routers.whatif import router as whatif_router
@@ -207,6 +208,7 @@ app.include_router(worldbuilding_ai_router, prefix="/api", tags=["worldbuilding-
 app.include_router(export_router, prefix="/api", tags=["export"])
 app.include_router(dialogue_router, prefix="/api", tags=["dialogue"])
 app.include_router(twists_router, prefix="/api", tags=["twists"])
+app.include_router(tropes_router, prefix="/api", tags=["tropes"])
 app.include_router(notes_router, prefix="/api", tags=["notes"])
 app.include_router(freewrite_router, prefix="/api", tags=["freewrite"])
 app.include_router(scratch_pad_router, prefix="/api", tags=["scratch-pad"])

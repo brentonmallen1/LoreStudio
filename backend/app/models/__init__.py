@@ -34,6 +34,7 @@ from .setting import Setting
 from .snapshot import StoryBackupSettings, StorySnapshot, UserBackupDefaults
 from .story import Story
 from .structure import StoryStructureTemplate, StructureNode
+from .trope import Trope, TropeLink
 from .twist import Twist, TwistClue
 from .user import User
 from .world_system import WorldSystem
@@ -77,6 +78,8 @@ __all__ = [
     "DialogueBlock",
     "Twist",
     "TwistClue",
+    "Trope",
+    "TropeLink",
     "OutlineItem",
     "StorySnapshot",
     "NumbersReading",

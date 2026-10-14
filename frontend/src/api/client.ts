@@ -2,11 +2,13 @@ import { aiChatApi } from "./aiChat";
 import { chronicleApi } from "./chronicle";
 import { promisesApi } from "./promises";
 import { BASE, getToken, request } from "./request";
+import { tropesApi } from "./tropes";
 export { ApiError } from "./request";
 
 export const api = {
   ...aiChatApi,
   ...promisesApi,
+  ...tropesApi,
   // Auth
   login: (username: string, password: string) =>
     request<{ access_token: string }>("/auth/login", {

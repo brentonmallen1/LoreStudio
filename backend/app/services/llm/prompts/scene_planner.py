@@ -10,6 +10,7 @@ Distinct from the What's Next? brainstormer (which helps during/after writing):
 """
 
 from ...series.promises import render_earlier
+from .tropes import render_character_tropes, render_scene_tropes, render_story_tropes
 from .who_they_are import render_packet_profile
 
 
@@ -59,6 +60,7 @@ def build_scene_planner_system_prompt(ctx: dict, initial_notes: str | None = Non
         lines.append(f"Logline: {s['logline']}")
     if s.get("unresolved_goals"):
         lines.append(f"Unresolved story goals: {'; '.join(s['unresolved_goals'])}")
+    lines += render_story_tropes(s)
 
     # ── This scene ──
     lines += ["", f'## Scene to plan: "{sc["title"]}" ({sc.get("level_type", "scene")})']
@@ -91,6 +93,7 @@ def build_scene_planner_system_prompt(ctx: dict, initial_notes: str | None = Non
             if c.get("arc_milestones_pending"):
                 lines.append(f"Pending milestones: {'; '.join(c['arc_milestones_pending'])}")
             lines += render_packet_profile(c)
+            lines += render_character_tropes(c)
     if ctx["all_characters"]:
         lines += ["", "## All story characters"]
         for c in ctx["all_characters"]:
@@ -116,6 +119,7 @@ def build_scene_planner_system_prompt(ctx: dict, initial_notes: str | None = Non
             for t in open_threads_not_in_scene:
                 lines.append(f"- {t['name']} [{t['status']}]")
 
+    lines += render_scene_tropes(ctx)
     lines += render_earlier(ctx.get("earlier_books"))
 
     # ── Adjacent scenes for structural awareness ──

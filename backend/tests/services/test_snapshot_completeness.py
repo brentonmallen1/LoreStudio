@@ -4,15 +4,18 @@ from sqlalchemy import text
 
 from app.database import Base
 from app.services import snapshot_service as svc
+from app.services import snapshot_tables as tables_
 from tests.fixtures.story_factory import build_full_story, story_owned_tables
 
 
 def test_every_story_owned_table_is_snapshotted():
     tables = story_owned_tables(Base.metadata)
-    missing = [t for t in tables if t not in svc.SNAPSHOT_KEYS_BY_TABLE]
+    missing = [t for t in tables if t not in tables_.SNAPSHOT_KEYS_BY_TABLE]
     assert missing == [], f"tables with story_id not covered by snapshots: {missing}"
     # every table referenced by a FK to a story-owned table is either covered or listed
-    covered = set(svc.SNAPSHOT_KEYS_BY_TABLE) | set(svc.SNAPSHOT_INDIRECT_TABLES) | svc.SNAPSHOT_EXCLUDED_TABLES
+    covered = (
+        set(tables_.SNAPSHOT_KEYS_BY_TABLE) | set(tables_.SNAPSHOT_INDIRECT_TABLES) | tables_.SNAPSHOT_EXCLUDED_TABLES
+    )
     story_tables = set(tables)
     dependants = set()
     for t in Base.metadata.sorted_tables:
@@ -30,7 +33,7 @@ def test_every_story_owned_table_is_snapshotted():
 def test_serialize_includes_every_declared_key(db_session, test_user):
     story = build_full_story(db_session, test_user)
     data = svc.serialize_story(story.id, db_session)
-    for key in set(svc.SNAPSHOT_KEYS_BY_TABLE.values()) | set(svc.SNAPSHOT_INDIRECT_TABLES.values()):
+    for key in set(tables_.SNAPSHOT_KEYS_BY_TABLE.values()) | set(tables_.SNAPSHOT_INDIRECT_TABLES.values()):
         assert key in data, f"serialize_story omits {key}"
         assert data[key], f"serialize_story produced empty {key} for a fully populated story"
 
@@ -39,7 +42,7 @@ def _row_counts(db, sid: str) -> dict[str, int]:
     counts = {}
     for t in story_owned_tables(Base.metadata):
         counts[t] = db.execute(text(f"SELECT count(*) FROM {t} WHERE story_id = :sid"), {"sid": sid}).scalar()
-    for t in svc.SNAPSHOT_INDIRECT_TABLES:
+    for t in tables_.SNAPSHOT_INDIRECT_TABLES:
         counts[t] = db.execute(text(f"SELECT count(*) FROM {t}")).scalar()
     return counts
 

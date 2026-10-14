@@ -1,6 +1,6 @@
 """What the series tables do when a book is deleted or restored.
 
-They are deliberately not in a story's snapshot (snapshot_service.SNAPSHOT_EXCLUDED_TABLES),
+They are deliberately not in a story's snapshot (snapshot_tables.SNAPSHOT_EXCLUDED_TABLES),
 so the delete and snapshot completeness tests do not walk them. These tests are the
 guard instead.
 """

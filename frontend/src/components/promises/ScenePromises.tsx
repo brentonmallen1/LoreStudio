@@ -11,6 +11,7 @@ import { ROLES, roleHint } from "../../lib/threads/roles";
 import type { ThreadRole } from "../../types";
 import CommitTextarea from "../common/CommitTextarea";
 import StillOpen from "../series/StillOpen";
+import TropesHere from "../tropes/TropesHere";
 import styles from "./ScenePromises.module.css";
 
 /**
@@ -159,6 +160,11 @@ export default function ScenePromises({
           <p className={styles.quiet}>
             Select words in the scene to plant a clue there, or to mark where a twist is revealed.
           </p>
+        </section>
+
+        <section aria-label="Tropes here" className={styles.block}>
+          <h3 className={styles.heading}>Tropes here</h3>
+          <TropesHere storyId={storyId} place={{ nodeId }} notes />
         </section>
       </div>
 

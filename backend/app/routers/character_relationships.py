@@ -193,12 +193,14 @@ def delete_relationship(
     if not rel:
         raise HTTPException(status_code=404, detail="Relationship not found")
     character = _verify_character_access(rel.character_id, db, current_user)
-    change_log.record_row_delete(
+    change_log.record(
         db,
-        rel,
-        "character_relationships",
-        entity_type="character_relationship",
         story_id=character.story_id,
+        entity_type="character_relationship",
+        entity_id=rel.id,
+        action="delete",
+        before=change_log.capture_relationship(rel, db),
+        after=None,
         label=f"Delete relationship from {character.name}",
         actor_id=current_user.id,
         client_id=client_id,

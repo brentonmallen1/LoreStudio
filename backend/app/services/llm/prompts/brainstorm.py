@@ -7,6 +7,7 @@ and references story context — it never drafts narrative text.
 """
 
 from ...series.promises import render_earlier
+from .tropes import render_character_tropes, render_scene_tropes, render_story_tropes
 from .who_they_are import render_packet_profile
 
 
@@ -68,6 +69,7 @@ def build_brainstorm_system_prompt(ctx: dict, author_intent: dict | None = None)
         lines.append(f"Logline: {s['logline']}")
     if s.get("unresolved_goals"):
         lines.append(f"Unresolved story goals: {'; '.join(s['unresolved_goals'])}")
+    lines += render_story_tropes(s)
 
     # ── Current scene ──
     lines += ["", f"## Current scene: {sc['title']} ({sc.get('level_type', 'scene')})"]
@@ -100,6 +102,7 @@ def build_brainstorm_system_prompt(ctx: dict, author_intent: dict | None = None)
             if c.get("arc_milestones_pending"):
                 lines.append(f"Pending arc milestones: {'; '.join(c['arc_milestones_pending'])}")
             lines += render_packet_profile(c)
+            lines += render_character_tropes(c)
     elif ctx["all_characters"]:
         lines += ["", "## Story characters"]
         for c in ctx["all_characters"]:
@@ -136,6 +139,7 @@ def build_brainstorm_system_prompt(ctx: dict, author_intent: dict | None = None)
         if open_names:
             lines.append(f"\nOther open threads in this story: {', '.join(open_names)}")
 
+    lines += render_scene_tropes(ctx)
     lines += render_earlier(ctx.get("earlier_books"))
 
     # ── Adjacent scenes ──

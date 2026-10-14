@@ -15,6 +15,7 @@ import { FormatField, PerspectiveField } from "./StoryFormFields";
 import type { StoryFormat, StoryGoal } from "../../types";
 import { CharCount, CompletionDots, GroupLabel, HeroStats, SeriesCard } from "./StoryIdentityBits";
 import { useWorkshopMenu } from "./useWorkshopMenu";
+import TropesInPlay from "../tropes/TropesInPlay";
 import styles from "./StoryIdentityPanel.module.css";
 
 /** The format's forms, and a length kept from the other format (after a switch) as it was. */
@@ -520,6 +521,10 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
               <option value="adult">Adult</option>
             </select>
           </div>
+        </SectionCard>
+
+        <SectionCard title="Tropes in play" collapsed={!!collapsed.tropes} onToggle={() => toggle("tropes")}>
+          <TropesInPlay storyId={storyId} />
         </SectionCard>
 
         {/* ── Compass ── */}

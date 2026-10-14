@@ -92,6 +92,8 @@ const GUIDE_LIST: Guide[] = [
       "foreshadowing",
       "dramatic irony",
       "try fail",
+      "tropes",
+      "subvert",
     ],
   },
   {

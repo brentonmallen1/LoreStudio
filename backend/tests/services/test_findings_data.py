@@ -76,3 +76,38 @@ def test_word_target_only_with_a_target(db_session, test_user):
     db_session.commit()
     f = _checks(story, db_session)["word_target"]
     assert f.text.startswith("2,400 words: past the") and f.severity == "mid" and f.anchor.node_id is None
+
+
+def test_a_trope_meant_to_be_turned_whose_thread_never_turns(db_session, test_user):
+    from app.models import Trope
+    from app.schemas.findings import FindingAnchor
+    from app.services.findings.fingerprint import anchor_key
+
+    story, nodes = build_findings_story(db_session, test_user)
+    thread = PlotThread(story_id=story.id, name="Newcomb changes")
+    db_session.add(thread)
+    db_session.flush()
+    for title in ("Arrival", "The Lamp"):
+        db_session.add(PlotThreadAppearance(thread_id=thread.id, node_id=nodes[title].id, role="moves"))
+    trope = Trope(story_id=story.id, name="Noble Bigot with a Badge", stance="subverted", thread_id=thread.id)
+    db_session.add(trope)
+    db_session.commit()
+    f = _checks(story, db_session)["trope_never_turns"]
+    assert f.text == "Noble Bigot with a Badge is meant to be subverted, but Newcomb changes never turns"
+    assert f.anchor.trope_id == trope.id and f.anchor.thread_id == thread.id
+
+    thread.appearances[1].role = "turns"
+    db_session.commit()
+    assert "trope_never_turns" not in _checks(story, db_session)
+
+    # Played straight, nothing needs to turn; set aside, the trope is asked about instead.
+    thread.appearances[1].role = "moves"
+    trope.stance = "straight"
+    db_session.commit()
+    assert "trope_never_turns" not in _checks(story, db_session)
+    thread.set_aside = True
+    db_session.commit()
+    assert _checks(story, db_session)["trope_thread_set_aside"].where == "Noble Bigot with a Badge"
+
+    # Findings older than tropes keep their ids: the trope is appended only when set.
+    assert anchor_key(FindingAnchor(thread_id="t")) == "|||t|"

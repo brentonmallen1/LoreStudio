@@ -55,6 +55,7 @@ const ENTITY_KEYS = [
   ["location_id", "Place"],
   ["thread_id", "Plot thread"],
   ["twist_id", "Twist"],
+  ["trope_id", "Trope"],
 ] as const;
 
 function entityKey(f: Finding): { id: string; sub: string } | null {

@@ -10,9 +10,11 @@ from ...models.character import Character
 from ...models.structure import StructureNode
 from ...schemas.findings import Finding, FindingAnchor
 from ...schemas.promises import PromisesOut
+from ...schemas.trope import TURNING_STANCES
 from ..codex.presence import known_as, name_patterns
 from ..mice_validation import validate_thread_nesting
 from ..thread_roles import tries
+from ..tropes import STANCE_PHRASES
 from .make import make, severity
 from .view import StoryView
 
@@ -85,8 +87,59 @@ def promise_findings(promises: PromisesOut) -> list[Finding]:
     return out
 
 
-def computed(view: StoryView) -> list[Finding]:
+#: What a scene does to a thread that turns the expectation a trope set up (doc 27).
+TURNING_ROLES = ("turns", "fails", "fails_worse", "costs", "succeeds", "closes")
+
+
+def trope_checks(view: StoryView) -> list[Finding]:
+    """A trope meant to be turned whose thread never turns; a trope whose thread is set aside.
+    Questions, not verdicts: the author may turn it in prose the thread does not record."""
+    threads = {t.id: t for t in view.threads}
     out: list[Finding] = []
+    for trope in view.tropes:
+        thread = threads.get(trope.thread_id or "")
+        if thread is None:
+            continue
+        stance = STANCE_PHRASES.get(trope.stance, trope.stance)
+        anchor = FindingAnchor(thread_id=thread.id, trope_id=trope.id)
+        if thread.set_aside:
+            if trope.stance != "undecided":
+                out.append(
+                    make(
+                        "trope_thread_set_aside",
+                        "structure",
+                        "low",
+                        "data",
+                        f"{trope.name} is tracked by {thread.name}, which is set aside",
+                        anchor=anchor,
+                        key=trope.id,
+                        suggestion="Is the trope set aside too, or does another thread carry it now?",
+                        where=trope.name,
+                        action="open_sheet",
+                    )
+                )
+            continue
+        roles = {a.role for a in thread.appearances or []}
+        if trope.stance in TURNING_STANCES and roles and not roles & set(TURNING_ROLES):
+            out.append(
+                make(
+                    "trope_never_turns",
+                    "structure",
+                    "low",
+                    "data",
+                    f"{trope.name} is meant to be {stance}, but {thread.name} never turns",
+                    anchor=anchor,
+                    key=trope.id,
+                    suggestion="Which scene turns the expectation? Say so on the thread.",
+                    where=trope.name,
+                    action="open_sheet",
+                )
+            )
+    return out
+
+
+def computed(view: StoryView) -> list[Finding]:
+    out: list[Finding] = trope_checks(view)
     for c, last in absent_characters(view):
         out.append(
             make(

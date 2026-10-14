@@ -22,8 +22,10 @@ from ...models.location import Location, SceneSetting
 from ...models.plot_thread import PlotThread, PlotThreadAppearance
 from ...models.scene_link import SceneLink
 from ...models.structure import StructureNode
+from ...models.trope import Trope
 from ...models.twist import Twist
 from ..dialogue_service import sync_story_dialogue
+from ..tropes import describe
 from .presence import derive_facts, derive_presence
 
 logger = logging.getLogger(__name__)
@@ -117,6 +119,7 @@ def sync_story(story_id: str, db: Session) -> SyncReport:
     locations = db.query(Location).filter(Location.story_id == story_id).all()
     threads = db.query(PlotThread).filter(PlotThread.story_id == story_id).all()
     twists = db.query(Twist).filter(Twist.story_id == story_id).all()
+    tropes = db.query(Trope).filter(Trope.story_id == story_id).all()
 
     char_nodes = {
         c.id: graph.node("character", c.id, label=c.name, table="characters", summary=c.personality or "", role=c.role)
@@ -145,11 +148,16 @@ def sync_story(story_id: str, db: Session) -> SyncReport:
     twist_nodes = {
         t.id: graph.node("twist", t.id, label=t.name, table="twists", summary=t.the_truth or "") for t in twists
     }
+    trope_nodes = {
+        t.id: graph.node("trope", t.id, label=t.name, table="tropes", summary=describe(t), stance=t.stance)
+        for t in tropes
+    }
 
     # Nodes need ids before edges can point at them.
     _replace_nodes(story_id, db, list(graph.nodes.values()))
 
     _author_edges(graph, db, story_id, char_nodes, scene_nodes, location_nodes, thread_nodes, twist_nodes, structure)
+    _trope_edges(graph, db, tropes, trope_nodes, char_nodes, scene_nodes, thread_nodes)
     _derived_edges(graph, db, story_id, char_nodes, scene_nodes, structure)
 
     _replace_edges(story_id, db, graph.edges)
@@ -201,6 +209,35 @@ def _author_edges(graph, db, story_id, chars, scenes, locations, threads, twists
             graph.edge(twists.get(twist.id), scenes.get(twist.revealed_at_node_id), "revealed_in")
         for index, clue in enumerate(twist.clues):
             graph.edge(twists.get(twist.id), scenes.get(clue.node_id), "clue_in", position=index)
+
+
+def _trope_edges(graph, db, tropes, trope_nodes, chars, scenes, threads) -> None:
+    """Where each trope plays (doc 27): the scenes, who carries it, and the thread that tracks
+    it. A relationship has no node, so a trope played in one is carried by both people."""
+    rels = {
+        r.id: r
+        for r in db.query(CharacterRelationship).filter(CharacterRelationship.character_id.in_(list(chars) or [""]))
+    }
+    for trope in tropes:
+        node = trope_nodes.get(trope.id)
+        seen: set[tuple[str, str]] = set()
+
+        def once(dst, kind: str, **props) -> None:
+            if dst is not None and (dst.id, kind) not in seen:
+                seen.add((dst.id, kind))
+                graph.edge(node, dst, kind, **props)
+
+        for link in trope.links:
+            if link.node_id:
+                once(scenes.get(link.node_id), "plays_in")
+            elif link.character_id:
+                once(chars.get(link.character_id), "carried_by")
+            elif link.relationship_id and link.relationship_id in rels:
+                rel = rels[link.relationship_id]
+                once(chars.get(rel.character_id), "carried_by", between=True)
+                once(chars.get(rel.related_character_id), "carried_by", between=True)
+        if trope.thread_id:
+            once(threads.get(trope.thread_id), "tracked_by")
 
 
 def _derived_edges(graph, db, story_id, chars, scenes, structure) -> None:

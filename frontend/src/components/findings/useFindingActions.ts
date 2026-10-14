@@ -88,10 +88,12 @@ export function useFindingActions() {
       const mine = element?.members.find((m) => m.story_id === storyId);
       if (!sheet && element && mine && isCanon(element))
         return navigate(sheetPath(storyId, element.kind, mine.ref_id));
+      // A trope's row is on Story Identity (doc 27); its thread, when it has one, comes first.
+      const trope = f.anchor.trope_id ? `#trope-${f.anchor.trope_id}` : "";
       navigate(
         sheet
           ? sectionPath(storyId, sheet[1], sheet[2], f.anchor[sheet[0]] ?? undefined)
-          : sectionPath(storyId, "lorebook", "identity"),
+          : sectionPath(storyId, "lorebook", "identity") + trope,
       );
     },
     [navigate, storyId],

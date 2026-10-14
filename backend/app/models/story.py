@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from .setting import Setting
     from .snapshot import StoryBackupSettings, StorySnapshot
     from .structure import StructureNode
+    from .trope import Trope
     from .twist import Twist
     from .user import User
     from .world_system import WorldSystem
@@ -146,6 +147,7 @@ class Story(Base):
     )
     calendars: Mapped[list["Calendar"]] = relationship("Calendar", back_populates="story", cascade="all, delete-orphan")
     twists: Mapped[list["Twist"]] = relationship("Twist", back_populates="story", cascade="all, delete-orphan")
+    tropes: Mapped[list["Trope"]] = relationship("Trope", back_populates="story", cascade="all, delete-orphan")
     outlines: Mapped[list["Outline"]] = relationship(
         "Outline",
         back_populates="story",
