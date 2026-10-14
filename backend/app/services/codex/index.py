@@ -24,8 +24,10 @@ from ...models.culture import Culture
 from ...models.location import Location
 from ...models.plot_thread import PlotThread
 from ...models.structure import StructureNode
+from ...models.trope import Trope
 from ...models.twist import Twist
 from ...models.world_system import WorldSystem
+from ..tropes import STANCE_PHRASES
 from .chunker import Chunk, chunk_entry, chunk_prose
 from .embeddings import embed_texts, search_backend
 
@@ -33,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 #: Node kinds that carry text worth retrieving. A node with nothing but a name — an empty
 #: location stub — produces no chunks and simply is not in the index.
-INDEXED_KINDS = ("scene", "character", "location", "thread", "twist", "fact", "culture", "system")
+INDEXED_KINDS = ("scene", "character", "location", "thread", "twist", "trope", "fact", "culture", "system")
 
 
 @dataclass
@@ -73,6 +75,10 @@ def _twist_chunks(t: Twist) -> list[Chunk]:
     return chunk_entry(t.name, t.the_truth, t.the_misdirection)
 
 
+def _trope_chunks(t: Trope) -> list[Chunk]:
+    return chunk_entry(f"{t.name} — {STANCE_PHRASES.get(t.stance, t.stance)}", t.why)
+
+
 def _chunks_for_node(node: CodexNode, sources: dict[str, dict]) -> list[Chunk]:
     """The passages one node contributes, or nothing when it has no prose of its own."""
     row = sources.get(node.kind, {}).get(node.ref_id)
@@ -87,6 +93,8 @@ def _chunks_for_node(node: CodexNode, sources: dict[str, dict]) -> list[Chunk]:
         return _location_chunks(row)
     if node.kind == "twist":
         return _twist_chunks(row)
+    if node.kind == "trope":
+        return _trope_chunks(row)
     return chunk_entry(getattr(row, "name", ""), getattr(row, "description", ""))
 
 
@@ -107,6 +115,7 @@ def build_chunks(story_id: str, db: Session) -> IndexReport:
         "location": _rows_by_id(db, Location, story_id),
         "thread": _rows_by_id(db, PlotThread, story_id),
         "twist": _rows_by_id(db, Twist, story_id),
+        "trope": _rows_by_id(db, Trope, story_id),
         "culture": _rows_by_id(db, Culture, story_id),
         "system": _rows_by_id(db, WorldSystem, story_id),
     }

@@ -1,12 +1,16 @@
 import { aiChatApi } from "./aiChat";
 import { chronicleApi } from "./chronicle";
 import { promisesApi } from "./promises";
+import { importsApi } from "./imports";
 import { BASE, getToken, request } from "./request";
+import { tropesApi } from "./tropes";
 export { ApiError } from "./request";
 
 export const api = {
   ...aiChatApi,
   ...promisesApi,
+  ...tropesApi,
+  ...importsApi,
   // Auth
   login: (username: string, password: string) =>
     request<{ access_token: string }>("/auth/login", {
@@ -1207,7 +1211,7 @@ export const api = {
       body: JSON.stringify(options),
     }),
   importFinalize: (sessionId: string, data: import("../types").ImportFinalizeRequest) =>
-    request<{ id: string; title: string }>(`/import/${sessionId}/finalize`, {
+    request<{ id: string; title: string; record_id?: string | null }>(`/import/${sessionId}/finalize`, {
       method: "POST",
       body: JSON.stringify(data),
     }),

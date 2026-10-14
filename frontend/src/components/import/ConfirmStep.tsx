@@ -2,7 +2,9 @@ import { useState } from "react";
 import { CheckCircle, ArrowLeft, User, MapPin, Link2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
+import { choiceOf, plural, tally } from "../../lib/import/novelcrafter";
 import type { ExtractionCandidate, ImportPreviewTree, ImportUploadResponse } from "../../types";
+import type { NovelcrafterChoices } from "../../types/novelcrafter";
 import styles from "./ConfirmStep.module.css";
 
 interface Props {
@@ -10,8 +12,10 @@ interface Props {
   preview: ImportPreviewTree;
   extractionCandidates: ExtractionCandidate[];
   extractionSelected: Set<string>;
+  /** A Novelcrafter export: what the author chose in What comes over (doc 28). */
+  novelcrafter?: NovelcrafterChoices;
   onBack: () => void;
-  onFinalized: (storyId: string) => void;
+  onFinalized: (storyId: string, recordId?: string | null) => void;
 }
 
 export default function ConfirmStep({
@@ -19,9 +23,14 @@ export default function ConfirmStep({
   preview,
   extractionCandidates,
   extractionSelected,
+  novelcrafter,
   onBack,
   onFinalized,
 }: Props) {
+  const nc = uploadResponse.novelcrafter;
+  const ncTally = nc && novelcrafter ? tally(nc, novelcrafter) : null;
+  const ncCount = (target: string) =>
+    nc && novelcrafter ? nc.entries.filter((e) => choiceOf(e, novelcrafter).target === target).length : 0;
   const [title, setTitle] = useState(
     preview.detected_title || uploadResponse.source_format.toUpperCase() + " Import",
   );
@@ -53,10 +62,11 @@ export default function ConfirmStep({
         genre: "",
         extraction_candidate_ids: Array.from(extractionSelected),
         extraction_candidates: extractionCandidates,
+        ...(novelcrafter ? { novelcrafter } : {}),
       });
       const stories = await api.listStories();
       stories.forEach(upsertStory);
-      onFinalized(result.id);
+      onFinalized(result.id, result.record_id);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Import failed");
     } finally {
@@ -77,6 +87,31 @@ export default function ConfirmStep({
           </p>
         </div>
       </div>
+
+      {ncTally && (
+        <div className={styles.extractionSummary} data-plain>
+          <span className={styles.extractionLabel}>From the codex:</span>
+          <div className={styles.extractionCounts}>
+            {(
+              [
+                ["character", "character"],
+                ["location", "place"],
+                ["thread", "thread"],
+                ["trope", "trope"],
+              ] as const
+            ).map(([target, one]) =>
+              ncCount(target) ? (
+                <span key={target} className={styles.extractionCount}>
+                  {plural(ncCount(target), one)}
+                </span>
+              ) : null,
+            )}
+            {ncTally.later > 0 && (
+              <span className={styles.extractionCount}>{ncTally.later} wait in Proposals</span>
+            )}
+          </div>
+        </div>
+      )}
 
       {hasExtraction && (
         <div className={styles.extractionSummary}>

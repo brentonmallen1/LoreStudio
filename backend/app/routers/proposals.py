@@ -12,12 +12,13 @@ from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.story import Story
 from ..models.user import User
-from ..schemas.proposals import ActRequest, ActResult, ProposalsCount, ProposalsOut
+from ..schemas.proposals import QUIET_KINDS, ActRequest, ActResult, ProposalsCount, ProposalsOut
 from ..services import change_log
 from ..services.job_queue import enqueue
 from ..services.nlp_runs import run_entity_scan
 from ..services.proposals import collect, find
 from ..services.proposals.act import CannotAct, act, decline
+from ..services.proposals.imported import settle_rest
 
 router = APIRouter()
 
@@ -45,7 +46,8 @@ def list_proposals(story_id: str, db: Session = Depends(get_db), user: User = De
 @router.get("/stories/{story_id}/proposals/count", response_model=ProposalsCount)
 def count_proposals(story_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     _story(story_id, db, user)
-    return ProposalsCount(count=collect(story_id, db).count)
+    # What an import left to sort waits quietly: the Proposals page shows it, the badge does not.
+    return ProposalsCount(count=sum(1 for p in collect(story_id, db).proposals if p.kind not in QUIET_KINDS))
 
 
 @router.post("/stories/{story_id}/proposals/refresh")
@@ -98,3 +100,21 @@ def decline_proposal(
 ):
     _story(story_id, db, user)
     decline(story_id, _proposal(story_id, proposal_id, db), db, user.id, client_id)
+
+
+@router.post("/stories/{story_id}/proposals/imported/{record_id}/{how}")
+def settle_imported(
+    story_id: str,
+    record_id: str,
+    how: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
+):
+    """Everything one import still has waiting: kept in the Compendium (``keep``) or not
+    needed (``decline``), as one change that undoes together (doc 28)."""
+    _story(story_id, db, user)
+    if how not in ("keep", "decline"):
+        raise HTTPException(status_code=404, detail="Keep or decline")
+    count = settle_rest(story_id, record_id, "compendium" if how == "keep" else "decline", db, user.id, client_id)
+    return {"settled": count}

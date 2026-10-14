@@ -29,6 +29,8 @@ from app.models import (
     Era,
     FindingDismissal,
     HistoricalEvent,
+    ImportedItem,
+    ImportRecord,
     Location,
     LocationTravel,
     Note,
@@ -47,6 +49,8 @@ from app.models import (
     Story,
     StoryAsset,
     StructureNode,
+    Trope,
+    TropeLink,
     Twist,
     TwistClue,
     WorldSystem,
@@ -100,9 +104,10 @@ def build_full_story(db: Session, user: User, title: str = "Factory Story") -> S
     db.add_all([scene1, scene2])
     db.flush()
 
-    db.add(
-        CharacterRelationship(id=_uid(), character_id=hero.id, related_character_id=foil.id, relationship_type="rival")
+    rivals = CharacterRelationship(
+        id=_uid(), character_id=hero.id, related_character_id=foil.id, relationship_type="rival"
     )
+    db.add(rivals)
     db.add(CharacterInterview(id=_uid(), character_id=hero.id))
     db.add(CharacterJourneySummary(id=_uid(), character_id=hero.id, up_to_node_id=scene1.id, summary="So far"))
     db.add(DialogueBlock(id=_uid(), scene_id=scene1.id, character_id=hero.id, content="We should go"))
@@ -117,6 +122,22 @@ def build_full_story(db: Session, user: User, title: str = "Factory Story") -> S
     db.flush()
     db.add(TwistClue(id=_uid(), twist_id=twist.id, node_id=scene1.id, text="He hesitates"))
     db.add(ReaderKnowledgeEvent(id=_uid(), story_id=sid, node_id=scene2.id, twist_id=twist.id, subject="Tomas lied"))
+
+    record = ImportRecord(id=_uid(), story_id=sid, source="novelcrafter", filename="export.zip")
+    db.add(record)
+    db.flush()
+    db.add(ImportedItem(id=_uid(), story_id=sid, record_id=record.id, name="The Lifesaving Service"))
+
+    trope = Trope(id=_uid(), story_id=sid, name="Mentor's Betrayal", stance="subverted", thread_id=thread.id)
+    db.add(trope)
+    db.flush()
+    db.add_all(
+        [
+            TropeLink(id=_uid(), trope_id=trope.id, character_id=foil.id),
+            TropeLink(id=_uid(), trope_id=trope.id, relationship_id=rivals.id),
+            TropeLink(id=_uid(), trope_id=trope.id, node_id=scene2.id, note="He turns back"),
+        ]
+    )
 
     harbour = Location(id=_uid(), story_id=sid, name="Harbour")
     tower = Location(id=_uid(), story_id=sid, name="Tower")
@@ -183,7 +204,7 @@ def build_full_story(db: Session, user: User, title: str = "Factory Story") -> S
 
 def story_owned_tables(metadata) -> list[str]:
     """Names of tables that carry a story_id column, excluding the snapshot machinery."""
-    from app.services.snapshot_service import SNAPSHOT_EXCLUDED_TABLES
+    from app.services.snapshot_tables import SNAPSHOT_EXCLUDED_TABLES
 
     return sorted(
         t.name for t in metadata.sorted_tables if "story_id" in t.c and t.name not in SNAPSHOT_EXCLUDED_TABLES

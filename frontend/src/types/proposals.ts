@@ -1,6 +1,9 @@
 /** The Proposals inbox (doc 12 P5): mirrors `backend/app/schemas/proposals.py`. */
 
-export type ProposalKind = "place" | "person" | "dialogue" | "fact" | "presence" | "relationship";
+export type ProposalKind =
+  "place" | "person" | "dialogue" | "fact" | "presence" | "relationship" | "imported";
+/** Kinds that wait without asking for attention: the logo's badge leaves them out (doc 28). */
+export const QUIET_KINDS: ReadonlySet<ProposalKind> = new Set(["imported"]);
 
 export interface Proposal {
   id: string;
@@ -14,6 +17,8 @@ export interface Proposal {
   actions: { id: string; label: string; primary: boolean }[];
   decline: string;
   created_at: string | null;
+  /** Proposals settled together: an import's record. */
+  group?: string;
 }
 
 export interface ProposalsOut {

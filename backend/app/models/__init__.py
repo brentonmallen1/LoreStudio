@@ -17,6 +17,7 @@ from .dialogue import DialogueBlock
 from .discovered_element import DiscoveredElement
 from .finding_dismissal import FindingDismissal
 from .historical_event import Era, HistoricalEvent
+from .import_record import ImportedItem, ImportRecord
 from .interview import CharacterInterview
 from .location import Location, ScenePresence, SceneSetting
 from .location_travel import LocationTravel
@@ -34,6 +35,7 @@ from .setting import Setting
 from .snapshot import StoryBackupSettings, StorySnapshot, UserBackupDefaults
 from .story import Story
 from .structure import StoryStructureTemplate, StructureNode
+from .trope import Trope, TropeLink
 from .twist import Twist, TwistClue
 from .user import User
 from .world_system import WorldSystem
@@ -77,6 +79,10 @@ __all__ = [
     "DialogueBlock",
     "Twist",
     "TwistClue",
+    "Trope",
+    "TropeLink",
+    "ImportRecord",
+    "ImportedItem",
     "OutlineItem",
     "StorySnapshot",
     "NumbersReading",

@@ -62,4 +62,5 @@ export const SECTION_ELEMENTS: Record<string, Page> = {
   "chronicle.conversations": ChroniclePage,
   "chronicle.changes": ChroniclePage,
   "chronicle.versions": lazy(() => import("../components/chronicle/versions/VersionsSection")),
+  "chronicle.imports": lazy(() => import("../components/imports/ImportsSection")),
 };

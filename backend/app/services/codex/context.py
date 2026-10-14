@@ -41,6 +41,7 @@ from ..series.promises import earlier_lines
 from ..story_format import is_script
 from ..text_utils import for_model
 from ..thread_roles import role_label
+from ..tropes import STANCE_PHRASES, describe, for_character, for_scene, story_tropes, whole_story
 from .chunker import estimate_tokens
 from .embeddings import Hit, embed_base_url_for, embed_model_for, embed_texts, search
 from .mentions import render_mentions, resolve_mentions, without
@@ -105,6 +106,8 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
             pov_char_name = pov_char.name
 
     script = is_script(story)
+    # Tropes in play (doc 27): the author's stance, never the definition.
+    tropes = story_tropes(story.id, db)
     lorebook = {
         "title": story.title,
         "genre": story.genre or None,
@@ -119,6 +122,7 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
         "pov_character": None if script else pov_char_name,
         "script": script,
         "unresolved_goals": [g["text"] for g in (story.goals or []) if not g.get("completed")],
+        "tropes": [describe(t) for t in whole_story(tropes)],
     }
 
     # ── Active scene (None for story-level / global assistant) ──
@@ -163,6 +167,14 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
     mentioned_char_profiles = []
     if opts.include_characters:
         mentioned_chars = [c for c in all_chars if c.name in char_names_mentioned]
+        rels = (
+            db.query(CharacterRelationship)
+            .filter(CharacterRelationship.character_id.in_([c.id for c in mentioned_chars] or [""]))
+            .all()
+            + db.query(CharacterRelationship)
+            .filter(CharacterRelationship.related_character_id.in_([c.id for c in mentioned_chars] or [""]))
+            .all()
+        )
         for c in mentioned_chars:
             profile: dict = {"name": c.name, "role": c.role}
             if c.personality:
@@ -182,6 +194,9 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
                 profile["arc_milestones_pending"] = [m["text"] for m in c.arc_milestones if not m.get("completed")]
             # Who they are (doc 20 P8): what shows on the page, what stings, what formed them.
             profile.update(packet_profile(c))
+            rel_ids = {r.id for r in rels if c.id in (r.character_id, r.related_character_id)}
+            if carried := for_character(tropes, c.id, rel_ids):
+                profile["tropes"] = [describe(t) for t in carried]
             # A book of a series: who they were in the books before this one (never after).
             if earlier := earlier_states(db, "characters", c.id):
                 profile["in_earlier_books"] = earlier
@@ -252,6 +267,19 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
                 }
             )
 
+    # ── Tropes that play in this scene (doc 27) ──
+    tropes_in_scene: list = []
+    if opts.include_threads and node_id_for_threads:
+        tropes_in_scene = [
+            {
+                "name": t.name,
+                "stance": STANCE_PHRASES.get(t.stance, t.stance),
+                "why": t.why or None,
+                "note": link.note or None,
+            }
+            for t, link in for_scene(tropes, node_id_for_threads)
+        ]
+
     # ── Sibling context (adjacent scenes) ──
     sibling_context: list = []
     if opts.include_siblings and node is not None:
@@ -288,6 +316,7 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
         "threads_in_scene": threads_in_scene,
         "open_threads": all_open_threads,
         "twists_in_scene": twists_in_scene,
+        "tropes_in_scene": tropes_in_scene,
         # A book of a series: what the books before it leave open, never the later ones.
         "earlier_books": earlier_lines(db, story.id) if opts.include_threads else [],
         "sibling_scenes": sibling_context,
@@ -370,6 +399,13 @@ def _blocks_for(packet: dict) -> list[Block]:
             _tokens(story.get("themes")),
         ),
         Block(
+            "story.tropes",
+            f"Tropes in play ({len(story.get('tropes') or [])})",
+            bool(story.get("tropes")),
+            _tokens(story.get("tropes")),
+            why="they apply to the whole story" if story.get("tropes") else "",
+        ),
+        Block(
             "story.goals",
             f"Unresolved goals ({len(story.get('unresolved_goals') or [])})",
             bool(story.get("unresolved_goals")),
@@ -400,6 +436,7 @@ def _blocks_for(packet: dict) -> list[Block]:
         ("settings_in_scene", "Settings", "[[mentioned]] in the prose"),
         ("threads_in_scene", "Plot threads", "the thread appears in this scene"),
         ("twists_in_scene", "Twists", "a clue is planted or the twist revealed in this scene"),
+        ("tropes_in_scene", "Tropes", "you said the trope plays in this scene"),
         ("earlier_books", "From earlier books", "this book's series: the books before it, never after"),
         ("sibling_scenes", "Neighbouring scenes", "adjacent in the manuscript"),
         ("all_characters", "Cast summary", ""),
@@ -439,6 +476,9 @@ EDGE_PHRASES = {
     "revealed_in": "revealed in",
     "clue_in": "hinted at in",
     "established_in": "established in",
+    "plays_in": "plays in",
+    "carried_by": "carried by",
+    "tracked_by": "tracked by",
 }
 
 #: Which edges a feature follows out from its seeds (doc 07 §4). An interview walks who

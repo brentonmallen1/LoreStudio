@@ -9,8 +9,11 @@ interface Props {
   onUploaded: (resp: ImportUploadResponse) => void;
 }
 
-const ACCEPTED = [".docx", ".doc", ".rtf", ".md", ".markdown", ".txt", ".epub", ...SCRIPT_FILES].join(",");
-const ACCEPTED_LABEL = "DOCX, DOC, RTF, Markdown, plain text, ePub; scripts in Fountain or Final Draft";
+const ACCEPTED = [".docx", ".doc", ".rtf", ".md", ".markdown", ".txt", ".epub", ".zip", ...SCRIPT_FILES].join(
+  ",",
+);
+const ACCEPTED_LABEL =
+  "DOCX, DOC, RTF, Markdown, plain text, ePub; scripts in Fountain or Final Draft; a Novelcrafter export (.zip)";
 
 export default function UploadStep({ onUploaded }: Props) {
   const [file, setFile] = useState<File | null>(null);
@@ -67,7 +70,8 @@ export default function UploadStep({ onUploaded }: Props) {
       <p className={styles.hint}>
         Import a document and map it to your story's structure. Your writing is never altered; the import
         wizard only decides where the breaks go. A Fountain or Final Draft script comes in as a screenplay, a
-        scene at each heading.
+        scene at each heading. A Novelcrafter export (its full .zip) brings its codex, snippets and
+        conversations too, and shows you where each will go.
       </p>
 
       {/* Drop zone */}

@@ -4,6 +4,7 @@ Chat prompts — scene-aware chat assistant and writing coach.
 
 from ...codex.mentions import render_mentions
 from ...series.promises import render_earlier
+from .tropes import render_character_tropes, render_scene_tropes, render_story_tropes
 from .who_they_are import render_packet_profile
 
 
@@ -105,6 +106,7 @@ def build_scene_chat_system_prompt(ctx: dict) -> str:  # noqa: C901, PLR0912, PL
         lines.append(pov_line)
     if s.get("unresolved_goals"):
         lines.append(f"Unresolved story goals: {'; '.join(s['unresolved_goals'])}")
+    lines += render_story_tropes(s)
 
     if sc:
         lines += ["", f"## Current scene: {sc['title']} ({sc.get('level_type', 'scene')})"]
@@ -137,6 +139,7 @@ def build_scene_chat_system_prompt(ctx: dict) -> str:  # noqa: C901, PLR0912, PL
             if c.get("arc_milestones_pending"):
                 lines.append(f"Pending arc milestones: {'; '.join(c['arc_milestones_pending'])}")
             lines += render_packet_profile(c)
+            lines += render_character_tropes(c)
     elif ctx["all_characters"]:
         lines += ["", "## Story characters (all)"]
         for c in ctx["all_characters"]:
@@ -166,6 +169,7 @@ def build_scene_chat_system_prompt(ctx: dict) -> str:  # noqa: C901, PLR0912, PL
         if open_names:
             lines.append(f"\nOther open threads in this story: {', '.join(open_names)}")
 
+    lines += render_scene_tropes(ctx)
     lines += render_earlier(ctx.get("earlier_books"))
 
     if ctx["sibling_scenes"]:

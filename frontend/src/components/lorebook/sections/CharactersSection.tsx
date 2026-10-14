@@ -38,6 +38,7 @@ import { ArcMilestones, DiscoveryNotes, InterviewPrompts, Traits } from "../char
 import ThreeQuestions from "../character/ThreeQuestions";
 import WhoAreTheyView from "../character/WhoAreTheyView";
 import styles from "../Lorebook.module.css";
+import TropesHere from "../../tropes/TropesHere";
 
 const VIEWS = [
   { id: "overview", label: "Overview" },
@@ -224,6 +225,9 @@ export default function CharactersSection() {
                     }
                   >
                     <ArcMilestones character={character} onSaved={upsertCharacter} />
+                  </SheetCard>
+                  <SheetCard title="Tropes">
+                    <TropesHere storyId={storyId} place={{ characterId: character.id }} />
                   </SheetCard>
                   <SheetCard title="Notes and questions">
                     <SubjectNotes

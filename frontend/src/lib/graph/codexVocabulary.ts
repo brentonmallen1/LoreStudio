@@ -12,6 +12,7 @@ export const NODE_LABELS: Record<string, string> = {
   location: "Location",
   thread: "Plot thread",
   twist: "Twist",
+  trope: "Trope",
   fact: "Fact",
   culture: "Culture",
   system: "World system",
@@ -24,6 +25,7 @@ export const NODE_COLORS: Record<string, string> = {
   location: "var(--segment-chapter)",
   thread: "var(--segment-act)",
   twist: "var(--cat-7)",
+  trope: "var(--cat-5)",
   fact: "var(--segment-section)",
   culture: "var(--segment-scene)",
   system: "var(--segment-scene)",
@@ -42,6 +44,9 @@ export const EDGE_LABELS: Record<string, string> = {
   clue_in: "hinted at in",
   knows: "knows",
   established_in: "established in",
+  plays_in: "plays in",
+  carried_by: "carried by",
+  tracked_by: "tracked by",
 };
 
 export function nodeLabel(kind: string): string {

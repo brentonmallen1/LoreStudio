@@ -10,6 +10,7 @@ import type {
 } from "../../../types";
 import StrengthSliders from "./StrengthSliders";
 import NarrativePurposeTags from "./NarrativePurposeTags";
+import TropesHere from "../../tropes/TropesHere";
 import TemplateSelector from "./TemplateSelector";
 import styles from "./RelationshipEditor.module.css";
 
@@ -273,6 +274,14 @@ export default function RelationshipEditor({
           <label className={styles.label}>Narrative purpose *</label>
           <NarrativePurposeTags value={purposes} onChange={setPurposes} error={purposeError} />
         </div>
+
+        {/* Tropes in play (doc 27): saved as you choose them, so only on a saved relationship. */}
+        {relationship && characters[0]?.story_id && (
+          <div className={styles.field}>
+            <span className={styles.label}>Tropes</span>
+            <TropesHere storyId={characters[0].story_id} place={{ relationshipId: relationship.id }} />
+          </div>
+        )}
 
         {/* Description */}
         <div className={styles.field}>

@@ -92,6 +92,8 @@ const GUIDE_LIST: Guide[] = [
       "foreshadowing",
       "dramatic irony",
       "try fail",
+      "tropes",
+      "subvert",
     ],
   },
   {
@@ -226,7 +228,7 @@ const GUIDE_LIST: Guide[] = [
     title: "Import and export",
     body: importExport,
     modes: BOTH,
-    keywords: ["docx", "epub", "pdf", "markdown"],
+    keywords: ["docx", "epub", "pdf", "markdown", "novelcrafter", "zip", "import report"],
   },
   {
     id: "search-and-replace",

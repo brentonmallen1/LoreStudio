@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .interview import CharacterInterview
     from .story import Story
     from .structure import StructureNode
+    from .trope import TropeLink
 
 
 class Character(Base):
@@ -127,6 +128,9 @@ class Character(Base):
     journey_summaries: Mapped[list["CharacterJourneySummary"]] = relationship(
         "CharacterJourneySummary", back_populates="character", cascade="all, delete-orphan"
     )
+    trope_links: Mapped[list["TropeLink"]] = relationship(
+        "TropeLink", back_populates="character", cascade="all, delete-orphan"
+    )
     # Nulled (not deleted) when the character goes away:
     dialogue_blocks: Mapped[list["DialogueBlock"]] = relationship(
         "DialogueBlock", foreign_keys="DialogueBlock.character_id", back_populates="character"
@@ -173,4 +177,7 @@ class CharacterRelationship(Base):
     )
     related_character: Mapped["Character"] = relationship(
         "Character", foreign_keys=[related_character_id], back_populates="relationships_in"
+    )
+    trope_links: Mapped[list["TropeLink"]] = relationship(
+        "TropeLink", back_populates="relationship_row", cascade="all, delete-orphan"
     )

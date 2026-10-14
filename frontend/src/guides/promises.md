@@ -53,6 +53,20 @@ A setup is a smaller promise: a detail or an image a later scene pays off. **Pro
 
 Add the rest under **Your entries**. What only the reader knows is dramatic irony: in _Knock at the Door_ the Visitor already knows Eleanor's name, and Eleanor lets it pass. The reader notices, and every quiet scene after is tense.
 
+## Tropes in play
+
+A trope is a promise too: name one and the reader expects how it goes. What matters is what you do with it. Logo menu › **Lorebook** › **Story Identity** › **Tropes in play** lists the tropes you know the story is using, each with:
+
+- **What you do with it**: played straight, subverted, inverted, averted, deconstructed or lampshaded, or not decided yet.
+- **Why**, in your words.
+- **Plays in**: the characters, relationships and scenes it belongs to. With none, it is the whole story's.
+- **Tracked by**: the thread that follows the expectation it sets up, so the thread's scenes show where you turn it.
+- **The definition**, kept in the Compendium as reference.
+
+In _The Last Lighthouse_, _Mysterious Stranger_ is subverted: the Visitor arrives out of a storm with a false name, and turns out to be grieving, not dangerous. _The Visitor's Identity_ tracks it.
+
+Each character's sheet, each relationship and each scene's **Promises** page show the tropes that play there. **Needs your eye** asks when a trope you mean to subvert has a thread that never turns.
+
 ## In the scene
 
 The **Scene sheet**'s **Promises** page shows what this scene does to each thread, the twists here, what is open coming in and what the reader knows by the end. Attach a thread there. While you write, **This scene** in the side panel sums it up in a line.

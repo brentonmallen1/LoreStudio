@@ -9,6 +9,8 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from .import_novelcrafter import NovelcrafterChoices, NovelcrafterPreview
+
 # ---------------------------------------------------------------------------
 # Internal: paragraph/break structures (used by the service layer)
 # ---------------------------------------------------------------------------
@@ -97,6 +99,8 @@ class UploadResponse(BaseModel):
     preview: ImportPreviewTree
     has_unstructured_blocks: bool  # hint to show "Get AI Suggestions"
     ai_available: bool  # whether Ollama is reachable
+    #: A Novelcrafter export (doc 28): its codex, snippets and chats, for What comes over.
+    novelcrafter: NovelcrafterPreview | None = None
 
 
 class AIAnalyzeResponse(BaseModel):
@@ -133,3 +137,5 @@ class FinalizeImportRequest(BaseModel):
     extraction_candidate_ids: list[str] = []
     # Full candidate list (with extracted data) needed to create entities
     extraction_candidates: list = []
+    #: What the author chose in What comes over, for a Novelcrafter export (doc 28).
+    novelcrafter: NovelcrafterChoices | None = None

@@ -1689,6 +1689,7 @@ export interface ImportUploadResponse {
   preview: ImportPreviewTree;
   has_unstructured_blocks: boolean;
   ai_available: boolean;
+  novelcrafter?: import("./novelcrafter").NovelcrafterPreview | null;
 }
 
 export interface ImportAIAnalyzeResponse {
@@ -1712,6 +1713,7 @@ export interface ImportFinalizeRequest {
   genre: string;
   extraction_candidate_ids?: string[];
   extraction_candidates?: ExtractionCandidate[];
+  novelcrafter?: import("./novelcrafter").NovelcrafterChoices;
 }
 
 // ── Import: Entity Extraction ──────────────────────────────────────────────

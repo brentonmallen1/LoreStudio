@@ -18,6 +18,7 @@ from ..dialogue_service import sync_scene_dialogue
 from ..findings.fingerprint import content_hash
 from ..findings.runs import latest_runs, result_of
 from ..text_utils import html_to_text
+from .imported import imported_proposals
 from .series import series_proposals
 
 
@@ -288,4 +289,5 @@ SOURCES = (
     scanned_names,
     scanned_knowledge,
     series_proposals,
+    imported_proposals,
 )

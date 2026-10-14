@@ -83,6 +83,18 @@ describe("buildLine", () => {
     expect(line.readout.position).toBe(3);
   });
 
+  it("gives each group its own key in a tree of mixed depth", () => {
+    // An imported draft: a chapter holding prose beside chapters with scenes, twice.
+    const mixed = [
+      node("a1", "Opening", 0, {}, [node("c0", "Fade In", 1)]),
+      node("a2", "Act 1", 0, {}, [node("c1", "Chapter 1", 1, {}, [node("s1", "Lay of the Land", 2)])]),
+      node("a3", "Coda", 0, {}, [node("c9", "Fade Out", 1)]),
+    ];
+    const line = buildLine(mixed, template, "s1", null);
+    const keys = line.acts.map((a) => a.key);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
   it("is a line of stops for a flat template", () => {
     const flat = { levels: [{ name: "Scene" }], flat: true } as StoryStructureTemplate;
     const line = buildLine([node("x", "One", 0), node("y", "Two", 0)], flat, "y", null);

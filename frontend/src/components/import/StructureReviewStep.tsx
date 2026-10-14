@@ -6,6 +6,7 @@ import type { ImportPreviewTree, ImportPreviewNode, ImportUploadResponse } from 
 import styles from "./StructureReviewStep.module.css";
 import { MODIFIER } from "../../lib/keyboard/shortcuts";
 import { useAIAvailable } from "../../lib/mode";
+import { wordTotals, wordsLabel } from "../../lib/import/wordTotals";
 
 interface Props {
   uploadResponse: ImportUploadResponse;
@@ -106,6 +107,7 @@ export default function StructureReviewStep({
 
   const maxLevel = preview.template_levels.length - 1;
   const rootNodes = preview.nodes.filter((n) => n.parent_id === null);
+  const totals = wordTotals(preview.nodes);
 
   function renderNode(node: ImportPreviewNode, allNodes: ImportPreviewNode[], depth: number) {
     const children = allNodes.filter((n) => n.parent_id === node.id);
@@ -171,8 +173,15 @@ export default function StructureReviewStep({
             title={`Confidence: ${Math.round(node.confidence * 100)}%`}
           />
 
-          {/* Word count */}
-          <span className={styles.wordCount}>{node.word_count.toLocaleString()}w</span>
+          {/* Words: a heading counts everything inside it, so an act is never "0" */}
+          <span
+            className={styles.wordCount}
+            title={
+              hasChildren ? `${wordsLabel(node.word_count)} before the first heading inside it` : undefined
+            }
+          >
+            {wordsLabel(totals.get(node.id) ?? node.word_count)}
+          </span>
 
           {/* Actions */}
           <div className={styles.actions}>

@@ -187,3 +187,9 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* What a Novelcrafter codex brings is the author's own, not the Assistant's: no violet. */
+.extractionSummary[data-plain] {
+  background: var(--color-tone);
+  border-color: transparent;
+}

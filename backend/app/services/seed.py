@@ -24,6 +24,7 @@ from ..models.scene_link import SceneLink
 from ..models.setting import Setting
 from ..models.story import Story
 from ..models.structure import StoryStructureTemplate, StructureNode
+from ..models.trope import Trope, TropeLink
 from ..models.twist import Twist, TwistClue
 from ..models.user import User
 from ..models.world_system import WorldSystem
@@ -162,6 +163,41 @@ def _role(db: Session, thread: PlotThread, node: Any, role: str, note: str = "")
         row.role = role
     if note and note not in (row.note or ""):
         row.note = f"{row.note}\n{note}" if row.note else note
+
+
+def _trope(
+    db: Session,
+    story: Story,
+    name: str,
+    stance: str,
+    why: str,
+    definition: str,
+    *,
+    thread: PlotThread | None = None,
+    links: tuple[tuple[str, str, str], ...] = (),
+) -> Trope:
+    """A trope in play (doc 27), its definition in the Compendium, and where it plays:
+    ``links`` holds (character_id | relationship_id | node_id, the id, a note)."""
+    entry = CompendiumEntry(
+        story_id=story.id, entry_type="note", title=name, content=definition, tags=["Trope"], category="craft"
+    )
+    db.add(entry)
+    db.flush()
+    position = db.query(Trope).filter_by(story_id=story.id).count()
+    trope = Trope(
+        story_id=story.id,
+        name=name,
+        stance=stance,
+        why=why,
+        thread_id=thread.id if thread else None,
+        definition_id=entry.id,
+        position=position,
+    )
+    db.add(trope)
+    db.flush()
+    for key, target, note in links:
+        db.add(TropeLink(trope_id=trope.id, note=note, **{key: target}))
+    return trope
 
 
 def seed_structure_templates():
@@ -2133,6 +2169,52 @@ def seed_demo_story(user_id: str | None = None):  # noqa: PLR0915
                     ),
                 ],
             )
+        )
+
+        # ── Tropes in play (doc 27) ────────────────────────────────────────
+        # Three tropes the story knows it is using, each with the author's stance and the
+        # thread that tracks the expectation it sets up. The Hermit has no links: it is the
+        # story's shape, not one person's or one scene's.
+        _trope(
+            db,
+            story,
+            "Mysterious Stranger",
+            "subverted",
+            "She arrives out of a storm with a false name and careful questions, and the reader braces for a threat. "
+            "Calder is grieving, not dangerous: what she wants is the truth about her brother.",
+            "A newcomer whose past and purpose are hidden walks into a closed world, and their arrival sets the "
+            "story moving. The reader expects menace or a secret agenda.",
+            thread=thread_identity,
+            links=(
+                ("character_id", visitor.id, ""),
+                ("node_id", scene2.id, "She asks to stay until the storm clears, and gives a name that is not hers."),
+            ),
+        )
+        _trope(
+            db,
+            story,
+            "Dark Secret",
+            "subverted",
+            "The missing pages promise a crime. What they hide is a failing man who missed a distress call and "
+            "could not bear the record of it: worse than Eleanor feared, and more forgivable.",
+            "A character guards something shameful from their past, and the story builds toward the moment it "
+            "comes out.",
+            thread=thread_father,
+            links=(
+                ("character_id", thomas.id, ""),
+                ("node_id", scene3.id, "The torn pages: the first sign there is something to hide."),
+            ),
+        )
+        _trope(
+            db,
+            story,
+            "The Hermit",
+            "deconstructed",
+            "Eleanor's isolation looks like strength and calm. The story takes it apart: the island is a sanctuary "
+            "and a prison, and she has been hiding from a life she was afraid to resume.",
+            "A character withdrawn from the world, often wise or self-sufficient, whose solitude is presented as "
+            "a choice and a kind of peace.",
+            links=(("character_id", eleanor.id, ""),),
         )
 
         # ── Reader knowledge (doc 12 P7) ───────────────────────────────────

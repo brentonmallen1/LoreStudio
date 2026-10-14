@@ -47,7 +47,7 @@ class CodexNode(Base):
         String, ForeignKey("stories.id", ondelete="CASCADE"), nullable=False, index=True
     )
 
-    #: character | scene | location | thread | twist | fact | culture | system | doc | theme
+    #: character | scene | location | thread | twist | trope | fact | culture | system | doc | theme
     kind: Mapped[str] = mapped_column(String, nullable=False)
     ref_table: Mapped[str] = mapped_column(String, default="")
     ref_id: Mapped[str] = mapped_column(String, nullable=False)

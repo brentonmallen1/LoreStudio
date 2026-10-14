@@ -8,6 +8,7 @@ import {
   CalendarDays,
   Clock,
   Diamond,
+  FileInput,
   FileText,
   Fingerprint,
   Footprints,
@@ -182,7 +183,7 @@ export const STORY_ROUTES: StoryRoute[] = [
         path: "",
         label: "Story Identity",
         icon: Fingerprint,
-        keywords: ["logline", "premise", "goals", "themes", "identity", "intent"],
+        keywords: ["logline", "premise", "goals", "themes", "identity", "intent", "tropes"],
       },
       {
         id: "characters",
@@ -447,6 +448,8 @@ export const STORY_ROUTES: StoryRoute[] = [
         icon: History,
         keywords: ["snapshots", "backups", "restore", "backup", "version history"],
       },
+      // What each import brought and where it went (doc 28).
+      { id: "imports", path: "/imports", label: "Imports", icon: FileInput, detailParam: "recordId" },
     ],
   },
   {

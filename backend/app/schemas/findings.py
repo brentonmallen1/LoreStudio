@@ -28,6 +28,8 @@ class FindingAnchor(BaseModel):
     twist_id: str | None = None
     #: A series element the finding is about: the same finding in every book that has it.
     series_element_id: str | None = None
+    #: A trope in play (doc 27).
+    trope_id: str | None = None
 
 
 class FindingFix(BaseModel):

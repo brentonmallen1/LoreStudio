@@ -40,6 +40,7 @@ from .routers.freewrite import router as freewrite_router
 from .routers.health import router as health_router
 from .routers.history import router as history_router
 from .routers.import_router import router as import_router
+from .routers.imports import router as imports_router
 from .routers.interviews import router as interviews_router
 from .routers.jobs import router as jobs_router
 from .routers.llm_preview import router as llm_preview_router
@@ -73,6 +74,7 @@ from .routers.streams import router as streams_router
 from .routers.structure import router as structure_router
 from .routers.system import router as system_router
 from .routers.templates import router as templates_router
+from .routers.tropes import router as tropes_router
 from .routers.twists import router as twists_router
 from .routers.users import router as users_router
 from .routers.whatif import router as whatif_router
@@ -207,12 +209,14 @@ app.include_router(worldbuilding_ai_router, prefix="/api", tags=["worldbuilding-
 app.include_router(export_router, prefix="/api", tags=["export"])
 app.include_router(dialogue_router, prefix="/api", tags=["dialogue"])
 app.include_router(twists_router, prefix="/api", tags=["twists"])
+app.include_router(tropes_router, prefix="/api", tags=["tropes"])
 app.include_router(notes_router, prefix="/api", tags=["notes"])
 app.include_router(freewrite_router, prefix="/api", tags=["freewrite"])
 app.include_router(scratch_pad_router, prefix="/api", tags=["scratch-pad"])
 app.include_router(outlines_router, prefix="/api", tags=["outline"])
 app.include_router(snapshots_router, prefix="/api", tags=["snapshots"])
 app.include_router(import_router, prefix="/api", tags=["import"])
+app.include_router(imports_router, prefix="/api", tags=["import"])
 app.include_router(publication_router, prefix="/api", tags=["publication"])
 app.include_router(reader_knowledge_router, prefix="/api", tags=["reader-knowledge"])
 app.include_router(system_router, prefix="/api", tags=["system"])

@@ -52,6 +52,15 @@ def _forget_developer_env():
 
 
 @pytest.fixture(autouse=True)
+def _uploads_in_tmp(tmp_path, monkeypatch):
+    """Uploaded files land in the test's own folder, never the developer's data/uploads (an
+    import keeps its original file, doc 28, so every finalize writes one)."""
+    from app.services import media_files
+
+    monkeypatch.setattr(media_files, "UPLOADS_DIR", tmp_path / "uploads")
+
+
+@pytest.fixture(autouse=True)
 def _fresh_model_gate():
     """Every test starts with an idle model gate: a reply in one test must not hold the next
     test's jobs in its cool-down (doc 21 P3)."""
