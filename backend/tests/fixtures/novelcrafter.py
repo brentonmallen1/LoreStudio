@@ -28,7 +28,7 @@ Night on the beach. A fire.
 
 The keeper feeds his livestock before dawn.
 
-* * *
+\\* \\* \\*
 
 Life at the station.
 
@@ -36,7 +36,7 @@ Life at the station.
 
 The superintendent walks up the beach.
 
-* * *
+\\* \\* \\*
 
 INT. INSPECTOR'S OFFICE - DAY
 
