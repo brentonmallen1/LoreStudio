@@ -36,6 +36,7 @@ from ..schemas.nlp_analysis import (
     EntitySuggestionsResponse,
     ProseNLPResponse,
 )
+from ..services import assistant_results
 from ..services.codex.presence import naming
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.analysis import (
@@ -1560,7 +1561,7 @@ async def assess_character_dimensionality(
         tags=["character", "dimensionality", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=CharacterDimensionalityResponse,
         messages=[
             {
@@ -1573,6 +1574,7 @@ async def assess_character_dimensionality(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, subject_type="character", subject_id=character_id)
 
 
 @router.post(

@@ -2,6 +2,7 @@ from .activity_log import ActivityLog
 from .ai_call import AICallPayload
 from .ai_job import AIJob
 from .app_setting import AppSetting
+from .assistant_result import AssistantResult
 from .beat_sheet import BeatSheet
 from .calendar import Calendar
 from .change import Change
@@ -41,6 +42,7 @@ from .user import User
 from .world_system import WorldSystem
 
 __all__ = [
+    "AssistantResult",
     "User",
     "Story",
     "StructureNode",

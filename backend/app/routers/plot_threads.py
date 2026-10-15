@@ -16,7 +16,7 @@ from ..schemas.plot_thread import (
     PlotThreadOut,
     PlotThreadUpdate,
 )
-from ..services import change_log
+from ..services import assistant_results, change_log
 from ..services.color_slots import next_slot
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.threads import build_thread_analysis_prompt
@@ -313,7 +313,7 @@ async def analyze_thread(
         tags=["threads", "analysis", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=ThreadAnalysisResponse,
         messages=[{"role": "user", "content": f"Analyze the plot thread: {thread.name}"}],
         feature_prompt=feature_prompt,
@@ -321,3 +321,4 @@ async def analyze_thread(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, subject_type="plot_thread", subject_id=thread_id)

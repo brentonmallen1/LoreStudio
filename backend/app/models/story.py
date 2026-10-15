@@ -9,6 +9,7 @@ from ..database import Base
 
 if TYPE_CHECKING:
     from .ai_job import AIJob
+    from .assistant_result import AssistantResult
     from .calendar import Calendar
     from .character import Character
     from .chat_session import ChatSession
@@ -125,6 +126,9 @@ class Story(Base):
     )
     settings: Mapped[list["Setting"]] = relationship("Setting", back_populates="story", cascade="all, delete-orphan")
     notes: Mapped[list["Note"]] = relationship("Note", back_populates="story", cascade="all, delete-orphan")
+    assistant_results: Mapped[list["AssistantResult"]] = relationship(
+        "AssistantResult", back_populates="story", cascade="all, delete-orphan", passive_deletes=True
+    )
     panel_interviews: Mapped[list["PanelInterview"]] = relationship(
         "PanelInterview", back_populates="story", cascade="all, delete-orphan"
     )

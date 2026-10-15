@@ -210,3 +210,88 @@ def seed_lighthouse_chronicle(
         error=error,
         latency_ms=12,
     )
+
+
+#: "Brainstorm what exists" on the Lighthouse, as the model answered it (A6).
+WHAT_EXISTS = {
+    "built_environment": [
+        "A watch room under the lantern, with the logbook shelf and a barometer read four times a day",
+        "Ninety-two iron steps, worn bright in the middle",
+        "A fog signal house on the headland, its machinery silent since the 1987 automation",
+    ],
+    "natural_environment": [
+        "Salt crust on every north-facing window by morning",
+        "Gannets on the headland ledges below the gallery",
+    ],
+    "cultural_presence": [
+        "A spare wick tin with her father's initials scratched in the lid",
+        "Tally marks on the lantern-room window frame, one per storm",
+    ],
+    "questions": [
+        "Which logbook is missing from the shelf, and does anyone but Eleanor notice?",
+        "What does the lighthouse sound like on a still night, now the fog signal is gone?",
+    ],
+}
+
+
+def seed_lighthouse_answer(db: Session, *, user: User, story: Story, place_id: str, place_name: str) -> None:
+    """One answer kept on the Lighthouse's sheet (A6), with the call that made it in the
+    Chronicle, so Studio mode shows the kept-answer band without running the model."""
+    import json
+
+    from ..models.assistant_result import AssistantResult
+
+    at = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=2)
+    response = json.dumps(WHAT_EXISTS, indent=2)
+    message = f"Help me think through what would exist at {place_name}."
+    log = ActivityLog(
+        user_id=user.id,
+        story_id=story.id,
+        event_type="ai_what_exists",
+        category="ai",
+        description=message[:80],
+        created_at=at,
+        metadata_={
+            "model": MODEL,
+            "tokens_in": 1840,
+            "tokens_out": 260,
+            "latency_ms": 9400,
+            "feature": "what-exists",
+            "tags": ["worldbuilding", "location", "user-initiated"],
+            "status": "ok",
+            "error": None,
+            "prompt": message,
+            "response": response[:300],
+            "truncated": len(response) > 300,
+            "temperature": OPTIONS["temperature"],
+            "num_ctx": OPTIONS["num_ctx"],
+            "thinking_enabled": False,
+            "entity_id": place_id,
+        },
+    )
+    db.add(log)
+    db.flush()
+    db.add(
+        AICallPayload(
+            activity_log_id=log.id,
+            system_prompt="",
+            messages=[{"role": "user", "content": message}],
+            raw_response=response,
+            options=OPTIONS,
+            context_sources=[],
+            created_at=at,
+        )
+    )
+    db.add(
+        AssistantResult(
+            story_id=story.id,
+            subject_type="location",
+            subject_id=place_id,
+            feature="what-exists",
+            heading="Brainstorm what exists",
+            data=WHAT_EXISTS,
+            ai_call_log_id=log.id,
+            created_at=at,
+            updated_at=at,
+        )
+    )

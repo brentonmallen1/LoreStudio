@@ -115,7 +115,9 @@ SNAPSHOT_EXCLUDED_TABLES = {
     # The Numbers readings are the book's history, not its content: restoring a version must
     # not rewind the history (doc 19); a restore adds a reading instead. They travel in an
     # export beside story.json (snapshot_export.py).
+    # Kept Assistant answers (A6) are a convenience over the AI call log, not the story:
+    # asking again brings one back, and a restore must not bring back one the author cleared.
     "stories", "story_snapshots", "story_backup_settings", "changes", "ai_call_payloads", "ai_jobs", "series_scene_links",
     "codex_nodes", "codex_edges", "codex_chunks", "series", "series_stories", "series_elements", "series_element_members",
-    "numbers_readings"}
+    "numbers_readings", "assistant_results"}
 # fmt: on

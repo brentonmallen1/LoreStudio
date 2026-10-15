@@ -43,6 +43,8 @@ AI_CALLS = (
     # (or cached as derived text, like a summary); nothing goes into the story until the
     # author keeps it, through a route that records.
     "DELETE /api/ai/payloads",
+    # A kept answer (A6) cleared: an AI answer, not story data; asking again brings it back.
+    "DELETE /api/stories/{story_id}/assistant-results/{result_id}",
     "POST /api/characters/{character_id}/analyze-arc",
     "POST /api/characters/{character_id}/analyze-voice-fidelity",
     "POST /api/characters/{character_id}/assess-dimensionality",

@@ -11,7 +11,7 @@ from ..models.twist import Twist, TwistClue
 from ..models.user import User
 from ..schemas.ai_responses import StructuredResult, TwistAnalysisResponse
 from ..schemas.twist import TwistClueCreate, TwistClueOut, TwistClueUpdate, TwistCreate, TwistOut, TwistUpdate
-from ..services import change_log
+from ..services import assistant_results, change_log
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.twist_impact import build_twist_impact_prompt
 from ..services.llm.prompts.twists import build_twist_analysis_prompt
@@ -255,7 +255,7 @@ async def analyze_twist(
         tags=["twist", "analysis", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=TwistAnalysisResponse,
         messages=[{"role": "user", "content": f'Please analyze the twist "{twist.name}".'}],
         feature_prompt=feature_prompt,
@@ -263,6 +263,7 @@ async def analyze_twist(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, subject_type="twist", subject_id=twist_id)
 
 
 @router.post("/twists/{twist_id}/analyze-impact", response_model=StructuredResult)
@@ -341,7 +342,7 @@ async def analyze_twist_impact(
         ripple_effects: list[RippleEffect] = []
         overall_assessment: str = ""
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=TwistImpactResponse,
         messages=[{"role": "user", "content": f'Analyze the downstream impact of the twist "{twist.name}".'}],
         feature_prompt=feature_prompt,
@@ -349,6 +350,7 @@ async def analyze_twist_impact(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, subject_type="twist", subject_id=twist_id)
 
 
 # ── Clues (doc 18 C1: rows, not a JSON list on the twist) ─────────────────────
