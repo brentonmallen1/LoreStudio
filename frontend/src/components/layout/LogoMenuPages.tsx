@@ -11,6 +11,7 @@ import {
   type RouteSection,
 } from "../../lib/routes";
 import { useAIAvailable, useMode } from "../../lib/mode";
+import { guideStatus } from "../../lib/firstStory/progress";
 import { useStoryStore } from "../../stores/storyStore";
 import { openBesideTheProse } from "../../lib/panel/openBeside";
 import { canOpenBeside } from "../../lib/panel/pages";
@@ -133,6 +134,7 @@ export default function LogoMenuPages({
               const sections = visible(r);
               const fanned = fan?.id === r.id;
               const current = here ? sections.find((sec) => sec.path !== "" && sectionOn(r, sec)) : undefined;
+              const status = r.id === "first-story" ? guideStatus(storyId) : null;
               return (
                 <div
                   key={r.id}
@@ -159,8 +161,17 @@ export default function LogoMenuPages({
                     }}
                   >
                     <Icon size={16} className={styles.rowIcon} aria-hidden />
-                    <span className={styles.rowLabel}>{r.label}</span>
-                    {count ? (
+                    {r.purpose ? (
+                      <span className={styles.rowText}>
+                        <span className={styles.rowLabel}>{r.label}</span>
+                        <span className={styles.purpose}>{r.purpose}</span>
+                      </span>
+                    ) : (
+                      <span className={styles.rowLabel}>{r.label}</span>
+                    )}
+                    {status ? (
+                      <span className={styles.hint}>{status}</span>
+                    ) : count ? (
                       <span className={styles.count} aria-label={`${count} open`}>
                         {count}
                       </span>

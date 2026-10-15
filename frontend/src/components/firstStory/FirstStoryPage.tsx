@@ -3,13 +3,15 @@ import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
 import { readProgress, writeProgress, type Progress } from "../../lib/firstStory/progress";
 import { STEPS, type StepId } from "../../lib/firstStory/steps";
+import StepPicker from "../common/StepPicker";
 import StepBody from "./StepBody";
 import styles from "./FirstStory.module.css";
 
 /**
- * My first story (doc 18 C10): seven short steps for a new writer, from an idea in a sentence
- * to the first scene, each saying what it becomes. Every answer is real story data the moment
- * it is saved; skip any step, leave at any point, come back from the palette.
+ * The First story guide (doc 18 C10): seven short steps for a new writer, from an idea in a
+ * sentence to the first scene, each saying what it becomes. Every answer is real story data the
+ * moment it is saved; skip any step, leave at any point, come back from the logo menu or the
+ * palette. In a narrow container (beside the prose) the steps are one dropdown (A2).
  */
 export default function FirstStoryPage({ storyId }: { storyId: string }) {
   const [progress, setProgress] = useState<Progress>(() => readProgress(storyId));
@@ -32,12 +34,22 @@ export default function FirstStoryPage({ storyId }: { storyId: string }) {
   return (
     <div className={styles.page}>
       <header className={styles.bar}>
-        <span className={styles.barTitle}>My first story</span>
+        <span className={styles.barTitle}>First story guide</span>
         <Link to={`/stories/${storyId}`} className={styles.leave}>
           Leave the walkthrough; your answers stay
         </Link>
       </header>
       <div className={styles.layout}>
+        <StepPicker
+          className={styles.picker}
+          label="Steps"
+          items={STEPS.map((s) => ({ id: s.id, label: s.title, done: progress.done.includes(s.id) }))}
+          current={at}
+          onSelect={(i) => update({ step: i })}
+          lead={`Step ${at + 1} of ${STEPS.length} ·`}
+          numbered
+          progress={progress.done.length / STEPS.length}
+        />
         <nav aria-label="Steps" className={styles.steps}>
           <span className={styles.stepsHint}>Seven short steps. Skip any; come back any time.</span>
           {STEPS.map((s, i) => {

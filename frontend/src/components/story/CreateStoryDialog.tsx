@@ -21,7 +21,7 @@ type Begin = "write" | "idea" | "plan" | "first";
 const BEGINNINGS: { id: Begin; label: string; hint: string }[] = [
   {
     id: "first",
-    label: "My first story",
+    label: "First story guide",
     hint: "Seven short steps, from an idea to the first scene. Each says what it becomes.",
   },
   { id: "write", label: "Just write", hint: "Open the first scene and start typing." },

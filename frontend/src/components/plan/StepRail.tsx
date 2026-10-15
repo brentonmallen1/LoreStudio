@@ -1,6 +1,7 @@
 import { Fragment, useState, type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, CheckCircle2, Circle, CircleDashed } from "lucide-react";
 import { firstOpen, type PlanStep } from "../../lib/planning/methods";
+import StepPicker from "../common/StepPicker";
 import styles from "./Plan.module.css";
 
 interface Props<T> {
@@ -18,7 +19,8 @@ interface Props<T> {
 /**
  * A plan's steps down the side, the open step beside them: why it matters, how to write it,
  * an example, and its editor. The book's methods (MethodSteps) and the series' plan
- * (SeriesSteps) are both this rail with their own editors.
+ * (SeriesSteps) are both this rail with their own editors. In a narrow container the rail is
+ * one dropdown above the step (A2).
  */
 export default function StepRail<T>({
   label,
@@ -50,6 +52,16 @@ export default function StepRail<T>({
 
   return (
     <div className={styles.method}>
+      <StepPicker
+        className={styles.stepPicker}
+        label={`${label} steps`}
+        items={steps.map((s) => ({ id: s.id, label: s.label, done: stepDone(s) }))}
+        current={index}
+        onSelect={(i) => go(steps[i].id)}
+        lead={`Step ${index + 1} of ${steps.length} ·`}
+        numbered
+        progress={steps.filter(stepDone).length / steps.length}
+      />
       <ol className={styles.stepList} aria-label={`${label} steps`}>
         {steps.map((s, i) => {
           const { done, total } = progress(s);

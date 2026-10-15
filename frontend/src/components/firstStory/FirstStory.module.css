@@ -1,4 +1,4 @@
-/* My first story (doc 18 C10): steps down the left, one question at a time, an example beside it. */
+/* The First story guide (doc 18 C10): steps down the left, one question at a time, an example beside it. */
 .page {
   flex: 1;
   min-height: 0;
@@ -32,6 +32,11 @@
   flex: 1;
   min-height: 0;
   display: flex;
+}
+
+/* The steps as one dropdown, in a narrow container only (A2). */
+.layout > .picker {
+  display: none;
 }
 
 .steps {
@@ -367,39 +372,28 @@
   }
 
   .steps {
-    width: auto;
-    flex-direction: row;
-    overflow-x: auto;
-    padding: 0.75rem 1rem;
+    display: none;
   }
 
-  .stepsHint,
-  .stepBecomes {
-    display: none;
+  .layout > .picker {
+    display: flex;
+    margin: 0.75rem 1rem 0;
   }
 }
 
-/* The same beside the prose (doc 24 D2): there the side panel is the container. */
+/* The same beside the prose (doc 24 D2): there the side panel is the container. A row of
+   steps there scrolled sideways (A2); the dropdown names the step you are on instead. */
 @container (max-width: 48rem) {
   .layout {
     flex-direction: column;
   }
 
-  /* Each step its own width in the scrolling row, not squeezed to a word a line. */
-  .steps > * {
-    flex: 0 0 auto;
-    max-width: 14rem;
-  }
-
   .steps {
-    width: auto;
-    flex-direction: row;
-    overflow-x: auto;
-    padding: 0.75rem 1rem;
+    display: none;
   }
 
-  .stepsHint,
-  .stepBecomes {
-    display: none;
+  .layout > .picker {
+    display: flex;
+    margin: 0.75rem 1rem 0;
   }
 }

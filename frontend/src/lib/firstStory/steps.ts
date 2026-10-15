@@ -1,5 +1,5 @@
 /**
- * "My first story" (doc 18 C10): seven short steps from New story, each saying what it
+ * The First story guide (doc 18 C10): seven short steps from New story, each saying what it
  * becomes, each with how The Last Lighthouse does it and why it helps. Skip any; come back
  * any time.
  */
