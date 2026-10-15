@@ -674,9 +674,14 @@ def finalize_import(
 
 def _keep_as_imported(story_id: str, db: Session) -> None:
     """A named version of the story as it came in, so Chronicle › Versions can always go back."""
+    from ..services.dialogue_service import sync_story_dialogue
     from ..services.snapshot_service import create_snapshot
 
     try:
+        # Its dialogue read first, as opening the story would: otherwise the first auto-backup
+        # holds nothing but those rows.
+        sync_story_dialogue(story_id, db)
+        db.commit()
         create_snapshot(story_id, db, trigger="manual", name="As imported", force=True)
     except Exception as e:  # the story stands; only its first version is missing
         logger.warning("As imported version failed (non-fatal): %s", e)
