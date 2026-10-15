@@ -44,7 +44,7 @@ export const CHARACTERS_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "character-attributes": {
     id: "character-attributes",
-    label: "Attribute Suggestions",
+    label: "Suggest attributes",
     type: "ai",
     shortDescription: "Three short options for traits, backstory, quirks or appearance",
     fullDescription:

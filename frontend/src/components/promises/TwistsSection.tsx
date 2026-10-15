@@ -3,18 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { BookOpen, Eye, Trash2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
-import { useAIAvailable } from "../../lib/mode";
 import { usePromises } from "../../lib/promises/usePromises";
 import { twistAcrossLine } from "../../lib/series/promises";
 import { sceneLeaves } from "../../lib/planning/methods";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Twist, TwistType } from "../../types";
-import TwistAnalysisPanel from "../twists/TwistAnalysisPanel";
 import TwistClueBoard from "../twists/TwistClueBoard";
 import CommitTextarea from "../common/CommitTextarea";
-import TwistImpactPanel from "../twists/TwistImpactPanel";
-import AssistantRow from "../lorebook/AssistantRow";
 import HealthCard from "../lorebook/HealthCard";
 import ConfirmDelete from "../lorebook/ConfirmDelete";
 import EntitySheet, { Badge, SheetCard } from "../lorebook/EntitySheet";
@@ -45,9 +41,6 @@ export default function TwistsSection() {
   );
   const [renaming, setRenaming] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Twist | null>(null);
-  const [panel, setPanel] = useState<"analysis" | "impact" | null>(null);
-  // Twists are planning, in both modes; the analysis and impact panels are the Assistant's.
-  const aiAvailable = useAIAvailable();
 
   const reload = useCallback(
     () =>
@@ -97,10 +90,7 @@ export default function TwistsSection() {
           sub: `${typeLabel(t.twist_type)} · ${statusLabel(t.status)} · ${t.clues.length} ${t.clues.length === 1 ? "clue" : "clues"}`,
         }))}
         selectedId={selectedId}
-        onSelect={(id) => {
-          setPanel(null);
-          select(id);
-        }}
+        onSelect={(id) => select(id)}
         onOpenBeside={(id) => {
           const t = twists.find((x) => x.id === id);
           if (t) openEntity("twist", t.id, t.name);
@@ -201,30 +191,12 @@ export default function TwistsSection() {
                 </SheetCard>
               </>
             }
-            footer={
-              <>
-                {aiAvailable && panel === "analysis" && (
-                  <TwistAnalysisPanel twistId={twist.id} onClueLinked={() => void reload()} />
-                )}
-                {aiAvailable && panel === "impact" && (
-                  <TwistImpactPanel twistId={twist.id} twistName={twist.name} />
-                )}
-                <AssistantRow
-                  actions={[
-                    {
-                      label: panel === "analysis" ? "Hide the analysis" : "Analyse the twist",
-                      title: "Fairness, misdirection, clue placement",
-                      onRun: () => setPanel((p) => (p === "analysis" ? null : "analysis")),
-                    },
-                    {
-                      label: panel === "impact" ? "Hide the impact" : "Impact of the reveal",
-                      title: "What the reveal changes for each character and thread",
-                      onRun: () => setPanel((p) => (p === "impact" ? null : "impact")),
-                    },
-                  ]}
-                />
-              </>
-            }
+            assistant={{
+              type: "twist",
+              id: twist.id,
+              pageId: "twists",
+              onChanged: () => void reload(),
+            }}
           >
             <div className={p.truthBelief}>
               {(

@@ -16,7 +16,6 @@ import ArcAnalysisPanel from "../../characters/ArcAnalysisPanel";
 import ArcTimelineView from "../../characters/ArcTimelineView";
 import AttributeGeneratorDialog from "../../characters/AttributeGeneratorDialog";
 import CharacterDialogueTab from "../../characters/CharacterDialogueTab";
-import CharacterDimensionalityPanel from "../../characters/CharacterDimensionalityPanel";
 import CharacterFormDialog from "../../characters/CharacterFormDialog";
 import ManuscriptReview from "../../characters/ManuscriptReview";
 import RelationshipGraph from "../../characters/RelationshipGraph";
@@ -26,7 +25,6 @@ import RelationshipsTab from "../../characters/relationships/RelationshipsTab";
 import AssetPicker from "../../media/AssetPicker";
 import PortraitEditor, { type CharacterImageDescription } from "../../media/PortraitEditor";
 import SubjectNotes from "../../notes/SubjectNotes";
-import AssistantRow from "../AssistantRow";
 import HealthCard from "../HealthCard";
 import ConfirmDelete from "../ConfirmDelete";
 import EntitySheet, { Badge, SheetCard } from "../EntitySheet";
@@ -77,7 +75,6 @@ export default function CharactersSection() {
   const [deleting, setDeleting] = useState<Character | null>(null);
   const [interviewing, setInterviewing] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
-  const [depth, setDepth] = useState(false);
   const [portraitDesc, setPortraitDesc] = useState<CharacterImageDescription | null>(null);
   const [castView, setCastView] = useState<"relationships" | "graph">("relationships");
 
@@ -250,35 +247,19 @@ export default function CharactersSection() {
               ) : undefined
             }
             footer={
-              view === "overview" ? (
-                <>
-                  {portraitDesc && (
-                    <PortraitDescription desc={portraitDesc} onClose={() => setPortraitDesc(null)} />
-                  )}
-                  {depth && <CharacterDimensionalityPanel characterId={character.id} />}
-                  <AssistantRow
-                    actions={[
-                      {
-                        label: "Interview",
-                        title: "Talk to them in their own voice",
-                        chat: true,
-                        onRun: () => setInterviewing(true),
-                      },
-                      {
-                        label: "Suggest attributes",
-                        title: "Traits, backstory, quirks or appearance",
-                        onRun: () => setSuggesting(true),
-                      },
-                      {
-                        label: depth ? "Hide character depth" : "Character depth",
-                        title: "Dimensionality, contradictions, development",
-                        onRun: () => setDepth((d) => !d),
-                      },
-                    ]}
-                  />
-                </>
+              view === "overview" && portraitDesc ? (
+                <PortraitDescription desc={portraitDesc} onClose={() => setPortraitDesc(null)} />
               ) : null
             }
+            assistant={{
+              type: "character",
+              id: character.id,
+              pageId: "character-sheet",
+              extra: [
+                { id: "session-interview", chat: true, open: () => setInterviewing(true) },
+                { id: "character-attributes", open: () => setSuggesting(true) },
+              ],
+            }}
           >
             {view === "overview" && (
               <>

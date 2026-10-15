@@ -144,7 +144,7 @@ export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "character-dimensionality": {
     id: "character-dimensionality",
-    label: "Character Depth",
+    label: "Character depth",
     type: "ai",
     shortDescription: "Dimensionality, contradictions, relationship complexity",
     fullDescription:

@@ -4,7 +4,7 @@ import type { AIFeatureInfo } from "./types";
 export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
   "session-interview": {
     id: "session-interview",
-    label: "Character Interview",
+    label: "Interview",
     type: "ai",
     shortDescription: "Talk directly to your character as themselves",
     fullDescription:

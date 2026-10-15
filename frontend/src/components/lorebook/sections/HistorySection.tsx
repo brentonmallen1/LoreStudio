@@ -137,16 +137,7 @@ export default function HistorySection() {
         </SheetCard>
       ) : null;
     },
-    assistant: (e, sid, openAI) =>
-      e.kind === "event"
-        ? [
-            {
-              label: "Trace ripple effects",
-              title: "Physical remnants, cultural legacy, political effects",
-              onRun: () => openAI({ feature: "implications", entityId: e.id, storyId: sid }),
-            },
-          ]
-        : [],
+    assistant: (e) => (e.kind === "event" ? "historical_event" : null),
     empty: "No history yet. Eras and the events in them: what happened before the story began.",
     newName: "New event",
     deleteDetail: (e) =>

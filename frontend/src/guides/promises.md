@@ -75,6 +75,6 @@ The **Scene sheet**'s **Promises** page shows what this scene does to each threa
 
 ## In Studio: ask the Assistant
 
-A thread's sheet offers **Analyse thread**: setup, escalation, payoff and what is missing. A twist's sheet offers **Analyse the twist** and **Impact of the reveal**.
+A thread's sheet has **Assistant** in its header, with **Analyze the thread**: setup, escalation, payoff and what is missing. A twist's has **Analyze the twist** and **Impact of the reveal**. Each answer stays under the sheet's header, with when it was asked, until you clear it or ask again; **Talk it over** takes it to the Assistant to discuss.
 
 <!-- /studio -->

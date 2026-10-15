@@ -5,6 +5,12 @@ import PopoverMenu, { type MenuItem } from "../common/PopoverMenu";
 import SlotPicker from "../common/SlotPicker";
 import AlsoCalled from "./AlsoCalled";
 import { useSeriesSheet, type SheetSeries } from "../series/useSeriesSheet";
+import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
+import type { SubjectType } from "../../api/assistantResults";
+import { runActions, type SheetAction } from "../../lib/ai/sheetActions";
+import AssistantBand from "./assistant/AssistantBand";
+import AssistantMenu from "./assistant/AssistantMenu";
+import { useKeptAnswers } from "./assistant/useKeptAnswers";
 import { modClickLabel } from "../../lib/keyboard/shortcuts";
 import type { SceneRef } from "../../lib/lorebook/presence";
 import styles from "./Lorebook.module.css";
@@ -19,6 +25,9 @@ export interface SheetView {
  * where it is in the book with its scenes one click away, then the entry's own body — its
  * written fields on the left and what it is connected to on the right. The compact sheet in
  * the side panel is the top half of this; "Open beside the page" puts it there.
+ *
+ * In Studio mode the header has "Assistant ▾" and the answers it gave stay in a band under
+ * the header (A6, `assistant`); Writer mode shows neither.
  */
 export default function EntitySheet({
   entityKey,
@@ -42,6 +51,7 @@ export default function EntitySheet({
   side,
   footer,
   series,
+  assistant,
 }: {
   entityKey: string;
   name: string;
@@ -69,16 +79,28 @@ export default function EntitySheet({
   children: ReactNode;
   /** The right column: connections, clues, the arc. */
   side?: ReactNode;
-  /** Under the body, full width: the Assistant row. */
+  /** Under the body, full width. */
   footer?: ReactNode;
   /** Which series element this is, when the book is in a series: its line, fold and actions. */
   series?: SheetSeries;
+  /** What the Assistant can do for this entry (A6): its one-shot features come from its kind;
+   *  `extra` goes first (an interview, a dialog); `pageId` names its info for the Cpu button. */
+  assistant?: {
+    type: SubjectType;
+    id: string;
+    extra?: SheetAction[];
+    pageId?: string;
+    onChanged?: () => void;
+  };
 }) {
   const navigate = useNavigate();
   const { storyId } = useParams<{ storyId: string }>();
   const shownScenes = scenes.length > 6 ? scenes.slice(0, 5) : scenes;
   const [addingName, setAddingName] = useState(false);
   const inSeries = useSeriesSheet(series, name);
+  const subject = assistant && storyId ? { storyId, type: assistant.type, id: assistant.id, name } : null;
+  const actions = subject ? [...(assistant?.extra ?? []), ...runActions(subject)] : [];
+  const kept = useKeptAnswers(subject);
   const menu: MenuItem[] = [
     ...more,
     ...(alsoCalled ? [{ label: "Add another name…", icon: Tag, onSelect: () => setAddingName(true) }] : []),
@@ -132,6 +154,8 @@ export default function EntitySheet({
           )}
         </div>
         {aside}
+        {subject && <AssistantMenu name={name} actions={actions} kept={kept} />}
+        {assistant?.pageId && <AIFeatureInfoTrigger pageId={assistant.pageId} />}
         {onOpenBeside && (
           <button
             type="button"
@@ -146,6 +170,10 @@ export default function EntitySheet({
         )}
         <PopoverMenu label={`More for ${name}`} trigger={<MoreHorizontal size={15} />} items={menu} />
       </header>
+
+      {subject && (
+        <AssistantBand subject={subject} actions={actions} kept={kept} onChanged={assistant?.onChanged} />
+      )}
 
       {views && views.length > 1 && (
         <div className={styles.sheetViews} role="tablist" aria-label={`${name} views`}>
