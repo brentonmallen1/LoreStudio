@@ -172,6 +172,8 @@ interface UIState {
    */
   stripOnProse: boolean;
   setStripOnProse: (onProse: boolean) => void;
+  /** Logo menu › Outline: the strip opened out beside the prose, from wherever the author is. */
+  openOutline: () => void;
   /** The expanded strip's width (doc 14 strip). */
   stripPx: number;
   setStripPx: (px: number) => void;
@@ -472,6 +474,14 @@ export const useUIStore = create<UIState>((set, get) => ({
   setStripOnProse: (onProse) => {
     if (get().stripOnProse === onProse) return;
     set({ stripOnProse: onProse, stripWidth: onProse ? storedStripWidth() : "strip" });
+  },
+  openOutline: () => {
+    try {
+      localStorage.setItem("ls_strip_width", "scenes");
+    } catch {
+      // Site data blocked: it opens out here, and the prose page may start it collapsed.
+    }
+    set({ stripWidth: "scenes" });
   },
   stripPx: clampStripPx(Number(localStorage.getItem("ls_strip_px") ?? EXPANDED_DEFAULT_PX)),
   setStripPx: (px) => {

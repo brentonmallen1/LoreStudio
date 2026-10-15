@@ -6,6 +6,7 @@ import type { Finding } from "../../types/findings";
 import { carryBook } from "../../lib/series/promises";
 import { useSeriesStore } from "../../stores/seriesStore";
 import { useFindingActions } from "./useFindingActions";
+import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
 import styles from "./Findings.module.css";
 
 const SOURCE_LABEL = { local: "Local", ai: "Assistant", data: "Data" } as const;
@@ -77,7 +78,9 @@ export default function FindingRow({
                     ? `Start a new scene at “${f.fix.old}”? Everything from it on goes with it.`
                     : f.fix.kind === "add"
                       ? `Add ${f.fix.old} to the Lorebook as a character? Their lines become theirs.`
-                      : `Change every “${f.fix.old}” in ${f.where || "this scene"} to “${f.fix.new}”?`}
+                      : f.fix.kind === "scenes"
+                        ? `Give each its own scene, named for it? ${formatCombo(SHORTCUTS.undo.combo)} takes it back.`
+                        : `Change every “${f.fix.old}” in ${f.where || "this scene"} to “${f.fix.new}”?`}
             </span>
             <button
               type="button"
@@ -101,7 +104,9 @@ export default function FindingRow({
                     ? "Start the scene"
                     : f.fix.kind === "add"
                       ? "Add them"
-                      : "Change it"}
+                      : f.fix.kind === "scenes"
+                        ? "Give them scenes"
+                        : "Change it"}
             </button>
             <button type="button" className={styles.verb} onClick={() => setConfirming(false)}>
               Not now

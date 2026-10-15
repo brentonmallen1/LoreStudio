@@ -74,6 +74,11 @@ export const useFindingsStore = create<FindingsStore>((set, get) => ({
     set((s) => ({ hidden: [...s.hidden, f.id] }));
     try {
       const done = await findingsApi.fix(storyId, f.id);
+      // Prose moved out of chapters into new scenes: the strip, the outline and the pages show them.
+      if (f.fix?.kind === "scenes") {
+        await reloadStructure();
+        return done;
+      }
       // An open editor holds the old text; this makes it take the new. A series fix wrote
       // the other books' sheets instead, which the series view shows.
       if (done.node_id) {

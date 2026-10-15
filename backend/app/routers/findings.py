@@ -27,6 +27,7 @@ from ..services.dialogue_service import sync_scene_dialogue, sync_story_dialogue
 from ..services.findings import all_findings, collect
 from ..services.findings.fingerprint import content_hash
 from ..services.findings.view import load_view
+from ..services.held_prose import give_scenes
 from ..services.job_queue import enqueue, handler
 from ..services.nlp_runs import run_editorial_consistency, run_prose_analysis
 from ..services.prose_rewrite import replace_words
@@ -207,6 +208,10 @@ def fix_finding(
         return _fix_split(finding, db, user, client_id)
     if finding.fix is not None and finding.fix.kind == "add":
         return _fix_add(story, finding, db, user, client_id)
+    if finding.fix is not None and finding.fix.kind == "scenes":
+        made = give_scenes(db, story, actor_id=user.id, client_id=client_id)
+        db.commit()
+        return FixResult(node_id=made[0].id if made else None, replaced=len(made))
     node = db.get(StructureNode, finding.anchor.node_id) if finding.anchor.node_id else None
     if finding.fix is None or node is None:
         raise HTTPException(status_code=422, detail="This finding has no fix to make")

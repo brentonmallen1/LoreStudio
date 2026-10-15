@@ -46,6 +46,27 @@
   line-height: 1.15;
 }
 
+/* Prose on this chapter itself, outside any scene (HeldProse). */
+.held {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.9rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-2);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.held span {
+  flex: 1 1 18rem;
+}
+
+.heldError {
+  color: var(--color-danger);
+}
+
 .plan {
   display: flex;
   flex-direction: column;

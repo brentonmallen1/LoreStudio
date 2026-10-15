@@ -5,9 +5,11 @@ import { api } from "../api/client";
 import { findNode } from "../components/layout/structureTreeMeta";
 import AutosaveTextarea from "../components/panel/AutosaveTextarea";
 import { sceneToResume } from "../lib/resumeScene";
-import { stopShape } from "../lib/strip/stripModel";
+import { numberOf, stopShape } from "../lib/strip/stripModel";
+import { useStripLine } from "../lib/strip/useColourContext";
 import { useStoryStore } from "../stores/storyStore";
 import type { StructureNode } from "../types";
+import HeldProse from "./HeldProse";
 import styles from "./ContainerNodePage.module.css";
 
 const fmt = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
@@ -38,6 +40,8 @@ export default function ContainerNodePage({ node }: { node: StructureNode }) {
   const navigate = useNavigate();
   const { activeStory, activeTemplate, structure, setStructure, patchNode } = useStoryStore();
   const [adding, setAdding] = useState(false);
+  // Numbered across the book, as the strip numbers it ("Chapter 4 of 13", "Act II of 4").
+  const num = numberOf(useStripLine(), node.id);
   const [newTitle, setNewTitle] = useState("");
   if (!activeStory) return null;
   const storyId = activeStory.id;
@@ -88,9 +92,10 @@ export default function ContainerNodePage({ node }: { node: StructureNode }) {
         )}
         <div className={styles.kicker}>
           {parent ? `${parent.title} · ` : ""}
-          {levelName} {index + 1} of {siblings.length}
+          {levelName} {num ? `${num.label} of ${num.total}` : `${index + 1} of ${siblings.length}`}
         </div>
         <h1 className={styles.title}>{node.title}</h1>
+        <HeldProse node={node} levelName={levelName} />
 
         <section className={styles.plan}>
           <div className={styles.planHead}>The plan for this {levelName.toLowerCase()}</div>

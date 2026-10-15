@@ -61,6 +61,18 @@ def test_the_upload_shows_what_comes_over(client):
     assert nc["not_in_file"] and any(x["what"] == "Tags OBX" for x in nc["no_place"])
 
 
+def test_every_bit_of_prose_is_a_scene(client, db_session):
+    """The text before a chapter's first break, and a chapter without one, are scenes too."""
+    up = _upload(client, make_export(manuscript=True)).json()
+    nodes = up["preview"]["nodes"]
+    assert all(n["level"] == 2 for n in nodes if n["word_count"])
+    lay = next(n for n in nodes if n["title"] == "Lay of the Land" and n["level"] == 1)
+    assert next(n for n in nodes if n["parent_id"] == lay["id"])["title"] == "Lay of the Land"
+    sid = _finalize(client, up)["id"]
+    held = db_session.query(StructureNode).filter(StructureNode.story_id == sid, StructureNode.level < 2)
+    assert all(not n.content for n in held)
+
+
 def test_a_zip_that_is_not_an_export_is_refused(client):
     import io
     import zipfile

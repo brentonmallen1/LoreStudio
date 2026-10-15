@@ -22,15 +22,17 @@ What the words in LoreStudio mean, grouped by where you meet them.
 
 ## Writing
 
+- **Act.** The largest part of a three-act story, holding its chapters. The strip marks each with a numeral: **I**, **II**, **III**.
 - **Freewrite.** A page for loose writing, a heading for each day, with no structure to keep to. Turn what you find there into notes or characters.
 - **Mention.** A name in your prose linked to the Lorebook: `@Name` for a character, `[[Name]]` for a place.
 - **Note.** Something to come back to: a note, a question, a to-do or an idea. It can sit in the margin beside the words it is about.
+- **Outline.** Your acts, chapters and scenes as one list, to add, rename and reorder them: logo menu › **Outline**.
 - **Scene sheet.** Every field of one scene on a page: what happens, why, who, where, when, and its promises, notes and findings.
 - **Scratch pad.** A page that belongs to no story, kept with your account, for a thought that has nowhere to go yet.
 - **Side panel.** The column on the right of the writing page, with tools such as **This scene**, **Characters** and **Notes**.
 - **Speaker tag.** A name in angle brackets after a line of dialogue, `<Maya>`, saying who speaks it.
 - **Status.** Where a scene is: **Planned**, **Draft**, **Revised** or **Final**.
-- **Story strip.** The book's scenes down the left of the page, as a line or the full outline.
+- **Story strip.** The book's acts, chapters and scenes down the left of the page, as a line or the full Outline.
 - **Structure template.** The named levels of a story's outline, such as Act, Chapter and Scene.
 - **This scene.** The scene at a glance, in the side panel.
 - **Writer and Studio.** The two modes. Writer keeps to your story; Studio adds more tools.

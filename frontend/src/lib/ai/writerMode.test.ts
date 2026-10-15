@@ -40,6 +40,7 @@ const INSIDE_THE_PANEL = ["src/components/ai/", "src/components/llm/"];
 const WRITER_ENTRY_POINTS = [
   // The prose itself (/write/:nodeId): its panels open from the editor, not from a route.
   "src/pages/WriteNodePage.tsx",
+  "src/pages/OutlinePage.tsx",
   "src/pages/StoryOverviewPage.tsx",
   "src/components/firstStory/FirstStoryPage.tsx",
   "src/pages/MediaPage.tsx",
@@ -160,6 +161,7 @@ describe("the story routes this test walks", () => {
       "lorebook.travel",
       "manuscript",
       "numbers",
+      "outline",
       "overview",
       "plan",
       "promises",

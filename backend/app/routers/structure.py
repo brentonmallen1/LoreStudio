@@ -15,6 +15,7 @@ from ..services import change_log
 from ..services.adaptation import AdaptError, check_source_scene
 from ..services.dangling import detach_scenes
 from ..services.dialogue_service import sync_scene_dialogue
+from ..services.held_prose import give_scene, template_levels
 from ..services.linking_service import apply_entity_links, suggest_entity_links
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
 from ..services.llm.prompts.summaries import build_scene_summary_prompt, build_structure_section_summary_prompt
@@ -229,6 +230,32 @@ def split_at_every_heading(
         sync_scene_dialogue(scene, db)
     db.refresh(node)
     return node
+
+
+class GiveSceneBody(BaseModel):
+    expected_updated_at: datetime | None = None
+
+
+@router.post("/{node_id}/give-scene", response_model=StructureNodeOut, status_code=status.HTTP_201_CREATED)
+def give_prose_a_scene(
+    node_id: str,
+    body: GiveSceneBody,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
+):
+    """A chapter's (or an act's) own prose, which only scenes show, moved into a new first scene
+    named for it (through a chapter, for an act). One change ⌘Z takes back whole."""
+    node = _verify_node_access(node_id, db, current_user)
+    _unchanged_since(node, body.expected_updated_at)
+    levels = template_levels(db.get(Story, node.story_id), db)
+    if node.level >= len(levels) - 1 or not (node.word_count or 0):
+        raise HTTPException(status_code=400, detail="There is no prose here outside a scene.")
+    scene = give_scene(db, node, levels, actor_id=current_user.id, client_id=client_id)
+    db.commit()
+    db.refresh(scene)
+    sync_scene_dialogue(scene, db)
+    return scene
 
 
 @router.post("/{node_id}/summarize")

@@ -8,10 +8,11 @@ from __future__ import annotations
 
 from ...models.character import Character
 from ...models.structure import StructureNode
-from ...schemas.findings import Finding, FindingAnchor
+from ...schemas.findings import Finding, FindingAnchor, FindingFix
 from ...schemas.promises import PromisesOut
 from ...schemas.trope import TURNING_STANCES
 from ..codex.presence import known_as, name_patterns
+from ..held_prose import holders
 from ..mice_validation import validate_thread_nesting
 from ..thread_roles import tries
 from ..tropes import STANCE_PHRASES
@@ -186,11 +187,39 @@ def computed(view: StoryView) -> list[Finding]:
                     action="open_sheet",
                 )
             )
+    out += _held_prose(view)
     if view.sizing.has_chapters:
         out += _chapters(view)
     if view.sizing.has_target:
         out += _target(view)
     return out
+
+
+def _held_prose(view: StoryView) -> list[Finding]:
+    """Prose on a chapter or an act, outside any scene: the strip, the export and Numbers read
+    only scenes, so it goes missing from them (an older import left it there)."""
+    levels = list(view.template.levels) if view.template else []
+    found = holders(view.ordered, levels)
+    if not found:
+        return []
+    words = sum(n.word_count or 0 for n in found)
+    same = {n.level for n in found}
+    level = levels[same.pop()] if len(same) == 1 else {"name": "part", "plural": "parts"}
+    noun = f"{level['name'].lower()} holds" if len(found) == 1 else f"{level['plural'].lower()} hold"
+    return [
+        make(
+            "held_prose",
+            "structure",
+            "mid",
+            "data",
+            f"{len(found)} {noun} {words:,} words outside any scene",
+            key="held_prose",
+            evidence=", ".join(n.title or "Untitled" for n in found[:6]) + ("…" if len(found) > 6 else ""),
+            suggestion="The strip, the export and Numbers count only scenes. Give each its own scene.",
+            action="fix",
+            fix=FindingFix(kind="scenes", old="", new=""),
+        )
+    ]
 
 
 def _chapters(view: StoryView) -> list[Finding]:

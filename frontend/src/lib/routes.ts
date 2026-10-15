@@ -23,6 +23,7 @@ import {
   History,
   Images,
   LayoutGrid,
+  ListTree,
   MapIcon,
   MapPin,
   MessageSquareMore,
@@ -102,6 +103,8 @@ export const STORY_ROUTES: StoryRoute[] = [
     modes: BOTH,
     keywords: ["editor", "scene", "manuscript", "prose"],
   },
+  // The acts, chapters and scenes to add, rename and reorder: the strip, opened out on Write.
+  { id: "outline", path: "/outline", label: "Outline", icon: ListTree, domain: "manuscript", modes: BOTH },
   {
     id: "plan",
     path: "/plan",
@@ -109,7 +112,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     icon: MapIcon,
     domain: "manuscript",
     modes: BOTH,
-    keywords: ["outline", "beats", "snowflake", "synopsis", "logline", "method", "scene list", "beat board"],
+    keywords: ["beats", "snowflake", "synopsis", "logline", "method", "scene list", "beat board"],
   },
   {
     // The book as cards on a board (doc 24 D12): a page of its own, no longer a view of Write.
