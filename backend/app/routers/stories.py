@@ -35,7 +35,7 @@ from ..services.llm.prompts.generation import build_relationship_suggestion_prom
 from ..services.llm.prompts.snowflake import LAYER_SPECS, build_snowflake_guidance_prompt
 from ..services.llm.prompts.summaries import build_story_summary_prompt
 from ..services.llm.sse import sse_stream
-from ..services.series import service as series_service
+from ..services.story_delete import delete_story as delete_story_and_rows
 from ..services.story_format import TEMPLATE_LENGTHS, is_script, story_format
 from ..services.structure_scaffold import scaffold_story
 from ..services.text_utils import for_model, last_paragraphs
@@ -151,9 +151,7 @@ def delete_story(story_id: str, db: Session = Depends(get_db), current_user: Use
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
-    # Out of its series first, so elements only it had and an emptied series go too.
-    series_service.detach_story(db, story_id)
-    db.delete(story)
+    delete_story_and_rows(db, story)
     db.commit()
 
 

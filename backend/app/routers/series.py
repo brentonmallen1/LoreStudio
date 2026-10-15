@@ -7,8 +7,10 @@ per book.
 """
 
 from contextlib import contextmanager
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
@@ -50,6 +52,7 @@ from ..services.series import service
 from ..services.series.drift import disagree
 from ..services.series.kinds import FRONTEND_KIND, SERIES_KINDS, SYNCED_KINDS, field_class, field_words
 from ..services.series.promises import SeriesPromises
+from ..services.story_delete import delete_story
 from ..services.structure_scaffold import scaffold_story
 
 router = APIRouter()
@@ -189,9 +192,24 @@ def update_series(
 
 
 @router.delete("/series/{series_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_series(series_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """The series goes; every book stays, with its own rows."""
-    db.delete(_series(series_id, db, current_user))
+def delete_series(
+    series_id: str,
+    books: Literal["keep", "delete"] = "keep",
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """The series goes. With ``books=keep`` (the default) every book stays, a standalone
+    story with its own rows; with ``books=delete`` the books go too, each taken out of the
+    series and deleted as a story is. One transaction either way."""
+    series = _series(series_id, db, current_user)
+    if books == "delete":
+        for story_id in [b.story_id for b in series.books]:
+            story = db.get(Story, story_id)
+            if story is not None:
+                delete_story(db, story)
+    # Taking out the last book already removed a series with no plan of its own.
+    if sa_inspect(series).persistent:
+        db.delete(series)
     db.commit()
 
 

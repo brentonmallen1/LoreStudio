@@ -193,3 +193,66 @@ def test_an_element_book_by_book(client, db_session, test_user):
     assert [v["value"] for v in fields["personality"]["values"]] == ["Guarded.", "Opening up."]
     assert fields["background"]["field_class"] == "enduring" and fields["background"]["differs"] is True
     assert fields["appearance"]["differs"] is False
+
+
+def _share_eleanor(client, sid, one, two):
+    """Eleanor in both books: a shared element with a member in each."""
+    r = client.post(
+        f"/api/series/{sid}/elements", json={"kind": "character", "story_id": one.story.id, "ref_id": one.eleanor.id}
+    )
+    assert r.status_code in (200, 201), r.text
+    [el] = r.json()["elements"]
+    r = client.post(f"/api/series/{sid}/elements/{el['id']}/members", json={"story_id": two.id})
+    assert r.status_code in (200, 201), r.text
+
+
+def test_deleting_a_series_keeps_its_books_by_default(client, db_session, test_user):
+    from app.models import SeriesElement, SeriesStory
+
+    series, one, two = _make(client, db_session, test_user)
+    _share_eleanor(client, series["id"], one, two)
+    assert client.delete(f"/api/series/{series['id']}").status_code == 204
+    db_session.expire_all()
+    assert db_session.get(Series, series["id"]) is None
+    for story_id in (one.story.id, two.id):
+        assert db_session.get(Story, story_id) is not None
+        assert client.get(f"/api/stories/{story_id}/series").json() == {"series": None, "position": None}
+    assert db_session.query(SeriesStory).count() == 0
+    assert db_session.query(SeriesElement).count() == 0
+    # Each book keeps its own rows: Eleanor in both.
+    assert db_session.query(Character).filter_by(name="Eleanor").count() == 2
+
+
+def test_deleting_a_series_with_its_books_deletes_the_stories(client, db_session, test_user):
+    from app.models import SeriesElement, SeriesElementMember, SeriesStory
+
+    series, one, two = _make(client, db_session, test_user)
+    _share_eleanor(client, series["id"], one, two)
+    other = empty_book(db_session, test_user, "Not in the series")
+    db_session.commit()
+
+    assert client.delete(f"/api/series/{series['id']}?books=delete").status_code == 204
+    db_session.expire_all()
+    assert db_session.get(Series, series["id"]) is None
+    assert db_session.get(Story, one.story.id) is None and db_session.get(Story, two.id) is None
+    assert db_session.query(Character).filter(Character.story_id.in_([one.story.id, two.id])).count() == 0
+    assert db_session.query(SeriesStory).count() == 0
+    assert db_session.query(SeriesElement).count() == 0
+    assert db_session.query(SeriesElementMember).count() == 0
+    assert db_session.get(Story, other.id) is not None
+
+
+def test_a_plain_series_deleted_with_its_books_goes_once(client, db_session, test_user):
+    """With no plan of its own, the series goes with its last book: deleting it again must not fail."""
+    one = empty_book(db_session, test_user, "Alone")
+    db_session.commit()
+    plain = client.post("/api/series", json={"name": "Just a group", "story_ids": [one.id]}).json()
+    assert client.delete(f"/api/series/{plain['id']}?books=delete").status_code == 204
+    db_session.expire_all()
+    assert db_session.get(Series, plain["id"]) is None and db_session.get(Story, one.id) is None
+
+
+def test_deleting_a_series_takes_keep_or_delete_only(client, db_session, test_user):
+    series, _, _ = _make(client, db_session, test_user)
+    assert client.delete(f"/api/series/{series['id']}?books=some").status_code == 422
+    assert client.get(f"/api/series/{series['id']}").status_code == 200
