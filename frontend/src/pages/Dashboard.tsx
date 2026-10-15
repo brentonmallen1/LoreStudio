@@ -25,6 +25,7 @@ import CreateStoryDialog from "../components/story/CreateStoryDialog";
 import AdaptDialog from "../components/story/AdaptDialog";
 import NewSeriesDialog from "../components/series/NewSeriesDialog";
 import SeriesGroup from "../components/series/SeriesGroup";
+import DeleteSeriesDialog from "../components/series/DeleteSeriesDialog";
 import { seriesPath } from "../lib/series/sections";
 import ImportWizard from "../components/import/ImportWizard";
 import StoryListRow from "../components/story/StoryListRow";
@@ -61,6 +62,8 @@ export default function DashboardPage() {
   // "Adapt as a screenplay or a play" (doc 25, P10) arrives as ?adapt=<novel>.
   const [adapting, setAdapting] = useState(() => new URLSearchParams(window.location.search).get("adapt"));
   const [seriesList, setSeriesList] = useState<SeriesSummary[]>([]);
+  // The series whose ⋯ › Delete is asking what happens to its books.
+  const [deletingSeries, setDeletingSeries] = useState<SeriesSummary | null>(null);
   // Jobs › Open on a finished import reading comes back here with ?import (doc 21 R8).
   const [importing, setImporting] = useState(() => new URLSearchParams(window.location.search).has("import"));
   // "New series" from the palette arrives as ?newSeries=1.
@@ -320,6 +323,7 @@ export default function DashboardPage() {
                       ? setSequelTo(seg.books[seg.books.length - 1].id)
                       : navigate(seriesPath(seg.series.id, "plan"))
                   }
+                  onDelete={() => setDeletingSeries(seg.series)}
                 >
                   {seg.books.length > 0 &&
                     renderStories(
@@ -334,6 +338,21 @@ export default function DashboardPage() {
         )}
       </main>
 
+      {deletingSeries && (
+        <DeleteSeriesDialog
+          series={deletingSeries}
+          words={deletingSeries.books.reduce((n, b) => n + (progress[b.story_id]?.word_count ?? 0), 0)}
+          onClose={() => setDeletingSeries(null)}
+          onDeleted={() => {
+            setDeletingSeries(null);
+            seriesApi
+              .list()
+              .then(setSeriesList)
+              .catch(() => {});
+            api.listStories().then(setStories).catch(console.error);
+          }}
+        />
+      )}
       {(creating || sequelTo) && (
         <CreateStoryDialog
           sequelTo={sequelTo ?? undefined}
