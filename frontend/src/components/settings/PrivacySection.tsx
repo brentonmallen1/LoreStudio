@@ -73,8 +73,8 @@ export default function PrivacySection() {
         </li>
       </ul>
       <p className={styles.sectionHint}>
-        Every AI call is recorded in Chronicle › AI activity: the prompt, the messages, the options sent and
-        the raw response, including calls that failed or that you stopped. Every data change is recorded in
+        Every AI call is recorded in Chronicle › Activity: the prompt, the messages, the options sent and the
+        raw response, including calls that failed or that you stopped. Every data change is recorded in
         Chronicle › Changes.
       </p>
       <p className={styles.sectionHint}>

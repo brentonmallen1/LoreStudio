@@ -7,7 +7,9 @@ import { useStoryStore } from "../../stores/storyStore";
 import { toast } from "../../stores/toastStore";
 import CarryOverStep from "../series/CarryOverStep";
 import { carryItem, carryKey } from "../../lib/series/carry";
+import { sequelCandidates } from "../../lib/series/sequelOf";
 import { DEFAULT_TEMPLATE, FORMATS, formatOf, templatesFor } from "../../lib/storyFormat";
+import { outlineHint } from "../../lib/starterOutline";
 import type { StoryFormat, StoryStructureTemplate } from "../../types";
 import TemplateManagerDialog from "../templates/TemplateManagerDialog";
 import { Modal } from "../common";
@@ -251,7 +253,7 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
                 </fieldset>
               )}
 
-              {stories.length > 0 && (
+              {sequelCandidates(stories).length > 0 && (
                 <div className={styles.field}>
                   <label className={styles.label} htmlFor="sequel-of">
                     A sequel to (optional)
@@ -263,7 +265,7 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
                     className={styles.select}
                   >
                     <option value="">Nothing: a book of its own</option>
-                    {stories.map((s) => (
+                    {sequelCandidates(stories).map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.title}
                       </option>
@@ -345,11 +347,7 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
                   <input type="checkbox" checked={scaffold} onChange={(e) => setScaffold(e.target.checked)} />
                   <span>
                     Start with an outline
-                    <span className={styles.scaffoldHint}>
-                      {selectedTemplate.starter_outline.join(" · ")}, with a first{" "}
-                      {selectedTemplate.levels[selectedTemplate.levels.length - 1].name.toLowerCase()} ready
-                      to write in. Rename, move or delete any of it.
-                    </span>
+                    <span className={styles.scaffoldHint}>{outlineHint(selectedTemplate)}</span>
                   </span>
                 </label>
               )}

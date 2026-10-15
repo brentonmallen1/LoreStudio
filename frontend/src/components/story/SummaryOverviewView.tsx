@@ -9,6 +9,7 @@ import type { StructureNode } from "../../types";
 import { formatRelative, formatDate } from "../../lib/utils";
 import styles from "./SummaryOverviewView.module.css";
 import AIOnly from "../ai/AIOnly";
+import { useAIAvailable, useMode } from "../../lib/mode";
 
 function flattenNodes(nodes: StructureNode[]): StructureNode[] {
   const result: StructureNode[] = [];
@@ -32,6 +33,9 @@ export default function SummaryOverviewView() {
   const [batchRunning, setBatchRunning] = useState(false);
   const [batchResult, setBatchResult] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // Without the Assistant a summary is never drafted, so a row shows the writer's own words.
+  const aiAvailable = useAIAvailable();
+  const writerMode = useMode() === "writer";
 
   const allNodes = flattenNodes(structure);
 
@@ -119,6 +123,7 @@ export default function SummaryOverviewView() {
     const isStale = update ? update.stale : node.summary_stale;
     const hasSummary = summary.length > 0;
     const canGenerate = nodeHasContent(node);
+    const ownWords = !aiAvailable && !hasSummary ? (node.synopsis ?? "").trim() : "";
 
     return (
       <div key={node.id} className={styles.nodeWrapper}>
@@ -167,6 +172,12 @@ export default function SummaryOverviewView() {
                 <p className={styles.streamText}>{streamText || "Generating…"}</p>
               ) : hasSummary ? (
                 <p className={styles.summaryText}>{summary}</p>
+              ) : ownWords ? (
+                <p className={styles.summaryText}>{ownWords}</p>
+              ) : !aiAvailable ? (
+                <p className={styles.noSummary}>
+                  Nothing yet. What happens, written on its Scene sheet, shows here.
+                </p>
               ) : (
                 <p className={styles.noSummary}>
                   {canGenerate ? "No summary generated yet." : "No content to summarize."}
@@ -203,7 +214,7 @@ export default function SummaryOverviewView() {
     return (
       <div className={styles.empty}>
         <p className={styles.emptyText}>
-          No story structure yet. Add sections in the tree view to get started.
+          No story structure yet. Add acts, chapters and scenes in the Outline to get started.
         </p>
       </div>
     );
@@ -236,6 +247,12 @@ export default function SummaryOverviewView() {
       </div>
 
       {batchResult && <div className={styles.batchNotice}>{batchResult}</div>}
+      {writerMode && (
+        <p className={styles.batchNotice}>
+          Each row shows what happens, in your words from its Scene sheet. Summaries drawn from the prose come
+          from the Assistant, in Studio mode.
+        </p>
+      )}
 
       <div className={styles.tree}>{structure.map((node) => renderNode(node, 0))}</div>
     </div>

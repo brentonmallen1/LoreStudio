@@ -8,7 +8,7 @@ Every story is an outline of parts inside parts: scenes inside chapters, chapter
 
 - **Three-Act Structure**: acts, chapters and scenes.
 - **Freeform**: sections and scenes, for a story that doesn't fit a shape yet.
-- Others follow a known method, such as **Snowflake Method**, **Hero's Journey** or **Save the Cat**.
+- Others follow a known method, such as **Snowflake Method** or **Hero's Journey**.
 
 Tick **Start with an outline** to begin with the template's parts already in place and a first scene ready to write in. **Manage**, beside **Story structure**, lets you make a template of your own with whatever levels you need.
 

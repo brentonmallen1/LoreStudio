@@ -74,7 +74,7 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
             )}
             {hasContent && (
               <div className={styles.heroLinks}>
-                <Link to={`/stories/${storyId}/publish`} className={styles.heroAction}>
+                <Link to={`/stories/${storyId}/manuscript`} className={styles.heroAction}>
                   <BookOpen size={13} aria-hidden /> Read it through
                 </Link>
                 <button

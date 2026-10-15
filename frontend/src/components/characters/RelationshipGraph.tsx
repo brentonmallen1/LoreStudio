@@ -572,9 +572,7 @@ export default function RelationshipGraph({ storyId, onEditRelationship }: Props
                   >
                     {trunc(char.name, 20)}
                   </text>
-                  <title>
-                    {char.name}: {char.role}
-                  </title>
+                  <title>{char.role ? `${char.name}: ${char.role}` : char.name}</title>
                 </g>
               );
             })}

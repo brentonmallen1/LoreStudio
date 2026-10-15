@@ -5,6 +5,7 @@ import { structureApi } from "../../api/structure";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import { findNode } from "../layout/structureTreeMeta";
+import { startsIn } from "../../lib/starterOutline";
 import styles from "./EmptyManuscript.module.css";
 
 /**
@@ -53,7 +54,7 @@ export default function EmptyManuscript() {
         <p className={styles.title}>Nothing written yet</p>
         <p className={styles.text}>
           {activeTemplate?.starter_outline?.length
-            ? `Start with the ${activeTemplate.name} outline (${activeTemplate.starter_outline.join(", ")}) and a first ${leaf} to write in. Rename, move or delete any of it.`
+            ? `Start with the ${activeTemplate.name} outline (${activeTemplate.starter_outline.join(", ")}) and ${startsIn(activeTemplate)} to write in. Rename, move or delete any of it.`
             : `Start with a first ${leaf} to write in.`}
         </p>
         <button className={styles.primary} onClick={start} disabled={starting}>

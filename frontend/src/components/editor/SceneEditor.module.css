@@ -1102,6 +1102,13 @@ button.typeBtn[aria-expanded="true"] {
   color: var(--color-text-subtle);
 }
 
+/* An open picker with nothing to offer yet: what typing a name does. */
+.mentionEmpty {
+  padding: 0.5rem 0.75rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
 /* Dialogue mode indicator in the mention dropdown header */
 .mentionDropdownDialogueMode {
   font-size: var(--text-xs);

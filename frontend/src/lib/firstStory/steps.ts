@@ -112,7 +112,7 @@ export const STEPS: Step[] = [
     explain: "Everything you answered is part of your story now. Change any of it, any time.",
     example: {
       label: "Find your way",
-      text: "Search, in the header, finds any scene, character or page. Guides, under the compass beside it, explain each part.",
+      text: "Search, in the header, finds any scene, character or page. Guides, at the foot of the logo menu, explain each part.",
     },
     why: "The walkthrough ends here; your story doesn't. Come back to this page from the palette whenever you like.",
   },

@@ -1,5 +1,6 @@
 import type { MentionDropdownState } from "./useMentionDropdown";
 import { clampPopup } from "./segmentMeta";
+import { emptyPrompt } from "../../lib/prose/completion";
 import styles from "./SceneEditor.module.css";
 
 const HEADING = {
@@ -12,7 +13,8 @@ const HEADING = {
 
 /** The suggestions of whichever picker is open (useMentionDropdown); Enter or Tab takes one. */
 export default function MentionDropdown({ mention }: { mention: MentionDropdownState }) {
-  if (!mention.open || mention.choices.length === 0) return null;
+  const prompt = emptyPrompt(mention.mode, mention.query, mention.choices.length);
+  if (!mention.open || (mention.choices.length === 0 && !prompt)) return null;
   const heading = HEADING[mention.mode];
   return (
     <div
@@ -22,6 +24,7 @@ export default function MentionDropdown({ mention }: { mention: MentionDropdownS
       aria-label={heading ?? "Mention"}
     >
       {heading && <div className={styles.mentionDropdownDialogueMode}>{heading}</div>}
+      {prompt && <div className={styles.mentionEmpty}>{prompt}</div>}
       {mention.choices.map((c, idx) => (
         <button
           key={`${c.kind}:${c.name}:${c.words}:${c.create ? "new" : ""}`}
@@ -57,7 +60,7 @@ export default function MentionDropdown({ mention }: { mention: MentionDropdownS
           )}
         </button>
       ))}
-      <div className={styles.mentionDropdownKeys}>Tab or Enter to choose · Esc to close</div>
+      {!prompt && <div className={styles.mentionDropdownKeys}>Tab or Enter to choose · Esc to close</div>}
     </div>
   );
 }

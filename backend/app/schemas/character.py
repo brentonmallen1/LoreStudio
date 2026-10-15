@@ -37,7 +37,8 @@ class ArcMilestone(BaseModel):
 
 class CharacterCreate(BaseModel):
     name: str
-    role: str = "deuteragonist"
+    # No role until the author gives one: a new name is not presumed a secondary lead.
+    role: str = ""
     character_type: str = ""
     jungian_archetype: str = ""
     narrative_archetype: str = ""

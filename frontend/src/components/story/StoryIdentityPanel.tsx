@@ -295,7 +295,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
 
   async function handleInjectBeatSheet(beatSheetId: string) {
     const result = await api.injectBeatSheet(storyId, beatSheetId);
-    navigate(`plan?tab=${result.id}`);
+    navigate(`/stories/${storyId}/plan?tab=${result.id}`);
   }
 
   function updateBeatSheet(id: string | null) {

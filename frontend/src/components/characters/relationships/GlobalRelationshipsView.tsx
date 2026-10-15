@@ -8,6 +8,7 @@ import RelationshipSuggestionDialog from "../RelationshipSuggestionDialog";
 import type { CharacterRelationship, Character } from "../../../types";
 import styles from "./GlobalRelationshipsView.module.css";
 import AIOnly from "../../ai/AIOnly";
+import { useAIAvailable } from "../../../lib/mode";
 import { relationshipTypeColor as typeColor, tint } from "../../../lib/relationships/colors";
 
 interface Props {
@@ -101,6 +102,7 @@ function CharacterGroup({
 
 export default function GlobalRelationshipsView({ storyId }: Props) {
   const navigate = useNavigate();
+  const aiAvailable = useAIAvailable();
   const { characters } = useStoryStore();
   const [relationships, setRelationships] = useState<CharacterRelationship[]>([]);
   const [loading, setLoading] = useState(true);
@@ -225,9 +227,17 @@ export default function GlobalRelationshipsView({ storyId }: Props) {
         </div>
       ) : groups.length === 0 ? (
         <div className={styles.empty}>
-          {relationships.length === 0
-            ? "No relationships yet. Use Suggest relationships to get started."
-            : "No characters match the search."}
+          {relationships.length === 0 ? (
+            <>
+              No relationships yet. Open a character, then <strong>Relationships</strong> ›{" "}
+              <strong>Add relationship</strong>.
+              {aiAvailable &&
+                characters.length >= 2 &&
+                " Or let Suggest relationships find them in the prose."}
+            </>
+          ) : (
+            "No characters match the search."
+          )}
         </div>
       ) : (
         <div className={styles.list}>
