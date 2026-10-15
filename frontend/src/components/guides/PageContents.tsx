@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { currentHeading, type PageHeading } from "../../lib/guides/headings";
+import StepPicker from "../common/StepPicker";
 import styles from "./PageContents.module.css";
 
 /** How far below the top of the guide's scroll area a heading counts as reached. */
@@ -15,26 +16,46 @@ function scroller(el: HTMLElement): HTMLElement | null {
   return null;
 }
 
-function scrollToId(id: string, smooth: boolean) {
+/** Inside this page's own content: the same page open in the panel and the main view twice
+ * has every id twice. */
+function scrollToId(root: HTMLElement | null, id: string, smooth: boolean) {
   const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  document
-    .getElementById(id)
-    ?.scrollIntoView({ block: "start", behavior: smooth && !reduce ? "smooth" : "auto" });
+  const el = root?.querySelector<HTMLElement>(`#${CSS.escape(id)}`) ?? document.getElementById(id);
+  el?.scrollIntoView({ block: "start", behavior: smooth && !reduce ? "smooth" : "auto" });
+}
+
+/** An entry given by the page rather than read from its headings, with a quiet line under it. */
+export interface ContentsItem {
+  id: string;
+  text: string;
+  hint?: string;
 }
 
 /**
  * "On this page" beside a guide (Brenton, 2026-10-13, after the scikit-learn docs): its
  * sections and their parts, with the one being read marked as the page scrolls. A link to a
  * section is the guide's address with #section, so it can be shared and opens there.
+ *
+ * A page that is not a guide (Story identity, A4) gives its `items`, keeps the address as it
+ * is (`address={false}`), and with `jumpClassName` also draws the "Jump to" dropdown its own
+ * container query shows in place of the rail when narrow.
  */
 export default function PageContents({
   article,
   guideKey,
+  items,
+  address = true,
+  railClassName,
+  jumpClassName,
 }: {
   article: RefObject<HTMLElement | null>;
   guideKey: string;
+  items?: readonly ContentsItem[];
+  address?: boolean;
+  railClassName?: string;
+  jumpClassName?: string;
 }) {
-  const [headings, setHeadings] = useState<PageHeading[]>([]);
+  const [headings, setHeadings] = useState<(PageHeading & { hint?: string })[]>([]);
   const [active, setActive] = useState<string | null>(null);
   const { hash } = useLocation();
   const navigate = useNavigate();
@@ -51,7 +72,10 @@ export default function PageContents({
     const root = article.current;
     if (!root) return;
     const area = scroller(root);
-    const els = () => Array.from(root.querySelectorAll<HTMLElement>("h2[id], h3[id]"));
+    const els = () =>
+      items
+        ? items.flatMap((it) => root.querySelector<HTMLElement>(`#${CSS.escape(it.id)}`) ?? [])
+        : Array.from(root.querySelectorAll<HTMLElement>("h2[id], h3[id]"));
 
     function spy() {
       const top = area ? area.getBoundingClientRect().top : 0;
@@ -68,11 +92,13 @@ export default function PageContents({
 
     const frame = requestAnimationFrame(() => {
       setHeadings(
-        els().map((el) => ({
-          id: el.id,
-          text: el.textContent ?? "",
-          level: el.tagName === "H3" ? 3 : 2,
-        })),
+        items
+          ? items.filter((it) => els().some((el) => el.id === it.id)).map((it) => ({ ...it, level: 2 }))
+          : els().map((el) => ({
+              id: el.id,
+              text: el.textContent ?? "",
+              level: el.tagName === "H3" ? 3 : 2,
+            })),
       );
       spy();
     });
@@ -84,18 +110,18 @@ export default function PageContents({
       target.removeEventListener("scroll", spy);
       window.removeEventListener("resize", spy);
     };
-  }, [article, guideKey]);
+  }, [article, guideKey, items]);
 
   // A guide opened at #section, or a link to one followed, scrolls there.
   useEffect(() => {
-    const id = decodeURIComponent(hash.slice(1));
+    const id = address ? decodeURIComponent(hash.slice(1)) : "";
     if (!id) return;
     if (chosen.current === id) {
       chosen.current = null;
       return;
     }
     const go = () => {
-      scrollToId(id, false);
+      scrollToId(article.current, id, false);
       setActive(id);
     };
     const frame = requestAnimationFrame(go);
@@ -118,12 +144,26 @@ export default function PageContents({
       window.removeEventListener("touchmove", stop);
       window.removeEventListener("keydown", stop);
     };
-  }, [article, hash, guideKey]);
+  }, [article, hash, guideKey, address]);
 
   if (headings.length < 2) return <div className={styles.empty} />;
 
-  return (
-    <nav className={styles.contents} aria-label="On this page">
+  function go(id: string) {
+    if (address && hash !== `#${id}`) {
+      chosen.current = id;
+      navigate({ hash: id }, { replace: true });
+    }
+    goneTo.current = id;
+    setActive(id);
+    scrollToId(article.current, id, true);
+  }
+
+  const at = Math.max(
+    0,
+    headings.findIndex((h) => h.id === active),
+  );
+  const rail = (
+    <nav className={`${styles.contents} ${railClassName ?? ""}`} aria-label="On this page">
       <p className={styles.title}>On this page</p>
       <ul className={styles.list}>
         {headings.map((h) => (
@@ -134,20 +174,29 @@ export default function PageContents({
               aria-current={h.id === active ? "location" : undefined}
               onClick={(e) => {
                 e.preventDefault();
-                if (hash !== `#${h.id}`) {
-                  chosen.current = h.id;
-                  navigate({ hash: h.id }, { replace: true });
-                }
-                goneTo.current = h.id;
-                setActive(h.id);
-                scrollToId(h.id, true);
+                go(h.id);
               }}
             >
               {h.text}
+              {h.hint && <span className={styles.hint}>{h.hint}</span>}
             </a>
           </li>
         ))}
       </ul>
     </nav>
+  );
+  if (!jumpClassName) return rail;
+  return (
+    <>
+      {rail}
+      <StepPicker
+        className={jumpClassName}
+        label="Sections"
+        lead="Jump to"
+        items={headings.map((h) => ({ id: h.id, label: h.text, hint: h.hint }))}
+        current={at}
+        onSelect={(i) => go(headings[i].id)}
+      />
+    </>
   );
 }

@@ -1,255 +1,53 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash2, Check, GripVertical, Pencil } from "lucide-react";
 import { api } from "../../api/client";
-import { useStoryStore } from "../../stores/storyStore";
-import PerspectiveSummaryPanel from "../analysis/PerspectiveSummaryPanel";
-import StorySummaryPanel from "./StorySummaryPanel";
-import BeatSheetSelector from "./BeatSheetSelector";
-import { SectionCard } from "../common";
-import PageHeader from "../layout/PageHeader";
-import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
+import { useAIAvailable } from "../../lib/mode";
 import { formatOf } from "../../lib/storyFormat";
-import { lengthForm, lengthOptions } from "../../utils/wordCount";
-import { FormatField, PerspectiveField } from "./StoryFormFields";
-import type { StoryFormat, StoryGoal } from "../../types";
-import { CharCount, CompletionDots, GroupLabel, HeroStats, SeriesCard } from "./StoryIdentityBits";
+import { useStoryStore } from "../../stores/storyStore";
+import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
+import PageContents from "../guides/PageContents";
+import PageHeader from "../layout/PageHeader";
+import { HeroStats } from "./StoryIdentityBits";
+import {
+  Compass,
+  Form,
+  Foundation,
+  Substance,
+  Summaries,
+  Voice,
+  type IdentityFields,
+  type IdentityForm,
+} from "./StoryIdentitySections";
+import { IDENTITY_SECTIONS } from "./identitySections";
 import { useWorkshopMenu } from "./useWorkshopMenu";
-import TropesInPlay from "../tropes/TropesInPlay";
 import styles from "./StoryIdentityPanel.module.css";
 
-/** The format's forms, and a length kept from the other format (after a switch) as it was. */
-function lengthChoices(format: StoryFormat, current: string): [string, string][] {
-  const options = lengthOptions(format);
-  const kept = lengthForm(current);
-  if (current && kept && !options.some(([k]) => k === current)) {
-    options.push([current, `${kept.option}: a ${format === "prose" ? "script" : "prose"} length`]);
-  }
-  return options;
-}
-
-// ── Theme tag input ────────────────────────────────────────────────────────
-function ThemeInput({ themes, onChange }: { themes: string[]; onChange: (t: string[]) => void }) {
-  const [input, setInput] = useState("");
-
-  function addTheme() {
-    const trimmed = input.trim();
-    if (!trimmed || themes.includes(trimmed)) return;
-    onChange([...themes, trimmed]);
-    setInput("");
-  }
-
-  return (
-    <div className={styles.themeWrap}>
-      <div className={styles.tagList}>
-        {themes.map((t) => (
-          <span key={t} className={styles.tag}>
-            {t}
-            <button
-              className={styles.tagRemove}
-              onClick={() => onChange(themes.filter((x) => x !== t))}
-              aria-label={`Remove theme ${t}`}
-            >
-              ×
-            </button>
-          </span>
-        ))}
-      </div>
-      <div className={styles.tagInputRow}>
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === ",") {
-              e.preventDefault();
-              addTheme();
-            }
-          }}
-          placeholder="Add theme… (Enter or comma to add)"
-          className={styles.tagInput}
-        />
-        <button onClick={addTheme} className={styles.tagAddBtn} disabled={!input.trim()}>
-          Add
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ── Goals checklist ────────────────────────────────────────────────────────
-function GoalsPanel({ storyId }: { storyId: string }) {
-  const { activeStory, setActiveStory } = useStoryStore();
-  const [newGoal, setNewGoal] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingText, setEditingText] = useState("");
-  const [draggedId, setDraggedId] = useState<string | null>(null);
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
-  const goals: StoryGoal[] = activeStory?.goals ?? [];
-
-  async function addGoal() {
-    const text = newGoal.trim();
-    if (!text || !activeStory) return;
-    const updated = await api.addGoal(storyId, text);
-    setActiveStory(updated);
-    setNewGoal("");
-  }
-
-  async function toggleGoal(goalId: string, completed: boolean) {
-    if (!activeStory) return;
-    const updated = await api.updateGoal(storyId, goalId, { completed: !completed });
-    setActiveStory(updated);
-  }
-
-  async function removeGoal(goalId: string) {
-    if (!activeStory) return;
-    const updated = await api.deleteGoal(storyId, goalId);
-    setActiveStory(updated);
-  }
-
-  function startEdit(goal: StoryGoal) {
-    setEditingId(goal.id);
-    setEditingText(goal.text);
-  }
-
-  async function saveEdit() {
-    if (!editingId || !editingText.trim()) {
-      setEditingId(null);
-      return;
-    }
-    const updated = await api.updateGoal(storyId, editingId, { text: editingText.trim() });
-    setActiveStory(updated);
-    setEditingId(null);
-  }
-
-  function cancelEdit() {
-    setEditingId(null);
-    setEditingText("");
-  }
-
-  function onDragStart(id: string) {
-    setDraggedId(id);
-  }
-
-  function onDragOver(e: React.DragEvent, id: string) {
-    e.preventDefault();
-    if (id !== draggedId) setDragOverId(id);
-  }
-
-  async function onDrop(e: React.DragEvent, targetId: string) {
-    e.preventDefault();
-    if (!draggedId || draggedId === targetId) {
-      setDraggedId(null);
-      setDragOverId(null);
-      return;
-    }
-    const ids = goals.map((g) => g.id);
-    const fromIdx = ids.indexOf(draggedId);
-    const toIdx = ids.indexOf(targetId);
-    const reordered = [...ids];
-    reordered.splice(fromIdx, 1);
-    reordered.splice(toIdx, 0, draggedId);
-    setDraggedId(null);
-    setDragOverId(null);
-    const updated = await api.reorderGoals(storyId, reordered);
-    setActiveStory(updated);
-  }
-
-  return (
-    <>
-      <div className={styles.goalList}>
-        {goals.length === 0 && <p className={styles.emptyGoals}>No goals yet. Add one below.</p>}
-        {goals.map((g) => (
-          <div
-            key={g.id}
-            className={`${styles.goalItem} ${g.completed ? styles.goalDone : ""} ${draggedId === g.id ? styles.goalDragging : ""} ${dragOverId === g.id ? styles.goalDragOver : ""}`}
-            draggable
-            onDragStart={() => onDragStart(g.id)}
-            onDragOver={(e) => onDragOver(e, g.id)}
-            onDrop={(e) => onDrop(e, g.id)}
-            onDragEnd={() => {
-              setDraggedId(null);
-              setDragOverId(null);
-            }}
-          >
-            <span className={styles.goalDragHandle} title="Drag to reorder">
-              <GripVertical size={12} />
-            </span>
-            <button
-              className={styles.goalCheck}
-              onClick={() => toggleGoal(g.id, g.completed)}
-              aria-label={g.completed ? "Mark incomplete" : "Mark complete"}
-            >
-              {g.completed ? <Check size={11} /> : null}
-            </button>
-            {editingId === g.id ? (
-              <input
-                autoFocus
-                className={styles.goalEditInput}
-                value={editingText}
-                onChange={(e) => setEditingText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") saveEdit();
-                  if (e.key === "Escape") cancelEdit();
-                }}
-                onBlur={saveEdit}
-              />
-            ) : (
-              <span className={styles.goalText} onDoubleClick={() => startEdit(g)}>
-                {g.text}
-              </span>
-            )}
-            <div className={styles.goalActions}>
-              {editingId !== g.id && (
-                <button className={styles.goalEditBtn} onClick={() => startEdit(g)} aria-label="Edit goal">
-                  <Pencil size={11} />
-                </button>
-              )}
-              <button className={styles.goalDelete} onClick={() => removeGoal(g.id)} aria-label="Delete goal">
-                <Trash2 size={11} />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className={styles.goalAdd}>
-        <input
-          value={newGoal}
-          onChange={(e) => setNewGoal(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addGoal()}
-          placeholder="Add a goal…"
-          className={styles.goalInput}
-        />
-        <button
-          aria-label="Add the goal"
-          onClick={addGoal}
-          className={styles.goalAddBtn}
-          disabled={!newGoal.trim()}
-        >
-          <Plus size={13} />
-        </button>
-      </div>
-    </>
-  );
-}
-
-// ── Field count indicator ──────────────────────────────────────────────────
-// ── Main panel ─────────────────────────────────────────────────────────────
-export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
+/**
+ * Story identity: what the story is, how it is told, its shape, what it is about and where it
+ * is going, in groups with a section rail beside them, or "Jump to" in a narrow panel (A4).
+ */ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
   const { activeStory, setActiveStory, characters } = useStoryStore();
   const navigate = useNavigate();
   const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const workshop = useWorkshopMenu(storyId);
 
-  const [fields, setFields] = useState({
+  const aiAvailable = useAIAvailable();
+  const content = useRef<HTMLDivElement>(null);
+  // The Summaries are the Assistant's: without it there is nothing under them to jump to.
+  const sections = useMemo(
+    () => IDENTITY_SECTIONS.filter((x) => aiAvailable || x.id !== "identity-summaries"),
+    [aiAvailable],
+  );
+  const [fields, setFields] = useState<IdentityFields>({
     logline: "",
     author_name: "",
     genre: "",
     tone: "",
     intended_length: "",
-    story_format: "prose" as StoryFormat,
+    story_format: "prose",
     narrative_perspective: "",
-    pov_character_id: "" as string,
-    themes: [] as string[],
+    pov_character_id: "",
+    themes: [],
     central_conflict: "",
     target_audience: "",
     narrative_intent: "",
@@ -283,7 +81,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
     }, 900);
   }
 
-  function update(key: keyof typeof fields, value: string | string[]) {
+  function update(key: keyof IdentityFields, value: string | string[]) {
     setFields((prev) => ({ ...prev, [key]: value }));
     scheduleSync({ [key]: value });
   }
@@ -313,10 +111,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
 
   if (!activeStory) return null;
 
-  // Completion tracking for section badges
-  const foundationFields = [fields.logline, fields.premise].filter(Boolean).length;
-  const goalsTotal = (activeStory.goals ?? []).length;
-  const goalsComplete = (activeStory.goals ?? []).filter((g) => g.completed).length;
+  const form: IdentityForm = { storyId, fields, update, collapsed, toggle };
 
   return (
     <div className={styles.panel}>
@@ -328,228 +123,29 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
       />
 
       <div className={styles.scrollArea}>
-        {/* ── Foundation ── */}
-        <GroupLabel label="Foundation" description="What is this story?" />
-
-        <SectionCard
-          title="Core identity"
-          collapsed={!!collapsed.identity}
-          onToggle={() => toggle("identity")}
-          badge={foundationFields > 0 ? <CompletionDots filled={foundationFields} total={2} /> : undefined}
-        >
-          <div>
-            <p className={styles.subFieldLabel}>Logline</p>
-            <p className={styles.fieldHint}>
-              One sentence: who wants what, against what obstacle, with what at stake.
-            </p>
-            <p className={styles.fieldPattern}>[Protagonist] must [goal] despite [obstacle], or [stakes]</p>
-            <textarea
-              value={fields.logline}
-              onChange={(e) => update("logline", e.target.value)}
-              placeholder="Elena must find the lighthouse keeper before…"
-              className={styles.textarea}
-              rows={2}
-            />
-            <div className={styles.fieldMeta}>
-              <CharCount value={fields.logline} max={150} />
-            </div>
-          </div>
-          <div>
-            <p className={styles.subFieldLabel}>Author byline</p>
-            <p className={styles.fieldHint}>
-              Shown on the title page of exports. Leave blank to export without one.
-            </p>
-            <input
-              value={fields.author_name}
-              onChange={(e) => update("author_name", e.target.value)}
-              placeholder="Pen name or real name"
-              className={styles.input}
-            />
-          </div>
-          <div>
-            <p className={styles.subFieldLabel}>Premise</p>
-            <p className={styles.fieldHint}>
-              Expanded setup: the situation, the characters, and what's at stake.
-            </p>
-            <p className={styles.fieldPattern}>
-              In [setting], [protagonist with flaw] faces [problem] when [inciting incident]…
-            </p>
-            <textarea
-              value={fields.premise}
-              onChange={(e) => update("premise", e.target.value)}
-              placeholder="In a remote lighthouse station…"
-              className={styles.textarea}
-              rows={3}
-            />
-          </div>
-        </SectionCard>
-
-        <SectionCard
-          title="Narrative intent"
-          collapsed={!!collapsed.intent}
-          onToggle={() => toggle("intent")}
-        >
-          <p className={styles.fieldHint}>
-            What is this story about (meaning, not plot)? What question does it ask? What should the reader
-            feel at the end?
-          </p>
-          <textarea
-            value={fields.narrative_intent}
-            onChange={(e) => update("narrative_intent", e.target.value)}
-            placeholder="This story asks whether redemption is possible when…"
-            className={styles.textarea}
-            rows={3}
+        <div className={styles.layout}>
+          <PageContents
+            article={content}
+            guideKey={`identity:${storyId}`}
+            items={sections}
+            address={false}
+            railClassName={styles.rail}
+            jumpClassName={styles.jump}
           />
-        </SectionCard>
-
-        <SeriesCard storyId={storyId} collapsed={!!collapsed.series} onToggle={() => toggle("series")} />
-
-        {/* ── Voice ── */}
-        <GroupLabel label="Voice" description="How is it told?" />
-
-        <SectionCard title="Style" collapsed={!!collapsed.style} onToggle={() => toggle("style")}>
-          <div className={styles.row}>
-            <div>
-              <p className={styles.subFieldLabel}>Genre</p>
-              <input
-                value={fields.genre}
-                onChange={(e) => update("genre", e.target.value)}
-                placeholder="Literary fiction, thriller…"
-                className={styles.input}
-              />
-            </div>
-            <div>
-              <p className={styles.subFieldLabel}>Tone</p>
-              <input
-                value={fields.tone}
-                onChange={(e) => update("tone", e.target.value)}
-                placeholder="Dark, hopeful, satirical…"
-                className={styles.input}
-              />
-            </div>
-          </div>
-          {fields.story_format === "prose" && (
-            <PerspectiveField
-              perspective={fields.narrative_perspective}
-              povCharacterId={fields.pov_character_id}
-              characters={characters}
-              onPerspective={(v) => update("narrative_perspective", v)}
-              onPovCharacter={updatePovCharacter}
+          <div ref={content} className={styles.content}>
+            <Foundation {...form} />
+            <Voice {...form} characters={characters} onPovCharacter={updatePovCharacter} />
+            <Form
+              {...form}
+              beatSheetId={activeStory.beat_sheet_id}
+              onBeatSheet={updateBeatSheet}
+              onInjectBeatSheet={handleInjectBeatSheet}
             />
-          )}
-        </SectionCard>
-
-        {/* ── Form ── */}
-        <GroupLabel label="Form" description="What shape does it take?" />
-
-        <SectionCard title="Structure" collapsed={!!collapsed.structure} onToggle={() => toggle("structure")}>
-          <FormatField
-            value={fields.story_format}
-            onChange={(v) => update("story_format", v)}
-            storyId={storyId}
-          />
-          <div>
-            <p className={styles.subFieldLabel}>Intended length</p>
-            <p className={styles.fieldHint}>
-              Target form and its length, in {fields.story_format === "prose" ? "words" : "pages"}. Used by
-              Findings, Numbers and the Assistant.
-            </p>
-            <select
-              value={fields.intended_length}
-              onChange={(e) => update("intended_length", e.target.value)}
-              className={styles.input}
-            >
-              {lengthChoices(fields.story_format, fields.intended_length).map(([val, label]) => (
-                <option key={val} value={val}>
-                  {label}
-                </option>
-              ))}
-            </select>
+            <Substance {...form} />
+            <Compass {...form} goals={activeStory.goals ?? []} />
+            {aiAvailable && <Summaries storyId={storyId} />}
           </div>
-          <div>
-            <p className={styles.subFieldLabel}>Beat sheet</p>
-            <p className={styles.fieldHint}>
-              Optional story structure framework. Helps track where key beats fall relative to your word
-              count.
-            </p>
-            <BeatSheetSelector
-              value={activeStory.beat_sheet_id}
-              onChange={updateBeatSheet}
-              onInject={handleInjectBeatSheet}
-            />
-          </div>
-        </SectionCard>
-
-        {/* ── Substance ── */}
-        <GroupLabel label="Substance" description="What's it really about?" />
-
-        <SectionCard
-          title="Themes and conflict"
-          collapsed={!!collapsed.themes}
-          onToggle={() => toggle("themes")}
-        >
-          <div>
-            <p className={styles.subFieldLabel}>Themes</p>
-            <p className={styles.fieldHint}>Recurring ideas and motifs. Press Enter or comma to add.</p>
-            <ThemeInput themes={fields.themes} onChange={(t) => update("themes", t)} />
-          </div>
-          <div>
-            <p className={styles.subFieldLabel}>Central conflict</p>
-            <p className={styles.fieldPattern}>
-              [Character]'s need for [want] vs. [opposing force or internal flaw]
-            </p>
-            <textarea
-              value={fields.central_conflict}
-              onChange={(e) => update("central_conflict", e.target.value)}
-              placeholder="Eleanor's need to protect her carefully constructed isolation versus…"
-              className={styles.textarea}
-              rows={2}
-            />
-          </div>
-          <div>
-            <p className={styles.subFieldLabel}>Target audience</p>
-            <select
-              value={fields.target_audience}
-              onChange={(e) => update("target_audience", e.target.value)}
-              className={styles.input}
-            >
-              <option value="">Not specified</option>
-              <option value="kids">Kids (6–8)</option>
-              <option value="middle_grade">Middle grade (8–12)</option>
-              <option value="young_adult">Young adult (12–18)</option>
-              <option value="new_adult">New adult (18–25)</option>
-              <option value="adult">Adult</option>
-            </select>
-          </div>
-        </SectionCard>
-
-        <SectionCard title="Tropes in play" collapsed={!!collapsed.tropes} onToggle={() => toggle("tropes")}>
-          <TropesInPlay storyId={storyId} />
-        </SectionCard>
-
-        {/* ── Compass ── */}
-        <GroupLabel label="Compass" description="Where are you going?" />
-
-        <SectionCard
-          title="Story goals"
-          collapsed={!!collapsed.goals}
-          onToggle={() => toggle("goals")}
-          badge={
-            goalsTotal > 0 ? (
-              <span className={styles.goalsBadge}>
-                {goalsComplete}/{goalsTotal}
-              </span>
-            ) : undefined
-          }
-        >
-          <p className={styles.fieldHint}>
-            Explicit goals to hit as you write. Drag to reorder, double-click to edit.
-          </p>
-          <GoalsPanel storyId={storyId} />
-        </SectionCard>
-
-        <StorySummaryPanel storyId={storyId} />
-        <PerspectiveSummaryPanel storyId={storyId} />
+        </div>
       </div>
     </div>
   );
