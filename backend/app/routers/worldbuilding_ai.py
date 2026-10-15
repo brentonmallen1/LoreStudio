@@ -137,7 +137,8 @@ async def suggest_world_elements(
         feature="element-suggest",
         user_id=current_user.id,
         story_id=story_id,
-        extra_metadata={"entity_id": element_id},
+        # One feature, two answers' shapes: the Chronicle reads which to show it as.
+        extra_metadata={"entity_id": element_id, "element_type": element_type},
         tags=["worldbuilding", element_type, "user-initiated"],
     )
 

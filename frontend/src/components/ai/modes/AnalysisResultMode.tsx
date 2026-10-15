@@ -3,42 +3,10 @@ import { useAIStore, type AISession } from "../../../stores/aiStore";
 import { useAIModeState } from "../../../hooks/useAIModeState";
 import { aiFeatureLabel } from "../../../lib/ai/features.generated";
 import AIModeWrapper from "../AIModeWrapper";
+import JsonValue from "../JsonValue";
 import MessageList from "../shared/MessageList";
 import MentionComposer from "../shared/MentionComposer";
 import styles from "./AnalysisResultMode.module.css";
-
-/** Renders whatever shape an analysis returned, without a schema per feature. */
-function Value({ value }: { value: unknown }) {
-  if (value === null || value === undefined || value === "") return null;
-  if (Array.isArray(value)) {
-    return (
-      <ul className={styles.list}>
-        {value.map((item, i) => (
-          <li key={i}>
-            <Value value={item} />
-          </li>
-        ))}
-      </ul>
-    );
-  }
-  if (typeof value === "object") {
-    return (
-      <div className={styles.object}>
-        {Object.entries(value as Record<string, unknown>).map(([key, v]) => {
-          const rendered = <Value value={v} />;
-          if (!rendered) return null;
-          return (
-            <div key={key} className={styles.field}>
-              <span className={styles.key}>{key.replace(/_/g, " ")}</span>
-              {rendered}
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
-  return <span className={styles.scalar}>{String(value)}</span>;
-}
 
 /**
  * An analysis, shown as a session (doc 06 §2.1).
@@ -75,7 +43,7 @@ export default function AnalysisResultMode({ session }: { session: AISession }) 
     >
       {result && (
         <div className={styles.result}>
-          <Value value={result.data} />
+          <JsonValue value={result.data} />
         </div>
       )}
 

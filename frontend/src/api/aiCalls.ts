@@ -29,6 +29,8 @@ export interface AICall {
   tokens_out: number | null;
   latency_ms: number | null;
   starred: boolean;
+  /** Which kind of entity a feature serving several ran on ("location", "culture"). */
+  element_type?: string | null;
   /** null once the payload has aged out of retention, or been purged. */
   payload: AICallPayload | null;
 }

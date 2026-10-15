@@ -1,0 +1,100 @@
+/* A call's response, Readable or Raw (ResponseView.tsx). The switch is a segmented control,
+   as the logo menu's colour mode: a vellum well, the chosen side lifted onto paper. */
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.seg {
+  align-self: flex-start;
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--radius);
+  background: var(--color-surface-3);
+}
+
+.segBtn {
+  height: 1.5rem;
+  padding: 0 0.6rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.segBtn:hover {
+  color: var(--color-text);
+}
+
+.segBtn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.segOn {
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.pre,
+.readable {
+  margin: 0;
+  padding: 0.5rem 0.6rem;
+  max-height: 22rem;
+  overflow: auto;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  color: var(--color-text);
+}
+
+.pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.readable {
+  overflow-wrap: anywhere;
+}
+
+.markdown > :first-child {
+  margin-top: 0;
+}
+
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown p,
+.markdown ul,
+.markdown ol {
+  margin: 0.4em 0;
+}
+
+.markdown ul,
+.markdown ol {
+  padding-left: 1.4em;
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  margin: 0.75em 0 0.3em;
+  font-size: 1em;
+  font-weight: 600;
+}
+
+.markdown code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  background: var(--color-surface-3);
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-sm);
+}

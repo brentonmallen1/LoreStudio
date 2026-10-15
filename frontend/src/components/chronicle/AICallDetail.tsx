@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, Copy, ShieldCheck } from "lucide-react";
 import { aiCallsApi, type AICall } from "../../api/aiCalls";
 import { AI_FEATURE_CLASS_DESCRIPTIONS, type AIFeatureClass } from "../../lib/ai/features.generated";
+import ResponseView from "./ResponseView";
 import styles from "./AICallDetail.module.css";
 
 const TABS = ["Prompt", "Response", "Thinking", "Options", "Context"] as const;
@@ -124,7 +125,7 @@ export default function AICallDetail({ logId }: { logId: string }) {
               ))}
             </div>
           )}
-          {tab === "Response" && <pre className={styles.pre}>{payload.raw_response || "(empty)"}</pre>}
+          {tab === "Response" && <ResponseView call={call} raw={payload.raw_response} />}
           {tab === "Thinking" && (
             <pre className={styles.pre}>{payload.thinking || "This call did not return any reasoning."}</pre>
           )}

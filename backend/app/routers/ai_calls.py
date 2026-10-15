@@ -48,6 +48,9 @@ class AICallOut(BaseModel):
     tokens_out: int | None
     latency_ms: int | None
     starred: bool
+    #: Which kind of entity a feature serving several ran on ("location" or "culture" for
+    #: element-suggest), so the Chronicle can show the answer in its shape.
+    element_type: str | None = None
     #: Absent once the payload has aged out of its retention window, or been purged.
     payload: AICallPayloadOut | None
 
@@ -111,6 +114,7 @@ def _to_out(db: Session, log: ActivityLog, user: User, payload: AICallPayload | 
         tokens_out=meta.get("tokens_out"),
         latency_ms=meta.get("latency_ms"),
         starred=log.starred,
+        element_type=meta.get("element_type"),
         payload=AICallPayloadOut(
             system_prompt=payload.system_prompt,
             messages=payload.messages or [],
