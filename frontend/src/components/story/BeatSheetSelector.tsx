@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight, ListTree, Settings2 } from "lucide-react";
 import { api } from "../../api/client";
+import { inPatternOrder } from "../../lib/patterns";
 import { useStoryStore } from "../../stores/storyStore";
 import BeatSheetManagerDialog from "./BeatSheetManagerDialog";
 import styles from "./BeatSheetSelector.module.css";
@@ -33,9 +34,10 @@ export default function BeatSheetSelector({ value, onChange, onShowOnOutline }: 
           className={styles.select}
           value={value ?? ""}
           onChange={(e) => onChange(e.target.value || null)}
+          aria-label="Classic pattern"
         >
           <option value="">None</option>
-          {sheets.map((s) => (
+          {inPatternOrder(sheets).map((s) => (
             <option key={s.id} value={s.id}>
               {s.name}
             </option>
@@ -44,8 +46,8 @@ export default function BeatSheetSelector({ value, onChange, onShowOnOutline }: 
         <button
           className={styles.manageBtn}
           onClick={() => setShowManager(true)}
-          title="Manage beat sheets"
-          aria-label="Manage beat sheets"
+          title="Manage patterns, or make your own"
+          aria-label="Manage patterns, or make your own"
         >
           <Settings2 size={13} />
         </button>
@@ -56,7 +58,7 @@ export default function BeatSheetSelector({ value, onChange, onShowOnOutline }: 
           <div className={styles.previewRow}>
             <button className={styles.toggleBtn} onClick={() => setExpanded((e) => !e)}>
               {expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
-              <span>{active.beats.length} beats</span>
+              <span>{active.beats.length} moments</span>
             </button>
             {onShowOnOutline && (
               <button className={styles.injectBtn} onClick={onShowOnOutline}>

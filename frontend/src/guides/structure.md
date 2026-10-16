@@ -44,6 +44,17 @@ In Studio mode, **Fill the tray from my prose**, under the Outline's ⋯, reads 
 
 Every change can be undone with {{key:undo}}.
 
+## Classic patterns
+
+A **classic pattern** is a list of moments many stories share, and roughly where each one falls: **Three turning points**, **Save the Cat**, **The story circle** and **The hero's journey**, plus any you make yourself. Turning one on changes nothing in your story; it shows on your Outline, so you can see which moments you have and which you might want.
+
+- **Pattern**, at the top of the Outline, chooses one, or **None**. It's the same choice as **Classic pattern** on Story identity and as following a pattern in Plan with questions.
+- A scene that carries a moment wears a small tag with the moment's name. Click it for what the moment is, in plain words, and **Not this one** to take it off.
+- **Where your story stands**, above the Outline, puts each moment where it tends to fall: filled when a scene carries it, dashed when nothing does yet, over a bar of how much of the story has words (the share of its scenes with words in them). Click a moment for its card: what it is, roughly where it falls, and **In your story**, the scene that carries it, with **Open in the Outline** and **Not this one**. **Give it to a scene…** chooses one.
+- Unfold a scene in the List to choose the moment it carries, under **Carries the moment**.
+
+Moments with nothing there yet aren't mistakes. A pattern is a map of what often works, not a rule.
+
 ## Acts
 
 Narrowed, the strip marks each act with its numeral (**I**, **II**, **III**) and each chapter with its number, counted through the whole book. The Outline shows the same numbers beside each act and chapter. Hover over a numeral to see the act's title and how long it is; click it to open the act's page.

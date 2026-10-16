@@ -24,7 +24,7 @@ In Studio mode, the Snowflake steps offer **Get guidance on this answer**: the A
 
 Each line of the scene list is a real scene in your **Outline**, marked **planned** until it has words. Press **Enter** at the end of the last line to add the next one. **In your Outline now**, under the list, says how many there are and opens the Outline.
 
-On a classic pattern, **Plan a scene for this beat** places the scene beside its neighbouring moments, so you can plan in any order.
+On a classic pattern, **Plan a scene for this moment** places the scene beside its neighbouring moments, so you can plan in any order.
 
 ## The plan where you write
 

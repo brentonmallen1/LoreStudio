@@ -7,7 +7,9 @@ import { DRAFT_ID, partSummary, type Row, type Shape } from "../../lib/outline/t
 import { findNode } from "../layout/structureTreeMeta";
 import { useStoryStore } from "../../stores/storyStore";
 import Term from "../common/Term";
+import MomentTag from "./MomentTag";
 import OutlineMark from "./OutlineMark";
+import { useActiveSheet } from "./usePattern";
 import styles from "./Outline.module.css";
 
 export interface RowProps {
@@ -117,6 +119,7 @@ export default function OutlineRow(props: RowProps) {
         </span>
         {container && !draft && <span className={styles.meta}>{partSummary(node, depth, shape)}</span>}
         {scene && !draft && !node.word_count && <span className={styles.meta}>planned, no words yet</span>}
+        {scene && !draft && <SceneMoment nodeId={node.id} beatId={node.beat_id} />}
         {scene && !draft && (
           <button
             type="button"
@@ -130,6 +133,43 @@ export default function OutlineRow(props: RowProps) {
         )}
       </div>
       {scene && open && !draft && <SceneDetails storyId={storyId} nodeId={node.id} />}
+    </div>
+  );
+}
+
+/** The moment of the classic pattern turned on that a scene carries, as a tag (doc 29 D5). */
+function SceneMoment({ nodeId, beatId }: { nodeId: string; beatId: string | null | undefined }) {
+  const { sheet, beatOf, carry } = useActiveSheet();
+  const beat = beatOf(beatId);
+  if (!sheet || !beat) return null;
+  return <MomentTag beat={beat} pattern={sheet.name} onClear={() => void carry(nodeId, null)} />;
+}
+
+/** Which moment of the pattern turned on the scene carries, chosen from its unfolded row. */
+function CarriesMoment({ nodeId, beatId }: { nodeId: string; beatId: string | null | undefined }) {
+  const { sheet, carry } = useActiveSheet();
+  if (!sheet) return null;
+  const known = sheet.beats.some((b) => b.id === beatId);
+  return (
+    <div>
+      <dt>Carries the moment</dt>
+      <dd>
+        <select
+          className={styles.momentSelect}
+          value={known ? (beatId ?? "") : ""}
+          aria-label={`The moment of ${sheet.name} this scene carries`}
+          onChange={(e) => void carry(nodeId, e.target.value || null)}
+        >
+          <option value="">None</option>
+          {[...sheet.beats]
+            .sort((a, b) => a.position_pct - b.position_pct)
+            .map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+        </select>
+      </dd>
     </div>
   );
 }
@@ -157,6 +197,7 @@ function SceneDetails({ storyId, nodeId }: { storyId: string; nodeId: string }) 
           <dt>Status</dt>
           <dd>{statusWords(node)}</dd>
         </div>
+        <CarriesMoment nodeId={node.id} beatId={node.beat_id} />
       </dl>
       <div className={styles.detailActions}>
         <Link to={`/stories/${storyId}/write/${node.id}`} className={styles.secondary}>

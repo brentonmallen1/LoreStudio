@@ -52,9 +52,12 @@ interface Draft {
 export default function OutlineList({
   storyId,
   startAfter,
+  reveal,
 }: {
   storyId: string;
   startAfter?: string | null;
+  /** A scene to show, unfolded, from a pattern's moment card ("Open in the Outline"). */
+  reveal?: { id: string; n: number } | null;
 }) {
   const structure = useStoryStore((s) => s.structure);
   const template = useStoryStore((s) => s.activeTemplate);
@@ -105,6 +108,28 @@ export default function OutlineList({
   }
   // What a key asked to focus, once the rows it needs are drawn.
   useLayoutEffect(focusNow);
+  // "Open in the Outline" from a moment card: the parts above it unfolded, the scene open,
+  // worked out as the request arrives (not in an effect), then the row scrolled to.
+  const [revealed, setRevealed] = useState(0);
+  if (reveal && reveal.n !== revealed) {
+    setRevealed(reveal.n);
+    const ups: string[] = [];
+    for (let at = placeOf(structure, reveal.id); at?.parent; at = placeOf(structure, at.parent.id))
+      ups.push(at.parent.id);
+    if (ups.some((id) => folded.has(id))) {
+      const next = new Set([...folded].filter((id) => !ups.includes(id)));
+      saveFolded(storyId, next);
+      setFolded(next);
+    }
+    if (!open.has(reveal.id)) setOpen(new Set(open).add(reveal.id));
+  }
+  useLayoutEffect(() => {
+    if (!revealed || !reveal) return;
+    const row = find(reveal.id, "row");
+    row?.scrollIntoView({ block: "center" });
+    row?.focus({ preventScroll: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per reveal asked for
+  }, [revealed]);
   const focusOn = (id: string, at: At, caret?: "start" | "end") => {
     pending.current = { id, at, caret };
     focusNow();

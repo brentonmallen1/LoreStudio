@@ -71,7 +71,7 @@ function EditView({
           className={styles.input}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="My beat sheet"
+          placeholder="My pattern"
           autoFocus
         />
       </div>
@@ -87,17 +87,17 @@ function EditView({
 
       <div className={styles.beatsSection}>
         <div className={styles.beatsHeader}>
-          <span className={styles.label}>Beats</span>
+          <span className={styles.label}>Moments</span>
           <button className={styles.addBeatBtn} onClick={addBeat}>
-            <Plus size={11} /> Add beat
+            <Plus size={11} /> Add a moment
           </button>
         </div>
         <div className={styles.beatTable}>
           <div className={styles.beatTableHead}>
             <span />
-            <span>Position %</span>
+            <span>Where, in %</span>
             <span>Name</span>
-            <span>Description</span>
+            <span>What happens</span>
             <span />
           </div>
           {beats.map((beat) => (
@@ -126,7 +126,7 @@ function EditView({
                 placeholder="Optional description"
               />
               <button
-                aria-label="Remove this beat"
+                aria-label="Remove this moment"
                 className={styles.removeBeatBtn}
                 onClick={() => removeBeat(beat.id)}
               >
@@ -145,7 +145,7 @@ function EditView({
         </button>
         <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
           <Check size={13} />
-          {saving ? "Saving…" : "Save beat sheet"}
+          {saving ? "Saving…" : "Save pattern"}
         </button>
       </div>
     </div>
@@ -187,7 +187,7 @@ export default function BeatSheetManagerDialog({ onClose, onSheetsChanged }: Pro
     <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className={styles.dialog}>
         <div className={styles.dialogHeader}>
-          <h2 className={styles.dialogTitle}>Custom beat sheets</h2>
+          <h2 className={styles.dialogTitle}>Your own patterns</h2>
           <button aria-label="Close" className={styles.closeBtn} onClick={onClose}>
             <X size={15} />
           </button>
@@ -202,11 +202,11 @@ export default function BeatSheetManagerDialog({ onClose, onSheetsChanged }: Pro
         ) : (
           <div className={styles.listView}>
             <p className={styles.hint}>
-              Make your own <Term id="beat-sheet">beat sheet</Term>: a list of beats, each placed where it
-              lands in the story.
+              Make your own <Term id="beat-sheet">classic pattern</Term>: a list of moments, each placed where
+              it lands in the story.
             </p>
             {sheets.length === 0 ? (
-              <div className={styles.empty}>No custom beat sheets yet</div>
+              <div className={styles.empty}>None of your own yet</div>
             ) : (
               <div className={styles.sheetList}>
                 {sheets.map((sheet) => (
@@ -231,7 +231,7 @@ export default function BeatSheetManagerDialog({ onClose, onSheetsChanged }: Pro
                         </div>
                       ) : (
                         <button
-                          aria-label="Delete this beat sheet"
+                          aria-label="Delete this pattern"
                           className={styles.deleteBtn}
                           onClick={() => setPendingDeleteId(sheet.id)}
                           disabled={deletingId === sheet.id}
@@ -245,7 +245,7 @@ export default function BeatSheetManagerDialog({ onClose, onSheetsChanged }: Pro
               </div>
             )}
             <button className={styles.newBtn} onClick={() => setEditing("new")}>
-              <Plus size={13} /> New beat sheet
+              <Plus size={13} /> New pattern
             </button>
           </div>
         )}

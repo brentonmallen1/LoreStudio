@@ -63,7 +63,7 @@ export default function BeatStep({
 
   return (
     <div className={styles.stepBody}>
-      {carrying.length === 0 && <p className={styles.quiet}>No scene carries this beat yet.</p>}
+      {carrying.length === 0 && <p className={styles.quiet}>No scene carries this moment yet.</p>}
       <ol className={styles.sceneList}>
         {carrying.map((scene) => (
           <li key={scene.id} className={styles.sceneItem}>
@@ -75,7 +75,7 @@ export default function BeatStep({
               onOpen={() => navigate(`/stories/${storyId}/write?node=${scene.id}`)}
             />
             <button className={styles.linkBtn} onClick={() => assign(scene.id, null)}>
-              Not this beat
+              Not this one
             </button>
           </li>
         ))}
@@ -83,14 +83,14 @@ export default function BeatStep({
       <div className={styles.beatActions}>
         <button className={styles.addRow} onClick={add}>
           <Plus size={13} />
-          Plan a scene for this beat
+          Plan a scene for this moment
         </button>
         {others.length > 0 && (
           <select
             className={styles.input}
             value=""
             onChange={(e) => e.target.value && assign(e.target.value, beatId)}
-            aria-label="Give this beat to a scene you have"
+            aria-label="Give this moment to a scene you have"
           >
             <option value="">…or give it to a scene you have</option>
             {others.map((s) => (

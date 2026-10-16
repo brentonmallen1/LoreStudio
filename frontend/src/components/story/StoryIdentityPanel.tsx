@@ -95,7 +95,7 @@ import styles from "./StoryIdentityPanel.module.css";
 
   /** The pattern shown on the Outline, where its moments tag the scenes (doc 29 D5). */
   function showOnOutline() {
-    navigate(`/stories/${storyId}/outline?pattern=show`);
+    navigate(`/stories/${storyId}/outline`);
   }
 
   function updateBeatSheet(id: string | null) {

@@ -43,11 +43,11 @@ export const PLANNING = [
   },
   {
     id: "beat-sheet",
-    term: "Beat sheet",
+    term: "Classic pattern",
     definition:
-      "A list of moments many stories share, with roughly where each falls. A map of what often works, not a rule.",
+      "A list of moments many stories share, with roughly where each falls, such as Save the Cat or the hero's journey. Shown on your Outline, it tags the scenes that carry each moment. A map of what often works, not a rule.",
     example: "The Last Lighthouse follows Save the Cat: “The Gap” is its midpoint.",
-    alsoCalled: ["classic pattern", "story structure"],
+    alsoCalled: ["beat sheet", "story structure"],
   },
   {
     id: "inciting-incident",
@@ -71,7 +71,22 @@ export const PLANNING = [
   {
     id: "pinch-point",
     term: "Pinch point",
-    definition: "A reminder, between the big turns, of how strong the opposing force is.",
+    definition:
+      "A squeeze between the big turns: a reminder of how strong whatever stands in the way is, so the stakes feel real.",
+  },
+  {
+    id: "turning-point",
+    term: "Turning point",
+    definition:
+      "A moment that sends the story in a new direction, usually by a choice the main character can't take back. Three turning points split a story into its beginning, middle and end.",
+    alsoCalled: ["plot point"],
+  },
+  {
+    id: "b-story",
+    term: "B story",
+    definition:
+      "A second story running beside the main one, often a friendship or a love, that carries what the story is about. The B just means second.",
+    alsoCalled: ["subplot"],
   },
   {
     id: "try-fail",

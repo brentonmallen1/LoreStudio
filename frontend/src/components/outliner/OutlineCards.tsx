@@ -10,7 +10,9 @@ import { useStoryStore } from "../../stores/storyStore";
 import CardColumns from "./CardColumns";
 import OutlineMark from "./OutlineMark";
 import { useOutlineActions } from "./useOutlineActions";
+import { useActiveSheet } from "./usePattern";
 import { ideaDrag, useTrayContext } from "./useTray";
+import patternStyles from "./Pattern.module.css";
 import styles from "./Outline.module.css";
 
 /**
@@ -24,6 +26,7 @@ export default function OutlineCards({ storyId }: { storyId: string }) {
   const shape = shapeOf(template);
   const actions = useOutlineActions(storyId);
   const tray = useTrayContext();
+  const { beatOf } = useActiveSheet();
   const columns = cardColumns(structure, shape);
   const dragged = useRef<string | null>(null);
   const [drop, setDrop] = useState<{ id: string; zone: "above" | "below" | "into" } | null>(null);
@@ -105,6 +108,9 @@ export default function OutlineCards({ storyId }: { storyId: string }) {
                   <OutlineMark status={sceneStatus(scene)} />
                   <span className={styles.cardTitle}>{scene.title || "Untitled scene"}</span>
                 </span>
+                {beatOf(scene.beat_id) && (
+                  <span className={patternStyles.cardTag}>{beatOf(scene.beat_id)?.name}</span>
+                )}
                 {scene.synopsis && <span className={styles.cardWhat}>{scene.synopsis}</span>}
                 <span className={styles.cardMeta}>
                   {scene.word_count ? `${scene.word_count.toLocaleString()} words` : "planned, no words yet"}

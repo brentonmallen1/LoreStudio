@@ -376,6 +376,22 @@
   color: var(--color-text);
 }
 
+.momentSelect {
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+
+.momentSelect:focus {
+  border-color: var(--color-accent);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
 .detailActions {
   display: flex;
   flex-wrap: wrap;

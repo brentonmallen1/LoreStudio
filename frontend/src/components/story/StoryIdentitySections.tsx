@@ -250,10 +250,11 @@ export function Form({
         </div>
         <div>
           <p className={styles.subFieldLabel}>
-            <Term id="beat-sheet">Beat sheet</Term>
+            <Term id="beat-sheet">Classic pattern</Term>
           </p>
           <p className={styles.fieldHint}>
-            Optional story structure framework. Helps track where key beats fall relative to your word count.
+            Optional. A list of moments many stories share, shown on your Outline so you can see which you
+            have. It changes nothing in the story.
           </p>
           <BeatSheetSelector value={beatSheetId} onChange={onBeatSheet} onShowOnOutline={onShowOnOutline} />
         </div>

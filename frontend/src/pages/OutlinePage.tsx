@@ -8,6 +8,8 @@ import OutlineEmpty from "../components/outliner/OutlineEmpty";
 import OutlineList from "../components/outliner/OutlineList";
 import OutlinePanel from "../components/outliner/OutlinePanel";
 import OutlineTimeCards from "../components/outliner/OutlineTimeCards";
+import PatternPicker from "../components/outliner/PatternPicker";
+import PatternStrip from "../components/outliner/PatternStrip";
 import Tray from "../components/outliner/Tray";
 import { TrayContext, useTray } from "../components/outliner/useTray";
 import { useInPanelPage } from "../components/panel/inPanelPage";
@@ -39,7 +41,7 @@ const TRAY_BESIDE = 820;
  * Logo menu › Outline (doc 29 D2, D3): what happens, part by part. A real outliner over the
  * story's acts, chapters and scenes, as a List or as Cards (once the Storyboard), each as the
  * reader meets it or as it happens, with the Not placed yet tray of ideas beside it (once the
- * beat boards). Beside the prose it is the same lines, narrow, with the scene being written
+ * beat boards), and a classic pattern shown over it when one is on (D5). Beside the prose it is the same lines, narrow, with the scene being written
  * marked and the tray under them.
  */
 export default function OutlinePage({ storyId }: { storyId: string }) {
@@ -56,6 +58,7 @@ function OutlineFull({ storyId }: { storyId: string }) {
   const [orderChosen, setOrderState] = useState<OutlineOrder>(loadOrder);
   const [started, setStarted] = useState<string | null>(null);
   const [filling, setFilling] = useState(false);
+  const [reveal, setReveal] = useState<{ id: string; n: number } | null>(null);
   const structure = useStoryStore((s) => s.structure);
   const template = useStoryStore((s) => s.activeTemplate);
   const story = useStoryStore((s) => s.activeStory);
@@ -85,6 +88,13 @@ function OutlineFull({ storyId }: { storyId: string }) {
     if (askedView || askedOrder) setParams({}, { replace: true });
   }
 
+  /** A moment card's "Open in the Outline": the List, as the reader meets it, at that scene. */
+  function revealScene(id: string) {
+    if (view !== "list") setView("list");
+    if (order !== "reader") setOrder("reader");
+    setReveal((r) => ({ id, n: (r?.n ?? 0) + 1 }));
+  }
+
   const blank = !started && isBlank(structure, shape);
   const body = blank ? (
     <OutlineEmpty storyId={storyId} style={styleOf(story)} onStarted={setStarted} />
@@ -99,7 +109,7 @@ function OutlineFull({ storyId }: { storyId: string }) {
       <TimelineView storyId={storyId} />
     </Suspense>
   ) : (
-    <OutlineList key={started ?? "list"} storyId={storyId} startAfter={started} />
+    <OutlineList key={started ?? "list"} storyId={storyId} startAfter={started} reveal={reveal} />
   );
 
   return (
@@ -111,7 +121,12 @@ function OutlineFull({ storyId }: { storyId: string }) {
           view={view}
           onView={setView}
           summary={blank ? undefined : outlineSummary(structure, shape)}
-          aside={ai ? <AIFeatureInfoTrigger pageId="outline" size="sm" /> : undefined}
+          aside={
+            <>
+              {!blank && <PatternPicker />}
+              {ai && <AIFeatureInfoTrigger pageId="outline" size="sm" />}
+            </>
+          }
           more={
             ai
               ? [
@@ -145,7 +160,10 @@ function OutlineFull({ storyId }: { storyId: string }) {
         <div className={styles.scroll} ref={scroller}>
           <div className={view === "cards" && !blank ? styles.wide : styles.content}>
             <div className={styles.withTray} data-narrow={narrow || undefined}>
-              <div className={styles.outlineSide}>{body}</div>
+              <div className={styles.outlineSide}>
+                {!blank && <PatternStrip onReveal={revealScene} />}
+                {body}
+              </div>
               <Tray tray={tray} fold={narrow} />
             </div>
           </div>
