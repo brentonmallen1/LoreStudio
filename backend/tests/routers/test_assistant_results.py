@@ -67,7 +67,7 @@ def test_clear_deletes_one_answer(client, mock_ai_gateway):
 
 def test_an_unknown_subject_type_is_refused(client):
     sid, _ = _story_and_place(client)
-    r = client.get(f"/api/stories/{sid}/assistant-results?subject_type=story&subject_id=x")
+    r = client.get(f"/api/stories/{sid}/assistant-results?subject_type=chapter&subject_id=x")
     assert r.status_code == 400
 
 
@@ -114,8 +114,12 @@ def test_the_lighthouse_keeps_one_answer_on_a_place(db_session, monkeypatch):
     seed.seed_demo_story()
 
     story = db_session.query(Story).filter(Story.title == sample_titles.NOVEL).one()
-    [answer] = db_session.query(AssistantResult).filter_by(story_id=story.id).all()
+    [answer] = db_session.query(AssistantResult).filter_by(story_id=story.id, subject_type="location").all()
     place = db_session.get(Location, answer.subject_id)
     assert (answer.subject_type, answer.feature, place.name) == ("location", "what-exists", "The Lighthouse")
     assert answer.data["questions"]
     assert db_session.get(ActivityLog, answer.ai_call_log_id).metadata_["feature"] == "what-exists"
+    # A7: the last session's recap is kept on the story, so the Overview shows it.
+    [recap] = db_session.query(AssistantResult).filter_by(story_id=story.id, subject_type="story").all()
+    assert (recap.subject_id, recap.feature) == (story.id, "session-recap")
+    assert recap.data["text"].startswith("Last time")

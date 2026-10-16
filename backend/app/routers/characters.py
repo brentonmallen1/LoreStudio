@@ -840,4 +840,4 @@ async def analyze_voice_fidelity(
     )
     db.add(log)
     db.commit()
-    return result
+    return assistant_results.keep(db, result, ctx, subject_type="character", subject_id=character_id)

@@ -16,8 +16,10 @@ class AssistantResult(Base):
 
     One per thing and feature: asking again replaces it, Clear deletes it. The subject is a
     row of any Lorebook or Promises kind (``subject_type`` / ``subject_id``, no foreign key,
-    the ``Note.about_id`` pattern); the listener below drops the answers of a row that is
-    deleted. It is an AI answer, not story data: undo and snapshots leave it be.
+    the ``Note.about_id`` pattern), a scene or section, an image, an outline, or the story
+    itself (``subject_type`` "story", ``subject_id`` its id); the listener below drops the
+    answers of a row that is deleted, and the story's go with it. It is an AI answer, not
+    story data: undo and snapshots leave it be.
     """
 
     __tablename__ = "assistant_results"
@@ -60,12 +62,19 @@ SUBJECT_TYPE_BY_TABLE = {
     "location_travel": "location_travel",
     "plot_threads": "plot_thread",
     "twists": "twist",
+    # A7: the answers that are about a scene or section, an image, or an outline.
+    "structure_nodes": "node",
+    "story_assets": "image",
+    "outlines": "outline",
 }
+
+#: Every subject type: a row of one of the tables above, or the story as a whole.
+SUBJECT_TYPES = frozenset({*SUBJECT_TYPE_BY_TABLE.values(), "story"})
 
 
 @event.listens_for(Session, "after_flush")
 def _drop_answers_of_deleted_rows(session: Session, _ctx) -> None:
-    """A deleted character, place or thread takes its kept answers with it."""
+    """A deleted character, place, scene or image takes its kept answers with it."""
     gone: dict[str, list[str]] = {}
     for obj in session.deleted:
         subject_type = SUBJECT_TYPE_BY_TABLE.get(getattr(obj, "__tablename__", ""))

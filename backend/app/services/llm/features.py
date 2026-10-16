@@ -209,8 +209,11 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         label="Arc Analysis",
         group="analyse",
         classification="analyse",
-        description="How the story arc is tracking against its stated shape.",
-        context=("Story structure", "Scene synopses", "Narrative intent"),
+        description=(
+            "A character's arc as the prose has it: its trajectory, where it drifts from the arc you "
+            "planned, its health, and the moments that move it."
+        ),
+        context=("Character profile and planned arc", "Arc milestones", "Scenes mentioning them"),
         budget=BUDGET_LARGE,
     ),
     AIFeature(
@@ -223,10 +226,10 @@ AI_FEATURES: tuple[AIFeature, ...] = (
     ),
     AIFeature(
         id="character-arc",
-        label="Character Arc Analysis",
+        label="Arc So Far",
         group="analyse",
         classification="analyse",
-        description="Where a character stands in their arc right now.",
+        description="A short account, in prose, of where a character stands in their arc right now.",
         context=("Character profile and arc notes", "Arc milestones", "Scenes mentioning them"),
     ),
     AIFeature(

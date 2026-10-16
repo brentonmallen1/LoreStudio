@@ -52,7 +52,7 @@ SKIP_FILES = ("backend/app/services/seed.py",)
 #: list is the work. Lower a number when the file shrinks; delete the line when
 #: it comes under budget. Never raise one.
 OVER_BUDGET: dict[str, int] = {
-    "backend/app/routers/analysis.py": 1458,
+    "backend/app/routers/analysis.py": 1446,
     "frontend/src/types/index.ts": 1449,
     "frontend/src/api/client.ts": 1085,
     "backend/app/services/llm/prompts/analysis.py": 1127,

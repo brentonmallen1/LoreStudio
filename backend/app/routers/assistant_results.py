@@ -1,4 +1,4 @@
-"""Kept Assistant answers (A6): read a subject's answers, and clear one.
+"""Kept Assistant answers (A6, A7): read a subject's answers, and clear one.
 
 They are written by the feature routes themselves (`assistant_results.keep`), so asking
 again is running the feature again; there is nothing to create here.
@@ -44,11 +44,12 @@ def _story(story_id: str, db: Session, user: User) -> Story:
 def list_results(
     story_id: str,
     subject_type: str = Query(...),
-    subject_id: str = Query(...),
+    subject_id: str | None = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """A subject's kept answers, the newest first."""
+    """A subject's kept answers, the newest first; without `subject_id`, every answer about a
+    thing of that type (the Compendium's images, read in one call)."""
     _story(story_id, db, current_user)
     if subject_type not in assistant_results.SUBJECT_TYPES:
         raise HTTPException(status_code=400, detail=f"Unknown subject type {subject_type!r}")

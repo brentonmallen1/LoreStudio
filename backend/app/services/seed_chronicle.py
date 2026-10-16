@@ -234,20 +234,73 @@ WHAT_EXISTS = {
 }
 
 
+#: "Remind me where I left off" on the Lighthouse, as the model answered it (A7).
+RECAP = (
+    "Last time you were in the middle of the storm night. You had just let the Visitor in, "
+    "on Eleanor's conditions, and handed over her father's logs in the watch room. The scene "
+    "after that is where the Visitor starts reading.\n\n"
+    "The Lighthouse sheet also has a kept answer about what would exist there, with a "
+    "question about a missing logbook. A good place to pick up is the moment Eleanor sees "
+    "which volume the Visitor reaches for first."
+)
+
+
 def seed_lighthouse_answer(db: Session, *, user: User, story: Story, place_id: str, place_name: str) -> None:
-    """One answer kept on the Lighthouse's sheet (A6), with the call that made it in the
-    Chronicle, so Studio mode shows the kept-answer band without running the model."""
+    """Answers kept by the Assistant (A6, A7), each with the call that made it in the
+    Chronicle, so Studio mode shows them without running the model: one on the Lighthouse's
+    sheet, and the last session's recap on the story's Overview."""
     import json
 
+    at = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=2)
+    _keep(
+        db,
+        user=user,
+        story=story,
+        subject=("location", place_id),
+        feature="what-exists",
+        heading="Brainstorm what exists",
+        data=WHAT_EXISTS,
+        message=f"Help me think through what would exist at {place_name}.",
+        response=json.dumps(WHAT_EXISTS, indent=2),
+        tags=["worldbuilding", "location", "user-initiated"],
+        at=at,
+    )
+    _keep(
+        db,
+        user=user,
+        story=story,
+        subject=("story", story.id),
+        feature="session-recap",
+        heading="Session Recap",
+        data={"text": RECAP},
+        message="Give me a recap of what I've been working on.",
+        response=RECAP,
+        tags=["story", "analysis", "user-initiated"],
+        at=at + timedelta(days=1),
+    )
+
+
+def _keep(
+    db: Session,
+    *,
+    user: User,
+    story: Story,
+    subject: tuple[str, str],
+    feature: str,
+    heading: str,
+    data: dict,
+    message: str,
+    response: str,
+    tags: list[str],
+    at: datetime,
+) -> None:
+    """One kept answer and the logged call it came from."""
     from ..models.assistant_result import AssistantResult
 
-    at = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=2)
-    response = json.dumps(WHAT_EXISTS, indent=2)
-    message = f"Help me think through what would exist at {place_name}."
     log = ActivityLog(
         user_id=user.id,
         story_id=story.id,
-        event_type="ai_what_exists",
+        event_type=f"ai_{feature.replace('-', '_')}",
         category="ai",
         description=message[:80],
         created_at=at,
@@ -256,8 +309,8 @@ def seed_lighthouse_answer(db: Session, *, user: User, story: Story, place_id: s
             "tokens_in": 1840,
             "tokens_out": 260,
             "latency_ms": 9400,
-            "feature": "what-exists",
-            "tags": ["worldbuilding", "location", "user-initiated"],
+            "feature": feature,
+            "tags": tags,
             "status": "ok",
             "error": None,
             "prompt": message,
@@ -266,7 +319,7 @@ def seed_lighthouse_answer(db: Session, *, user: User, story: Story, place_id: s
             "temperature": OPTIONS["temperature"],
             "num_ctx": OPTIONS["num_ctx"],
             "thinking_enabled": False,
-            "entity_id": place_id,
+            "entity_id": subject[1],
         },
     )
     db.add(log)
@@ -285,11 +338,11 @@ def seed_lighthouse_answer(db: Session, *, user: User, story: Story, place_id: s
     db.add(
         AssistantResult(
             story_id=story.id,
-            subject_type="location",
-            subject_id=place_id,
-            feature="what-exists",
-            heading="Brainstorm what exists",
-            data=WHAT_EXISTS,
+            subject_type=subject[0],
+            subject_id=subject[1],
+            feature=feature,
+            heading=heading,
+            data=data,
             ai_call_log_id=log.id,
             created_at=at,
             updated_at=at,

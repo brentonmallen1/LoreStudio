@@ -22,7 +22,7 @@ from ..schemas.outline import (
     OutlineWithItemsOut,
     ReorderPayload,
 )
-from ..services import change_log
+from ..services import assistant_results, change_log
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.outline import build_extract_outline_prompt, build_outline_alignment_prompt
 from ..services.text_utils import prose_text
@@ -543,7 +543,7 @@ async def extract_outline_from_prose(
                 scene_id = title_to_id.get(item["suggested_scene_title"].lower(), "")
                 item["suggested_scene_id"] = scene_id
 
-    return result
+    return assistant_results.keep(db, result, ctx, subject_type="story", subject_id=story_id)
 
 
 # ── AI: Outline alignment analysis ────────────────────────────────────────────
@@ -620,7 +620,7 @@ async def analyze_outline_alignment(
         tags=["outline", "analysis", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=OutlineAlignmentResponse,
         messages=[{"role": "user", "content": f"Compare the outline '{outline.name}' against the manuscript."}],
         feature_prompt=feature_prompt,
@@ -628,3 +628,4 @@ async def analyze_outline_alignment(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, subject_type="outline", subject_id=outline_id)

@@ -2619,8 +2619,8 @@ def seed_demo_story(user_id: str | None = None):  # noqa: PLR0915
         )
         # Jobs (doc 21): a check that finished while the author was away, a stopped pass.
         seed_lighthouse_jobs(db, user=owner, story=story)
-        # A kept Assistant answer on the Lighthouse's sheet (A6): Studio mode shows it under the
-        # sheet's header; Writer mode shows no AI at all.
+        # Kept Assistant answers: one on the Lighthouse's sheet (A6), under the sheet's header,
+        # and the last session's recap on the Overview (A7). Writer mode shows no AI at all.
         seed_lighthouse_answer(db, user=owner, story=story, place_id=lighthouse.id, place_name=lighthouse.name)
 
         # Counted from the prose, as the editor counts, not written in by hand.

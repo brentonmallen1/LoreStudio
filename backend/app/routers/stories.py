@@ -27,7 +27,7 @@ from ..schemas.story import (
     StoryUpdate,
 )
 from ..schemas.structure import ReorderStructurePayload, StructureNodeCreate, StructureNodeMeta, StructureNodeOut
-from ..services import change_log
+from ..services import assistant_results, change_log
 from ..services.codex.mentions import render_mentions, resolve_mentions
 from ..services.color_slots import next_slot
 from ..services.llm.gateway import AICallContext, ai_gateway
@@ -380,6 +380,9 @@ async def summarize_story(
         context=ctx,
         db=db,
         user=current_user,
+        on_complete=assistant_results.keep_text(
+            db, ctx, "story", story_id, extra={"style": style, "up_to": up_to_title or ""}
+        ),
     )
 
 
@@ -413,9 +416,12 @@ async def snowflake_guidance(
     if story.paragraph_summary:
         context_parts.append(f"One-paragraph summary: {story.paragraph_summary}")
 
+    # Guidance is kept per layer on what it is about: the character's own layers on them.
+    kept_on = ("story", story_id)
     if character_id and layer in ("character_summary", "character_synopsis"):
         char = db.get(Character, character_id)
         if char and char.story_id == story_id:
+            kept_on = ("character", char.id)
             if char.name:
                 context_parts.append(f"Character: {char.name} ({char.role})")
             if layer == "character_synopsis":
@@ -446,6 +452,7 @@ async def snowflake_guidance(
         context=ctx,
         db=db,
         user=current_user,
+        on_complete=assistant_results.keep_text(db, ctx, *kept_on, feature=f"snowflake-guidance:{layer}"),
     )
 
 
@@ -520,7 +527,9 @@ async def suggest_relationships(
             s["character_a_id"] = resolve_name(s.get("character_a") or "")
             s["character_b_id"] = resolve_name(s.get("character_b") or "")
 
-    return result
+    # Kept on the character they were asked for, or on the story for the whole cast.
+    kept_on = ("character", focus_char.id) if focus_char else ("story", story_id)
+    return assistant_results.keep(db, result, ctx, subject_type=kept_on[0], subject_id=kept_on[1])
 
 
 @router.get("/{story_id}/structure", response_model=list[StructureNodeMeta])
