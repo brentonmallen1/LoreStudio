@@ -92,7 +92,7 @@ export function HowYouWork({
             aria-pressed={firstStory}
             onClick={() => onFirstStory(!firstStory)}
           >
-            {firstStory ? "Don't use the guide" : "Use My first story"}
+            {firstStory ? "Don't use the guide" : "Use the First story guide"}
           </button>
         </div>
       )}

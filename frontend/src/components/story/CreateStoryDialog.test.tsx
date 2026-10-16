@@ -70,7 +70,7 @@ describe("New Story", () => {
 
   it("offers the First story guide as one line, and starts there when chosen", async () => {
     await setup();
-    fireEvent.click(screen.getByRole("button", { name: "Use My first story" }));
+    fireEvent.click(screen.getByRole("button", { name: "Use the First story guide" }));
     fireEvent.click(screen.getByRole("button", { name: "Start the guide" }));
     await waitFor(() => expect(screen.getByTestId("at").textContent).toBe("/stories/new-1/first-story"));
   });
@@ -78,6 +78,6 @@ describe("New Story", () => {
   it("offers the guide for prose only", async () => {
     await setup();
     fireEvent.click(screen.getByLabelText("A screenplay"));
-    expect(screen.queryByRole("button", { name: "Use My first story" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Use the First story guide" })).toBeNull();
   });
 });

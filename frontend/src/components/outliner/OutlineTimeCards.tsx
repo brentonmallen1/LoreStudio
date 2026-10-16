@@ -10,6 +10,7 @@ import { movedPositions, timelineRows } from "../../lib/timeline";
 import { useStoryStore } from "../../stores/storyStore";
 import { toast } from "../../stores/toastStore";
 import type { Era, StructureNode } from "../../types";
+import CardColumns from "./CardColumns";
 import OutlineMark from "./OutlineMark";
 import styles from "./Outline.module.css";
 
@@ -54,7 +55,7 @@ export default function OutlineTimeCards({ storyId }: { storyId: string }) {
 
   return (
     <div className={styles.cardsWrap}>
-      <div className={styles.columns}>
+      <CardColumns label="The scenes as it happens, a column each">
         {columns.map((col) => (
           <section key={col.key} className={styles.column} aria-label={col.title}>
             <h3 className={styles.columnTitle}>{col.title}</h3>
@@ -95,7 +96,7 @@ export default function OutlineTimeCards({ storyId }: { storyId: string }) {
             ))}
           </section>
         ))}
-      </div>
+      </CardColumns>
     </div>
   );
 }

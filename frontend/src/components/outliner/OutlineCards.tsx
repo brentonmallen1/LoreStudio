@@ -7,6 +7,7 @@ import { sceneStatus } from "../../lib/outline/status";
 import { cardColumns, type CardColumn } from "../../lib/outline/cards";
 import { leafDepth, levelType, levelWord, moveTo, shapeOf } from "../../lib/outline/tree";
 import { useStoryStore } from "../../stores/storyStore";
+import CardColumns from "./CardColumns";
 import OutlineMark from "./OutlineMark";
 import { useOutlineActions } from "./useOutlineActions";
 import styles from "./Outline.module.css";
@@ -53,7 +54,7 @@ export default function OutlineCards({ storyId }: { storyId: string }) {
 
   return (
     <div className={styles.cardsWrap}>
-      <div className={styles.columns} onDragEnd={() => setDrop(null)}>
+      <CardColumns label="The scenes, a column each" onDragEnd={() => setDrop(null)}>
         {columns.map((col) => (
           <section
             key={col.key}
@@ -96,7 +97,7 @@ export default function OutlineCards({ storyId }: { storyId: string }) {
             <AddCard storyId={storyId} column={col} shape={shape} />
           </section>
         ))}
-      </div>
+      </CardColumns>
       <p className={styles.notice} role="status" aria-live="polite">
         {notice}
       </p>

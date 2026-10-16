@@ -67,6 +67,7 @@
 }
 
 .secondary:focus-visible,
+.columnsStep:focus-visible,
 .chip:focus-visible,
 .fold:focus-visible,
 .more:focus-visible,
@@ -379,12 +380,82 @@
   gap: 1rem;
 }
 
+/* The row of columns can be wider than the page: the edge with more fades, the bar above
+   steps a page either way, and the scrollbar shows (CardColumns). */
+.columnsFrame {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.columnsBar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.3rem;
+}
+
+.columnsHint {
+  margin-right: 0.3rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.columnsStep {
+  composes: btn-secondary from global;
+  width: 1.867rem;
+  padding: 0;
+  justify-content: center;
+}
+
+.columnsClip {
+  position: relative;
+  min-width: 0;
+}
+
+.columnsClip::before,
+.columnsClip::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0.9rem;
+  width: 3rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 1;
+}
+
+.columnsClip::before {
+  left: 0;
+  background: linear-gradient(to right, var(--color-ground), transparent);
+}
+
+.columnsClip::after {
+  right: 0;
+  background: linear-gradient(to left, var(--color-ground), transparent);
+}
+
+.columnsClip[data-before]::before,
+.columnsClip[data-after]::after {
+  opacity: 1;
+}
+
 .columns {
   display: flex;
   align-items: flex-start;
   gap: 0.9rem;
   overflow-x: auto;
   padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-control-border) transparent;
+  border-radius: var(--radius-xl);
+  outline: none;
+}
+
+.columns:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-focus);
 }
 
 .column {
