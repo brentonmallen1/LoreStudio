@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { navigateMain } from "../../lib/panel/panelSync";
 import { sceneStatus } from "../../lib/outline/status";
+import { FROM_FIRST_LINE, sceneLine } from "../../lib/outline/summary";
 import { loadFolded, saveFolded } from "../../lib/outline/prefs";
 import { shapeOf, visibleRows } from "../../lib/outline/tree";
 import { useStoryStore } from "../../stores/storyStore";
+import type { StructureNode } from "../../types";
 import { useHoverTip } from "../common/useHoverTip";
 import { clipTipHandlers } from "./clipTip";
 import OutlineMark from "./OutlineMark";
@@ -91,7 +93,7 @@ export default function OutlinePanel({ storyId }: { storyId: string }) {
                   : node.children?.length && fold(node.id)
               }
               onDoubleClick={() => setRenaming(node.id)}
-              {...clipTipHandlers(tip, [node.title, node.synopsis].filter(Boolean).join(" · "))}
+              {...clipTipHandlers(tip, [node.title, sceneLine(node).text].filter(Boolean).join(" · "))}
             >
               {scene ? (
                 <OutlineMark status={sceneStatus(node)} />
@@ -111,11 +113,7 @@ export default function OutlinePanel({ storyId }: { storyId: string }) {
                   {node.title || "Untitled"}
                   {on && <span className={styles.panelHere}> · writing now</span>}
                 </span>
-                {scene && (node.synopsis || !node.word_count) && (
-                  <span className={styles.panelWhat} data-clip title={node.synopsis || undefined}>
-                    {node.synopsis || "planned, no words yet"}
-                  </span>
-                )}
+                {scene && <PanelLine node={node} />}
               </span>
             </button>
           );
@@ -131,5 +129,23 @@ export default function OutlinePanel({ storyId }: { storyId: string }) {
         Open the full Outline to plan at length
       </button>
     </div>
+  );
+}
+
+/** A scene's line beside the prose: its own, or its first line marked, or that it waits for words. */
+function PanelLine({ node }: { node: StructureNode }) {
+  const line = sceneLine(node);
+  if (!line.text && node.word_count) return null;
+  const text = line.text || "planned, no words yet";
+  return (
+    <span
+      className={styles.panelWhat}
+      data-clip
+      title={line.fromFirstLine ? `“${text}” (${FROM_FIRST_LINE})` : line.text || undefined}
+    >
+      {line.fromFirstLine
+        ? `${FROM_FIRST_LINE[0].toUpperCase()}${FROM_FIRST_LINE.slice(1)}: “${text}”`
+        : text}
+    </span>
   );
 }

@@ -4871,6 +4871,77 @@ def seed_short_story_demo(user_id: str | None = None):  # noqa: PLR0915
         db.commit()
 
 
+# Sixty Minutes' middle scene runs long, and the time jumps twice inside it, so What you've
+# written and the This scene tab offer to split it there (doc 29 D6). Delia, at the next table,
+# is named but not in the Lorebook: Discoveries' name scan finds her.
+SIXTY_MINUTES_MIDDLE = (
+    "<p>Marlowe\u2019s does a lunch rush that sounds like a tray of cutlery being dropped and never quite landing. The woman at the next table has been on the same page of her paperback since I sat down. She isn\u2019t reading. She is Delia, his head of communications, and she got here six minutes before he did, which means someone told her to have a look at me first.</p>"
+    "<p><em>Good. Let her look. There\u2019s nothing on this table she can\u2019t see.</em></p>"
+    "<p>I ask about the early days, because everyone likes the early days. He tells me about the garage, which was not a garage but a rented room above a dry cleaner\u2019s, and about the first server, which ran so hot that they kept it in a fridge with the door propped open. He has told this story often enough that it has a shape: a pause before the fridge, a small shrug after it, a glance at me to see whether I\u2019ve heard it before. I have. I laugh where the laugh goes. It costs me nothing, and it buys the next question.</p>"
+    "<p>\u201cPeople forget we were four engineers and a whiteboard,\u201d&lt;Victor Harlan&gt; he says. \u201cEverything since then is just the whiteboard getting bigger.\u201d</p>"
+    "<p>I write <em>whiteboard</em> in my notebook and underline it, because he watches me write and I want him to think it matters.</p>"
+    "<p>The thing about a man like Victor is that he is never only in the conversation he\u2019s having. Part of him is in the room, counting the tables, noting who has recognised him. Part of him is in the version of this interview that will be published, trimming it. Part of him, the part I\u2019m here for, is in 2019, and has been since the moment he shook my hand. He doesn\u2019t know I can see that part. Nobody ever does. It shows in the gaps: the half-beat before he answers a question that is near it, the way his hand goes to his glass when we pass close.</p>"
+    "<p>I keep us far away from it. We talk about hiring. We talk about the office in Lisbon. We talk about his daughter, who is eleven and has opinions about the company\u2019s logo, and when he tells me what they are he forgets for a second to perform, and I like him a little, which is a thing I have learned to notice and set aside.</p>"
+    "<p><em>Liking him is fine. Believing him is the mistake.</em></p>"
+    "<p>He asks about me, which is a courtesy and also a reconnaissance. Where did I train, who did I work for before, do I miss print. I give him true answers that are shorter than the questions. I tell him I miss the smell of a newsroom at deadline and the way nobody looked up when you swore. I don\u2019t tell him that the best story I ever broke started with a man at a table like this one telling me, unprompted, that he had never heard of a company he had founded.</p>"
+    "<p>Delia turns a page. She has turned four pages in fourteen minutes, each of them at a moment when Victor said something she would want to have heard twice. I write that down too, in the shorthand I learned from a court reporter in my first year, which nobody at this table can read.</p>"
+    "<p>I have a rule about interviews like this one, which I learned the hard way in my second year: never ask the question you came for until the other person has stopped expecting it. Expecting is a muscle. It tires. Everyone arrives braced, and the bracing costs them something every minute it is held, and the price is paid in small things: a joke that goes on too long, a name dropped that didn\u2019t need dropping, a hand that stops going to the glass. I watch for the hand. Right now it still goes to the glass every time we drift toward anything with a date on it.</p>"
+    "<p>\u201cYou\u2019re not recording?\u201d&lt;Victor Harlan&gt; he asks, nodding at the notebook.</p>"
+    "<p>\u201cI am.\u201d I tap the phone face down by the sugar. \u201cThe notebook is for me. It\u2019s where I put what I want to ask you later.\u201d</p>"
+    "<p>\u201cThat\u2019s a long list?\u201d&lt;Victor Harlan&gt;</p>"
+    "<p>\u201cIt\u2019s getting shorter.\u201d</p>"
+    "<p>He smiles at that, the real one, and I understand that he thinks we are flirting with the idea of a hard question rather than circling one. That\u2019s fine too. I would rather he thought I was playing. People who think you\u2019re playing keep a little less of themselves in reserve.</p>"
+    "<p>The waiter brings my coffee and a plate of something neither of us ordered, compliments of the kitchen. Victor thanks him by name. Of course he knows his name. He comes to Marlowe\u2019s so that he can be seen being the kind of man who knows the waiter\u2019s name.</p>"
+    "<p>Victor eats nothing and talks about everything. Margins. The sales team in Austin. A podcast he was on last month, which he assumes I heard; I did. He has a way of finishing a sentence by looking at me, as if he were handing me the end of it to hold, and I hold it, and I nod, and I wait for the next one. Interviews like this are mostly waiting. The trick is to wait the way a person waits for a bus, not the way a person waits for a verdict.</p>"
+    "<p>\u201cYou\u2019ve done your homework,\u201d&lt;Victor Harlan&gt; he says, when I ask about a board member by her first name. \u201cMost people get her title wrong.\u201d</p>"
+    "<p>\u201cI read a lot of org charts.\u201d</p>"
+    "<p>\u201cThat sounds lonely.\u201d&lt;Victor Harlan&gt;</p>"
+    "<p>\u201cIt has its moments.\u201d</p>"
+    "<p><em>He\u2019s testing whether I\u2019ll talk about myself. I won\u2019t. The less of me there is at this table, the more room he has to fill.</em></p>"
+    "<p>So he fills it. He tells me about the time a journalist from a business weekly spent a day following him around and wrote, in the end, mostly about his shoes. He tells it as a joke against himself, and it is also a warning, gently made: <em>other people have tried this; look what they came away with.</em> I laugh again. I look at his shoes, which are very good, and say so, and for a moment we are two people having lunch.</p>"
+    "<p>The fried things go cold. The man at the counter finishes his sandwich and leaves a tip that Victor notices, I can tell, because he notices everything that is money. I ask whether he still writes code. He says no, then yes, then explains that he reads every change to the core product and approves about one in five, which is either a lie or a very bad use of a chief executive\u2019s time, and I can\u2019t tell which yet, and I write down <em>one in five</em> in case it turns out to matter.</p>"
+    "<p>Twenty minutes later, the rush has thinned to the people who don\u2019t have offices to go back to, and I ask about growth markets. Ten minutes after that I ask about the Senate hearing. He gives me the subcommittee answer and I nod like I haven&#x27;t read the transcript.</p>"
+    "<p>I have read the transcript four times. I have read it aloud, once, in my kitchen at two in the morning, doing both voices, to hear where he slowed down. He slowed down in three places. Two of them were about the Dataloom acquisition, which is public and dull. The third was a question from a senator about pilot programmes involving minors, and his answer was eleven words long, the shortest of the day.</p>"
+    "<p><em>Eleven words. He had a paragraph for everything else.</em></p>"
+    "<p>\u201cIt was a long day,\u201d&lt;Victor Harlan&gt; he says now, as if I had asked. \u201cYou prepare for the questions you think they\u2019ll ask, and they ask about something else entirely. Usually the thing a staffer read about on the train in.\u201d</p>"
+    "<p>\u201cWhat did you think they\u2019d ask?\u201d</p>"
+    "<p>\u201cMarket share. Interoperability. The usual.\u201d&lt;Victor Harlan&gt; He lifts one shoulder. \u201cThey wanted to talk about kids. Everyone wants to talk about kids. I understand it. I\u2019m a parent.\u201d</p>"
+    "<p>He says <em>I\u2019m a parent</em> the way some people say <em>I\u2019m a lawyer</em>, as a credential rather than a fact. I let it sit. Delia\u2019s paperback doesn\u2019t move.</p>"
+    "<p>I go back to safer ground. The Lisbon office again; the four-day week they tried and quietly ended; the rumour about a hospital partnership, which he won\u2019t confirm and very much wants me to know about. He leans in when he talks about the hospital. He leans back when he talks about the Senate. I have started a column in the notebook for each, and the hospital column is longer, and both columns are about the same thing.</p>"
+    "<p>The plate from the kitchen turns out to be small fried things with a sauce. Neither of us touches them. Somewhere behind the counter a milk steamer screams and stops. Victor talks about the four-day week for longer than the four-day week deserves, and I let him, because a man explaining something he is proud of is a man practising being believed, and I want him well practised by the time it matters.</p>"
+    "<p>\u201cThe thing nobody tells you,\u201d&lt;Victor Harlan&gt; he says, \u201cis that most of running a company is deciding what not to know. You can\u2019t carry all of it. You pick the things you\u2019ll be accountable for and you trust people with the rest.\u201d</p>"
+    "<p><em>Write that down. Write it down exactly.</em></p>"
+    "<p>I write it down exactly. He watches my pen and doesn\u2019t see what it is writing, which is the whole sentence, word for word, with the time beside it.</p>"
+    "<p>A man at the counter recognises him and raises a hand. Victor raises one back without looking away from me, which is a trick, and a good one. It says <em>you have my whole attention</em> while it reminds me that half the room would like some of it.</p>"
+    "<p>\u201cCan I ask you something off the record?\u201d&lt;Victor Harlan&gt;</p>"
+    "<p>\u201cYou can ask. I\u2019ll tell you if I can\u2019t keep it off.\u201d</p>"
+    "<p>\u201cFair.\u201d He turns his glass a quarter turn on the table. \u201cWhy this story? You\u2019ve been at it, what, the better part of a year? People talk. There are bigger companies doing worse things in plain sight.\u201d&lt;Victor Harlan&gt;</p>"
+    "<p><em>He knows how long. Somebody has been counting for him.</em></p>"
+    "<p>\u201cBigger companies don\u2019t say they\u2019re different,\u201d I say. \u201cYou do. You say it on every stage you stand on. I wanted to know if it was true.\u201d</p>"
+    "<p>\u201cAnd?\u201d&lt;Victor Harlan&gt;</p>"
+    "<p>\u201cI\u2019m still at the table.\u201d</p>"
+    "<p>That lands somewhere. He looks at Delia for the first time since he sat down, a glance so short I would have missed it if I hadn\u2019t been waiting for it all morning, and she closes her paperback on her thumb.</p>"
+    "<p>Something has changed at the table, and he feels it before he can name it. He starts talking faster about less. The hospital, again. The daughter, again. A charity ride he does every spring, which he mentions twice in four minutes without noticing the first time. I keep my face where it was. I drink my coffee, which has gone cold, and I don\u2019t ask for another, because a fresh cup is a fresh start and I don\u2019t want him to have one.</p>"
+    "<p>Delia gets up to take a call. She stands by the window with the phone pressed flat to her ear and her back to us, and Victor watches her go the way you watch a lifeguard leave the pool.</p>"
+    "<p><em>Now. Not yet. Soon.</em></p>"
+    "<p>I turn the notebook to a clean page, write the date at the top, and nothing under it. He sees the blank page and relaxes by a degree. People always do. A blank page looks like a question that hasn\u2019t been decided yet. It is the most decided thing I own.</p>"
+    "<p>\u201cYou\u2019re good at this,\u201d&lt;Victor Harlan&gt; he says, not unkindly. \u201cThe silence thing. I do it in board meetings. Most people can\u2019t stand it past four seconds.\u201d</p>"
+    "<p>\u201cHow long can you stand it?\u201d</p>"
+    "<p>He thinks about it, and smiles, and doesn\u2019t answer, which is an answer.</p>"
+    "<p>We sit in it together for a while, his silence and mine, and it is almost companionable. I count to nine in my head. On ten he picks up his phone, looks at nothing on it, and puts it back down, and I write the number nine in the notebook beside the date.</p>"
+)
+
+SIXTY_MINUTES_AFTER = (
+    "<p>Delia comes back from the window and sits down without looking at either of us. Whatever the call was, it was short and it was about this table. Victor doesn\u2019t ask her. He doesn\u2019t have to. They have worked together long enough to say everything with where they put their hands.</p>"
+    "<p>Across the aisle, Delia opens her book again. Victor reaches for the plate the kitchen sent and eats one of whatever is on it, slowly, like a man with nowhere to be. The clock above the counter says we have seventeen minutes left. Seventeen minutes is a long time to wait for someone to forget something. It is also, in my experience, about how long it takes.</p>"
+    "<p>Mine are flat on the table, either side of the notebook. I have one question left and I have known for eight months what it is. What I didn\u2019t know until today was the order of everything that has to come before it: the garage, the fridge, the whiteboard, the shoes, the hospital, the daughter. All of it is runway. You can\u2019t land a question like mine on a man like this without a long, flat stretch of ground to come down on.</p>"
+    "<p>Outside, a bus pulls away from the stop on Fourth Street and the window shakes in its frame. Victor glances at it. I don\u2019t. When he looks back I\u2019m still where he left me, smiling a little, and I ask the easiest question I have left.</p>"
+    "<p>He tells me about a conference in Berlin where he shared a stage with a minister who mispronounced the company\u2019s name three times, and how he never corrected her, because the story of not correcting her was worth more than the correction. I believe that story completely. It is the most honest thing he has said all hour, and he has no idea.</p>"
+    "<p>Behind him, the waiter starts stacking chairs on the far tables, though it is nowhere near closing. The room is emptying around us the way a beach empties when the tide turns: nobody decides to leave, and then everyone has. Victor doesn\u2019t notice. Victor is still telling me about Berlin.</p>"
+    "<p>I ask him about the logo, the one his daughter has opinions about, and he laughs and tells me again, and this time I don\u2019t write anything down at all.</p>"
+)
+
+
 def seed_first_person_demo(user_id: str | None = None):
     """
     First-person demo: 'Sixty Minutes'
@@ -4907,7 +4978,7 @@ def seed_first_person_demo(user_id: str | None = None):
             narrative_intent="Demonstrate first-person narration: close interiority, deliberate pacing, and a narrator who is both participant and observer in the same scene.",
             premise="Journalist Maya Chen has one hour with tech CEO Victor Harlan \u2014 and one question she knows he\u2019ll lie about.",
             logline="An investigative journalist goes into a one-hour interview knowing exactly what she\u2019s looking for \u2014 and has to wait fifty-eight minutes to find it.",
-            intended_length="flash_fiction",
+            intended_length="short_story",
             goals=[
                 {
                     "id": str(uuid.uuid4()),
@@ -4942,7 +5013,7 @@ def seed_first_person_demo(user_id: str | None = None):
             personality="Patient, methodical, disarmingly pleasant. She uses warmth as a tool and is aware that she does.",
             motivation="She has been working this story for eight months. This interview is the last piece.",
             background="Maya is 34. Investigative journalist, nine years in. Currently at a digital outlet known for data privacy reporting. She does not record until the subject is comfortable.",
-            appearance="Dark blazer, small notebook she doesn&#x27;t really use. Hair down, which she calculated is less threatening than up.",
+            appearance="Dark blazer, small notebook she doesn\u2019t really use. Hair down, which she calculated is less threatening than up.",
             arc_notes="No arc \u2014 Maya knows what she needs and gets it. The story is about method, not transformation.",
             arc_milestones=[
                 {"id": str(uuid.uuid4()), "text": "Arrives and establishes rapport", "completed": True},
@@ -4976,14 +5047,23 @@ def seed_first_person_demo(user_id: str | None = None):
             motivation="He built Harlanic from a seed round. He is not going to let one reporter burn it down.",
             background="Victor is 47. Founded Harlanic Analytics at 31. Three acquisitions, two near-misses with regulators, one Senate subcommittee appearance he got through without consequence. He has a comms team of eleven people.",
             appearance="Open collar, expensive watch worn loose. The kind of casual that costs money.",
-            arc_notes="No arc \u2014 Victor is a force to push against. He is very good at this, and that&#x27;s the point.",
+            arc_notes="No arc \u2014 Victor is a force to push against. He is very good at this, and that\u2019s the point.",
             interview_prompts=[
                 "What does accountability mean to a company like yours?",
                 "Walk me through the decision to shut down Project Telemetry.",
-                "What would you want people to know about you that they don&#x27;t?",
+                "What would you want people to know about you that they don\u2019t?",
             ],
         )
         db.add(victor)
+        db.add(
+            Location(
+                story_id=story.id,
+                name="Marlowe\u2019s",
+                location_type="building",
+                description="A loud caf\u00e9 Victor chose for the interview: central, busy, a place to be seen having a normal lunch.",
+                color_slot=5,
+            )
+        )
         db.flush()
 
         db.add(
@@ -5015,13 +5095,15 @@ def seed_first_person_demo(user_id: str | None = None):
             level=0,
             level_type="Opening",
             title="Before He Arrives",
-            synopsis="Maya arrives early, arranges herself, and reviews what she knows. Victor is four minutes late.",
+            # No line of what happens: a discovery writer's scene, which the Outline and What
+            # you've written show by its first line (doc 29 D6).
+            synopsis="",
             position=0,
             status="final",
             word_count=218,
             entry_state="Maya alone at the corner table, ten minutes early.",
             exit_state="Victor walks in. Maya sets her notebook on the table.",
-            key_events="Maya&#x27;s inner monologue establishes the stakes; Victor arrives; first exchange.",
+            key_events="Maya\u2019s inner monologue establishes the stakes; Victor arrives; first exchange.",
             purpose="Establish first-person interiority. Maya is in control before Victor arrives — her thoughts are tactical, not anxious. The Event thread opens the moment she sits down.",
             metadata_={
                 "mice_opens": "What is Victor hiding? — thread opens here, when Maya arrives with eight months of research.",
@@ -5030,14 +5112,14 @@ def seed_first_person_demo(user_id: str | None = None):
             content=(
                 "<p>I get there ten minutes early. I always do \u2014 not from anxiety, but because "
                 "the first thing a subject sees when they walk in should be a reporter who is already "
-                "settled, already comfortable, already at home in a room they&#x27;ve only just entered. "
+                "settled, already comfortable, already at home in a room they\u2019ve only just entered. "
                 "It establishes something without anyone having to say it.</p>"
-                "<p>The caf\u00e9 is his choice. That tells me things. It&#x27;s loud enough that he "
+                "<p>Marlowe\u2019s is his choice. That tells me things. It\u2019s loud enough that he "
                 "feels unmonitored, central enough that he can be seen having a normal lunch. "
                 "The table in the corner is mine \u2014 I got here first.</p>"
-                "<p><em>He&#x27;s going to be late. They always are.</em></p>"
-                "<p>I open my notebook to a clean page and set it on the table where he&#x27;ll see it. "
-                "It&#x27;s a prop. Everything I need is already in my head.</p>"
+                "<p><em>He\u2019s going to be late. They always are.</em></p>"
+                "<p>I open my notebook to a clean page and set it on the table where he\u2019ll see it. "
+                "It\u2019s a prop. Everything I need is already in my head.</p>"
                 "<p>He walks in at four minutes past. @Victor scans the room and finds me \u2014 "
                 "he does the thing where the smile reaches his eyes. He extends his hand "
                 'before he sits down. "Maya. Great to finally meet you."</p>'
@@ -5064,12 +5146,14 @@ def seed_first_person_demo(user_id: str | None = None):
             level_type="Try/Fail Beat",
             title="The Fifty-Seven Minutes",
             synopsis="The interview moves through easy territory, then harder. Maya steers. Victor parries. They are both good at this.",
+            # Long, and the time jumps twice ("Twenty minutes later", "Ten minutes later"): What
+            # you've written and the This scene tab offer to split it there (doc 29 D6).
             position=1,
             status="revised",
             word_count=381,
-            entry_state="Victor seated, comfortable. Maya&#x27;s recorder is on the table \u2014 he agreed to it.",
+            entry_state="Victor seated, comfortable. Maya\u2019s recorder is on the table \u2014 he agreed to it.",
             exit_state="Victor has deflected everything. Maya has one question left. She has been saving it.",
-            key_events="Professional rapport; Victor&#x27;s polished deflections; Maya escalates to the 2019 pilot; Victor holds; rapid back-and-forth exchange.",
+            key_events="Professional rapport; Victor\u2019s polished deflections; Maya escalates to the 2019 pilot; Victor holds; rapid back-and-forth exchange.",
             purpose="The try/fail engine: Maya tries to get Victor to engage with the 2019 pilot directly. He evades without lying. She tries again. The tension is that he’s very good at this.",
             metadata_={
                 "dialogue_note": "The rapid exchange demonstrates alternating attribution. After two speakers are established (Maya via explicit, Victor via explicit), subsequent unattributed lines resolve to the alternating method."
@@ -5084,19 +5168,17 @@ def seed_first_person_demo(user_id: str | None = None):
                 '<p>"Consent architecture. Opt-out by default in the EU. '
                 'Regular third-party audits."&lt;Victor Harlan&gt;</p>'
                 "<p><em>He\u2019s reciting. That\u2019s fine. I let him.</em></p>"
-                "<p>Twenty minutes in, I ask about growth markets. Thirty minutes in, I ask about the "
-                "Senate hearing. He gives me the subcommittee answer and I nod like I haven&#x27;t "
-                "read the transcript.</p>"
-                "<p>At forty minutes I shift.</p>"
+                + SIXTY_MINUTES_MIDDLE
+                + "<p>Ten minutes later, I shift.</p>"
                 '<p>"You ran a behavioral inference pilot in 2019."&lt;Maya Chen&gt;</p>'
                 '<p>"We ran several pilots that year."&lt;Victor Harlan&gt;</p>'
-                '<p>"This one used data from a children&#x27;s education platform."</p>'
-                '<p>"I&#x27;d have to look at the specifics."&lt;Victor Harlan&gt;</p>'
+                '<p>"This one used data from a children\u2019s education platform."</p>'
+                '<p>"I\u2019d have to look at the specifics."&lt;Victor Harlan&gt;</p>'
                 '<p>"It was called Project Telemetry internally."</p>'
-                '<p>"I don&#x27;t recall that name."&lt;Victor Harlan&gt;</p>'
+                '<p>"I don\u2019t recall that name."&lt;Victor Harlan&gt;</p>'
                 "<p><em>He does. I can see it in the half-second before his face does anything.</em></p>"
-                "<p>I write something in my notebook. I haven&#x27;t asked the real question yet. "
-                "I\u2019m going to wait until he\u2019s forgotten I was going to ask it.</p>"
+                "<p>I write something in my notebook. I haven\u2019t asked the real question yet. "
+                "I\u2019m going to wait until he\u2019s forgotten I was going to ask it.</p>" + SIXTY_MINUTES_AFTER
             ),
         )
         db.add(confrontation)

@@ -62,9 +62,23 @@ export default function NextStepCard({
           {step.kind === "write-planned" ? "Write this scene" : "Continue writing"}{" "}
           <ArrowRight size={14} aria-hidden />
         </Link>
-        <Link to={outline} className={styles.secondary}>
-          {step.kind === "write-planned" ? "Open the Outline" : "See what you've written"}
-        </Link>
+        {step.kind === "write-planned" ? (
+          <Link to={outline} className={styles.secondary}>
+            Open the Outline
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className={styles.secondary}
+            onClick={() =>
+              document.getElementById("written")?.scrollIntoView({
+                behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+              })
+            }
+          >
+            See what you've written
+          </button>
+        )}
       </div>
     </section>
   );

@@ -30,6 +30,7 @@ from ..schemas.structure import ReorderStructurePayload, StructureNodeCreate, St
 from ..services import assistant_results, change_log
 from ..services.codex.mentions import render_mentions, resolve_mentions
 from ..services.color_slots import next_slot
+from ..services.first_line import first_line
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.generation import build_relationship_suggestion_prompt
 from ..services.llm.prompts.snowflake import LAYER_SPECS, build_snowflake_guidance_prompt
@@ -547,6 +548,7 @@ def get_story_structure(story_id: str, db: Session = Depends(get_db), current_us
     node_dicts: dict[str, dict] = {}
     for node in all_nodes:
         d = {attr: getattr(node, attr) for attr in col_attrs}
+        d["first_line"] = first_line(node.content) if node.content and not (node.synopsis or "").strip() else ""
         d["children"] = []
         node_dicts[d["id"]] = d
     roots = []

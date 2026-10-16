@@ -23,6 +23,7 @@ The **Outline** (logo menu › **Outline**) is what happens in your story, part 
 - **Drag** a line by its handle (⋮⋮) to move it among lines of its own level, or into another chapter.
 - Click the arrow at a scene's end to unfold it: **Why it's here**, **Whose eyes**, its status and words, **Write this scene** and its **Scene sheet**.
 - A scene with no words yet is **planned**, and its mark is dashed.
+- A scene with words and no line of what happens shows its first sentence instead, marked **from the first line**, until you write a line of your own. A line too long for its row ends in **…**: point at it, or reach the row with the keyboard, to read it all, or unfold the scene.
 
 Two ways to look at it, top right: **List** and **Cards**, a column per chapter and a card per scene, to drag about as on a corkboard. Each comes in two orders: **As the reader meets it**, and **As it happens**, the order of the story's own time (place scenes on it from the List). Your choice is remembered on this computer.
 
@@ -43,6 +44,14 @@ In Studio mode, **Fill the tray from my prose**, under the Outline's ⋯, reads 
 <!-- /studio -->
 
 Every change can be undone with {{key:undo}}.
+
+## What you've written
+
+If you find the story as you write, the Overview keeps up with you under **What you've written** (for a story you plan, it is a section to open at the foot of the Overview, or **What you've written** in the palette). Everything in it is read from your prose on this computer, and nothing changes until you say so.
+
+- **Your story so far**: each scene in a line, from its line of what happens or else its first line, marked **from the first line**. Type in a line to say it better; it becomes the scene's line in the Outline too.
+- **People you've written about** and **Places you've written about**: who and where in your Lorebook the prose names, and how often. A name the prose uses that the Lorebook doesn't have waits there with **Add as a person** and **Not a person** (or the same for a place); the rest wait in Discoveries. **Look for new names** reads the prose for them now.
+- **When you're ready to tidy up**: offers to organize what you've written, each with **Not now**, which the story remembers. A scene of **2,500 words or more** where a paragraph opens on a jump in time ("By morning", "The next day", "Three days on", "Later that night", "Weeks passed" and the like) is offered a split there. The rule is a rule of thumb: most scenes run 1,000 to 2,500 words, and a longer one that jumps in time is often two. **Show me the places** opens the scene with each place lit and the cursor at the first. The same offer shows in the side panel's **This scene**.
 
 ## Classic patterns
 

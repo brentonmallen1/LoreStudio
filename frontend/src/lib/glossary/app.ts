@@ -115,7 +115,14 @@ export const WRITING = [
     id: "outline",
     term: "Outline",
     definition:
-      "What happens in your story, part by part: your acts, chapters and scenes as lines to type, each with a line of what happens, as a list or as cards. Logo menu › **Outline**.",
+      "What happens in your story, part by part: your acts, chapters and scenes as lines to type, each with a line of what happens, as a list or as cards. A scene with words and no line yet shows its first line, marked **from the first line**. Logo menu › **Outline**.",
+  },
+  {
+    id: "what-youve-written",
+    term: "What you've written",
+    definition:
+      "On the Overview: your scenes in a line each, who and where your prose names, new names to add, and offers to tidy up, such as splitting a long scene where the time jumps. Read from your prose on this computer; nothing changes until you say so.",
+    alsoCalled: ["what have I written"],
   },
   {
     id: "not-placed-yet",

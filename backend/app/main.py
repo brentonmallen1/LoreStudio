@@ -81,6 +81,7 @@ from .routers.users import router as users_router
 from .routers.whatif import router as whatif_router
 from .routers.world_systems import router as world_systems_router
 from .routers.worldbuilding_ai import router as worldbuilding_ai_router
+from .routers.written import router as written_router
 from .services import examples
 from .services.automatic import at_start, automatic_loop
 from .services.change_headers import EXPOSED as CHANGE_HEADERS
@@ -215,6 +216,7 @@ app.include_router(notes_router, prefix="/api", tags=["notes"])
 app.include_router(freewrite_router, prefix="/api", tags=["freewrite"])
 app.include_router(scratch_pad_router, prefix="/api", tags=["scratch-pad"])
 app.include_router(tray_router, prefix="/api", tags=["outline"])
+app.include_router(written_router, prefix="/api", tags=["outline"])
 app.include_router(snapshots_router, prefix="/api", tags=["snapshots"])
 app.include_router(import_router, prefix="/api", tags=["import"])
 app.include_router(imports_router, prefix="/api", tags=["import"])

@@ -18,7 +18,7 @@ Studio adds the **Assistant** and the other AI tools. They answer questions and 
 1. Choose **New story** on your stories page (logo menu › **All stories**). Say what it's called and what you are writing: a novel or story, a screenplay or a stage play.
 2. Under **How do you like to work?**, choose one. There is no right answer, and every tool stays available whichever you choose:
    - **I like to plan first** opens the **Outline**, where you jot down what happens, a line for each scene, before you write.
-   - **I find the story as I write** opens the first scene on a blank page.
+   - **I find the story as I write** opens the first scene on a blank page. As you write, the Overview's **What you've written** keeps your scenes in a line each, who and where your prose names, and offers to tidy up when you're ready.
    - **A bit of both, or not sure yet** opens the story's **Overview**.
 
    New to writing a long story? **First story?**, under the three, offers the **First story guide**: seven short steps from an idea in a sentence to your first scene. It stays in the logo menu with how far you have got, so you can come back to any step. **More options** holds a shape for the story's big parts (**Freeform** is fine), and whether it is part of a series. You can change how you like to work later in **Lorebook › Story identity**.

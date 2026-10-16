@@ -340,6 +340,18 @@
   color: transparent;
 }
 
+/* A scene's first line, standing in for a line not written yet (doc 29 D6). */
+.row .synopsis[data-first]::placeholder {
+  color: var(--color-text-muted);
+}
+
+.fromFirst {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+}
+
 .meta {
   flex: 0 1 auto;
   min-width: 0;

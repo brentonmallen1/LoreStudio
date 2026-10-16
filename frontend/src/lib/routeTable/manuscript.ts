@@ -24,7 +24,7 @@ export const WRITE_ROUTES: StoryRoute[] = [
     icon: Book,
     domain: "home",
     modes: BOTH,
-    keywords: ["home", "dashboard", "summary"],
+    keywords: ["home", "dashboard", "summary", "what you've written", "what have i written"],
   },
   {
     id: "write",

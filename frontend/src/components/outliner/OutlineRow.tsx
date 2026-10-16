@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ChevronDown, ChevronRight, GripVertical, PenLine } from "lucide-react";
 import { sceneSheetPath } from "../../lib/scene/glance";
 import { sceneStatus, statusWords } from "../../lib/outline/status";
+import { FROM_FIRST_LINE, sceneLine } from "../../lib/outline/summary";
 import { DRAFT_ID, partSummary, type Row, type Shape } from "../../lib/outline/tree";
 import { findNode } from "../layout/structureTreeMeta";
 import { useStoryStore } from "../../stores/storyStore";
@@ -53,6 +54,9 @@ export default function OutlineRow(props: RowProps) {
   const fieldKey = `${node.id}:${node.title}:${node.synopsis}`;
   const unfoldable = (container && !!node.children?.length) || (scene && !draft);
   const expanded = container ? !folded : open;
+  // A scene with words and no line of its own shows its first line, marked (doc 29 D6).
+  const line = scene && !draft ? sceneLine(node) : { text: node.synopsis, fromFirstLine: false };
+  const first = line.fromFirstLine ? `“${line.text}”` : "";
   const meta =
     container && !draft
       ? partSummary(node, depth, shape)
@@ -84,7 +88,12 @@ export default function OutlineRow(props: RowProps) {
       style={{ "--depth": depth } as React.CSSProperties}
       onDragOver={(e) => props.onDragOver(e, row)}
       onDrop={(e) => props.onDrop(e, row)}
-      {...clipTipHandlers(props.tip, [node.title, node.synopsis, meta].filter(Boolean).join(" · "))}
+      {...clipTipHandlers(
+        props.tip,
+        [node.title, first ? `${first} (${FROM_FIRST_LINE})` : node.synopsis, meta]
+          .filter(Boolean)
+          .join(" · "),
+      )}
     >
       <div className={styles.line}>
         {!draft && (
@@ -132,13 +141,17 @@ export default function OutlineRow(props: RowProps) {
             data-field="synopsis"
             data-clip
             ref={synopsisRef}
-            title={node.synopsis || undefined}
+            title={
+              first ? `${first} (${FROM_FIRST_LINE}; type to write your own)` : node.synopsis || undefined
+            }
+            data-first={first ? "" : undefined}
             defaultValue={node.synopsis}
-            placeholder="what happens…"
-            aria-label="What happens"
+            placeholder={first || "what happens…"}
+            aria-label={first ? `What happens, now ${FROM_FIRST_LINE}: ${line.text}` : "What happens"}
             tabIndex={-1}
             onBlur={(e) => props.onBlurLine(node.id, e)}
           />
+          {first && <span className={styles.fromFirst}>{FROM_FIRST_LINE}</span>}
         </span>
         {meta && (
           <span className={styles.meta} data-clip title={meta}>

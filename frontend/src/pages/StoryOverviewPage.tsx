@@ -14,6 +14,7 @@ import { useRecap } from "../components/overview/useRecap";
 import NextStepCard from "../components/overview/NextStepCard";
 import ResumeCard from "../components/overview/ResumeCard";
 import StartPaths from "../components/overview/StartPaths";
+import WhatYouveWritten from "../components/overview/written/WhatYouveWritten";
 import PlanNextStep from "../components/plan/PlanNextStep";
 import { useReloadOnUndo } from "../hooks/useUndoRedo";
 import { useAIAvailable } from "../lib/mode";
@@ -130,6 +131,7 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
         ) : (
           <PlanNextStep storyId={storyId} />
         )}
+        {ov && hasContent && <WhatYouveWritten storyId={storyId} discover={style === "discover"} />}
         {ov && !hasContent && <StartPaths storyId={storyId} />}
       </div>
     </div>

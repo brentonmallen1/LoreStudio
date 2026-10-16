@@ -1,0 +1,43 @@
+/* "Split it there?" in the This scene tab: a box on the paper, as the turn above it is. */
+
+.offer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-ground);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.text strong {
+  font-weight: 600;
+}
+
+.rule {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.secondary {
+  composes: btn-secondary from global;
+}
+
+.secondary:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}

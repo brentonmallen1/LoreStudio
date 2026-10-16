@@ -124,6 +124,8 @@ class StructureNodeMeta(BaseModel):
     metadata_: dict = {}
     created_at: datetime
     updated_at: datetime
+    #: A scene with words and no line of what happens: its first sentence (doc 29 D6).
+    first_line: str = ""
     children: list["StructureNodeMeta"] = []
 
     model_config = {"from_attributes": True}

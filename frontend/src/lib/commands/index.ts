@@ -36,6 +36,7 @@ import "./appearance";
 import "./series";
 import "./jobs";
 import "./prose";
+import "./organize";
 import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
 import { toolsApi } from "../../api/tools";
 import { STORY_ROUTES, sectionModes, sectionPath, storyPath } from "../routes";

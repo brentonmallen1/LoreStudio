@@ -115,3 +115,17 @@ def test_a_story_whose_prose_is_all_in_scenes_has_no_finding(client, db_session)
     story = client.post("/api/stories", json={"title": "Salt", "structure_template_id": "three-act"}).json()
     client.patch(f"/api/structure/{story['start_node_id']}", json={"content": "<p>Words here.</p>"})
     assert _held(client, db_session.get(Story, story["id"])) == []
+
+
+def test_a_flat_shape_holds_no_prose_outside_a_scene(client, db_session, test_user):
+    # Single MICE's levels sit side by side: an opening with words is a scene, not a chapter.
+    story = Story(user_id=test_user.id, title="Flash", structure_template_id="mice-single")
+    db_session.add(story)
+    db_session.flush()
+    db_session.add(
+        StructureNode(
+            story_id=story.id, level=0, level_type="Opening", title="Door", content="<p>Knock.</p>", word_count=1
+        )
+    )
+    db_session.commit()
+    assert _held(client, story) == []

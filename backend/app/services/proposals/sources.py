@@ -166,6 +166,8 @@ def scanned_names(story_id: str, db: Session, titles: dict[str, str]) -> list[Pr
     }
     known |= {d.name for d in db.query(DiscoveredElement).filter(DiscoveredElement.story_id == story_id)}
     known_words = {w for name in known for w in _words(name)}
+    # "Marlowe’s" (a café) makes "Marlowe" known: the scan reads the possessive as a name.
+    known_words |= {_POSSESSIVE.sub("", w) for w in known_words}
     lowercase = _lowercase_words(story_id, db)
     out = []
     found: tuple[tuple[str, ProposalKind, str], ...] = (
@@ -196,6 +198,7 @@ def scanned_names(story_id: str, db: Session, titles: dict[str, str]) -> list[Pr
                     node_id=scenes[0] if scenes else None,
                     where=", ".join(s.get("scene_titles") or [])[:120],
                     actions=[ProposalAction(id="add", label=verb, primary=True)],
+                    decline="Not a person" if kind == "person" else "Not a place",
                     created_at=run.created_at,
                 )
             )
@@ -203,6 +206,7 @@ def scanned_names(story_id: str, db: Session, titles: dict[str, str]) -> list[Pr
 
 
 _WORD = re.compile(r"[^\W\d_][\w'’]*")
+_POSSESSIVE = re.compile(r"['’]s$")
 _LOWER = re.compile(r"(?<![\w'’])[a-z][a-z'’]+")
 
 

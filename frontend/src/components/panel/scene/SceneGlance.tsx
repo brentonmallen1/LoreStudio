@@ -16,6 +16,7 @@ import { useOpenFindings } from "../../../stores/findingsStore";
 import type { Story, StructureNode } from "../../../types";
 import { useStoryNotes } from "../../notes/useStoryNotes";
 import styles from "./SceneGlance.module.css";
+import SplitOffer from "./SplitOffer";
 import { stanceLabel } from "../../../lib/tropes/stances";
 import { tropesAt, useTropes } from "../../../lib/tropes/useTropes";
 
@@ -173,6 +174,8 @@ export default function SceneGlance({
           )}
         </dl>
       )}
+
+      <SplitOffer storyId={story.id} nodeId={node.id} words={words} />
 
       <div className={styles.rows}>
         {findings.length > 0 && (
