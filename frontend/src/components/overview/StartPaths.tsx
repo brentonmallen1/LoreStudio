@@ -26,8 +26,8 @@ export default function StartPaths({ storyId }: { storyId: string }) {
     {
       to: `/stories/${storyId}/plan`,
       icon: ListTree,
-      name: "Plan it out",
-      hint: "A few small questions in order: one sentence, who wants what, then the scenes.",
+      name: "Plan with questions",
+      hint: "A few small questions in order: one sentence, who wants what, then the scenes in your Outline.",
     },
   ];
   return (

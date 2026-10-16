@@ -8,10 +8,11 @@ import styles from "./BeatSheetSelector.module.css";
 interface Props {
   value: string | null;
   onChange: (id: string | null) => void;
-  onInject?: (beatSheetId: string) => void;
+  /** Open the Outline with the pattern shown on it. */
+  onShowOnOutline?: () => void;
 }
 
-export default function BeatSheetSelector({ value, onChange, onInject }: Props) {
+export default function BeatSheetSelector({ value, onChange, onShowOnOutline }: Props) {
   const { beatSheets: sheets, setBeatSheets } = useStoryStore();
   const [expanded, setExpanded] = useState(false);
   const [showManager, setShowManager] = useState(false);
@@ -57,10 +58,10 @@ export default function BeatSheetSelector({ value, onChange, onInject }: Props) 
               {expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
               <span>{active.beats.length} beats</span>
             </button>
-            {onInject && (
-              <button className={styles.injectBtn} onClick={() => onInject(active.id)}>
+            {onShowOnOutline && (
+              <button className={styles.injectBtn} onClick={onShowOnOutline}>
                 <ListTree size={12} />
-                Use as Outline
+                Show on the Outline
               </button>
             )}
           </div>

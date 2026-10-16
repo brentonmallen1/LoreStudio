@@ -50,7 +50,7 @@ export default function PlanNextStep({ storyId }: { storyId: string }) {
           <span className={styles.nextText}>
             <span className={styles.nextLabel}>Every step has an answer</span>
             <span className={styles.nextWhy}>
-              The plan is there when you need it; the scenes are in the strip.
+              The plan is there when you need it; the scenes are in the Outline.
             </span>
           </span>
           <ChevronRight size={14} className={styles.go} aria-hidden />

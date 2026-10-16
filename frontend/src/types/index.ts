@@ -637,37 +637,13 @@ export interface ReaderKnowledgeEvent {
 
 // ── Outline ──
 
-export type OutlineBeatType = "plot" | "character" | "theme" | "setting";
-
-export interface Outline {
+/** An idea in the Outline's Not placed yet tray (doc 29 D3): something that should happen,
+ * not tied to a scene yet. */
+export interface TrayItem {
   id: string;
-  story_id: string;
-  name: string;
-  position: number;
-  source_beat_sheet_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface OutlineWithItems extends Outline {
-  items: OutlineItem[];
-}
-
-export interface OutlineItem {
-  id: string;
-  outline_id: string;
-  parent_id: string | null;
-  level: number;
-  position: number;
   text: string;
-  beat_type: OutlineBeatType | null;
   notes: string;
-  collapsed: boolean;
-  scene_id: string | null;
-  scene_title: string | null;
-  created_at: string;
-  updated_at: string;
-  children: OutlineItem[];
+  position: number;
 }
 
 export interface SceneLink {

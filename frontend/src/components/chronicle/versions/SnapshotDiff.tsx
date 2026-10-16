@@ -78,7 +78,7 @@ export default function SnapshotDiff({
         <EntitySection label="Systems" data={diff.world_systems} />
         <EntitySection label="Cultures" data={diff.cultures} />
         <EntitySection label="Eras" data={diff.eras} />
-        <EntitySection label="Beats on beat boards" data={diff.outline_items} />
+        <EntitySection label="Ideas not placed yet" data={diff.outline_items} />
       </div>
     </Modal>
   );

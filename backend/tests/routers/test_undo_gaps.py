@@ -238,31 +238,17 @@ def test_image_attach_and_detach_undo(client, db_session, test_user):
     assert client.get(listed).json() == []
 
 
-def test_outlines_undo(client):
+def test_tray_undo(client):
     sid = _story(client)
-    o = client.post(f"/api/stories/{sid}/outlines", json={"name": "Plan"}, headers=H).json()
-    items = [client.post(f"/api/outlines/{o['id']}/items", json={"text": t}, headers=H).json() for t in "AB"]
-    ids = [i["id"] for i in items]
-    client.post(f"/api/outlines/{o['id']}/reorder", json={"parent_id": None, "item_ids": ids[::-1]}, headers=H)
-    assert _undo(client, sid) == "Reorder beat board"
-    assert [i["id"] for i in client.get(f"/api/outlines/{o['id']}").json()["items"]] == ids
-    client.patch(f"/api/outlines/{o['id']}", json={"name": "Draft"}, headers=H)
-    assert _undo(client, sid) == "Edit name on beat board “Plan”"
-    client.delete(f"/api/outlines/{o['id']}", headers=H)
-    assert _undo(client, sid) == "Delete beat board “Plan”"
-    assert len(client.get(f"/api/outlines/{o['id']}").json()["items"]) == 2
-
-
-def test_outline_from_a_beat_sheet_is_one_undo(client):
-    sid = _story(client)
-    sheet = client.post(
-        "/api/beat-sheets", json={"name": "Three acts", "beats": [{"id": "b1", "name": "Hook", "position_pct": 0}]}
-    ).json()
-    o = client.post(f"/api/stories/{sid}/outlines/inject", json={"beat_sheet_id": sheet["id"]}, headers=H).json()
-    assert _undo(client, sid) == "Add beat board “Three acts”"
-    assert client.get(f"/api/outlines/{o['id']}").status_code == 404
+    ids = [client.post(f"/api/stories/{sid}/tray", json={"text": t}, headers=H).json()["id"] for t in "AB"]
+    assert _undo(client, sid) == "Jot the idea “B”"
     _redo(client, sid)
-    assert [i["text"] for i in client.get(f"/api/outlines/{o['id']}").json()["items"]] == ["Hook"]
+    client.post(f"/api/stories/{sid}/tray/reorder", json={"item_ids": ids[::-1]}, headers=H)
+    assert _undo(client, sid) == "Reorder the Not placed yet tray"
+    assert [i["id"] for i in client.get(f"/api/stories/{sid}/tray").json()] == ids
+    client.delete(f"/api/tray-items/{ids[0]}", headers=H)
+    assert _undo(client, sid) == "Delete the idea “A”"
+    assert len(client.get(f"/api/stories/{sid}/tray").json()) == 2
 
 
 # ── Prose rewrites: entity links, speaker tags ───────────────────────────────────

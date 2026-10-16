@@ -48,9 +48,10 @@ export const PARTS = [
   },
   {
     id: "plan",
-    term: "Plan",
+    term: "Plan with questions",
     definition:
-      "The page where you work out the story before or while you write it, from an idea in a sentence to a list of scenes.",
+      "Guided questions that fill your Outline: small questions in order, from an idea in a sentence to a list of scenes. Your answers go into the story itself. Logo menu › **Plan with questions**.",
+    alsoCalled: ["plan", "planning method"],
   },
   {
     id: "promises",
@@ -115,6 +116,13 @@ export const WRITING = [
     term: "Outline",
     definition:
       "What happens in your story, part by part: your acts, chapters and scenes as lines to type, each with a line of what happens, as a list or as cards. Logo menu › **Outline**.",
+  },
+  {
+    id: "not-placed-yet",
+    term: "Not placed yet",
+    definition:
+      "The tray beside the Outline: ideas for things that should happen, not tied to a scene yet. Drag one into the Outline when you know where it goes, and it becomes a planned scene there.",
+    alsoCalled: ["tray", "beat board"],
   },
   {
     id: "scene-sheet",

@@ -9,6 +9,7 @@ import {
 } from "react";
 import { Plus } from "lucide-react";
 import { outlineKey, type Field, type KeyAction } from "../../lib/outline/keys";
+import { dropSpot } from "../../lib/outline/place";
 import { loadFolded, saveFolded } from "../../lib/outline/prefs";
 import {
   DRAFT_ID,
@@ -31,6 +32,7 @@ import { useStoryStore } from "../../stores/storyStore";
 import type { StructureNode } from "../../types";
 import OutlineRow from "./OutlineRow";
 import { useOutlineActions } from "./useOutlineActions";
+import { ideaDrag, useTrayContext } from "./useTray";
 import styles from "./Outline.module.css";
 
 type At = Field | "row";
@@ -58,6 +60,7 @@ export default function OutlineList({
   const template = useStoryStore((s) => s.activeTemplate);
   const shape = useMemo(() => shapeOf(template), [template]);
   const actions = useOutlineActions(storyId);
+  const tray = useTrayContext();
   const [folded, setFolded] = useState(() => loadFolded(storyId));
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   // From the empty Outline: its first line is saved, and the next is ready to type.
@@ -317,6 +320,7 @@ export default function OutlineList({
   }
 
   function zoneFor(e: DragEvent, row: Row): "above" | "below" | "into" | null {
+    if (ideaDrag.get() && !drag.current) return ideaZone(e, row);
     const from = drag.current;
     if (!from || row.node.id === from.id || row.node.id === DRAFT_ID) return null;
     if (row.depth === from.depth - 1 && !row.scene) return "into";
@@ -332,7 +336,27 @@ export default function OutlineList({
     if (drop?.id !== row.node.id || drop.zone !== zone) setDrop({ id: row.node.id, zone });
   }
 
+  /** An idea from the tray: above or below a scene, or into a part that holds scenes. */
+  function ideaZone(e: DragEvent, row: Row): "above" | "below" | "into" | null {
+    if (row.node.id === DRAFT_ID) return null;
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const zone = row.scene ? (e.clientY - rect.top < rect.height / 2 ? "above" : "below") : "into";
+    return dropSpot(structure, shape, row.node.id, zone) ? zone : null;
+  }
+
   function onDrop(e: DragEvent, row: Row) {
+    const idea = ideaDrag.get();
+    if (idea && tray && !drag.current) {
+      const zone = ideaZone(e, row);
+      const spot = zone && dropSpot(structure, shape, row.node.id, zone);
+      ideaDrag.set(null);
+      setDrop(null);
+      if (!spot) return;
+      e.preventDefault();
+      if (spot.parentId) setFold(spot.parentId, false);
+      void tray.place(idea.id, spot);
+      return;
+    }
     const zone = zoneFor(e, row);
     const from = drag.current;
     drag.current = null;

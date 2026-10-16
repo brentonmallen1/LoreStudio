@@ -47,11 +47,11 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "extract-outline": {
     id: "extract-outline",
-    label: "Beat Board from Prose",
+    label: "Fill the Tray from My Prose",
     type: "ai",
-    shortDescription: "A beat board of what your written scenes do",
+    shortDescription: "The key moments of your written scenes, as ideas for the Outline's tray",
     fullDescription:
-      "Analyzes the written prose to make a beat board (scene titles, synopses, and key events), helping authors who drafted first and want to build structure after.",
+      "Reads the written scenes and lists their key moments, one line each. You pick the ones to keep; they go in the Outline's Not placed yet tray, to place where they belong. For writers who drafted first and want to see the shape after.",
     contextSources: ["Scene prose text (all scenes)", "Story title & genre"],
     backendFeatureId: "extract-outline",
   },
@@ -62,7 +62,7 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Guidance for the current Snowflake Method step",
     fullDescription:
       "Provides contextual guidance and questions for whichever step of the Snowflake Method you're currently working on.",
-    contextSources: ["Current Snowflake step", "Existing beat boards", "Story premise"],
+    contextSources: ["Current Snowflake step", "Your earlier answers", "Story premise"],
     backendFeatureId: "snowflake-guidance",
   },
   "story-summary": {
@@ -112,16 +112,6 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
       "The deterministic pass tags what it can from speech tags and turn order; this asks the model only about the blocks that stayed ambiguous.",
     contextSources: ["Unattributed dialogue blocks", "Characters in the scene"],
     backendFeatureId: "dialogue-attribution",
-  },
-  "outline-alignment": {
-    id: "outline-alignment",
-    label: "Beat Board Alignment",
-    type: "ai",
-    shortDescription: "Where the manuscript has drifted from a beat board",
-    fullDescription:
-      "Compares a beat board's beats against what the scenes actually do, and reports drift in both directions: beats with no scene, scenes with no beat.",
-    contextSources: ["Beats on the board", "Scene synopses", "Story structure"],
-    backendFeatureId: "outline-alignment",
   },
   "image-analysis": {
     id: "image-analysis",

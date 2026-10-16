@@ -2,16 +2,16 @@
 
 Work out what your story is, one small question at a time. Nothing here is required, and writing is always one click away.
 
-## Pick a method
+## Pick a way in
 
-Open logo menu › **Plan** and choose a way in:
+Open logo menu › **Plan with questions** and choose a way in. Each says roughly how long it takes:
 
-- **The essentials**: the story in one sentence, the central conflict, who wants what, and the scenes.
-- **Snowflake Method**: grow one sentence into a paragraph, a page, each character's arc, then the scenes.
-- **MICE threads**: the threads your story opens, and where each opens and closes.
-- **A beat sheet**, such as Save the Cat: each beat asks which scene carries it.
+- **Four questions** (about 20 minutes): what it's about, what's at stake, who wants what, and what happens. The quickest way to an outline you can write from.
+- **Grow it from one sentence** (an evening or two): a sentence becomes a paragraph, then a page, each character's story, then a list of scenes. It is known as the Snowflake method.
+- **The questions your story opens** (about an hour): the questions your story opens (a place to explore, a mystery, a change in someone, a disruption), and where each opens and closes. It is known as MICE.
+- **Follow a classic pattern**: a well-known shape, such as Save the Cat or the hero's journey, says what tends to happen and roughly when. Each moment asks which scene carries it. Choosing one also shows it on your Outline.
 
-Every answer goes into the story itself: the one-sentence summary is the logline, a character's goal is on their sheet. So **Change method** loses nothing.
+Every answer goes into the story itself: the one-sentence summary is the logline on Story identity, a character's goal is on their sheet, and the scene list is the Outline's scenes. So nothing is written twice, and **Pick another way in** loses nothing.
 
 > **Tip:** Not ready for questions? **Freewrite**, in the logo menu, is where you write what you know and sort it later. See [Notes, Freewrite and the scratch pad](/guides/notes-and-freewrite).
 
@@ -22,9 +22,9 @@ In Studio mode, the Snowflake steps offer **Get guidance on this answer**: the A
 
 ## The scene list becomes the book
 
-Each line of the scene list is a real scene, marked **planned** until it has words. Press **Enter** at the end of the last line to add the next one.
+Each line of the scene list is a real scene in your **Outline**, marked **planned** until it has words. Press **Enter** at the end of the last line to add the next one. **In your Outline now**, under the list, says how many there are and opens the Outline.
 
-On a beat sheet, **Plan a scene for this beat** places the scene beside its neighbouring beats, so you can plan in any order.
+On a classic pattern, **Plan a scene for this beat** places the scene beside its neighbouring moments, so you can plan in any order.
 
 ## The plan where you write
 
@@ -33,9 +33,9 @@ On a beat sheet, **Plan a scene for this beat** places the scene beside its neig
 - **Pointing at a character's @mention** shows their goal and conflict.
 - **The Overview** shows the next step of your method.
 
-## Beat boards and the timeline
+## Ideas and the timeline
 
-The Plan page has two more views:
+Two things that used to live here are in the **Outline** now:
 
-- **Beat boards**: loose lists of beats for brainstorming. Turn any beat into a planned scene with **Make this beat a scene**.
-- **Timeline**: the scenes in the order they happen, against the order the reader meets them.
+- **Ideas without a place yet** go in the Outline's **Not placed yet** tray. Jot one, then drag it into the Outline, or use **Place it…**, when you know where it goes. Your beat boards moved there, one idea each.
+- **The scenes in the order they happen** are the Outline's **As it happens**, beside **As the reader meets it**.

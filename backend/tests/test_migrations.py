@@ -241,6 +241,64 @@ def test_0031_gives_an_existing_series_an_empty_plan(tmp_path):
     assert tuple(book) == ("", "{}", "[]")
 
 
+def test_0048_folds_beat_boards_and_storyboard_notes_into_one_tray(tmp_path):
+    from alembic.config import Config
+
+    from alembic import command
+    from app.services.db_migrate import BACKEND_DIR
+
+    engine = _engine(tmp_path, "tray.db")
+    with engine.connect() as conn:
+        cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+        cfg.set_main_option("script_location", str(BACKEND_DIR / "alembic"))
+        cfg.attributes["connection"] = conn
+        command.upgrade(cfg, "0047_working_style")
+        _insert(conn, "users", id="u", username="u", password_hash="x", display_name="U", is_admin=True, settings={})
+        _insert(conn, "stories", id="s", user_id="u", title="T")
+        _insert(conn, "structure_nodes", id="scene", story_id="s", title="The Gap", level=0, position=0)
+        _insert(conn, "outlines", id="b1", story_id="s", name="Act one", position=0)
+        _insert(conn, "outlines", id="b2", story_id="s", name="Loose", position=1)
+        rows = [
+            dict(id="top", outline_id="b1", position=0, text="The storm", beat_type="plot"),
+            dict(
+                id="kid",
+                outline_id="b1",
+                parent_id="top",
+                level=1,
+                position=0,
+                text="A boat comes",
+                notes="In the rain",
+            ),
+            dict(id="made", outline_id="b1", position=1, text="The Gap", notes="Keep it short", scene_id="scene"),
+            dict(id="lost", outline_id="b1", position=2, text="Cut scene", scene_id="gone"),
+            dict(id="blank", outline_id="b2", position=0, text=" "),
+            dict(id="loose", outline_id="b2", position=1, text="Margaret knew"),
+        ]
+        for row in rows:
+            _insert(conn, "outline_items", **{"level": 0, "collapsed": False, "notes": "", **row})
+        nodes = [{"id": "n1", "data": {"label": "Calder lies"}}, {"id": "n2", "data": {"label": "Note"}}]
+        _insert(conn, "diagrams", id="d", story_id="s", title="Storyboard", diagram_type="storyboard", nodes=nodes)
+        conn.commit()
+        command.upgrade(cfg, "head")
+        boards = conn.execute(text("SELECT id, name FROM outlines")).all()
+        ideas = conn.execute(
+            text("SELECT text, notes, parent_id, beat_type, scene_id FROM outline_items ORDER BY position")
+        ).all()
+        notes = conn.execute(text("SELECT node_id, kind, content FROM notes")).all()
+        storyboards = conn.execute(text("SELECT count(*) FROM diagrams")).scalar()
+    assert [tuple(b) for b in boards] == [("b1", "Not placed yet")]
+    assert [tuple(i) for i in ideas] == [
+        ("Act one: The storm", "", None, None, None),
+        ("Act one: A boat comes", "Under “The storm”\n\nIn the rain", None, None, None),
+        ("Act one: Cut scene", "", None, None, None),
+        ("Loose: Margaret knew", "", None, None, None),
+        ("Calder lies", "From the Storyboard", None, None, None),
+    ]
+    # Already a scene: out of the tray, its notes kept on that scene.
+    assert [tuple(n) for n in notes] == [("scene", "note", "Keep it short")]
+    assert storyboards == 0
+
+
 def test_a_database_from_a_newer_lorestudio_is_refused_untouched(tmp_path):
     """Stamping a newer schema back to this version's head would make the newer version replay
     its own migrations on the next start. Refuse, and change nothing."""

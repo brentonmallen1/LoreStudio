@@ -12,7 +12,7 @@ import type { Era } from "../../types";
 import styles from "./TimelineView.module.css";
 
 /**
- * The story in the order it happened (the Plan's Timeline, series v2): each scene placed on
+ * The story in the order it happened (the Outline's As it happens, once the Plan's Timeline; series v2): each scene placed on
  * the timeline, with its date and era, against the order the reader meets it. A scene the
  * reader meets out of order is marked; eras band the scenes they hold. Drag a scene, or move
  * it with its arrows; a scene not placed yet waits below.

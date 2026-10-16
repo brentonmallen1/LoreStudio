@@ -28,6 +28,36 @@
   padding: 0.4rem max(1.25rem, calc((100% - var(--page-measure)) / 2)) 2.5rem;
 }
 
+/* The Outline with its Not placed yet tray beside it; narrow, the tray folds above it. */
+.withTray {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 17rem;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.withTray > aside {
+  position: sticky;
+  top: 0.5rem;
+  max-height: calc(100dvh - 9rem);
+  overflow-y: auto;
+}
+
+.withTray[data-narrow] {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.9rem;
+}
+
+.withTray[data-narrow] > aside {
+  position: static;
+  max-height: none;
+  order: -1;
+}
+
+.outlineSide {
+  min-width: 0;
+}
+
 /* ── The order: two chips, as every page header's ── */
 
 .orders {
@@ -571,24 +601,6 @@
   border-color: var(--color-accent);
   outline: 2px solid var(--color-focus);
   outline-offset: 1px;
-}
-
-.oldNotes {
-  max-width: 40rem;
-  padding: 0.75rem 0.9rem;
-  border-radius: var(--radius-lg);
-  background: var(--color-tone);
-  font-size: var(--text-sm);
-}
-
-.oldNotesWhy {
-  margin: 0 0 0.4rem;
-  color: var(--color-text-muted);
-}
-
-.oldNotes ul {
-  margin: 0;
-  padding-left: 1.1rem;
 }
 
 /* ── Empty, for a planner: a line ready to type into ── */

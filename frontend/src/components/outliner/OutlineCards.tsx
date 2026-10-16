@@ -1,15 +1,16 @@
-import { useEffect, useRef, useState, type DragEvent } from "react";
+import { useRef, useState, type DragEvent } from "react";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
-import { api } from "../../api/client";
 import { sceneSheetPath } from "../../lib/scene/glance";
 import { sceneStatus } from "../../lib/outline/status";
 import { cardColumns, type CardColumn } from "../../lib/outline/cards";
+import { dropSpot } from "../../lib/outline/place";
 import { leafDepth, levelType, levelWord, moveTo, shapeOf } from "../../lib/outline/tree";
 import { useStoryStore } from "../../stores/storyStore";
 import CardColumns from "./CardColumns";
 import OutlineMark from "./OutlineMark";
 import { useOutlineActions } from "./useOutlineActions";
+import { ideaDrag, useTrayContext } from "./useTray";
 import styles from "./Outline.module.css";
 
 /**
@@ -22,12 +23,20 @@ export default function OutlineCards({ storyId }: { storyId: string }) {
   const template = useStoryStore((s) => s.activeTemplate);
   const shape = shapeOf(template);
   const actions = useOutlineActions(storyId);
+  const tray = useTrayContext();
   const columns = cardColumns(structure, shape);
   const dragged = useRef<string | null>(null);
   const [drop, setDrop] = useState<{ id: string; zone: "above" | "below" | "into" } | null>(null);
   const [notice, setNotice] = useState("");
 
   function over(e: DragEvent, id: string, zone: "above" | "below" | "into" | null) {
+    if (ideaDrag.get() && !dragged.current) {
+      if (!zone || !dropSpot(structure, shape, id, zone)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (drop?.id !== id || drop.zone !== zone) setDrop({ id, zone });
+      return;
+    }
     if (!dragged.current || !zone || dragged.current === id) return;
     e.preventDefault();
     e.stopPropagation();
@@ -35,6 +44,17 @@ export default function OutlineCards({ storyId }: { storyId: string }) {
   }
 
   function land(e: DragEvent, id: string, zone: "above" | "below" | "into" | null) {
+    const idea = ideaDrag.get();
+    if (idea && tray && !dragged.current) {
+      const spot = zone && dropSpot(structure, shape, id, zone);
+      ideaDrag.set(null);
+      setDrop(null);
+      if (!spot) return;
+      e.preventDefault();
+      e.stopPropagation();
+      void tray.place(idea.id, spot);
+      return;
+    }
     const from = dragged.current;
     dragged.current = null;
     setDrop(null);
@@ -101,7 +121,6 @@ export default function OutlineCards({ storyId }: { storyId: string }) {
       <p className={styles.notice} role="status" aria-live="polite">
         {notice}
       </p>
-      <OldBoardNotes storyId={storyId} />
     </div>
   );
 }
@@ -150,43 +169,5 @@ function AddCard({
         if (e.key === "Escape") setAdding(false);
       }}
     />
-  );
-}
-
-/**
- * The free notes of the old Storyboard (a `storyboard` diagram's note nodes), kept readable
- * until the Outline's tray takes them in (doc 29 D2, P3). Nothing is deleted.
- */
-function OldBoardNotes({ storyId }: { storyId: string }) {
-  const [notes, setNotes] = useState<{ of: string; labels: string[] } | null>(null);
-  useEffect(() => {
-    let live = true;
-    api
-      .listDiagrams(storyId)
-      .then(async (all) => {
-        const board = all.find((d) => (d.diagram_type as string) === "storyboard");
-        const full = board ? await api.getDiagram(board.id) : null;
-        const labels = (full?.nodes ?? []).map((n) => String(n.data?.label ?? "").trim()).filter(Boolean);
-        if (live) setNotes({ of: storyId, labels });
-      })
-      .catch(() => {});
-    return () => {
-      live = false;
-    };
-  }, [storyId]);
-  const labels = notes?.of === storyId ? notes.labels : [];
-  if (!labels.length) return null;
-  return (
-    <aside className={styles.oldNotes} aria-label="Notes from the Storyboard">
-      <h3 className={styles.columnTitle}>Notes from the Storyboard</h3>
-      <p className={styles.oldNotesWhy}>
-        The notes you kept on the board, here until they have a place in the Outline.
-      </p>
-      <ul>
-        {labels.map((label, i) => (
-          <li key={i}>{label}</li>
-        ))}
-      </ul>
-    </aside>
   );
 }

@@ -321,10 +321,10 @@ AI_FEATURES: tuple[AIFeature, ...] = (
     ),
     AIFeature(
         id="extract-outline",
-        label="Beat Board from Prose",
+        label="Fill the Tray from My Prose",
         group="analyse",
         classification="analyse",
-        description="Turns written scenes into a beat board you can correct.",
+        description="Lists the key moments of your written scenes as ideas you can pick into the Outline's tray.",
         context=("Scene prose", "Story title and genre"),
         budget=BUDGET_LARGE,
         thinks=False,
@@ -364,15 +364,6 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         context=("Imported document headings and paragraphs",),
         budget=BUDGET_LARGE,
         thinks=False,
-    ),
-    AIFeature(
-        id="outline-alignment",
-        label="Beat Board Alignment",
-        group="analyse",
-        classification="analyse",
-        description="Where the manuscript has drifted from a beat board.",
-        context=("Beats on the board", "Scene synopses", "Story structure"),
-        budget=BUDGET_LARGE,
     ),
     AIFeature(
         id="talk-subjects",

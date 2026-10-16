@@ -6,13 +6,16 @@ import { loadFolded, saveFolded } from "../../lib/outline/prefs";
 import { shapeOf, visibleRows } from "../../lib/outline/tree";
 import { useStoryStore } from "../../stores/storyStore";
 import OutlineMark from "./OutlineMark";
+import Tray from "./Tray";
+import { useTray } from "./useTray";
 import { useOutlineActions } from "./useOutlineActions";
 import styles from "./Outline.module.css";
 
 /**
  * The Outline beside the prose (doc 29 D2, B-OutlinePanel): the same lines, narrow, with the
  * scene being written marked. A line opens its scene in the prose; a double-click on a title
- * renames it. The full Outline is a click away for planning at length.
+ * renames it. The Not placed yet tray sits under the lines, to jot an idea mid-scene and place
+ * it from its ⋯. The full Outline is a click away for planning at length.
  */
 export default function OutlinePanel({ storyId }: { storyId: string }) {
   const structure = useStoryStore((s) => s.structure);
@@ -20,6 +23,7 @@ export default function OutlinePanel({ storyId }: { storyId: string }) {
   const here = useStoryStore((s) => s.activeNode?.id);
   const shape = shapeOf(template);
   const { save } = useOutlineActions(storyId);
+  const tray = useTray(storyId);
   const [folded, setFolded] = useState(() => loadFolded(storyId));
   const [renaming, setRenaming] = useState<string | null>(null);
   const current = useRef<HTMLButtonElement>(null);
@@ -111,6 +115,7 @@ export default function OutlinePanel({ storyId }: { storyId: string }) {
           );
         })}
       </div>
+      <Tray tray={tray} compact />
       <button
         type="button"
         className={styles.panelFull}

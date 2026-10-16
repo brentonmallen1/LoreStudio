@@ -194,11 +194,11 @@ export function Form({
   toggle,
   beatSheetId,
   onBeatSheet,
-  onInjectBeatSheet,
+  onShowOnOutline,
 }: IdentityForm & {
   beatSheetId: string | null;
   onBeatSheet: (id: string | null) => void;
-  onInjectBeatSheet: (id: string) => void;
+  onShowOnOutline: () => void;
 }) {
   return (
     <>
@@ -255,7 +255,7 @@ export function Form({
           <p className={styles.fieldHint}>
             Optional story structure framework. Helps track where key beats fall relative to your word count.
           </p>
-          <BeatSheetSelector value={beatSheetId} onChange={onBeatSheet} onInject={onInjectBeatSheet} />
+          <BeatSheetSelector value={beatSheetId} onChange={onBeatSheet} onShowOnOutline={onShowOnOutline} />
         </div>
       </SectionCard>
     </>

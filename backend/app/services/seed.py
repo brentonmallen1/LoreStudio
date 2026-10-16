@@ -2378,136 +2378,18 @@ def seed_demo_story(user_id: str | None = None):  # noqa: PLR0915
         )
         db.flush()
 
-        # ── Story Outline ────────────────────────────────────────────────────
-        outline = Outline(story_id=story.id, name="Outline", position=0)
-        db.add(outline)
+        # ── Not placed yet: ideas with no place in the Outline yet (doc 29 D3) ──
+        tray = Outline(story_id=story.id, name="Not placed yet", position=0)
+        db.add(tray)
         db.flush()
-
-        act1 = OutlineItem(
-            outline_id=outline.id,
-            level=0,
-            position=0,
-            beat_type="plot",
-            text="The Storm Arrives",
-            notes="Everything that disrupts Eleanor's solitary routine begins here.",
-        )
-        db.add(act1)
-        db.flush()
-
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act1.id,
-                level=1,
-                position=0,
-                beat_type="character",
-                text="Eleanor writes in the lighthouse log — her one comfort in isolation",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act1.id,
-                level=1,
-                position=1,
-                beat_type="plot",
-                text="Boat arrives carrying an unexpected visitor claiming to be from a heritage foundation",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act1.id,
-                level=1,
-                position=2,
-                beat_type="setting",
-                text="Storm cuts off the island — Eleanor and the visitor are trapped together",
-            )
-        )
-
-        act2 = OutlineItem(
-            outline_id=outline.id,
-            level=0,
-            position=1,
-            beat_type="plot",
-            text="Cracks in the Record",
-            notes="Eleanor begins to see that the logs she trusted are not complete.",
-        )
-        db.add(act2)
-        db.flush()
-
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act2.id,
-                level=1,
-                position=0,
-                beat_type="character",
-                text="Eleanor notices the visitor knows details only someone who'd been here before could know",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act2.id,
-                level=1,
-                position=1,
-                beat_type="plot",
-                text="Five years of log entries are missing — the same period her father fell ill",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act2.id,
-                level=1,
-                position=2,
-                beat_type="theme",
-                text="Eleanor must decide: is memory something you preserve, or something you construct?",
-            )
-        )
-
-        act3 = OutlineItem(
-            outline_id=outline.id,
-            level=0,
-            position=2,
-            beat_type="plot",
-            text="The Truth in the Glass",
-            notes="Both truths — her father's and the visitor's — surface at the same moment.",
-        )
-        db.add(act3)
-        db.flush()
-
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act3.id,
-                level=1,
-                position=0,
-                beat_type="plot",
-                text="Eleanor discovers her father falsified the logs the night the Ardent went down",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act3.id,
-                level=1,
-                position=1,
-                beat_type="character",
-                text="Visitor reveals she spoke with Thomas Vance two weeks before his death",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act3.id,
-                level=1,
-                position=2,
-                beat_type="character",
-                text="Eleanor chooses what to do with the truth — and what to write in the log",
-            )
-        )
+        for i, (idea, why) in enumerate(
+            [
+                ("Calder lies about her name", "She says historian. When does Eleanor first doubt it?"),
+                ("A second storm, worse, in act 3?", ""),
+                ("Margaret knew all along", "What she saw from the mainland that week. Does she tell Eleanor?"),
+            ]
+        ):
+            db.add(OutlineItem(outline_id=tray.id, position=i, text=idea, notes=why))
 
         # ── Demo TODOs ──────────────────────────────────────────────────────
         db.add(
@@ -4943,107 +4825,6 @@ def seed_short_story_demo(user_id: str | None = None):  # noqa: PLR0915
                     "she wanted to play something she knew well enough to play honestly, even if "
                     "her hands failed her. The piece is already about endings."
                 ),
-            )
-        )
-
-        # ── Outline ───────────────────────────────────────────────────────────
-        outline = Outline(story_id=story.id, name="Outline", position=0)
-        db.add(outline)
-        db.flush()
-
-        out_m1 = OutlineItem(
-            outline_id=outline.id,
-            parent_id=None,
-            level=0,
-            position=0,
-            beat_type="plot",
-            text="Movement 1: Before — Elena prepares backstage; Character thread opens (tremor), Event thread opens (commitment to stage)",
-        )
-        db.add(out_m1)
-        db.flush()
-
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=out_m1.id,
-                level=1,
-                position=0,
-                beat_type="character",
-                text="The Tremor — Elena notices her left hand is worse. She does not withdraw. Character MICE thread opens.",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=out_m1.id,
-                level=1,
-                position=1,
-                beat_type="plot",
-                text="Twenty Minutes — Stage manager calls. Elena commits. Event MICE thread opens.",
-            )
-        )
-
-        out_m2 = OutlineItem(
-            outline_id=outline.id,
-            parent_id=None,
-            level=0,
-            position=1,
-            beat_type="plot",
-            text="Movement 2: The Audition — Elena performs; Event thread develops and closes at the final bars",
-        )
-        db.add(out_m2)
-        db.flush()
-
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=out_m2.id,
-                level=1,
-                position=0,
-                beat_type="plot",
-                text="Allegro — First movement clean. False hope.",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=out_m2.id,
-                level=1,
-                position=1,
-                beat_type="character",
-                text="Adagio — Left hand fails in bar 16. Elena adjusts. The panel sees. The audition is functionally over.",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=out_m2.id,
-                level=1,
-                position=2,
-                beat_type="plot",
-                text="The Final Bars — Elena finishes. Bows. Walks offstage. Event MICE thread closes: she got through it.",
-            )
-        )
-
-        out_m3 = OutlineItem(
-            outline_id=outline.id,
-            parent_id=None,
-            level=0,
-            position=2,
-            beat_type="character",
-            text="Movement 3: After — Elena meets Mira; teaches; realizes what she has been preparing for. Character thread closes.",
-        )
-        db.add(out_m3)
-        db.flush()
-
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=out_m3.id,
-                level=1,
-                position=0,
-                beat_type="character",
-                text="The Student — Mira asks how Elena got through it. Elena tells her. Thirty-one years compressed into twenty minutes. Character MICE thread closes.",
             )
         )
 

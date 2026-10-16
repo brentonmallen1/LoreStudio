@@ -125,14 +125,15 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "plan-timeline",
-  label: "Timeline: scenes in the order they happen",
-  description: "Each scene's date and era, against the order the reader meets them",
+  label: "Outline as it happens",
+  description:
+    "The scenes in the order they happen, with their dates and eras, against the order the reader meets them",
   keywords: ["timeline", "chronology", "chronological", "flashback", "date", "era", "when", "order"],
   icon: CalendarClock,
   group: "Navigation",
   when: () => !!useStoryStore.getState().activeStory,
   action: () => {
     const story = useStoryStore.getState().activeStory;
-    if (story) navigateTo(`/stories/${story.id}/plan?view=timeline`);
+    if (story) navigateTo(`/stories/${story.id}/outline?order=time`);
   },
 });

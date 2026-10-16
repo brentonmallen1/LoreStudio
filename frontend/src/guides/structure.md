@@ -28,6 +28,20 @@ Two ways to look at it, top right: **List** and **Cards**, a column per chapter 
 
 Beside the prose, **Open beside the prose** under the page's ⋯ shows the same lines narrow, with the scene you are writing marked; click a line to go there. The strip on the writing page still widens with {{key:cycleStrip}}.
 
+## Not placed yet
+
+Beside the Outline sits the **Not placed yet** tray: ideas for things that should happen, not tied to a scene. On a narrow window it folds above the Outline; beside the prose it sits under the lines.
+
+- **Jot an idea…** at its foot: type, and **Enter** keeps it.
+- **Drag** an idea into the List or the Cards when you know where it goes: above or below a scene, or onto a chapter to go at its end. It becomes a planned scene there and leaves the tray. A short idea becomes the scene's title; a longer one keeps all its words as what happens, under a title made of its first words. Its notes go with it, as a note on the scene.
+- **Place it…** does the same from the keyboard: choose the chapter and the spot from a list.
+- An idea's **⋯** renames, moves it up or down the tray, or deletes it. Drag ideas up and down the tray, too.
+
+<!-- studio -->
+
+In Studio mode, **Fill the tray from my prose**, under the Outline's ⋯, reads your written scenes and lists their key moments. Pick the ones to keep and they go in the tray.
+<!-- /studio -->
+
 Every change can be undone with {{key:undo}}.
 
 ## Acts
@@ -50,7 +64,7 @@ Open the scene's **Scene sheet**: choose **Scene sheet** in the side panel's **T
 - **Starts** and **Ends**: where your character or the situation stands as the scene starts and as it ends. A scene where nothing changes is worth a second look.
 - **Why it's here** (under **The plan**): what the scene does that nothing else does. It is the most useful field when you revise.
 - **Key events**: the moments that must land.
-- **Who**, **Where**, **Beat** and **When**: click them to change who is in the scene, where and when it happens, and which beat of the plan it serves.
+- **Who**, **Where**, **Beat** and **When**: click them to change who is in the scene, where and when it happens, and which moment of a classic pattern it carries.
 
 ## Scene status
 

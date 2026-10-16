@@ -16,6 +16,7 @@ import type {
   StructureNode,
 } from "../../types";
 import type { TermId } from "../glossary";
+import { PATTERN_KNOWN_AS } from "../patterns";
 
 export type StoryPlanField = "logline" | "premise" | "central_conflict" | "paragraph_summary" | "synopsis";
 export type CharacterPlanField =
@@ -56,8 +57,13 @@ export interface PlanStep<T = PlanTarget> {
 
 export interface PlanMethod<T = PlanTarget> {
   id: string;
+  /** Its name in plain words (doc 29 D4): "Grow it from one sentence". */
   label: string;
   summary: string;
+  /** Roughly how long it takes: "about 20 minutes". */
+  time?: string;
+  /** The name a writer may have met it by, as small print: "Known as the Snowflake method". */
+  knownAs?: string;
   steps: PlanStep<T>[];
 }
 
@@ -108,8 +114,10 @@ const LOGLINE: PlanStep = {
 export const PLAN_METHODS: PlanMethod[] = [
   {
     id: "essentials",
-    label: "The essentials",
-    summary: "Four questions: what it is, what's at stake, who wants what, and what happens.",
+    label: "Four questions",
+    summary:
+      "What it's about, what's at stake, who wants what, and what happens. The quickest way to an outline you can write from.",
+    time: "about 20 minutes",
     steps: [
       LOGLINE,
       {
@@ -136,8 +144,11 @@ export const PLAN_METHODS: PlanMethod[] = [
   },
   {
     id: "snowflake",
-    label: "Snowflake Method",
-    summary: "Grow the story outward from one sentence: a paragraph, then a page, then scenes.",
+    label: "Grow it from one sentence",
+    summary:
+      "A sentence becomes a paragraph, then a page, then a list of scenes. Good if you like to zoom in slowly.",
+    time: "an evening or two",
+    knownAs: "Known as the Snowflake method",
     steps: [
       {
         id: "sentence",
@@ -196,9 +207,11 @@ export const PLAN_METHODS: PlanMethod[] = [
   },
   {
     id: "mice",
-    label: "MICE threads",
+    label: "The questions your story opens",
     summary:
-      "A story opens questions of place, idea, character and event ({{term:mice|MICE}}), and closes them in the reverse order it opened them.",
+      "Every story opens questions (a place to explore, a mystery, a change in someone, a disruption) and closes them. Good for mysteries and quests.",
+    time: "about an hour",
+    knownAs: "Known as {{term:mice|MICE}}",
     steps: [
       LOGLINE,
       {
@@ -228,12 +241,13 @@ function whereInStory(pct: number): string {
   return `Around ${Math.round(pct)}% of the way through.`;
 }
 
-/** A beat sheet as a method: its beats are the steps, each asking which scenes carry it. */
+/** A classic pattern as a method: its moments are the steps, each asking which scene carries it. */
 export function beatSheetMethod(sheet: BeatSheet): PlanMethod {
   return {
     id: `beats:${sheet.id}`,
     label: sheet.name,
-    summary: sheet.description || `${sheet.beats.length} beats, each placed where it lands in the story.`,
+    summary: sheet.description || `${sheet.beats.length} moments, each placed where it lands in the story.`,
+    knownAs: PATTERN_KNOWN_AS[sheet.id],
     steps: [
       LOGLINE,
       ...[...sheet.beats]

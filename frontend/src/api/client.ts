@@ -398,63 +398,6 @@ export const api = {
   analyzeTwistImpact: (twistId: string) =>
     request<import("../types").StructuredResult>(`/twists/${twistId}/analyze-impact`, { method: "POST" }),
 
-  // Outlines
-  listOutlines: (storyId: string) => request<import("../types").Outline[]>(`/stories/${storyId}/outlines`),
-  createOutline: (storyId: string, name: string) =>
-    request<import("../types").Outline>(`/stories/${storyId}/outlines`, {
-      method: "POST",
-      body: JSON.stringify({ name }),
-    }),
-  injectBeatSheet: (storyId: string, beatSheetId: string) =>
-    request<import("../types").OutlineWithItems>(`/stories/${storyId}/outlines/inject`, {
-      method: "POST",
-      body: JSON.stringify({ beat_sheet_id: beatSheetId }),
-    }),
-  getOutlineWithItems: (outlineId: string) =>
-    request<import("../types").OutlineWithItems>(`/outlines/${outlineId}`),
-  updateOutline: (outlineId: string, data: { name?: string; position?: number }) =>
-    request<import("../types").Outline>(`/outlines/${outlineId}`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    }),
-  deleteOutline: (outlineId: string) => request<void>(`/outlines/${outlineId}`, { method: "DELETE" }),
-  createOutlineItem: (
-    outlineId: string,
-    data: {
-      text: string;
-      parent_id?: string | null;
-      position?: number;
-      beat_type?: string | null;
-      notes?: string;
-    },
-  ) =>
-    request<import("../types").OutlineItem>(`/outlines/${outlineId}/items`, {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
-  updateOutlineItem: (itemId: string, data: Partial<import("../types").OutlineItem>) =>
-    request<import("../types").OutlineItem>(`/outline-items/${itemId}`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    }),
-  deleteOutlineItem: (itemId: string) => request<void>(`/outline-items/${itemId}`, { method: "DELETE" }),
-  bulkReorderOutline: (
-    outlineId: string,
-    operations: { item_id: string; parent_id: string | null; position: number }[],
-  ) =>
-    request<void>(`/outlines/${outlineId}/bulk-reorder`, {
-      method: "POST",
-      body: JSON.stringify({ operations }),
-    }),
-  extractOutlineFromProse: (storyId: string) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/outlines/extract-from-prose`, {
-      method: "POST",
-    }),
-  analyzeOutlineAlignment: (outlineId: string) =>
-    request<import("../types").StructuredResult>(`/outlines/${outlineId}/analyze-alignment`, {
-      method: "POST",
-    }),
-
   // Panel Interviews
   createPanel: (storyId: string, data: { title?: string; character_ids: string[] }) =>
     request<import("../types").PanelInterview>(`/stories/${storyId}/panels`, {

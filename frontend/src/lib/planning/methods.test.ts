@@ -35,7 +35,7 @@ describe("planning methods", () => {
   it("has unique method and step ids", () => {
     expect(new Set(PLAN_METHODS.map((m) => m.id)).size).toBe(PLAN_METHODS.length);
     for (const m of PLAN_METHODS) expect(new Set(m.steps.map((s) => s.id)).size).toBe(m.steps.length);
-    expect(methodById("snowflake")?.label).toBe("Snowflake Method");
+    expect(methodById("snowflake")?.label).toBe("Grow it from one sentence");
     expect(methodById("")).toBeUndefined();
   });
 
