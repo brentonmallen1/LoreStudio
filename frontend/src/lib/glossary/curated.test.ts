@@ -111,7 +111,9 @@ describe("craft words explain themselves", () => {
     expect(shownText(props)).toEqual([]);
   });
 
-  it("in every page and component", () => {
+  // It parses every page and component: about a second alone, but past vitest's 5s default under
+  // coverage with the other suites running beside it, as on CI.
+  it("in every page and component", { timeout: 30_000 }, () => {
     const bare: string[] = [];
     for (const path of [...walk(join(SRC, "components")), ...walk(join(SRC, "pages"))]) {
       const source = readFileSync(path, "utf8");

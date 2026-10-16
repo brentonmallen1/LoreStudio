@@ -101,7 +101,9 @@ describe("retired words (doc 30 D7)", () => {
     expect(shownStrings(source)).toEqual(["Create snapshot", "Analyse the plot threads"]);
   });
 
-  it("are not shown anywhere: one word per thing", () => {
+  // It parses every source file: well under a second alone, but past vitest's 5s default under
+  // coverage with the other suites running beside it.
+  it("are not shown anywhere: one word per thing", { timeout: 30_000 }, () => {
     const hits = walk(SRC).flatMap(retiredIn);
     expect(hits).toEqual([]);
   });
