@@ -2,6 +2,7 @@ import { Fragment, useState, type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, CheckCircle2, Circle, CircleDashed } from "lucide-react";
 import { firstOpen, type PlanStep } from "../../lib/planning/methods";
 import StepPicker from "../common/StepPicker";
+import TermText from "../common/TermText";
 import styles from "./Plan.module.css";
 
 interface Props<T> {
@@ -107,8 +108,12 @@ export default function StepRail<T>({
         <h3 id="plan-step-title" className={styles.stepTitle}>
           {step.label}
         </h3>
-        <p className={styles.stepWhy}>{step.why}</p>
-        <p className={styles.stepHow}>{step.how}</p>
+        <p className={styles.stepWhy}>
+          <TermText text={step.why} />
+        </p>
+        <p className={styles.stepHow}>
+          <TermText text={step.how} />
+        </p>
         {step.example && (
           <details className={styles.example}>
             <summary>Example from {exampleFrom}</summary>

@@ -2,6 +2,7 @@ import { BookOpen, MapPin, HelpCircle, User, Zap } from "lucide-react";
 import { Modal } from "../common";
 import CollapsibleSection from "../common/CollapsibleSection";
 import styles from "./MICEGuide.module.css";
+import Term from "../common/Term";
 
 interface Props {
   onClose: () => void;
@@ -55,10 +56,13 @@ export function MICEContent() {
     <>
       <div className={styles.intro}>
         <p>
-          The <strong>MICE Quotient</strong> is a framework for understanding what kind of story you're
-          telling, and when it's over. Every story thread belongs to one of four types. Tagging your threads
-          helps you ensure every question you open gets answered, and that nested threads close in the right
-          order.
+          The{" "}
+          <strong>
+            <Term id="mice">MICE</Term> Quotient
+          </strong>{" "}
+          is a framework for understanding what kind of story you're telling, and when it's over. Every story
+          thread belongs to one of four types. Tagging your threads helps you ensure every question you open
+          gets answered, and that nested threads close in the right order.
         </p>
         <p className={styles.credit}>
           Developed by Orson Scott Card, popularized for short fiction by Mary Robinette Kowal.
@@ -193,8 +197,9 @@ export function MICEContent() {
         <CollapsibleSection title="Try/Fail Cycles">
           <div className={styles.sectionContent}>
             <p>
-              Before a protagonist resolves a MICE thread, they should try and fail at least once, often two
-              or three times. Each failure raises the stakes and earns the eventual resolution.
+              Before a protagonist resolves a MICE thread, they should <Term id="try-fail">try and fail</Term>{" "}
+              at least once, often two or three times. Each failure raises the stakes and earns the eventual
+              resolution.
             </p>
             <div className={styles.outcomesGrid}>
               <div className={styles.outcomeCard}>

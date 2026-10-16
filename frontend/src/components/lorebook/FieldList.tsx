@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { splitFields, type FieldSpec } from "../../lib/lorebook/kinds";
 import { useAutosaveField } from "../plan/useAutosaveField";
 import styles from "./Lorebook.module.css";
+import Term from "../common/Term";
 
 /**
  * A sheet's text fields under "empty is quiet" (doc 12 D3): what is written reads as text
@@ -108,7 +109,9 @@ function FieldBlock({
   if (!editing) {
     return (
       <div className={styles.field}>
-        <span className={styles.fieldLabel}>{field.label}</span>
+        <span className={styles.fieldLabel}>
+          <FieldName field={field} />
+        </span>
         <div
           className={field.short ? styles.fieldTextShort : styles.fieldText}
           role="button"
@@ -132,7 +135,7 @@ function FieldBlock({
   return (
     <div className={styles.field}>
       <label className={styles.fieldLabel} htmlFor={id}>
-        {field.label}
+        <FieldName field={field} />
       </label>
       {field.short ? (
         <>
@@ -184,4 +187,9 @@ function FieldBlock({
       )}
     </div>
   );
+}
+
+/** A field's label, as a glossary word where it is one (doc 30 D1). */
+function FieldName({ field }: { field: FieldSpec }) {
+  return field.term ? <Term id={field.term}>{field.label}</Term> : <>{field.label}</>;
 }

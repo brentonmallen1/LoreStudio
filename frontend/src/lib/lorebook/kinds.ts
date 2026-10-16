@@ -1,3 +1,4 @@
+import type { TermId } from "../glossary";
 import { WHO_FIELDS } from "./whoAreThey";
 
 /**
@@ -35,6 +36,8 @@ export interface FieldSpec {
   options?: (string | { value: string; note: string })[];
   /** Carried by the compact sheet in the side panel. */
   compact?: boolean;
+  /** The glossary word the label is, explained where it shows (doc 30 D1). */
+  term?: TermId;
 }
 
 export interface KindSpec {
@@ -125,7 +128,12 @@ export const KINDS: Record<LoreKind, KindSpec> = {
         hint: "How they come across, and what is underneath…",
         compact: true,
       },
-      { key: "epiphany", label: "Epiphany", hint: "What they learn by the end, or refuse to…" },
+      {
+        key: "epiphany",
+        label: "Epiphany",
+        hint: "What they learn by the end, or refuse to…",
+        term: "epiphany",
+      },
       {
         key: "flaws",
         label: "Flaws",
@@ -140,7 +148,7 @@ export const KINDS: Record<LoreKind, KindSpec> = {
         label: "Speech patterns",
         hint: "How they talk: rhythm, favourite words, what they never say…",
       },
-      { key: "arc_notes", label: "Arc notes", hint: "Where they start, where they end…" },
+      { key: "arc_notes", label: "Arc notes", hint: "Where they start, where they end…", term: "arc" },
       {
         key: "narrative_intent",
         label: "Narrative intent",

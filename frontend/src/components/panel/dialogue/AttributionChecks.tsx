@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { proseChecksApi } from "../../../api/tools";
 import type { PassageFinding } from "../../../types";
 import styles from "./AttributionChecks.module.css";
+import Term from "../../common/Term";
 
 /** A dialogue tag with an adverb on it: "said quietly", "softly asked". */
 const TAG_ADVERB =
@@ -40,7 +41,8 @@ export default function AttributionChecks({ storyId, nodeId }: { storyId: string
   return (
     <details className={styles.checks} open={all.length > 0 && all.length <= 4}>
       <summary>
-        Attribution · {findings.bookisms.length} said-bookism{findings.bookisms.length === 1 ? "" : "s"} ·{" "}
+        Attribution · {findings.bookisms.length}{" "}
+        <Term id="said-bookism">said-bookism{findings.bookisms.length === 1 ? "" : "s"}</Term> ·{" "}
         {findings.adverbs.length} adverb{findings.adverbs.length === 1 ? "" : "s"} on tags
       </summary>
       {all.length === 0 ? (

@@ -12,6 +12,7 @@ import { useOpenFindings } from "../../stores/findingsStore";
 import { useStoryStore } from "../../stores/storyStore";
 import type { StoryOverview } from "../../types";
 import { useFindingActions } from "../findings/useFindingActions";
+import { plainTerms } from "../../lib/glossary/markup";
 import styles from "./Overview.module.css";
 
 /**
@@ -139,7 +140,11 @@ function PlanRow({ storyId }: { storyId: string }) {
   if (!next) return null;
   const done = method.steps.filter((s) => isStepDone(s, data)).length;
   return (
-    <Link to={`/stories/${storyId}/plan?step=${next.id}`} className={styles.rowLink} title={next.why}>
+    <Link
+      to={`/stories/${storyId}/plan?step=${next.id}`}
+      className={styles.rowLink}
+      title={plainTerms(next.why)}
+    >
       <ArrowRight size={12} className={styles.planGo} aria-hidden />
       <span className={styles.rowText}>Next in the plan: {next.label.toLowerCase()}</span>
       <span className={styles.rowMeta}>

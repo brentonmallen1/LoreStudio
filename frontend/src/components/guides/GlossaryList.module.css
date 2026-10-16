@@ -1,0 +1,49 @@
+/* The glossary's entries: the word in bold, then its plain meaning; type and space, no lines. */
+.list {
+  margin: 0 0 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.entry {
+  scroll-margin-top: 1.5rem;
+}
+
+/* Landed on from a popover's "More in the glossary": the entry wears the tone for a moment. */
+.entry:target {
+  margin: -0.5rem -0.7rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-tone);
+}
+
+.term {
+  font-weight: 600;
+}
+
+.definition {
+  margin: 0.15rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.definition code,
+.definition kbd {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.example {
+  color: var(--color-text-muted);
+}
+
+.exampleLabel {
+  font-weight: 600;
+}
+
+.also {
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
+}

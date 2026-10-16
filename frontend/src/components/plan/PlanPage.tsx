@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { isStepDone, type PlanMethod } from "../../lib/planning/methods";
+import { plainTerms } from "../../lib/glossary/markup";
+import Term from "../common/Term";
 import { usePlanData } from "../../lib/planning/usePlanData";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import PageHeader from "../layout/PageHeader";
@@ -140,7 +142,7 @@ function MethodPicker({
       onClick={() => onChoose(m.id)}
     >
       <span className={styles.methodName}>{m.label}</span>
-      <span className={styles.methodSummary}>{m.summary}</span>
+      <span className={styles.methodSummary}>{plainTerms(m.summary)}</span>
       <span className={styles.methodStepsPreview}>{m.steps.map((s) => s.label).join(" · ")}</span>
     </button>
   );
@@ -149,7 +151,8 @@ function MethodPicker({
       <div className={styles.picker}>
         <p className={styles.pickerIntro}>
           Pick a way in. Each method asks a few small questions in order; your answers go into the story
-          itself (its logline, characters and scenes), so switching methods later keeps everything.
+          itself (its <Term id="logline">logline</Term>, characters and scenes), so switching methods later
+          keeps everything.
         </p>
         <div className={styles.methodCards}>
           {methods.filter((m) => !m.id.startsWith("beats:")).map(card)}
@@ -166,8 +169,9 @@ function MethodPicker({
           <>
             <h3 className={styles.pickerHeading}>Beat sheets</h3>
             <p className={styles.pickerIntro}>
-              Walk a beat sheet beat by beat, planning the scene that carries each one. Choosing one also
-              makes it the story's beat sheet; ones you make in Story Identity appear here too.
+              Walk a <Term id="beat-sheet">beat sheet</Term> <Term id="beat">beat</Term> by beat, planning the
+              scene that carries each one. Choosing one also makes it the story's beat sheet; ones you make in
+              Story Identity appear here too.
             </p>
             <div className={styles.methodCards}>{beatSheets.map(card)}</div>
           </>

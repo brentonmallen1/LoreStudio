@@ -27,6 +27,7 @@ import LorebookList from "../lorebook/LorebookList";
 import { useLoreSelection } from "../lorebook/useLoreSelection";
 import styles from "../lorebook/Lorebook.module.css";
 import p from "./Promises.module.css";
+import Term from "../common/Term";
 
 /**
  * Plot threads, under Promises (doc 18 C3). With none open, the map of every thread across
@@ -163,7 +164,9 @@ export default function ThreadsSection() {
                       </button>
                     ))}
                   </div>
-                  <p className={p.smallPrint}>Mary Robinette Kowal’s MICE: milieu, idea, character, event.</p>
+                  <p className={p.smallPrint}>
+                    Mary Robinette Kowal’s <Term id="mice">MICE</Term>: milieu, idea, character, event.
+                  </p>
                 </SheetCard>
                 <SheetCard title="Where it stands">
                   <p className={p.cardText}>{statusLine(thread, sceneTitle)}</p>

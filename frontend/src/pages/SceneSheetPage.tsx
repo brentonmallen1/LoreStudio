@@ -26,6 +26,7 @@ import { useProposalsStore } from "../stores/proposalsStore";
 import { useStoryStore } from "../stores/storyStore";
 import type { DiagramSummary, StructureNode } from "../types";
 import styles from "../components/scene/SceneSheet.module.css";
+import Term from "../components/common/Term";
 
 type Field = "synopsis" | "purpose" | "entry_state" | "exit_state" | "key_events";
 type Page = "plan" | "promises" | "notes" | "findings" | "images" | "facts" | "assistant";
@@ -171,7 +172,7 @@ export default function SceneSheetPage() {
                     <ChevronRight size={14} className={styles.aroundChevron} aria-hidden />
                     The story around it
                     <span className={styles.aroundHint}>
-                      the logline, the conflict, what the people here want
+                      the <Term id="logline">logline</Term>, the conflict, what the people here want
                     </span>
                   </summary>
                   <StoryPlanPanel node={node} story={activeStory} characters={characters} />

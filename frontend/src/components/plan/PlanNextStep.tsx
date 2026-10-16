@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronRight, MapIcon } from "lucide-react";
 import { isStepDone, nextStep } from "../../lib/planning/methods";
 import { usePlanData } from "../../lib/planning/usePlanData";
+import { plainTerms } from "../../lib/glossary/markup";
 import styles from "./PlanNextStep.module.css";
 
 /**
@@ -40,7 +41,7 @@ export default function PlanNextStep({ storyId }: { storyId: string }) {
         <button className={styles.next} onClick={() => navigate(`/stories/${storyId}/plan?step=${next.id}`)}>
           <span className={styles.nextText}>
             <span className={styles.nextLabel}>Next: {next.label}</span>
-            <span className={styles.nextWhy}>{next.why}</span>
+            <span className={styles.nextWhy}>{plainTerms(next.why)}</span>
           </span>
           <ChevronRight size={14} className={styles.go} aria-hidden />
         </button>

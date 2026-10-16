@@ -7,6 +7,8 @@ import { carryBook } from "../../lib/series/promises";
 import { useSeriesStore } from "../../stores/seriesStore";
 import { useFindingActions } from "./useFindingActions";
 import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
+import Term from "../common/Term";
+import { findingTerm } from "../../lib/findings/terms";
 import styles from "./Findings.module.css";
 
 const SOURCE_LABEL = { local: "Local", ai: "Assistant", data: "Data" } as const;
@@ -61,7 +63,9 @@ export default function FindingRow({
         aria-hidden
       />
       <div className={styles.body}>
-        <span className={styles.text}>{f.text}</span>
+        <span className={styles.text}>
+          <FindingText check={f.check} text={f.text} />
+        </span>
         {f.action === "fix" && f.evidence && <span className={styles.quote}>{f.evidence}</span>}
         {where && <span className={styles.where}>{where}</span>}
         {f.suggestion && <span className={styles.suggestion}>{f.suggestion}</span>}
@@ -133,3 +137,17 @@ export default function FindingRow({
 }
 
 const SEVERITY_TITLE = { high: "Look at this first", mid: "Worth a look", low: "A small thing" } as const;
+
+/** The finding's line, its craft word explained where it has one (doc 30 D1). */
+function FindingText({ check, text }: { check: string; text: string }) {
+  const hit = findingTerm(check, text);
+  if (!hit) return <>{text}</>;
+  const [before, word, after] = hit.parts;
+  return (
+    <>
+      {before}
+      <Term id={hit.id}>{word}</Term>
+      {after}
+    </>
+  );
+}

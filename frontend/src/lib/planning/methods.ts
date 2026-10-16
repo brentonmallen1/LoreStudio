@@ -15,6 +15,7 @@ import type {
   StoryStructureTemplate,
   StructureNode,
 } from "../../types";
+import type { TermId } from "../glossary";
 
 export type StoryPlanField = "logline" | "premise" | "central_conflict" | "paragraph_summary" | "synopsis";
 export type CharacterPlanField =
@@ -71,12 +72,16 @@ const WHO_WANTS_WHAT: CharacterPlanField[] = [
 ];
 const OPTIONAL_FIELDS = new Set<CharacterPlanField>(["stakes"]);
 
-export const CHARACTER_FIELD_LABELS: Record<CharacterPlanField, { label: string; placeholder: string }> = {
+/** A field's label, what an empty one asks, and the glossary word its label is (doc 30 D1). */
+export const CHARACTER_FIELD_LABELS: Record<
+  CharacterPlanField,
+  { label: string; placeholder: string; term?: TermId }
+> = {
   mission_statement: { label: "Goal", placeholder: "What they want, in one sentence…" },
   motivation: { label: "Motivation", placeholder: "Why they want it…" },
   conflict: { label: "Conflict", placeholder: "What stands between them and what they want…" },
   stakes: { label: "Stakes (optional)", placeholder: "What happens if they don't get it…" },
-  epiphany: { label: "Epiphany", placeholder: "What they learn by the end, or refuse to…" },
+  epiphany: { label: "Epiphany", placeholder: "What they learn by the end, or refuse to…", term: "epiphany" },
   arc_in_own_words: { label: "In their own words", placeholder: "I came back to the island because…" },
 };
 
@@ -93,7 +98,7 @@ const LOGLINE: PlanStep = {
   id: "logline",
   label: "The story in one sentence",
   why: "A sentence you can hold in your head while you write.",
-  how: "Who, what they want, what stands in the way. Around 25 words.",
+  how: "Write your {{term:logline}}: who it's about, what they want, and what stands in the way. Around 25 words.",
   example:
     "When a mysterious historian arrives in a storm, a reclusive lighthouse keeper must choose between guarding her secrets and facing what she's buried.",
   target: { kind: "story", field: "logline" },
@@ -121,7 +126,7 @@ export const PLAN_METHODS: PlanMethod[] = [
         id: "characters",
         label: "Who wants what",
         why: "Characters who want things make scenes that move.",
-        how: "For each main character: their goal, why they want it, what stands in the way, what happens if they fail, and what they learn.",
+        how: "For each main character: their {{term:goal-motivation-conflict|goal, why they want it, what stands in the way}}, what happens if they fail, and what they learn.",
         example:
           "Goal: to learn the truth about her brother's death. Conflict: the keeper is hiding something.",
         target: { kind: "characters", fields: WHO_WANTS_WHAT },
@@ -138,7 +143,7 @@ export const PLAN_METHODS: PlanMethod[] = [
         id: "sentence",
         label: "One-sentence summary",
         why: "The core of the story, before any detail.",
-        how: "Around 25 words. Use roles rather than names; hint at the conflict and what makes it unusual.",
+        how: "Your {{term:logline}}, around 25 words. Use roles rather than names; hint at the conflict and what makes it unusual.",
         example:
           "A reclusive lighthouse keeper must choose between protecting her buried past or telling the truth when a stranger arrives seeking answers.",
         target: { kind: "story", field: "logline" },
@@ -149,7 +154,7 @@ export const PLAN_METHODS: PlanMethod[] = [
         id: "paragraph",
         label: "One-paragraph summary",
         why: "The shape of the whole story: the start, three disasters, the end.",
-        how: "Five sentences: the protagonist in their world, the first disaster, the second, the third, and how it ends.",
+        how: "Five sentences: the {{term:protagonist}} in their world, the first disaster, the second, the third, and how it ends.",
         example: "Eleanor Vance has kept the Last Lighthouse on Harrow Island alone for five years…",
         target: { kind: "story", field: "paragraph_summary" },
         buildsOn: "logline",
@@ -160,7 +165,7 @@ export const PLAN_METHODS: PlanMethod[] = [
         id: "character-summaries",
         label: "Character summaries",
         why: "Each main character's own story line, before you weave them together.",
-        how: "Goal, motivation, conflict and epiphany for each main character.",
+        how: "Goal, motivation, conflict and {{term:epiphany}} for each main character.",
         example:
           "Epiphany: she has been confusing loyalty with silence, and the kindest thing is to let the truth surface.",
         target: { kind: "characters", fields: CHARACTER_CORE },
@@ -181,7 +186,7 @@ export const PLAN_METHODS: PlanMethod[] = [
         id: "character-synopses",
         label: "Character synopses",
         why: "Hearing each character tell it keeps them from becoming plot devices.",
-        how: "Each main character's whole arc, in first person: where they began, what happened, where they ended.",
+        how: "Each main character's whole {{term:arc}}, in first person: where they began, what happened, where they ended.",
         example: "I came back to Harrow Island because my father was dying and there was no one else…",
         target: { kind: "characters", fields: ["arc_in_own_words"] },
         guidanceLayer: "character_synopsis",
@@ -193,13 +198,13 @@ export const PLAN_METHODS: PlanMethod[] = [
     id: "mice",
     label: "MICE threads",
     summary:
-      "A story opens questions of place, idea, character and event, and closes them in the reverse order it opened them.",
+      "A story opens questions of place, idea, character and event ({{term:mice|MICE}}), and closes them in the reverse order it opened them.",
     steps: [
       LOGLINE,
       {
         id: "threads",
         label: "The threads",
-        why: "Every thread is a promise to the reader; knowing yours tells you what the ending owes.",
+        why: "Every {{term:thread}} is a promise to the reader; knowing yours tells you what the ending owes.",
         how: "Name each thread and its kind: Milieu (a place to enter and leave), Idea (a question to answer), Character (a change to make), Event (a disruption to set right).",
         example: "Idea: what happened to the log entries? Character: will Eleanor let anyone in?",
         target: { kind: "threads" },

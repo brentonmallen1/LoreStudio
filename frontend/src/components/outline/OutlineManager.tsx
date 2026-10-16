@@ -10,6 +10,7 @@ import ExtractOutlinePanel from "./ExtractOutlinePanel";
 import OutlineAlignmentPanel from "./OutlineAlignmentPanel";
 import { sceneLeaves } from "../../lib/planning/methods";
 import { addPlannedScene } from "../../lib/planning/plannedScene";
+import BeatBoardsEmpty from "./BeatBoardsEmpty";
 import styles from "./OutlineManager.module.css";
 import AIOnly from "../ai/AIOnly";
 
@@ -725,22 +726,7 @@ export default function OutlineManager({ storyId }: Props) {
       ) : activeOutline ? (
         <OutlinePanel key={activeOutline.id} outline={activeOutline} storyId={storyId} />
       ) : (
-        <div className={styles.managerInner}>
-          <div className={styles.empty}>
-            <div className={styles.emptyIcon}>
-              <BookOpen size={36} />
-            </div>
-            <p className={styles.emptyTitle}>No beat boards yet</p>
-            <p className={styles.emptyDesc}>
-              A beat board is a loose outline: jot beats, nest and reorder them, and turn any beat into a
-              scene when it's ready. Start blank, or inject a beat sheet from Story Identity.
-            </p>
-            <button className={styles.addBeatBtnPrimary} onClick={handleCreateOutline}>
-              <Plus size={14} />
-              New beat board
-            </button>
-          </div>
-        </div>
+        <BeatBoardsEmpty onCreate={handleCreateOutline} />
       )}
 
       {showExtractPanel && (

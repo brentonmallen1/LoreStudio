@@ -37,6 +37,8 @@ import ThreeQuestions from "../character/ThreeQuestions";
 import WhoAreTheyView from "../character/WhoAreTheyView";
 import styles from "../Lorebook.module.css";
 import TropesHere from "../../tropes/TropesHere";
+import Term from "../../common/Term";
+import { roleTerm } from "../../../lib/glossary/roles";
 
 const VIEWS = [
   { id: "overview", label: "Overview" },
@@ -101,16 +103,28 @@ export default function CharactersSection() {
 
   const badges = character && (
     <>
-      {character.role && <Badge>{label(character.role)}</Badge>}
-      {character.character_type && <Badge title="Character type">{label(character.character_type)}</Badge>}
+      {character.role && (
+        <Badge>
+          <Term id={roleTerm(character.role)}>{label(character.role)}</Term>
+        </Badge>
+      )}
+      {character.character_type && (
+        <Badge title="Character type">
+          <Term id="character-type">{label(character.character_type)}</Term>
+        </Badge>
+      )}
       {character.gender && <Badge title="Gender">{character.gender}</Badge>}
       {character.pronouns && <Badge>{character.pronouns}</Badge>}
       {character.age && <Badge title="Age">{character.age}</Badge>}
       {character.jungian_archetype && (
-        <Badge title="Jungian archetype">{label(character.jungian_archetype)}</Badge>
+        <Badge title="Jungian archetype">
+          <Term id="archetype">{label(character.jungian_archetype)}</Term>
+        </Badge>
       )}
       {character.narrative_archetype && (
-        <Badge title="Narrative archetype">{label(character.narrative_archetype)}</Badge>
+        <Badge title="Narrative archetype">
+          <Term id="archetype">{label(character.narrative_archetype)}</Term>
+        </Badge>
       )}
     </>
   );

@@ -3,6 +3,7 @@ import { Modal } from "../common";
 import CollapsibleSection from "../common/CollapsibleSection";
 import { useAIAvailable } from "../../lib/mode";
 import styles from "./EssentialQuestionsGuide.module.css";
+import Term from "../common/Term";
 
 interface Props {
   onClose: () => void;
@@ -144,9 +145,9 @@ export function EssentialQuestionsContent() {
         <CollapsibleSection title="How these questions relate to MICE">
           <div className={styles.sectionContent}>
             <p>
-              The 6 Essential Questions and the MICE Quotient work at different levels. MICE describes the{" "}
-              <em>shape</em> of story threads: what opens and closes them. The 6 Questions describe the{" "}
-              <em>engine</em>: what makes the protagonist's journey meaningful.
+              The 6 Essential Questions and the <Term id="mice">MICE</Term> Quotient work at different levels.
+              MICE describes the <em>shape</em> of story threads: what opens and closes them. The 6 Questions
+              describe the <em>engine</em>: what makes the protagonist's journey meaningful.
             </p>
             <p>
               A Character MICE thread typically maps directly to questions 3 and 6: Why do they want to

@@ -1,5 +1,6 @@
 import { TrendingUp, Map, BarChart2, Lightbulb, CheckCircle, AlertCircle, XCircle } from "lucide-react";
 import styles from "./ThreadAnalysisPanel.module.css";
+import Term from "../common/Term";
 
 type AnyRecord = Record<string, unknown>;
 
@@ -108,7 +109,9 @@ export default function ThreadAnalysisBody({ data }: { data: AnyRecord }) {
       {/* Unlinked cycles */}
       {asStringList(data.unlinked_cycles).length > 0 && (
         <Section icon={<AlertCircle size={12} />} title="Unlinked cycles" color="var(--color-warning)">
-          <p className={styles.sectionSubtitle}>Try/fail cycles with no scene assigned</p>
+          <p className={styles.sectionSubtitle}>
+            <Term id="try-fail">Try/fail</Term> cycles with no scene assigned
+          </p>
           {asStringList(data.unlinked_cycles).map((c, i) => (
             <p key={i} className={styles.warningItem}>
               <XCircle size={10} /> {c}
