@@ -33,7 +33,7 @@ from ..schemas.character_review import (
     ReviewRequest,
     ReviewScene,
 )
-from ..services import change_log, other_names
+from ..services import assistant_results, change_log, other_names
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.pronoun_refactor import build_pronoun_identification_prompt
 from ..services.pronoun_review import SETS, patterns_for, people_on_page, pronoun_set, review_scene
@@ -152,31 +152,34 @@ async def careful(
     quick = _quick(me, body, db)
     old_words = {w for k in SETS for w in SETS[k].values()}
     judged: list[CarefulJudgement] = []
+    answered: list[AICallContext] = []
     for node_id in body.node_ids:
         items = [i for i in quick.items if i.node_id == node_id and i.kind == "pronoun"]
         node = db.get(StructureNode, node_id)
         if not items or node is None:
             continue
         paras = [p.text for p in paragraphs(node.content or "")]
+        ctx = AICallContext(
+            feature="pronoun-identification",
+            user_id=current_user.id,
+            story_id=me.story_id,
+            character_id=me.id,
+            node_id=node_id,
+            tags=["character", "pronouns", "review", "user-initiated"],
+        )
         result = await ai_gateway.generate_structured(
             response_model=PronounIdentificationResponse,
             messages=[{"role": "user", "content": "Please identify the pronouns."}],
             feature_prompt=build_pronoun_identification_prompt(
                 character_name=me.name, scene_content="\n\n".join(paras)
             ),
-            context=AICallContext(
-                feature="pronoun-identification",
-                user_id=current_user.id,
-                story_id=me.story_id,
-                character_id=me.id,
-                node_id=node_id,
-                tags=["character", "pronouns", "review", "user-initiated"],
-            ),  # fmt: skip
+            context=ctx,
             db=db,
             user=current_user,
         )
         if not result.success or not result.data:
             continue
+        answered.append(ctx)
         theirs = _located(result.data.get("instances", []), paras)
         for item in items:
             pronouns = [(item.para, e.start) for e in item.edits if e.was.lower() in old_words]
@@ -186,6 +189,19 @@ async def careful(
                     item_id=item.id, verdict="theirs" if found == len(pronouns) else "partly" if found else "not"
                 )
             )
+    if answered:
+        # Kept on the character (A7) with the change it was asked about, so the review shows
+        # Careful's word again when it is opened for the same change.
+        asked = body.model_dump(exclude={"node_ids"})
+        assistant_results.save(
+            db,
+            story_id=me.story_id,
+            subject_type="character",
+            subject_id=me.id,
+            feature="pronoun-identification",
+            data={"request": asked, "judged": [j.model_dump() for j in judged]},
+            ai_call_log_id=answered[-1].log_id,
+        )
     return CarefulOut(judged=judged)
 
 

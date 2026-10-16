@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown, ChevronRight, BookCopy, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, BookCopy, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import type { SeriesSummary } from "../../api/series";
+import PopoverMenu from "../common/PopoverMenu";
 import styles from "./SeriesGroup.module.css";
 
 const FOLDED_KEY = "ls_folded_series";
@@ -26,15 +27,18 @@ function writeFolded(ids: string[]) {
 /**
  * One series on the dashboard (series doc): its name, which opens the series, how many
  * books, the way to the next one, and its books in order. Folds away, and stays folded. One
- * planned before any book of it exists says so, and leads to its Plan.
+ * planned before any book of it exists says so, and leads to its Plan. Its ⋯ deletes it, asking
+ * what happens to the books.
  */
 export default function SeriesGroup({
   series,
   onNewBook,
+  onDelete,
   children,
 }: {
   series: SeriesSummary;
   onNewBook: () => void;
+  onDelete: () => void;
   children: ReactNode;
 }) {
   const [folded, setFolded] = useState(() => readFolded().includes(series.id));
@@ -69,6 +73,11 @@ export default function SeriesGroup({
           <Plus size={13} aria-hidden />
           {count === 0 ? "Plan it" : "New book"}
         </button>
+        <PopoverMenu
+          label={`More for ${series.name}`}
+          trigger={<MoreHorizontal size={15} />}
+          items={[{ label: "Delete the series…", icon: Trash2, danger: true, onSelect: onDelete }]}
+        />
       </header>
       {!folded && children}
     </section>

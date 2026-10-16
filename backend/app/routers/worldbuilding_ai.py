@@ -33,6 +33,7 @@ from ..schemas.ai_responses import (
     SystemAnalysisResponse,
     TravelAnalysisResponse,
 )
+from ..services import assistant_results
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.worldbuilding import (
     build_calendar_suggestion_prompt,
@@ -89,7 +90,7 @@ async def what_would_exist_here(
         tags=["worldbuilding", "location", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=LocationExistenceResponse,
         messages=llm_messages,
         feature_prompt=feature_prompt,
@@ -97,6 +98,7 @@ async def what_would_exist_here(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, subject_type="location", subject_id=location_id)
 
 
 @router.post("/stories/{story_id}/worldbuilding/suggest-elements", response_model=StructuredResult)
@@ -137,11 +139,12 @@ async def suggest_world_elements(
         feature="element-suggest",
         user_id=current_user.id,
         story_id=story_id,
-        extra_metadata={"entity_id": element_id},
+        # One feature, two answers' shapes: the Chronicle reads which to show it as.
+        extra_metadata={"entity_id": element_id, "element_type": element_type},
         tags=["worldbuilding", element_type, "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=response_model,
         messages=llm_messages,
         feature_prompt=feature_prompt,
@@ -149,6 +152,7 @@ async def suggest_world_elements(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, subject_type=element_type, subject_id=element_id)
 
 
 @router.post("/stories/{story_id}/worldbuilding/historical-implications", response_model=StructuredResult)
@@ -181,7 +185,7 @@ async def historical_implications(
         tags=["worldbuilding", "history", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=HistoricalImplicationsResponse,
         messages=llm_messages,
         feature_prompt=feature_prompt,
@@ -189,6 +193,7 @@ async def historical_implications(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, subject_type="historical_event", subject_id=event_id)
 
 
 @router.post("/stories/{story_id}/worldbuilding/system-analysis", response_model=StructuredResult)
@@ -219,7 +224,7 @@ async def analyze_world_system(
         tags=["worldbuilding", "systems", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=SystemAnalysisResponse,
         messages=llm_messages,
         feature_prompt=feature_prompt,
@@ -227,6 +232,7 @@ async def analyze_world_system(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, subject_type="world_system", subject_id=system_id)
 
 
 @router.post("/stories/{story_id}/worldbuilding/calendar-suggestions", response_model=StructuredResult)
@@ -257,7 +263,7 @@ async def calendar_suggestions(
         tags=["worldbuilding", "calendar", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=CalendarSuggestionsResponse,
         messages=llm_messages,
         feature_prompt=feature_prompt,
@@ -265,6 +271,7 @@ async def calendar_suggestions(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, subject_type="calendar", subject_id=calendar_id)
 
 
 @router.post("/stories/{story_id}/worldbuilding/travel-analysis", response_model=StructuredResult)
@@ -301,7 +308,7 @@ async def analyze_travel_route(
         tags=["worldbuilding", "travel", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=TravelAnalysisResponse,
         messages=llm_messages,
         feature_prompt=feature_prompt,
@@ -309,3 +316,4 @@ async def analyze_travel_route(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, subject_type="location_travel", subject_id=travel_id)

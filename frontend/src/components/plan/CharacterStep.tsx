@@ -12,7 +12,6 @@ import {
   type PlanStep,
 } from "../../lib/planning/methods";
 import { humanize } from "../../lib/labels";
-import AssistantRow from "../lorebook/AssistantRow";
 import PlanGuidance from "./PlanGuidance";
 import { useAutosaveField } from "./useAutosaveField";
 import styles from "./Plan.module.css";
@@ -67,7 +66,6 @@ function CharacterFields({
   character,
   step,
 }: { storyId: string; character: Character } & Pick<Props, "step">) {
-  const [guidance, setGuidance] = useState(false);
   const firstPerson = step.target.fields.includes("arc_in_own_words");
   return (
     <>
@@ -80,18 +78,7 @@ function CharacterFields({
       {step.target.fields.map((f) => (
         <CharacterField key={f} character={character} field={f} rows={firstPerson ? 12 : 2} />
       ))}
-      {step.guidanceLayer && !guidance && (
-        <AssistantRow
-          actions={[
-            {
-              label: "Get guidance on this answer",
-              title: "The Assistant reads what you have written here and asks what it leaves open",
-              onRun: () => setGuidance(true),
-            },
-          ]}
-        />
-      )}
-      {guidance && step.guidanceLayer && (
+      {step.guidanceLayer && (
         <PlanGuidance
           storyId={storyId}
           layer={step.guidanceLayer}
@@ -99,7 +86,7 @@ function CharacterFields({
             .map((f) => `${CHARACTER_FIELD_LABELS[f].label}: ${character[f] ?? ""}`)
             .join("\n")}
           characterId={character.id}
-          onClose={() => setGuidance(false)}
+          stepName={character.name}
         />
       )}
     </>

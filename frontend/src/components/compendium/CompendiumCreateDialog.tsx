@@ -165,7 +165,7 @@ export default function CompendiumCreateDialog({ storyId, editing, onClose, onCr
             <label className={styles.label}>Asset *</label>
             {assets.length === 0 ? (
               <p className={styles.hint}>
-                Upload a file in <strong>Media &amp; Diagrams</strong> first, then return here to link it.
+                Upload a file in <strong>Images</strong> first, then return here to link it.
               </p>
             ) : (
               <select

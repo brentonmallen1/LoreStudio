@@ -8,6 +8,7 @@ import {
   suggest,
   titleCase,
   type Entry,
+  emptyPrompt,
 } from "./completion";
 
 const ENTRIES: Entry[] = [
@@ -146,5 +147,20 @@ describe("a script's character cue (doc 25)", () => {
   it("names a new character the way names are written, not in the cue's capitals", () => {
     expect(suggest("cue", "MRS. HALE", ENTRIES).at(-1)).toMatchObject({ create: true, name: "Mrs. Hale" });
     expect(titleCase("O'BRIEN")).toBe("O'Brien");
+  });
+});
+
+describe("a picker with nothing to offer", () => {
+  it("says what typing a name does, when the cast is empty and nothing is typed", () => {
+    expect(suggest("line", "", [])).toEqual([]);
+    expect(emptyPrompt("line", "", 0)).toBe("Type a name to add someone to the story");
+    expect(emptyPrompt("mention", "", 0)).toBe("Type a name to add someone to the story");
+    expect(emptyPrompt("place", "", 0)).toBe("Type a name to add a place to the story");
+  });
+
+  it("stays quiet once there are names, or a typed name is offered as new", () => {
+    expect(emptyPrompt("line", "", suggest("line", "", ENTRIES).length)).toBeNull();
+    expect(suggest("line", "Ma", [])).toHaveLength(1);
+    expect(emptyPrompt("line", "Ma", 1)).toBeNull();
   });
 });

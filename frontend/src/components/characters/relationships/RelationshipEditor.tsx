@@ -67,7 +67,6 @@ export default function RelationshipEditor({
   const [description, setDescription] = useState(relationship?.description ?? "");
   const [notes, setNotes] = useState(relationship?.notes ?? "");
   const [saving, setSaving] = useState(false);
-  const [purposeError, setPurposeError] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [pendingDelete, setPendingDelete] = useState(false);
 
@@ -114,11 +113,6 @@ export default function RelationshipEditor({
   }
 
   async function handleSave() {
-    if (purposes.length === 0) {
-      setPurposeError(true);
-      return;
-    }
-    setPurposeError(false);
     setSaveError("");
     setSaving(true);
     try {
@@ -271,8 +265,8 @@ export default function RelationshipEditor({
 
         {/* Narrative purpose */}
         <div className={styles.field}>
-          <label className={styles.label}>Narrative purpose *</label>
-          <NarrativePurposeTags value={purposes} onChange={setPurposes} error={purposeError} />
+          <label className={styles.label}>Narrative purpose (optional)</label>
+          <NarrativePurposeTags value={purposes} onChange={setPurposes} />
         </div>
 
         {/* Tropes in play (doc 27): saved as you choose them, so only on a saved relationship. */}

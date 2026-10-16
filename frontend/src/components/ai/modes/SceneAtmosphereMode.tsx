@@ -5,6 +5,8 @@ import type { AISession } from "../../../stores/aiStore";
 import { useAIModeState } from "../../../hooks/useAIModeState";
 import { api } from "../../../api/client";
 import AIModeWrapper from "../AIModeWrapper";
+import KeptAnswerBar from "../kept/KeptAnswerBar";
+import { useKeptAnswer } from "../kept/useKeptAnswer";
 import type { StoryAsset } from "../../../types";
 import styles from "./SceneAtmosphereMode.module.css";
 
@@ -26,8 +28,24 @@ export default function SceneAtmosphereMode({ session }: Props) {
   const [copied, setCopied] = useState(false);
   const abortRef = useRef<boolean>(false);
 
+  // The description is kept on the scene, or the story (A7): the session shows it again, through
+  // a restart, until it is cleared or asked again; Start over chooses images for a new one.
+  const nodeId = session.context.nodeId;
+  const kept = useKeptAnswer(
+    storyId
+      ? nodeId
+        ? { storyId, type: "node", id: nodeId }
+        : { storyId, type: "story", id: storyId }
+      : null,
+    "scene-atmosphere",
+  );
+  const keptText = typeof kept.answer?.data.text === "string" ? kept.answer.data.text : "";
+  const keptIds = (kept.answer?.data.asset_ids as string[] | undefined) ?? [];
+  const [choosing, setChoosing] = useState(false);
+  const shownText = generating || streamText ? streamText : choosing ? "" : keptText;
+
   const imageAssets = assets.filter((a) => a.mime_type.startsWith("image/"));
-  const hasResult = streamText.length > 0;
+  const hasResult = shownText.length > 0;
 
   useEffect(() => {
     if (!storyId) return;
@@ -48,15 +66,16 @@ export default function SceneAtmosphereMode({ session }: Props) {
   }
 
   async function generate() {
-    if (!storyId || selected.length === 0) return;
+    const ids = selected.length ? selected : keptIds;
+    const query = userQuery.trim() || (kept.answer?.data.user_query as string | undefined) || "";
+    if (!storyId || ids.length === 0) return;
     setGenerating(true);
     setStreamText("");
     setError(null);
     abortRef.current = false;
 
     try {
-      const nodeId = session.context.nodeId ?? undefined;
-      const res = await api.analyzeSceneAtmosphere(storyId, selected, nodeId, userQuery.trim() || undefined);
+      const res = await api.analyzeSceneAtmosphere(storyId, ids, nodeId ?? undefined, query || undefined);
       if (!res.body) throw new Error("No response body");
 
       const { error } = await readEventStream(res, {
@@ -64,6 +83,10 @@ export default function SceneAtmosphereMode({ session }: Props) {
         stop: () => abortRef.current,
       });
       if (error) throw new Error(error);
+      if (await kept.reload()) {
+        setStreamText("");
+        setChoosing(false);
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Generation failed. Try again.");
     } finally {
@@ -76,10 +99,12 @@ export default function SceneAtmosphereMode({ session }: Props) {
     setStreamText("");
     setError(null);
     setGenerating(false);
+    setChoosing(true);
+    if (selected.length === 0) setSelected(keptIds);
   }
 
   async function copyResult() {
-    await navigator.clipboard.writeText(streamText);
+    await navigator.clipboard.writeText(shownText);
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
   }
@@ -123,7 +148,7 @@ export default function SceneAtmosphereMode({ session }: Props) {
             </button>
           </div>
           <div className={styles.resultBody}>
-            <p className={styles.resultText}>{streamText}</p>
+            <p className={styles.resultText}>{shownText}</p>
             {generating && <span className={styles.cursor} />}
           </div>
           <div className={styles.resultFooter}>
@@ -135,11 +160,23 @@ export default function SceneAtmosphereMode({ session }: Props) {
               {copied ? <Check size={13} /> : <Copy size={13} />}
               {copied ? "Copied" : "Copy"}
             </button>
-            <button className={styles.regenBtn} onClick={generate} disabled={generating} title="Regenerate">
-              <RefreshCw size={13} className={generating ? styles.spinner : undefined} />
-              Regenerate
-            </button>
+            {!kept.answer && (
+              <button className={styles.regenBtn} onClick={generate} disabled={generating} title="Regenerate">
+                <RefreshCw size={13} className={generating ? styles.spinner : undefined} />
+                Regenerate
+              </button>
+            )}
           </div>
+          {kept.answer && !streamText && (
+            <KeptAnswerBar
+              answer={kept.answer}
+              heading={session.title ?? "Scene atmosphere"}
+              context={{ storyId, nodeId }}
+              onAskAgain={() => void generate()}
+              asking={generating}
+              onClear={() => void kept.clear()}
+            />
+          )}
         </div>
       ) : (
         /* Selection view */

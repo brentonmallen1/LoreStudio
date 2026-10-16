@@ -15,6 +15,7 @@ from .routers.adaptation import router as adaptation_router
 from .routers.ai_calls import router as ai_calls_router
 from .routers.ai_settings import router as ai_settings_router
 from .routers.analysis import router as analysis_router
+from .routers.assistant_results import router as assistant_results_router
 from .routers.automatic import router as automatic_router
 from .routers.beat_sheets import router as beat_sheets_router
 from .routers.brainstorm import router as brainstorm_router
@@ -223,6 +224,7 @@ app.include_router(system_router, prefix="/api", tags=["system"])
 app.include_router(prose_tools_router, prefix="/api", tags=["prose-tools"])
 app.include_router(changes_router, prefix="/api", tags=["changes"])
 app.include_router(ai_calls_router, prefix="/api", tags=["ai-calls"])
+app.include_router(assistant_results_router, prefix="/api", tags=["assistant-results"])
 app.include_router(jobs_router, prefix="/api", tags=["jobs"])
 app.include_router(codex_router, prefix="/api", tags=["codex"])
 app.include_router(editorial_router, prefix="/api", tags=["editorial"])

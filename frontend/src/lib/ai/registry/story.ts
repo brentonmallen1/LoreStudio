@@ -22,7 +22,7 @@ export const STORY_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "twist-analysis": {
     id: "twist-analysis",
-    label: "Twist Analysis",
+    label: "Analyze the twist",
     type: "ai",
     shortDescription: "Review clue quality, distribution, and reveal effectiveness",
     fullDescription:
@@ -36,7 +36,7 @@ export const STORY_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "twist-impact": {
     id: "twist-impact",
-    label: "Twist Impact",
+    label: "Impact of the reveal",
     type: "ai",
     shortDescription: "Trace downstream effects when this twist resolves",
     fullDescription:
@@ -61,7 +61,7 @@ export const STORY_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "thread-analysis": {
     id: "thread-analysis",
-    label: "Thread Analysis",
+    label: "Analyze the thread",
     type: "ai",
     shortDescription: "Review thread progression, key moments, and narrative quality",
     fullDescription:

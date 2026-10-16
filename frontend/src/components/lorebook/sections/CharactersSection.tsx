@@ -12,11 +12,9 @@ import { usePanelStore } from "../../../stores/panelStore";
 import { useStoryStore } from "../../../stores/storyStore";
 import type { Character, Interview } from "../../../types";
 import AIOnly from "../../ai/AIOnly";
-import ArcAnalysisPanel from "../../characters/ArcAnalysisPanel";
 import ArcTimelineView from "../../characters/ArcTimelineView";
 import AttributeGeneratorDialog from "../../characters/AttributeGeneratorDialog";
 import CharacterDialogueTab from "../../characters/CharacterDialogueTab";
-import CharacterDimensionalityPanel from "../../characters/CharacterDimensionalityPanel";
 import CharacterFormDialog from "../../characters/CharacterFormDialog";
 import ManuscriptReview from "../../characters/ManuscriptReview";
 import RelationshipGraph from "../../characters/RelationshipGraph";
@@ -24,9 +22,9 @@ import StartInterviewDialog from "../../characters/StartInterviewDialog";
 import GlobalRelationshipsView from "../../characters/relationships/GlobalRelationshipsView";
 import RelationshipsTab from "../../characters/relationships/RelationshipsTab";
 import AssetPicker from "../../media/AssetPicker";
-import PortraitEditor, { type CharacterImageDescription } from "../../media/PortraitEditor";
+import PortraitEditor from "../../media/PortraitEditor";
+import { announceKept } from "../../../lib/ai/keptEvents";
 import SubjectNotes from "../../notes/SubjectNotes";
-import AssistantRow from "../AssistantRow";
 import HealthCard from "../HealthCard";
 import ConfirmDelete from "../ConfirmDelete";
 import EntitySheet, { Badge, SheetCard } from "../EntitySheet";
@@ -77,8 +75,6 @@ export default function CharactersSection() {
   const [deleting, setDeleting] = useState<Character | null>(null);
   const [interviewing, setInterviewing] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
-  const [depth, setDepth] = useState(false);
-  const [portraitDesc, setPortraitDesc] = useState<CharacterImageDescription | null>(null);
   const [castView, setCastView] = useState<"relationships" | "graph">("relationships");
 
   const character = characters.find((c) => c.id === selectedId) ?? null;
@@ -213,7 +209,9 @@ export default function CharactersSection() {
                       objectType="character"
                       objectId={character.id}
                       placeholder={<User size={28} />}
-                      onAnalyzeForCharacter={setPortraitDesc}
+                      onAnalyzeForCharacter={() =>
+                        announceKept({ storyId, type: "character", id: character.id })
+                      }
                     />
                   </SheetCard>
                   <SheetCard
@@ -249,36 +247,15 @@ export default function CharactersSection() {
                 </>
               ) : undefined
             }
-            footer={
-              view === "overview" ? (
-                <>
-                  {portraitDesc && (
-                    <PortraitDescription desc={portraitDesc} onClose={() => setPortraitDesc(null)} />
-                  )}
-                  {depth && <CharacterDimensionalityPanel characterId={character.id} />}
-                  <AssistantRow
-                    actions={[
-                      {
-                        label: "Interview",
-                        title: "Talk to them in their own voice",
-                        chat: true,
-                        onRun: () => setInterviewing(true),
-                      },
-                      {
-                        label: "Suggest attributes",
-                        title: "Traits, backstory, quirks or appearance",
-                        onRun: () => setSuggesting(true),
-                      },
-                      {
-                        label: depth ? "Hide character depth" : "Character depth",
-                        title: "Dimensionality, contradictions, development",
-                        onRun: () => setDepth((d) => !d),
-                      },
-                    ]}
-                  />
-                </>
-              ) : null
-            }
+            assistant={{
+              type: "character",
+              id: character.id,
+              pageId: "character-sheet",
+              extra: [
+                { id: "session-interview", chat: true, open: () => setInterviewing(true) },
+                { id: "character-attributes", open: () => setSuggesting(true) },
+              ],
+            }}
           >
             {view === "overview" && (
               <>
@@ -305,7 +282,6 @@ export default function CharactersSection() {
               <>
                 <ArcLine character={character} />
                 <ArcTimelineView characterId={character.id} characterName={character.name} />
-                <ArcAnalysisPanel characterId={character.id} />
               </>
             )}
             {view === "relationships" && <RelationshipsTab characterId={character.id} storyId={storyId} />}
@@ -402,40 +378,5 @@ export default function CharactersSection() {
         />
       )}
     </div>
-  );
-}
-
-/** What the Assistant read in a portrait: suggestions to copy, never written in on its own. */
-function PortraitDescription({ desc, onClose }: { desc: CharacterImageDescription; onClose: () => void }) {
-  const rows: [string, string | string[] | undefined][] = [
-    ["Visible in the image", desc.observations],
-    ["Appearance", desc.appearance],
-    ["Personality", desc.personality],
-    ["Voice", desc.voice],
-    ["Age", desc.age_estimate],
-    ["Worth deciding", desc.questions],
-  ];
-  return (
-    <SheetCard
-      title="Portrait description"
-      tone="ai"
-      meta={
-        <button type="button" className={styles.linkBtn} onClick={onClose}>
-          Close
-        </button>
-      }
-    >
-      {rows
-        .filter(([, v]) => v && (!Array.isArray(v) || v.length))
-        .map(([k, v]) => (
-          <div key={k} className={styles.field}>
-            <span className={styles.fieldLabel}>{k}</span>
-            <span className={styles.cardHint}>{Array.isArray(v) ? v.join(" · ") : v}</span>
-          </div>
-        ))}
-      <p className={styles.cardHint}>
-        Suggestions from the Assistant: copy what is useful into the fields above.
-      </p>
-    </SheetCard>
   );
 }

@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { Users, ChevronDown, ChevronRight, RefreshCw } from "lucide-react";
 import type { AISession } from "../../../stores/aiStore";
 import { useAIModeState } from "../../../hooks/useAIModeState";
 import { api } from "../../../api/client";
 import AIModeWrapper from "../AIModeWrapper";
+import KeptAnswerBar from "../kept/KeptAnswerBar";
+import { useKeptReading } from "../kept/useKeptReading";
 import type { AudienceAdherenceResponse, AudienceIssue } from "../../../types";
 import styles from "./AudienceAdherenceMode.module.css";
 
@@ -50,46 +52,21 @@ function IssueCard({ issue }: { issue: AudienceIssue }) {
 
 export default function AudienceAdherenceMode({ session }: Props) {
   const state = useAIModeState(session);
-  const [result, setResult] = useState<AudienceAdherenceResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const ranRef = useRef(false);
-
   const { storyId, nodeId, selectedText } = session.context;
-
-  async function runAnalysis() {
-    if (!storyId) return;
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    try {
-      const res = await api.analyzeAudienceAdherence(storyId, nodeId, selectedText);
-      if (res.success && res.data) {
-        setResult(res.data as unknown as AudienceAdherenceResponse);
-      } else {
-        setError(res.raw_text || "Analysis failed. Try again.");
-      }
-    } catch (e: unknown) {
+  const reading = useKeptReading<AudienceAdherenceResponse>(
+    session.context,
+    "audience-adherence",
+    () => api.analyzeAudienceAdherence(storyId ?? "", nodeId, selectedText),
+    (e) => {
       const msg = e instanceof Error ? e.message : "Something went wrong.";
-      // Backend returns 422 if no target audience is set
-      if (msg.includes("422") || msg.toLowerCase().includes("no target audience")) {
-        setError("No target audience set. Add one in the story's Lorebook first.");
-      } else {
-        setError(msg);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // Auto-run on mount when there's text to analyze
-  useEffect(() => {
-    if (ranRef.current) return;
-    if (!storyId) return;
-    if (!nodeId && !selectedText) return;
-    ranRef.current = true;
-    runAnalysis();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+      // The server refuses when no target audience is set
+      return msg.includes("422") || msg.toLowerCase().includes("no target audience")
+        ? "No target audience set. Add one in the story's Lorebook first."
+        : msg;
+    },
+  );
+  const { result, loading, error } = reading;
+  const runAnalysis = () => void reading.run();
 
   const hasContent = !!selectedText || !!nodeId;
   const critical = result?.issues.filter((i) => i.severity === "critical") ?? [];
@@ -146,8 +123,16 @@ export default function AudienceAdherenceMode({ session }: Props) {
       )}
 
       {/* Results */}
-      {result && !loading && (
+      {result && reading.answer && !loading && (
         <div className={styles.results}>
+          <KeptAnswerBar
+            answer={reading.answer}
+            heading={session.title ?? "Audience Fit"}
+            context={{ storyId, nodeId }}
+            onAskAgain={runAnalysis}
+            asking={loading}
+            onClear={reading.clear}
+          />
           {/* Summary header */}
           <div className={styles.summaryCard}>
             <div className={styles.summaryRow}>
@@ -160,14 +145,6 @@ export default function AudienceAdherenceMode({ session }: Props) {
                   ? "No issues"
                   : `${result.issues.length} issue${result.issues.length !== 1 ? "s" : ""}`}
               </span>
-              <button
-                className={styles.rerunBtn}
-                onClick={runAnalysis}
-                title="Re-run analysis"
-                aria-label="Re-run analysis"
-              >
-                <RefreshCw size={12} />
-              </button>
             </div>
             <p className={styles.summaryText}>{result.summary}</p>
           </div>

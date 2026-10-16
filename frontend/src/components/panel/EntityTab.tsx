@@ -10,6 +10,11 @@ import CompactCompendiumSheet from "./CompactCompendiumSheet";
 import CompactLocationSheet from "./CompactLocationSheet";
 import CompactThreadSheet from "./CompactThreadSheet";
 import CompactTwistSheet from "./CompactTwistSheet";
+import type { SubjectType } from "../../api/assistantResults";
+import { runActions, type Subject } from "../../lib/ai/sheetActions";
+import AssistantBand from "../lorebook/assistant/AssistantBand";
+import AssistantMenu from "../lorebook/assistant/AssistantMenu";
+import { useKeptAnswers } from "../lorebook/assistant/useKeptAnswers";
 import { KIND_LABEL } from "./tabColors";
 import { entityColor } from "./entityColor";
 import styles from "./Panel.module.css";
@@ -74,6 +79,59 @@ export default function EntityTab({ tab }: { tab: EntityPanelTab }) {
 
   return (
     <div style={{ "--tab-color": color } as React.CSSProperties}>
+      <EntityHead
+        tab={tab}
+        sub={sub}
+        fullPath={fullPath}
+        presence={presence}
+        subject={
+          tab.entityKind === "compendium"
+            ? null
+            : { storyId: activeStory.id, type: SUBJECT[tab.entityKind], id: tab.entityId, name: tab.label }
+        }
+      />
+      {tab.entityKind === "character" && entity && (
+        <CompactCharacterSheet character={characters.find((c) => c.id === tab.entityId)!} />
+      )}
+      {tab.entityKind === "location" && entity && (
+        <CompactLocationSheet location={locations.find((l) => l.id === tab.entityId)!} />
+      )}
+      {tab.entityKind === "thread" && entity && (
+        <CompactThreadSheet thread={threads.find((t) => t.id === tab.entityId)!} />
+      )}
+      {tab.entityKind === "twist" && <CompactTwistSheet storyId={activeStory.id} twistId={tab.entityId} />}
+      {tab.entityKind === "compendium" && <CompactCompendiumSheet entryId={tab.entityId} />}
+    </div>
+  );
+}
+
+/** What the Assistant answers about, for each kind a tab can hold (A6). */
+const SUBJECT: Record<Exclude<EntityPanelTab["entityKind"], "compendium">, SubjectType> = {
+  character: "character",
+  location: "location",
+  thread: "plot_thread",
+  twist: "twist",
+};
+
+/** The tab's head: kind, name, where it is, and in Studio mode the Assistant's menu and the
+ * answers it kept, one row each (A6). */
+function EntityHead({
+  tab,
+  sub,
+  fullPath,
+  presence,
+  subject,
+}: {
+  tab: EntityPanelTab;
+  sub: string;
+  fullPath: string;
+  presence: ReturnType<typeof entityPresence> | null;
+  subject: Subject | null;
+}) {
+  const kept = useKeptAnswers(subject);
+  const actions = subject ? runActions(subject) : [];
+  return (
+    <>
       <section className={styles.section}>
         <div className={styles.entityHead}>
           <div className={styles.entityHeadText}>
@@ -81,6 +139,7 @@ export default function EntityTab({ tab }: { tab: EntityPanelTab }) {
             <h3 className={styles.title}>{tab.label}</h3>
             {sub && <span className={styles.sub}>{sub}</span>}
           </div>
+          {subject && <AssistantMenu name={tab.label} actions={actions} kept={kept} compact />}
           <Link to={fullPath} className={styles.fullLink} title="Open the full sheet as the page">
             Full sheet <ArrowUpRight size={12} />
           </Link>
@@ -96,18 +155,8 @@ export default function EntityTab({ tab }: { tab: EntityPanelTab }) {
             )}
           </div>
         )}
+        {subject && <AssistantBand subject={subject} actions={actions} kept={kept} />}
       </section>
-      {tab.entityKind === "character" && entity && (
-        <CompactCharacterSheet character={characters.find((c) => c.id === tab.entityId)!} />
-      )}
-      {tab.entityKind === "location" && entity && (
-        <CompactLocationSheet location={locations.find((l) => l.id === tab.entityId)!} />
-      )}
-      {tab.entityKind === "thread" && entity && (
-        <CompactThreadSheet thread={threads.find((t) => t.id === tab.entityId)!} />
-      )}
-      {tab.entityKind === "twist" && <CompactTwistSheet storyId={activeStory.id} twistId={tab.entityId} />}
-      {tab.entityKind === "compendium" && <CompactCompendiumSheet entryId={tab.entityId} />}
-    </div>
+    </>
   );
 }

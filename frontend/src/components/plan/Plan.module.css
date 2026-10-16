@@ -114,10 +114,24 @@
   align-items: start;
 }
 
+/* The steps as one dropdown, narrow only (A2): a column of them pushed the step itself
+   below the fold. */
+.method > .stepPicker {
+  display: none;
+}
+
 @media (max-width: 760px) {
   .method {
     grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
+  }
+
+  .method > .stepList {
+    display: none;
+  }
+
+  .method > .stepPicker {
+    display: flex;
   }
 }
 
@@ -126,6 +140,14 @@
   .method {
     grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
+  }
+
+  .method > .stepList {
+    display: none;
+  }
+
+  .method > .stepPicker {
+    display: flex;
   }
 }
 

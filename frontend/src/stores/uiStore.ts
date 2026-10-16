@@ -215,12 +215,6 @@ interface UIState {
   openWritingGuides: (tab: "dialogue" | "mice" | "essential") => void;
   closeWritingGuides: () => void;
 
-  // World Building AI panel
-  worldBuildingAIPanelOpen: boolean;
-  worldBuildingAIContext: WorldBuildingAIContext | null;
-  openWorldBuildingAIPanel: (ctx: WorldBuildingAIContext) => void;
-  closeWorldBuildingAIPanel: () => void;
-
   // Scene search (⌘F — inline find bar in editor)
   sceneSearchOpen: boolean;
   openSceneSearch: () => void;
@@ -238,19 +232,6 @@ interface UIState {
   scratchPadOpen: boolean;
   toggleScratchPad: () => void;
   closeScratchPad: () => void;
-}
-
-export interface WorldBuildingAIContext {
-  feature:
-    | "what-exists"
-    | "location-suggest"
-    | "culture-suggest"
-    | "implications"
-    | "system"
-    | "calendar"
-    | "travel";
-  entityId: string;
-  storyId: string;
 }
 
 // "System" follows the OS while it is chosen, not only when the page loads (doc 17).
@@ -530,11 +511,6 @@ export const useUIStore = create<UIState>((set, get) => ({
   writingGuidesTab: null,
   openWritingGuides: (tab) => set({ writingGuidesTab: tab }),
   closeWritingGuides: () => set({ writingGuidesTab: null }),
-
-  worldBuildingAIPanelOpen: false,
-  worldBuildingAIContext: null,
-  openWorldBuildingAIPanel: (ctx) => set({ worldBuildingAIPanelOpen: true, worldBuildingAIContext: ctx }),
-  closeWorldBuildingAIPanel: () => set({ worldBuildingAIPanelOpen: false, worldBuildingAIContext: null }),
 
   sceneSearchOpen: false,
   openSceneSearch: () => set({ sceneSearchOpen: true }),

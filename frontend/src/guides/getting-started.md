@@ -16,7 +16,7 @@ Studio adds the **Assistant** and the other AI tools. They answer questions and 
 ## Your first session
 
 1. Choose **New story** on your stories page (logo menu › **All stories**). Give it a title and pick a **Story structure**: **Three-Act Structure** gives you acts, chapters and scenes; **Freeform** gives you sections and scenes.
-2. Under **How do you want to begin?**, choose one. New to writing a long story? **My first story** walks you from an idea in a sentence to your first scene in seven short steps. **Just write** opens the first scene.
+2. Under **How do you want to begin?**, choose one. New to writing a long story? The **First story guide** walks you from an idea in a sentence to your first scene in seven short steps; it stays in the logo menu with how far you have got, so you can come back to any step. **Just write** opens the first scene.
 3. Write. The light at the bottom right turns green a moment after you pause: your words are saved. Type `/` in the text for its commands: `/dialogue` for a line someone says, `/note` and `/todo` for the margin, `/image`, `/character` and `/place` to name someone or somewhere from the Lorebook.
 4. Open **This scene** in the side panel to see the scene at a glance. Choose **Scene sheet** there to fill in what happens, who is there and why the scene matters.
 5. Add your next chapter or scene from the story strip: press {{key:cycleStrip}} to open it out, then use **+**.
@@ -38,7 +38,7 @@ Already have a draft? **Import** on your stories page brings it in. See [Import 
 
 <!-- studio -->
 
-In Studio mode the rail also has the **Assistant**.
+In Studio mode the rail also has the **Assistant**. On a sheet in the Lorebook or Promises, **Assistant** in the header lists what it can do for that character, place or thread, each with a line on what it does. Its answers stay in a band under the header, one per question, until you clear them or ask again: **Talk it over** opens one in the Assistant, and **Fold away** tucks the band out of sight. Everywhere else the Assistant answers once (a summary on Story identity, a recap on the Overview, guidance on a Plan step, a reading of an image), the answer stays where you asked for it in the same way, even after you quit and come back, with **Talk it over**, **Ask again** and **Clear** beside it.
 <!-- /studio -->
 
 A few keys worth learning early:

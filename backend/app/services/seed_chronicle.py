@@ -210,3 +210,141 @@ def seed_lighthouse_chronicle(
         error=error,
         latency_ms=12,
     )
+
+
+#: "Brainstorm what exists" on the Lighthouse, as the model answered it (A6).
+WHAT_EXISTS = {
+    "built_environment": [
+        "A watch room under the lantern, with the logbook shelf and a barometer read four times a day",
+        "Ninety-two iron steps, worn bright in the middle",
+        "A fog signal house on the headland, its machinery silent since the 1987 automation",
+    ],
+    "natural_environment": [
+        "Salt crust on every north-facing window by morning",
+        "Gannets on the headland ledges below the gallery",
+    ],
+    "cultural_presence": [
+        "A spare wick tin with her father's initials scratched in the lid",
+        "Tally marks on the lantern-room window frame, one per storm",
+    ],
+    "questions": [
+        "Which logbook is missing from the shelf, and does anyone but Eleanor notice?",
+        "What does the lighthouse sound like on a still night, now the fog signal is gone?",
+    ],
+}
+
+
+#: "Remind me where I left off" on the Lighthouse, as the model answered it (A7).
+RECAP = (
+    "Last time you were in the middle of the storm night. You had just let the Visitor in, "
+    "on Eleanor's conditions, and handed over her father's logs in the watch room. The scene "
+    "after that is where the Visitor starts reading.\n\n"
+    "The Lighthouse sheet also has a kept answer about what would exist there, with a "
+    "question about a missing logbook. A good place to pick up is the moment Eleanor sees "
+    "which volume the Visitor reaches for first."
+)
+
+
+def seed_lighthouse_answer(db: Session, *, user: User, story: Story, place_id: str, place_name: str) -> None:
+    """Answers kept by the Assistant (A6, A7), each with the call that made it in the
+    Chronicle, so Studio mode shows them without running the model: one on the Lighthouse's
+    sheet, and the last session's recap on the story's Overview."""
+    import json
+
+    at = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=2)
+    _keep(
+        db,
+        user=user,
+        story=story,
+        subject=("location", place_id),
+        feature="what-exists",
+        heading="Brainstorm what exists",
+        data=WHAT_EXISTS,
+        message=f"Help me think through what would exist at {place_name}.",
+        response=json.dumps(WHAT_EXISTS, indent=2),
+        tags=["worldbuilding", "location", "user-initiated"],
+        at=at,
+    )
+    _keep(
+        db,
+        user=user,
+        story=story,
+        subject=("story", story.id),
+        feature="session-recap",
+        heading="Session Recap",
+        data={"text": RECAP},
+        message="Give me a recap of what I've been working on.",
+        response=RECAP,
+        tags=["story", "analysis", "user-initiated"],
+        at=at + timedelta(days=1),
+    )
+
+
+def _keep(
+    db: Session,
+    *,
+    user: User,
+    story: Story,
+    subject: tuple[str, str],
+    feature: str,
+    heading: str,
+    data: dict,
+    message: str,
+    response: str,
+    tags: list[str],
+    at: datetime,
+) -> None:
+    """One kept answer and the logged call it came from."""
+    from ..models.assistant_result import AssistantResult
+
+    log = ActivityLog(
+        user_id=user.id,
+        story_id=story.id,
+        event_type=f"ai_{feature.replace('-', '_')}",
+        category="ai",
+        description=message[:80],
+        created_at=at,
+        metadata_={
+            "model": MODEL,
+            "tokens_in": 1840,
+            "tokens_out": 260,
+            "latency_ms": 9400,
+            "feature": feature,
+            "tags": tags,
+            "status": "ok",
+            "error": None,
+            "prompt": message,
+            "response": response[:300],
+            "truncated": len(response) > 300,
+            "temperature": OPTIONS["temperature"],
+            "num_ctx": OPTIONS["num_ctx"],
+            "thinking_enabled": False,
+            "entity_id": subject[1],
+        },
+    )
+    db.add(log)
+    db.flush()
+    db.add(
+        AICallPayload(
+            activity_log_id=log.id,
+            system_prompt="",
+            messages=[{"role": "user", "content": message}],
+            raw_response=response,
+            options=OPTIONS,
+            context_sources=[],
+            created_at=at,
+        )
+    )
+    db.add(
+        AssistantResult(
+            story_id=story.id,
+            subject_type=subject[0],
+            subject_id=subject[1],
+            feature=feature,
+            heading=heading,
+            data=data,
+            ai_call_log_id=log.id,
+            created_at=at,
+            updated_at=at,
+        )
+    )

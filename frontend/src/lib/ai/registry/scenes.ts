@@ -45,15 +45,6 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
     // A script's cues say who speaks (doc 25).
     formats: ["prose"],
   },
-  "auto-link-entities": {
-    id: "auto-link-entities",
-    label: "Auto-Link Entities",
-    type: "ai",
-    shortDescription: "Find characters & locations in prose to link to Lorebook",
-    fullDescription:
-      "Scans the scene prose for character names and location names and suggests linking them to existing Lorebook entries.",
-    contextSources: ["Scene prose text", "Lorebook character and location entries"],
-  },
   "extract-outline": {
     id: "extract-outline",
     label: "Extract Outline from Prose",

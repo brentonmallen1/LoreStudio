@@ -579,3 +579,11 @@
   color: var(--color-text);
   line-height: 1.4;
 }
+
+/* Voice Fidelity, kept in the sheet's Assistant band (A7). */
+.fidelityBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}

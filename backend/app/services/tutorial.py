@@ -157,8 +157,8 @@ PROSE_LESSONS = [
                 "Scenes and sections",
                 _lesson(
                     "The strip on the left is the story's shape: each stop is a scene. Its + adds a "
-                    "scene or a section, and dragging moves one. The Scene sheet (the page icon at the "
-                    "top right) holds a scene's purpose, who is in it and where it happens. Plan, in "
+                    "scene or a section, and dragging moves one. The Scene sheet (⋯ › Open the scene sheet) "
+                    "holds a scene's purpose, who is in it and where it happens. Plan, in "
                     "the logo menu, walks you through shaping a whole story.",
                 ),
                 _prose("Write a line or two here, then add a scene after this one from the strip."),
@@ -293,8 +293,8 @@ SCRIPT_LESSONS = [
                 _lesson(
                     "The corner at the bottom right shows the scene's length in pages, counted as the "
                     "printed page sets them. The running time assumes a minute a page, and says so "
-                    "wherever it is shown. Export, in the ⋯ menu, writes a PDF, Final Draft or Fountain "
-                    "with the standard margins.",
+                    "wherever it is shown. Export, at the top of the Manuscript page (in the "
+                    "logo menu), writes a PDF, Final Draft or Fountain with the standard margins.",
                 ),
                 _script(
                     ("heading", "EXT. THE POINT - DAWN"),

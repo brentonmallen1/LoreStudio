@@ -75,6 +75,8 @@ class AICallContext:
     session_id: str | None = None
     tags: list[str] = field(default_factory=list)  # e.g. ["interview-panel", "user-initiated"]
     extra_metadata: dict = field(default_factory=dict)
+    #: Set once the call is logged: its ActivityLog id, so a kept answer can point at it (A6).
+    log_id: str | None = None
 
 
 def _is_script(context: AICallContext, db: Session) -> str:
@@ -590,6 +592,7 @@ class AIGateway:
             )
             db.add(log)
             db.flush()
+            context.log_id = log.id
             db.add(
                 AICallPayload(
                     activity_log_id=log.id,

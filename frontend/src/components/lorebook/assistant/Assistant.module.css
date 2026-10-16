@@ -1,0 +1,344 @@
+/* The Assistant on a sheet (A6): "Assistant ▾" in the header, and the answers it gave kept in
+   one tone box under the header (placement B). Violet only for what is the Assistant's. */
+
+/* ── The menu ── */
+.menuWrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2.133rem;
+  padding: 0 0.8rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
+  font: inherit;
+  font-size: var(--text-base);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.trigger:hover {
+  background: var(--color-ai-hover);
+}
+
+.triggerCompact {
+  height: 1.867rem;
+  padding: 0 0.65rem;
+  font-size: var(--text-sm);
+}
+
+.trigger:focus-visible,
+.menuItem:focus-visible,
+.chip:focus-visible,
+.talk:focus-visible,
+.quiet:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: var(--z-popover);
+  width: min(24rem, 86vw);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow);
+}
+
+.menuHead {
+  padding: 0.4rem 0.65rem 0.5rem;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-text-subtle);
+}
+
+.menuItem {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0.6rem 0.65rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-base);
+  text-align: left;
+  cursor: pointer;
+}
+
+.menuItem:hover:not(:disabled) {
+  background: var(--color-hover);
+}
+
+.menuItem:disabled {
+  cursor: progress;
+}
+
+.menuIcon {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--color-ai);
+}
+
+.menuText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.menuLabel {
+  font-weight: 600;
+}
+
+.menuDesc {
+  color: var(--color-text-muted);
+}
+
+.menuKept {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-ai);
+}
+
+.menuFoot {
+  margin-top: 0.25rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+  background: var(--color-tone);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* ── The band of kept answers ── */
+/* Its own container: the band is one row per answer wherever it is narrow, in a sheet or in
+   the side panel's tab. */
+.bandWrap {
+  container-type: inline-size;
+  container-name: answers;
+}
+
+.band {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-tone);
+}
+
+.bandHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.bandTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: var(--color-ai);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 1.6rem;
+  padding: 0.15rem 0.65rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-base);
+  text-align: left;
+  cursor: pointer;
+}
+
+.chip:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.chipOn,
+.chipOn:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}
+
+.chipText {
+  min-width: 0;
+}
+
+.chipName {
+  color: inherit;
+}
+
+.chipWhen {
+  color: var(--color-text-subtle);
+}
+
+.chipBusy {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.6rem;
+  padding: 0.15rem 0.65rem;
+  font-size: var(--text-base);
+  color: var(--color-text-subtle);
+}
+
+/* In the wide band a chip is a word; the row's icon and chevron are for the narrow one. */
+.rowIcon,
+.rowChevron {
+  display: none;
+}
+
+.bandBody {
+  padding: 0.35rem 0.1rem 0.1rem;
+  min-width: 0;
+}
+
+.bandActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.talk,
+.quiet {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 1.867rem;
+  padding: 0 0.65rem;
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--text-base);
+  cursor: pointer;
+}
+
+.talk {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.talk svg {
+  color: var(--color-ai);
+}
+
+.talk:hover {
+  background: var(--color-hover);
+}
+
+.quiet {
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.quiet:hover:not(:disabled) {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.quiet:disabled {
+  cursor: progress;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* A narrow sheet: the smaller button. */
+@container (max-width: 42.667rem) {
+  .trigger {
+    height: 1.867rem;
+    padding: 0 0.65rem;
+    font-size: var(--text-sm);
+  }
+}
+
+/* Beside the prose (the side panel) or any narrow sheet: one row per kept answer. */
+@container answers (max-width: 42.667rem) {
+  .band {
+    padding: 0.5rem;
+  }
+
+  .bandTitle {
+    display: none;
+  }
+
+  .bandHead,
+  .chips {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .chip {
+    width: 100%;
+    min-height: 2.4rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+
+  .chipName {
+    font-weight: 600;
+  }
+
+  .chipText {
+    flex: 1;
+  }
+
+  .rowIcon,
+  .rowChevron {
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  .rowIcon {
+    color: var(--color-ai);
+  }
+
+  .rowChevron {
+    color: var(--color-text-muted);
+    transition: transform var(--transition);
+  }
+
+  .chipOn .rowChevron {
+    transform: rotate(90deg);
+  }
+
+  .bandBody {
+    padding: 0.25rem 0.35rem;
+  }
+}

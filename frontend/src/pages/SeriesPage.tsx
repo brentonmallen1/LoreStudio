@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { BookCopy, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { progressApi, type StoryProgress } from "../api/progress";
 import { seriesApi, type Series, type SeriesFinding } from "../api/series";
 import PageHeader from "../components/layout/PageHeader";
-import { Modal } from "../components/common";
 import BooksList from "../components/series/BooksList";
+import DeleteSeriesDialog from "../components/series/DeleteSeriesDialog";
 import Canon from "../components/series/Canon";
 import SeriesEye from "../components/series/SeriesEye";
 import SeriesIdentity from "../components/series/SeriesIdentity";
@@ -247,37 +247,14 @@ export default function SeriesPage() {
       </main>
 
       {newBook && last && <CreateStoryDialog sequelTo={last.story_id} onClose={() => setNewBook(false)} />}
-      <Modal
-        isOpen={confirmDelete}
-        onClose={() => setConfirmDelete(false)}
-        title={`Delete “${series.name}”?`}
-        icon={<BookCopy size={15} />}
-        size="sm"
-        footer={
-          <>
-            <button className={styles.textBtn} onClick={() => setConfirmDelete(false)}>
-              Keep it
-            </button>
-            <button
-              className={styles.textBtn}
-              onClick={() =>
-                run(async () => {
-                  await seriesApi.remove(series.id);
-                  useSeriesStore.getState().accept({ ...series, books: [] });
-                  navigate("/");
-                }, "The series could not be deleted.")
-              }
-            >
-              Delete the series
-            </button>
-          </>
-        }
-      >
-        <p className={styles.sectionNote}>
-          Every book stays, with all its characters, places and world as its own. Only the series goes: its
-          order, and which things in different books are the same.
-        </p>
-      </Modal>
+      {confirmDelete && (
+        <DeleteSeriesDialog
+          series={series}
+          words={series.books.reduce((n, b) => n + (progress[b.story_id]?.word_count ?? 0), 0)}
+          onClose={() => setConfirmDelete(false)}
+          onDeleted={() => navigate("/")}
+        />
+      )}
     </div>
   );
 }

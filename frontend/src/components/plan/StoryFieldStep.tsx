@@ -1,9 +1,7 @@
-import { useState } from "react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Story } from "../../types";
 import type { PlanStep, StoryPlanField } from "../../lib/planning/methods";
-import AssistantRow from "../lorebook/AssistantRow";
 import PlanGuidance from "./PlanGuidance";
 import { countWords, useAutosaveField } from "./useAutosaveField";
 import styles from "./Plan.module.css";
@@ -28,7 +26,6 @@ interface Props {
 export default function StoryFieldStep({ story, step }: Props) {
   const field = step.target.field;
   const setActiveStory = useStoryStore((s) => s.setActiveStory);
-  const [guidance, setGuidance] = useState(false);
   const { value, change, flush } = useAutosaveField(story[field] ?? "", async (v) => {
     const updated = await api.updateStory(story.id, { [field]: v });
     setActiveStory(updated);
@@ -65,23 +62,12 @@ export default function StoryFieldStep({ story, step }: Props) {
           {words} {words === 1 ? "word" : "words"}
         </span>
       </div>
-      {step.guidanceLayer && !guidance && (
-        <AssistantRow
-          actions={[
-            {
-              label: "Get guidance on this answer",
-              title: "The Assistant reads what you have written here and asks what it leaves open",
-              onRun: () => setGuidance(true),
-            },
-          ]}
-        />
-      )}
-      {guidance && step.guidanceLayer && (
+      {step.guidanceLayer && (
         <PlanGuidance
           storyId={story.id}
           layer={step.guidanceLayer}
           content={value}
-          onClose={() => setGuidance(false)}
+          stepName={FIELD_NAMES[field]}
         />
       )}
     </div>

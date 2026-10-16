@@ -29,7 +29,7 @@ from ..models.twist import Twist, TwistClue
 from ..models.user import User
 from ..models.world_system import WorldSystem
 from . import sample_titles, seed_series
-from .seed_chronicle import seed_lighthouse_chronicle
+from .seed_chronicle import seed_lighthouse_answer, seed_lighthouse_chronicle
 from .seed_jobs import seed_lighthouse_jobs
 from .seed_numbers import seed_lighthouse_numbers
 from .seed_who import seed_audition_who, seed_lighthouse_who
@@ -2619,6 +2619,9 @@ def seed_demo_story(user_id: str | None = None):  # noqa: PLR0915
         )
         # Jobs (doc 21): a check that finished while the author was away, a stopped pass.
         seed_lighthouse_jobs(db, user=owner, story=story)
+        # Kept Assistant answers: one on the Lighthouse's sheet (A6), under the sheet's header,
+        # and the last session's recap on the Overview (A7). Writer mode shows no AI at all.
+        seed_lighthouse_answer(db, user=owner, story=story, place_id=lighthouse.id, place_name=lighthouse.name)
 
         # Counted from the prose, as the editor counts, not written in by hand.
         recount_story(story.id, db)

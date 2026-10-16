@@ -39,13 +39,7 @@ const SYSTEMS: SimpleSectionConfig<WorldSystem> = {
       save={(hierarchy_tiers) => save({ hierarchy_tiers })}
     />
   ),
-  assistant: (e, storyId, openAI) => [
-    {
-      label: "Analyse edge cases",
-      title: "Edge cases, story implications, consistency questions",
-      onRun: () => openAI({ feature: "system", entityId: e.id, storyId }),
-    },
-  ],
+  assistant: () => "world_system",
   empty: "No systems yet. Magic, technology, faith, trade: the rules your world runs on.",
   newName: "New system",
 };
@@ -68,13 +62,7 @@ const CULTURES: SimpleSectionConfig<Culture> = {
     key === "naming"
       ? { naming_conventions: { ...(e.naming_conventions ?? {}), notes: value } }
       : ({ [key]: value } as Partial<Culture>),
-  assistant: (e, storyId, openAI) => [
-    {
-      label: "Suggest elements",
-      title: "Naming patterns, rituals and customs, aesthetics and materials",
-      onRun: () => openAI({ feature: "culture-suggest", entityId: e.id, storyId }),
-    },
-  ],
+  assistant: () => "culture",
   empty: "No cultures yet. The peoples of your world: what they value, what they never do.",
   newName: "New culture",
 };
@@ -140,13 +128,7 @@ const CALENDARS: SimpleSectionConfig<Calendar> = {
       />
     </>
   ),
-  assistant: (e, storyId, openAI) => [
-    {
-      label: "Suggest entries",
-      title: "Festivals, seasonal events, historical observances",
-      onRun: () => openAI({ feature: "calendar", entityId: e.id, storyId }),
-    },
-  ],
+  assistant: () => "calendar",
   empty: "No calendars yet. How the people of your story count their days.",
   newName: "New calendar",
 };
@@ -244,13 +226,7 @@ export function TravelSection() {
         ))}
       </SheetCard>
     ),
-    assistant: (e, storyId, openAI) => [
-      {
-        label: "Analyse route",
-        title: "Journey considerations, hazards, narrative possibilities",
-        onRun: () => openAI({ feature: "travel", entityId: e.id, storyId }),
-      },
-    ],
+    assistant: () => "location_travel",
     empty: "No routes yet. How long it takes to get from one place to another, and what can stop you.",
     newName: "",
   };

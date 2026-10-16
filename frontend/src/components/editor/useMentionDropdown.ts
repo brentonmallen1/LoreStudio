@@ -321,6 +321,7 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
   return {
     open,
     mode,
+    query,
     pos,
     selIdx,
     choices,

@@ -26,6 +26,15 @@
     display: none;
   }
 
+  /* The name keeps its width; the header's buttons (Assistant first) wrap under it (A6). */
+  .sheetHeader {
+    flex-wrap: wrap;
+  }
+
+  .sheetHeader > .sheetTitleBlock {
+    flex: 1 1 14rem;
+  }
+
   .sheetBtn {
     width: 2.133rem;
     padding: 0;

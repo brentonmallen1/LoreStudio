@@ -176,6 +176,18 @@ export function suggest(
   return shown;
 }
 
+/**
+ * What an open picker says when it has nothing to offer yet: with an empty cast, `^` and `@`
+ * used to draw nothing at all. Typing a name offers it as a new entry (`suggest`), so the
+ * row says so; null when there are choices, or a query that already offers a new one.
+ */
+export function emptyPrompt(mode: TriggerMode, query: string, choices: number): string | null {
+  if (choices > 0 || query.trim()) return null;
+  return mode === "place"
+    ? "Type a name to add a place to the story"
+    : "Type a name to add someone to the story";
+}
+
 /** The rest of a suggestion after what has been typed, shown faintly; Tab takes it. */
 export function ghostText(query: string, choice: Choice | undefined): string {
   if (!choice || choice.create || !query) return "";

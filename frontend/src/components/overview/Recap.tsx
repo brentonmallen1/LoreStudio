@@ -1,4 +1,5 @@
-import { Orbit, RefreshCw } from "lucide-react";
+import { Orbit } from "lucide-react";
+import KeptAnswerBar from "../ai/kept/KeptAnswerBar";
 import type { RecapState } from "./useRecap";
 import styles from "./Overview.module.css";
 
@@ -11,8 +12,11 @@ export function RecapTrigger({ recap }: { recap: RecapState }) {
   );
 }
 
+/** The last recap, kept on the story (A7): there when the Overview opens again, until cleared. */
 export function RecapCard({ recap }: { recap: RecapState }) {
-  if (!recap.text && !recap.loading) return null;
+  const kept = typeof recap.kept?.data.text === "string" ? recap.kept.data.text : "";
+  const text = recap.loading || recap.text ? recap.text : kept;
+  if (!text && !recap.loading) return null;
   return (
     <div className={styles.recapCard}>
       <div className={styles.recapHead}>
@@ -20,16 +24,23 @@ export function RecapCard({ recap }: { recap: RecapState }) {
         <span className={styles.label} data-tone="ai">
           Last session
         </span>
-        {recap.done && (
-          <button type="button" className={styles.iconBtn} onClick={recap.fetch} aria-label="Recap again">
-            <RefreshCw size={11} />
-          </button>
-        )}
       </div>
       <p className={styles.recapText}>
-        {recap.text}
+        {text}
         {recap.loading && <span className={styles.recapCursor} />}
       </p>
+      {recap.kept && !recap.text && (
+        <div className={styles.recapBar}>
+          <KeptAnswerBar
+            answer={recap.kept}
+            heading="Where I left off"
+            context={{ storyId: recap.storyId }}
+            onAskAgain={recap.fetch}
+            asking={recap.loading}
+            onClear={recap.clear}
+          />
+        </div>
+      )}
     </div>
   );
 }

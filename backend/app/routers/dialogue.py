@@ -25,7 +25,7 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.ai_responses import DialogueAttributionResponse
-from ..services import change_log
+from ..services import assistant_results, change_log
 from ..services.dialogue_service import (
     _html_to_paragraphs,
     sync_scene_dialogue,
@@ -294,6 +294,17 @@ async def ai_suggest_dialogue_speakers(  # noqa: C901
             )
         )
 
+    # Kept on the scene (A7): the suggestions are still there when the Dialogue tool opens again.
+    if call_ctx.story_id:
+        assistant_results.save(
+            db,
+            story_id=call_ctx.story_id,
+            subject_type="node",
+            subject_id=scene_id,
+            feature="dialogue-attribution",
+            data={"suggestions": [p.model_dump() for p in proposals]},
+            ai_call_log_id=call_ctx.log_id,
+        )
     return proposals
 
 

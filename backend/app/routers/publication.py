@@ -17,6 +17,7 @@ from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.ai_responses import CompTitlesResponse, StructuredResult
 from ..schemas.llm_params import LLMParamsOverride
+from ..services import assistant_results
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.publication import (
     build_book_description_system_prompt,
@@ -166,7 +167,7 @@ async def suggest_comp_titles(
         tags=["publication", "comp-titles", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=CompTitlesResponse,
         messages=[{"role": "user", "content": "Suggest comparable published titles for this story."}],
         feature_prompt=feature_prompt,
@@ -174,3 +175,4 @@ async def suggest_comp_titles(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, call_ctx, subject_type="story", subject_id=story_id)

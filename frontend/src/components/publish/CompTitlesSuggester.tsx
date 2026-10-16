@@ -1,4 +1,6 @@
 import { useState } from "react";
+import KeptAnswerBar from "../ai/kept/KeptAnswerBar";
+import { useKeptAnswer } from "../ai/kept/useKeptAnswer";
 import { Orbit, Loader2, X, AlertTriangle, BookOpen, ExternalLink } from "lucide-react";
 import { api } from "../../api/client";
 import type { StructuredResult } from "../../types";
@@ -22,10 +24,15 @@ interface Props {
   onClose: () => void;
 }
 
+/**
+ * Comparable titles for the story. The answer is kept on the story (A7): the panel shows it
+ * when it opens again, through a restart, until it is cleared or asked again.
+ */
 export default function CompTitlesSuggester({ storyId, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<CompTitlesResult | null>(null);
+  const kept = useKeptAnswer({ storyId, type: "story", id: storyId }, "comp-titles");
+  const result = kept.answer ? (kept.answer.data as unknown as CompTitlesResult) : null;
 
   function handleRun() {
     setLoading(true);
@@ -37,7 +44,7 @@ export default function CompTitlesSuggester({ storyId, onClose }: Props) {
           setError(res.raw_text ?? "Analysis failed.");
           return;
         }
-        setResult(res.data as unknown as CompTitlesResult);
+        return kept.reload();
       })
       .catch((e: Error) => setError(e.message ?? "Analysis failed."))
       .finally(() => setLoading(false));
@@ -56,7 +63,7 @@ export default function CompTitlesSuggester({ storyId, onClose }: Props) {
       </div>
 
       <div className={styles.body}>
-        {!result && !loading && !error && (
+        {kept.loaded && !result && !loading && !error && (
           <div className={styles.intro}>
             <BookOpen size={20} className={styles.introIcon} />
             <p className={styles.introText}>
@@ -70,7 +77,7 @@ export default function CompTitlesSuggester({ storyId, onClose }: Props) {
           </div>
         )}
 
-        {loading && (
+        {loading && !result && (
           <div className={styles.loading}>
             <Loader2 size={16} className={styles.spinner} />
             <span>Analyzing story…</span>
@@ -87,10 +94,10 @@ export default function CompTitlesSuggester({ storyId, onClose }: Props) {
           </div>
         )}
 
-        {!loading && result && (
+        {result && kept.answer && (
           <div className={styles.results}>
             <div className={styles.titleList}>
-              {result.suggestions.map((s, i) => (
+              {(result.suggestions ?? []).map((s, i) => (
                 <div key={i} className={styles.titleCard}>
                   <div className={styles.titleTop}>
                     <div className={styles.titleMain}>
@@ -102,7 +109,7 @@ export default function CompTitlesSuggester({ storyId, onClose }: Props) {
                   </div>
                   <p className={styles.reasoning}>{s.reasoning}</p>
                   <div className={styles.aspects}>
-                    {s.similarity_aspects.map((a) => (
+                    {(s.similarity_aspects ?? []).map((a) => (
                       <span key={a} className={styles.aspect}>
                         {a}
                       </span>
@@ -117,10 +124,14 @@ export default function CompTitlesSuggester({ storyId, onClose }: Props) {
                 <p>{result.positioning_note}</p>
               </div>
             )}
-            <button className={styles.rerunBtn} onClick={handleRun}>
-              <Orbit size={12} />
-              Re-run
-            </button>
+            <KeptAnswerBar
+              answer={kept.answer}
+              heading="Comparable titles"
+              context={{ storyId }}
+              onAskAgain={handleRun}
+              asking={loading}
+              onClear={() => void kept.clear()}
+            />
           </div>
         )}
       </div>

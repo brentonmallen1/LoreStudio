@@ -31,7 +31,8 @@ registerSessionType({
 
   initSession: async (_ctx) => ({}),
 
-  // Not used — the mode component calls api.analyzeShowDontTell() directly on mount
+  // Not used: the mode reads once (api.analyzeShowDontTell) and the server keeps the reading on
+  // the scene (A7), so opening it again shows the kept one instead of reading again
   sendMessage: () => {
     throw new Error("Show Don't Tell uses direct API call, not sendMessage");
   },
@@ -64,7 +65,8 @@ registerSessionType({
 
   initSession: async (_ctx) => ({}),
 
-  // Not used — the mode component calls api.analyzeAudienceAdherence() directly on mount
+  // Not used: the mode reads once (api.analyzeAudienceAdherence) and the reading is kept on the
+  // scene (A7), shown again when the session opens
   sendMessage: () => {
     throw new Error("Audience Adherence uses direct API call, not sendMessage");
   },
@@ -100,7 +102,7 @@ registerSessionType({
 
   initSession: async () => ({}),
 
-  // Discovery Questions uses direct API call from the mode component, not sendMessage
+  // Discovery Questions asks with a direct call; its questions are kept on what they are about (A7)
   sendMessage: () => {
     throw new Error("Discovery Questions uses direct API call");
   },

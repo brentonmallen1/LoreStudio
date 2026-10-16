@@ -252,7 +252,9 @@ export const seriesApi = {
     request<Series>("/series", json(body)),
   update: (id: string, body: Partial<Pick<Series, "name" | "premise" | "intent">>) =>
     request<Series>(`/series/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
-  remove: (id: string) => request<void>(`/series/${id}`, { method: "DELETE" }),
+  /** Delete a series: its books stay as standalone stories ("keep"), or go with it ("delete"). */
+  remove: (id: string, books: "keep" | "delete" = "keep") =>
+    request<void>(`/series/${id}?books=${books}`, { method: "DELETE" }),
   forStory: (storyId: string) => request<StorySeries>(`/stories/${storyId}/series`),
 
   reorder: (id: string, storyIds: string[]) =>

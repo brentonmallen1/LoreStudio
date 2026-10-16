@@ -75,6 +75,8 @@ export interface StoryRoute {
   /** Set when the page is entirely an AI feature (never shown in Writer mode). */
   ai?: boolean;
   sections?: RouteSection[];
+  /** What the page is for, in a line: shown under its name in the logo menu (A2, doc 30 C2). */
+  purpose?: string;
 }
 
 const BOTH: UIMode[] = ["writer", "studio"];
@@ -155,14 +157,17 @@ export const STORY_ROUTES: StoryRoute[] = [
     keywords: ["ideas", "brain dump", "stream of consciousness", "journal", "loose", "capture"],
   },
   {
-    // Seven short steps for a new writer, from New story or the palette (doc 18 C10).
+    // Seven short steps for a new writer, from New story, the logo menu or the palette (doc 18
+    // C10). Always in the logo menu, finished or not (A2).
     id: "first-story",
     path: "/first-story",
-    label: "My first story",
+    label: "First story guide",
+    purpose: "Seven guided steps from an idea to a first scene",
     icon: Footprints,
     domain: "home",
     modes: BOTH,
     keywords: [
+      "my first story",
       "walkthrough",
       "tutorial",
       "first steps",

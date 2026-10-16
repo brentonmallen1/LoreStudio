@@ -1,6 +1,7 @@
 import { BookOpen, User, Target, Heart, Swords, Flame, Orbit } from "lucide-react";
 import { Modal } from "../common";
 import CollapsibleSection from "../common/CollapsibleSection";
+import { useAIAvailable } from "../../lib/mode";
 import styles from "./EssentialQuestionsGuide.module.css";
 
 interface Props {
@@ -83,6 +84,8 @@ const QUESTIONS = [
 ];
 
 export function EssentialQuestionsContent() {
+  // The Story compass is an Assistant check: Writer mode, and AI switched off, never hear of it.
+  const aiAvailable = useAIAvailable();
   return (
     <>
       <div className={styles.intro}>
@@ -91,10 +94,12 @@ export function EssentialQuestionsContent() {
           on the page (some live in the author's notes, some in subtext), but they need to exist somewhere.
           When any one is missing or unclear, readers feel it, even if they can't name why.
         </p>
-        <p>
-          Use the <strong>Story Compass</strong> tool on the Health page to check whether these questions are
-          answerable for any character in your story.
-        </p>
+        {aiAvailable && (
+          <p>
+            In Findings, <strong>Run checks</strong> › <strong>Story compass</strong> asks the Assistant
+            whether these questions are answerable for any character in your story.
+          </p>
+        )}
       </div>
 
       <div className={styles.questionsGrid}>
@@ -125,8 +130,8 @@ export function EssentialQuestionsContent() {
               different reasons), but each character's version must be clear.
             </p>
             <p>
-              In LoreStudio, mark multiple characters with the role <strong>protagonist</strong>. The Story
-              Compass lets you select which character to analyze so you can check each one independently.
+              In LoreStudio, mark each of them with the role <strong>protagonist</strong>, and answer the
+              questions for each one in turn.
             </p>
             <p className={styles.tip}>
               <strong>Common problem:</strong> In ensemble casts, stakes often get diffuse: each character has

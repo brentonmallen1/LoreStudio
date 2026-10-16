@@ -10,12 +10,13 @@ from sqlalchemy.orm import Session
 from ..auth.dependencies import get_current_user
 from ..auth.utils import decode_token
 from ..database import get_db
+from ..models.character import Character
 from ..models.media import AssetAttachment, StoryAsset
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.media import AssetOut, AssetUpdate, AttachmentCreate, AttachmentOut
-from ..services import change_log, media_files
+from ..services import assistant_results, change_log, media_files
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.character_from_image import CHARACTER_FROM_IMAGE_SYSTEM, CHARACTER_FROM_IMAGE_USER
 from ..services.llm.prompts.scene_atmosphere import SCENE_ATMOSPHERE_SYSTEM, build_scene_atmosphere_prompt
@@ -363,17 +364,28 @@ async def analyze_image(
         context=ctx,
         db=db,
         user=current_user,
+        on_complete=assistant_results.keep_text(db, ctx, "image", asset_id),
     )
 
 
 @router.post("/media/{asset_id}/analyze/character")
 async def analyze_image_for_character(
     asset_id: str,
+    character_id: str | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Stream AI character profile suggestions derived from a portrait image."""
+    """Stream AI character profile suggestions derived from a portrait image.
+
+    Kept (A7) on the character whose portrait it is, when the sheet says which, so it shows
+    on their sheet; otherwise on the image."""
     asset = _verify_asset_access(asset_id, db, current_user)
+    kept_on = ("image", asset_id)
+    if character_id:
+        who = db.get(Character, character_id)
+        if who is None or who.story_id != asset.story_id:
+            raise HTTPException(status_code=404, detail="Character not found")
+        kept_on = ("character", who.id)
 
     if not asset.mime_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Asset is not an image")
@@ -407,6 +419,7 @@ async def analyze_image_for_character(
         context=ctx,
         db=db,
         user=current_user,
+        on_complete=assistant_results.keep_text(db, ctx, *kept_on),
     )
 
 
@@ -435,9 +448,11 @@ async def analyze_scene_atmosphere(
     # Load scene context if a node was provided
     scene_title: str | None = None
     scene_synopsis: str | None = None
+    kept_on = ("story", story_id)  # the answer is kept on its scene, or on the story
     if body.node_id:
         node = db.get(StructureNode, body.node_id)
         if node and node.story_id == story.id:
+            kept_on = ("node", node.id)
             scene_title = node.title
             scene_synopsis = node.synopsis or None
 
@@ -487,4 +502,7 @@ async def analyze_scene_atmosphere(
         context=ctx,
         db=db,
         user=current_user,
+        on_complete=assistant_results.keep_text(
+            db, ctx, *kept_on, extra={"asset_ids": body.asset_ids[:5], "user_query": body.user_query or ""}
+        ),
     )

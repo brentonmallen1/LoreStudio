@@ -40,9 +40,12 @@ MUTATING = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
 AI_CALLS = (
     # A one-shot Assistant call or analysis. What the model says is logged in the Chronicle
-    # (or cached as derived text, like a summary); nothing goes into the story until the
-    # author keeps it, through a route that records.
+    # (or cached as derived text, like a summary, or kept as an answer on what it is about,
+    # A6/A7); nothing goes into the story until the author keeps it, through a route that
+    # records.
     "DELETE /api/ai/payloads",
+    # A kept answer (A6) cleared: an AI answer, not story data; asking again brings it back.
+    "DELETE /api/stories/{story_id}/assistant-results/{result_id}",
     "POST /api/characters/{character_id}/analyze-arc",
     "POST /api/characters/{character_id}/analyze-voice-fidelity",
     "POST /api/characters/{character_id}/assess-dimensionality",

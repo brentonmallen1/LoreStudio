@@ -118,3 +118,23 @@ def test_activity_can_be_filtered_by_feature(client, db_session, test_user):
     rows = client.get("/api/chronicle/activity?features=whatif").json()
     assert rows["total"] == 1
     assert rows["logs"][0]["metadata_"]["feature"] == "whatif"
+
+
+def test_a_call_says_which_kind_of_entity_it_ran_on(client, db_session, test_user):
+    """element-suggest answers in a location's shape or a culture's: the Chronicle needs to know which."""
+    log = _call(db_session, test_user, feature="element-suggest", element_type="culture")
+    assert client.get(f"/api/ai/calls/{log.id}").json()["element_type"] == "culture"
+    assert client.get(f"/api/ai/calls/{_call(db_session, test_user).id}").json()["element_type"] is None
+
+
+def test_element_suggest_records_the_element_type(client, mock_ai_gateway):
+    gw = mock_ai_gateway(structured_data={"naming_directions": []})
+    sid = client.post("/api/stories", json={"title": "T"}).json()["id"]
+    culture = client.post(f"/api/stories/{sid}/cultures", json={"name": "Keepers"})
+    assert culture.status_code in (200, 201), culture.text
+    r = client.post(
+        f"/api/stories/{sid}/worldbuilding/suggest-elements",
+        json={"element_type": "culture", "element_id": culture.json()["id"]},
+    )
+    assert r.status_code == 200, r.text
+    assert gw.structured_calls[0]["context"].extra_metadata["element_type"] == "culture"

@@ -1,0 +1,13 @@
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--color-text);
+  white-space: pre-wrap;
+}
+
+.text p {
+  margin: 0;
+}

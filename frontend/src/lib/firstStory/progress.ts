@@ -1,7 +1,7 @@
-import type { StepId } from "./steps";
+import { STEPS, type StepId } from "./steps";
 
 /**
- * Where the author is in "My first story", per story and per browser: which step, which are
+ * Where the author is in the First story guide, per story and per browser: which step, which are
  * done, and what each step made, so going back edits it instead of making another. The things
  * themselves are story data; this only remembers the walkthrough.
  */
@@ -32,4 +32,19 @@ export function writeProgress(storyId: string, p: Progress) {
   } catch {
     /* the walkthrough still works; it just won't remember */
   }
+}
+
+/**
+ * The guide's place for the logo menu (A2): "Done" once the first scene is written, "3 of 7"
+ * while on the way, nothing when it was never opened in this browser.
+ */
+export function guideStatus(storyId: string): string | null {
+  try {
+    if (localStorage.getItem(key(storyId)) === null) return null;
+  } catch {
+    return null;
+  }
+  const p = readProgress(storyId);
+  if (p.done.includes("write")) return "Done";
+  return `${Math.min(p.step, STEPS.length - 1) + 1} of ${STEPS.length}`;
 }

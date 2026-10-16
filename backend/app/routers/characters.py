@@ -27,7 +27,7 @@ from ..schemas.refactoring import (
     PronounRewriteProposal,
     RenamePreviewResponse,
 )
-from ..services import change_log, other_names
+from ..services import assistant_results, change_log, other_names
 from ..services.character_journey import (
     build_journey_prompt,
     get_cached_journey,
@@ -148,13 +148,21 @@ async def generate_attributes(
         extra_metadata={"attribute_type": attribute_type},
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=AttributeSuggestionsResponse,
         messages=llm_messages,
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,
         user=current_user,
+    )
+    return assistant_results.keep(
+        db,
+        result,
+        ctx,
+        subject_type="character",
+        subject_id=character_id,
+        heading=f"Suggest attributes: {attribute_type}",
     )
 
 
@@ -832,4 +840,4 @@ async def analyze_voice_fidelity(
     )
     db.add(log)
     db.commit()
-    return result
+    return assistant_results.keep(db, result, ctx, subject_type="character", subject_id=character_id)

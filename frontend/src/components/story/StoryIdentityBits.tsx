@@ -17,12 +17,13 @@ export function CharCount({ value, max }: { value: string; max: number }) {
 }
 
 // ── Section group label ────────────────────────────────────────────────────
-export function GroupLabel({ label, description }: { label: string; description: string }) {
+/** A group's heading (A4): an h2 with the id the section rail and "Jump to" go to. */
+export function GroupLabel({ id, label, description }: { id: string; label: string; description: string }) {
   return (
-    <div className={styles.groupLabel}>
+    <h2 id={id} className={styles.groupLabel}>
       <span className={styles.groupLabelText}>{label}</span>
       <span className={styles.groupLabelDesc}>{description}</span>
-    </div>
+    </h2>
   );
 }
 

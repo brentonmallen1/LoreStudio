@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import KeptAnswerBar from "../ai/kept/KeptAnswerBar";
+import { useKeptAnswer } from "../ai/kept/useKeptAnswer";
 import { X, Orbit, CheckSquare, Square, Loader2, BookOpen, AlertTriangle } from "lucide-react";
 import { api } from "../../api/client";
 import type { StructuredResult } from "../../types";
@@ -37,36 +39,56 @@ function ConfidenceDots({ value }: { value: number }) {
   );
 }
 
+/**
+ * An outline read out of the prose. The answer is kept on the story (A7): opening the panel
+ * again shows the beats it found, through a restart; it reads the prose again only on Ask
+ * again, or the first time, when nothing is kept.
+ */
 export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Props) {
   // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
   // preference. This whole component is one, so it renders nothing rather than something dead.
   const aiAvailable = useAIAvailable();
-  const [loading, setLoading] = useState(true);
+  const kept = useKeptAnswer({ storyId, type: "story", id: storyId }, "extract-outline");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [items, setItems] = useState<ExtractedItem[]>([]);
-  const [editedTexts, setEditedTexts] = useState<Record<number, string>>({});
-  const [selected, setSelected] = useState<Set<number>>(new Set());
-  const [suggestedName, setSuggestedName] = useState("Extracted outline");
+  const answerAt = kept.answer?.updated_at ?? "";
+  const data = kept.answer?.data as { items?: ExtractedItem[]; suggested_name?: string } | undefined;
+  const items = data?.items ?? [];
+  // The author's edits and picks belong to one answer: asking again starts them over.
+  const [edits, setEdits] = useState<{ at: string; texts: Record<number, string> }>({ at: "", texts: {} });
+  const [picked, setPicked] = useState<{ at: string; set: Set<number> } | null>(null);
+  const [named, setNamed] = useState<{ at: string; name: string } | null>(null);
   const [creating, setCreating] = useState(false);
+  const started = useRef(false);
+  const editedTexts = edits.at === answerAt ? edits.texts : {};
+  const selected = picked?.at === answerAt ? picked.set : new Set(items.map((_, i) => i));
+  const suggestedName = named?.at === answerAt ? named.name : (data?.suggested_name ?? "Extracted outline");
+  const setSelected = (next: Set<number>) => setPicked({ at: answerAt, set: next });
+  const setSuggestedName = (name: string) => setNamed({ at: answerAt, name });
 
-  useEffect(() => {
+  async function extract() {
     setLoading(true);
     setError(null);
-    api
-      .extractOutlineFromProse(storyId)
-      .then((result: StructuredResult) => {
-        if (!result.success || !result.data) {
-          setError(result.raw_text ?? "Extraction failed: no structured output returned.");
-          return;
-        }
-        const data = result.data as { items: ExtractedItem[]; suggested_name: string };
-        setItems(data.items ?? []);
-        setSuggestedName(data.suggested_name ?? "Extracted outline");
-        setSelected(new Set((data.items ?? []).map((_, i) => i)));
-      })
-      .catch((e: Error) => setError(e.message ?? "Extraction failed."))
-      .finally(() => setLoading(false));
-  }, [storyId]);
+    try {
+      const result: StructuredResult = await api.extractOutlineFromProse(storyId);
+      if (!result.success || !result.data) {
+        setError(result.raw_text ?? "Extraction failed: no structured output returned.");
+        return;
+      }
+      await kept.reload();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Extraction failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Opening the panel asks only when nothing is kept yet.
+  useEffect(() => {
+    if (!kept.loaded || kept.answer || started.current) return;
+    started.current = true;
+    queueMicrotask(() => void extract());
+  });
 
   function toggleAll() {
     if (selected.size === items.length) setSelected(new Set());
@@ -74,12 +96,10 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
   }
 
   function toggleOne(idx: number) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx);
-      else next.add(idx);
-      return next;
-    });
+    const next = new Set(selected);
+    if (next.has(idx)) next.delete(idx);
+    else next.add(idx);
+    setSelected(next);
   }
 
   function getText(idx: number) {
@@ -87,7 +107,7 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
   }
 
   function handleTextChange(idx: number, value: string) {
-    setEditedTexts((prev) => ({ ...prev, [idx]: value }));
+    setEdits({ at: answerAt, texts: { ...editedTexts, [idx]: value } });
   }
 
   async function handleCreate() {
@@ -129,7 +149,7 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
         </div>
 
         <div className={styles.body}>
-          {loading && (
+          {(loading || !kept.loaded) && (
             <div className={styles.loading}>
               <Loader2 size={20} className={styles.spinner} />
               <span>Analyzing manuscript…</span>
@@ -144,7 +164,7 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
             </div>
           )}
 
-          {!loading && !error && items.length === 0 && (
+          {!loading && kept.loaded && !error && items.length === 0 && (
             <div className={styles.empty}>
               <BookOpen size={28} className={styles.emptyIcon} />
               <p>No beats extracted</p>
@@ -152,8 +172,16 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
             </div>
           )}
 
-          {!loading && !error && items.length > 0 && (
+          {!loading && !error && items.length > 0 && kept.answer && (
             <>
+              <KeptAnswerBar
+                answer={kept.answer}
+                heading="Outline from the prose"
+                context={{ storyId }}
+                onAskAgain={() => void extract()}
+                asking={loading}
+                onClear={() => void kept.clear()}
+              />
               <div className={styles.subheader}>
                 <div className={styles.nameRow}>
                   <span className={styles.nameLabel}>Outline name</span>
@@ -240,8 +268,11 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
           </div>
         )}
 
-        {!loading && (error || items.length === 0) && (
+        {!loading && kept.loaded && (error || items.length === 0) && (
           <div className={styles.footer}>
+            <button className={styles.createBtn} onClick={() => void extract()}>
+              <Orbit size={13} /> Ask again
+            </button>
             <button className={styles.cancelBtn} onClick={onClose}>
               Close
             </button>

@@ -144,7 +144,7 @@ export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "character-dimensionality": {
     id: "character-dimensionality",
-    label: "Character Depth",
+    label: "Character depth",
     type: "ai",
     shortDescription: "Dimensionality, contradictions, relationship complexity",
     fullDescription:
@@ -161,10 +161,10 @@ export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
     id: "arc-analysis",
     label: "Arc Analysis",
     type: "ai",
-    shortDescription: "Is the story arc tracking the shape you said it had?",
+    shortDescription: "Trajectory, drift from the arc you planned, and the moments that move it",
     fullDescription:
-      "Reads the structure and scene synopses against your stated narrative intent and reports where the arc bends away from it.",
-    contextSources: ["Story structure", "Scene synopses", "Narrative intent"],
+      "Reads the scenes a character appears in against their profile and the arc you planned, and reports the arc's trajectory, where it drifts, its health, the moments in the prose that move it and the milestones nothing fulfils yet. Asked from the character sheet's Assistant menu; the answer is kept on the character until you clear it or ask again.",
+    contextSources: ["Character profile and planned arc", "Arc milestones", "Scenes mentioning them"],
     backendFeatureId: "arc-analysis",
   },
   "editorial-pass": {

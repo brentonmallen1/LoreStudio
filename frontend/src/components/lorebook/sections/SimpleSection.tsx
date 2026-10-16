@@ -3,10 +3,8 @@ import { Trash2 } from "lucide-react";
 import { useReloadOnUndo } from "../../../hooks/useUndoRedo";
 import { KINDS, type FieldSpec, type LoreKind } from "../../../lib/lorebook/kinds";
 import { loreKind, seriesKindsOf } from "../../../lib/series/kinds";
-import { useUIStore } from "../../../stores/uiStore";
+import type { SubjectType } from "../../../api/assistantResults";
 import type { MenuItem } from "../../common/PopoverMenu";
-import WorldBuildingAIPanel from "../../worldbuilding/WorldBuildingAIPanel";
-import AssistantRow, { type AssistantAction } from "../AssistantRow";
 import ConfirmDelete from "../ConfirmDelete";
 import EntitySheet from "../EntitySheet";
 import FieldList from "../FieldList";
@@ -49,11 +47,8 @@ export interface SimpleSectionConfig<T extends Named> {
   /** More of the main column, under the fields: a tiers editor, the months. */
   extras?: (e: T, save: (patch: Partial<T>) => Promise<unknown>, all: T[]) => ReactNode;
   side?: (e: T, all: T[]) => ReactNode;
-  assistant?: (
-    e: T,
-    storyId: string,
-    openAI: ReturnType<typeof useUIStore.getState>["openWorldBuildingAIPanel"],
-  ) => AssistantAction[];
+  /** What the Assistant answers about on this entry's sheet (A6), or null for none. */
+  assistant?: (e: T) => SubjectType | null;
   empty: string;
   newName: string;
   addLabel?: string;
@@ -72,7 +67,6 @@ export default function SimpleSection<T extends Named>({ config }: { config: Sim
   const [loaded, setLoaded] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<T | null>(null);
-  const { worldBuildingAIPanelOpen, openWorldBuildingAIPanel } = useUIStore();
   const ids = items.map((i) => i.id);
   const { storyId, selectedId, select } = useLoreSelection(config.section, ids, true);
   const spec = KINDS[config.kind];
@@ -171,11 +165,10 @@ export default function SimpleSection<T extends Named>({ config }: { config: Sim
             badges={config.badges?.(selected)}
             more={more}
             side={config.side?.(selected, items)}
-            footer={
-              config.assistant ? (
-                <AssistantRow actions={config.assistant(selected, storyId, openWorldBuildingAIPanel)} />
-              ) : null
-            }
+            assistant={(() => {
+              const type = config.assistant?.(selected);
+              return type ? { type, id: selected.id, pageId: "worldbuilding" } : undefined;
+            })()}
           >
             <FieldList
               entityKey={selected.id}
@@ -195,7 +188,6 @@ export default function SimpleSection<T extends Named>({ config }: { config: Sim
           )
         )}
       </div>
-      {worldBuildingAIPanelOpen && <WorldBuildingAIPanel />}
       {deleting && (
         <ConfirmDelete
           name={nameOf(deleting)}

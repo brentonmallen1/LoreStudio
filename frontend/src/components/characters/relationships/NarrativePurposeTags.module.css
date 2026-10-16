@@ -17,10 +17,6 @@
   transition: border-color var(--transition);
 }
 
-.root.error .chips {
-  border-color: var(--color-danger);
-}
-
 .chip {
   display: inline-flex;
   align-items: center;
@@ -132,9 +128,4 @@
 .customAdd:disabled {
   opacity: 0.4;
   cursor: default;
-}
-
-.errorMsg {
-  font-size: var(--text-xs);
-  color: var(--color-danger);
 }

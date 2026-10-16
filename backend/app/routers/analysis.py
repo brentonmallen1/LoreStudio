@@ -36,6 +36,7 @@ from ..schemas.nlp_analysis import (
     EntitySuggestionsResponse,
     ProseNLPResponse,
 )
+from ..services import assistant_results
 from ..services.codex.presence import naming
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.analysis import (
@@ -76,6 +77,21 @@ def _get_story(story_id: str, db: Session, user: User) -> Story:
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
     return story
+
+
+def _ordered_leaves(all_nodes: list[StructureNode]) -> list[StructureNode]:
+    """The scenes in reading order, built from one flat query without the ORM relationship."""
+    children: dict[str | None, list[StructureNode]] = {}
+    for n in all_nodes:
+        children.setdefault(n.parent_id, []).append(n)
+
+    def walk(parent_id: str | None) -> list[StructureNode]:
+        out: list[StructureNode] = []
+        for n in sorted(children.get(parent_id, []), key=lambda x: x.position):
+            out.extend(walk(n.id) if n.id in children else [n])
+        return out
+
+    return walk(None)
 
 
 @router.post("/stories/{story_id}/summarize/structure")
@@ -135,6 +151,7 @@ async def summarize_structure_section(
         context=ctx,
         db=db,
         user=current_user,
+        on_complete=assistant_results.keep_text(db, ctx, "node", node_id),
     )
 
 
@@ -202,6 +219,7 @@ async def summarize_character_arc(
         context=ctx,
         db=db,
         user=current_user,
+        on_complete=assistant_results.keep_text(db, ctx, "character", character_id),
     )
 
 
@@ -217,26 +235,7 @@ async def analyze_economy(
     threads = db.query(PlotThread).filter(PlotThread.story_id == story_id).all()
     all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
 
-    # Build leaf nodes in order without touching the ORM relationship.
-    children_map: dict[str, list] = {}
-    roots = []
-    for n in all_nodes:
-        if n.parent_id:
-            children_map.setdefault(n.parent_id, []).append(n)
-        else:
-            roots.append(n)
-
-    def flatten_leaves(nodes):
-        leaves = []
-        for n in sorted(nodes, key=lambda x: x.position):
-            kids = children_map.get(n.id, [])
-            if not kids:
-                leaves.append(n)
-            else:
-                leaves.extend(flatten_leaves(kids))
-        return leaves
-
-    leaves = flatten_leaves(roots)
+    leaves = _ordered_leaves(all_nodes)
     total_words = sum(n.word_count for n in all_nodes)
 
     # Build MICE thread summary
@@ -405,6 +404,7 @@ async def recap_last_session(
         context=ctx,
         db=db,
         user=current_user,
+        on_complete=assistant_results.keep_text(db, ctx, "story", story_id),
     )
 
 
@@ -424,26 +424,7 @@ async def analyze_character_arc_structured(
 
     all_nodes = db.query(StructureNode).filter(StructureNode.story_id == character.story_id).all()
 
-    # Ordered leaf nodes
-    children_map: dict[str, list] = {}
-    roots = []
-    for n in all_nodes:
-        if n.parent_id:
-            children_map.setdefault(n.parent_id, []).append(n)
-        else:
-            roots.append(n)
-
-    def flatten_leaves(nodes):
-        result = []
-        for n in sorted(nodes, key=lambda x: x.position):
-            kids = children_map.get(n.id, [])
-            if not kids:
-                result.append(n)
-            else:
-                result.extend(flatten_leaves(kids))
-        return result
-
-    leaves = flatten_leaves(roots)
+    leaves = _ordered_leaves(all_nodes)
 
     scenes = []
     names = naming(character)
@@ -474,7 +455,7 @@ async def analyze_character_arc_structured(
         tags=["character", "analysis", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=ArcAnalysisResponse,
         messages=[{"role": "user", "content": f"Analyze {character.name}'s arc."}],
         feature_prompt=feature_prompt,
@@ -482,6 +463,7 @@ async def analyze_character_arc_structured(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, subject_type="character", subject_id=character_id)
 
 
 @router.post("/stories/{story_id}/analyze/essential-questions", response_model=StructuredResult)
@@ -602,7 +584,7 @@ async def analyze_show_dont_tell(
         tags=["manuscript", "analysis", "craft", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=ShowDontTellAnalysisResponse,
         messages=[{"role": "user", "content": "Analyze this prose for show don't tell."}],
         feature_prompt=feature_prompt,
@@ -610,6 +592,7 @@ async def analyze_show_dont_tell(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, **assistant_results.passage_subject(story_id, node_id, text))
 
 
 @router.post("/stories/{story_id}/analyze/audience-adherence", response_model=StructuredResult)
@@ -664,7 +647,7 @@ async def analyze_audience_adherence(
         tags=["manuscript", "analysis", "craft", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=AudienceAdherenceResponse,
         messages=[{"role": "user", "content": "Analyze this prose for target audience fit."}],
         feature_prompt=feature_prompt,
@@ -672,6 +655,7 @@ async def analyze_audience_adherence(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, **assistant_results.passage_subject(story_id, node_id, text))
 
 
 # ── NLP Prose Analysis (spaCy — no LLM) ──────────────────────────────────────
@@ -1397,6 +1381,7 @@ async def generate_discovery_questions(  # noqa: C901, PLR0912
             "narrative_intent": character.narrative_intent or "",
             "traits": character.traits or {},
         }
+        kept_on = ("character", character.id)
 
     elif focus_area == "location":
         if not entity_id:
@@ -1418,6 +1403,7 @@ async def generate_discovery_questions(  # noqa: C901, PLR0912
             "significance": location.significance or "",
             "political_affiliation": location.political_affiliation or "",
         }
+        kept_on = ("location", location.id)
 
     elif focus_area == "scene":
         if not entity_id:
@@ -1439,8 +1425,10 @@ async def generate_discovery_questions(  # noqa: C901, PLR0912
             "pov_character": pov_char_name,
             "status": node.status or "",
         }
+        kept_on = ("node", node.id)
 
     else:  # story
+        kept_on = ("story", story_id)
         entity_data = {
             "title": story.title,
             "genre": story.genre or "",
@@ -1465,19 +1453,15 @@ async def generate_discovery_questions(  # noqa: C901, PLR0912
         tags=["story", "discovery", "craft", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=DiscoveryQuestionsResponse,
-        messages=[
-            {
-                "role": "user",
-                "content": f"Generate discovery questions for this {focus_area}.",
-            }
-        ],
+        messages=[{"role": "user", "content": f"Generate discovery questions for this {focus_area}."}],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, subject_type=kept_on[0], subject_id=kept_on[1])
 
 
 # ── Character Dimensionality ─────────────────────────────────────────────────
@@ -1560,7 +1544,7 @@ async def assess_character_dimensionality(
         tags=["character", "dimensionality", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=CharacterDimensionalityResponse,
         messages=[
             {
@@ -1573,6 +1557,7 @@ async def assess_character_dimensionality(
         db=db,
         user=current_user,
     )
+    return assistant_results.keep(db, result, ctx, subject_type="character", subject_id=character_id)
 
 
 @router.post(

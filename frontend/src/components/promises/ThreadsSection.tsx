@@ -18,9 +18,7 @@ import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
 import type { PlotThread } from "../../types";
 import MICEGuide from "../help/MICEGuide";
-import ThreadAnalysisPanel from "../threads/ThreadAnalysisPanel";
 import ThreadScenes from "../threads/ThreadScenes";
-import AssistantRow from "../lorebook/AssistantRow";
 import HealthCard from "../lorebook/HealthCard";
 import ConfirmDelete from "../lorebook/ConfirmDelete";
 import EntitySheet, { Badge, SheetCard } from "../lorebook/EntitySheet";
@@ -49,7 +47,6 @@ export default function ThreadsSection() {
   );
   const [renaming, setRenaming] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<PlotThread | null>(null);
-  const [analysing, setAnalysing] = useState<string | null>(null);
   const [guide, setGuide] = useState(false);
   // In a series: where each thread stands across the books (v1.5).
   const across = usePromises(storyId).data?.across ?? {};
@@ -190,20 +187,7 @@ export default function ThreadsSection() {
                 </SheetCard>
               </>
             }
-            footer={
-              <>
-                {analysing === thread.id && <ThreadAnalysisPanel threadId={thread.id} />}
-                <AssistantRow
-                  actions={[
-                    {
-                      label: analysing === thread.id ? "Hide the analysis" : "Analyse thread",
-                      title: "Setup, escalation, payoff and what is missing",
-                      onRun: () => setAnalysing((a) => (a === thread.id ? null : thread.id)),
-                    },
-                  ]}
-                />
-              </>
-            }
+            assistant={{ type: "plot_thread", id: thread.id, pageId: "plot-threads" }}
           >
             <FieldList
               entityKey={thread.id}

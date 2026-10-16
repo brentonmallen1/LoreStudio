@@ -17,7 +17,7 @@ Every answer goes into the story itself: the one-sentence summary is the logline
 
 <!-- studio -->
 
-In Studio mode, the Snowflake steps offer **Get guidance on this answer**: the Assistant asks what your answer leaves open.
+In Studio mode, the Snowflake steps offer **Get guidance on this answer**: the Assistant asks what your answer leaves open. The guidance stays on the step, even after you quit and come back, until you clear it or ask again.
 <!-- /studio -->
 
 ## The scene list becomes the book

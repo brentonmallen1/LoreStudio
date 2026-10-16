@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { Orbit, ChevronDown, ChevronRight, RefreshCw, Loader2 } from "lucide-react";
+import { Orbit, ChevronDown, ChevronRight, Loader2 } from "lucide-react";
 import type { AISession } from "../../../stores/aiStore";
 import { useAIModeState } from "../../../hooks/useAIModeState";
 import { useStoryStore } from "../../../stores/storyStore";
 import { api } from "../../../api/client";
 import AIModeWrapper from "../AIModeWrapper";
+import KeptAnswerBar from "../kept/KeptAnswerBar";
+import { useKeptAnswer } from "../kept/useKeptAnswer";
 import type { DiscoveryQuestionsResponse, DiscoveryQuestion, Character, Location } from "../../../types";
 import styles from "./DiscoveryQuestionsMode.module.css";
 
@@ -59,7 +61,6 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
   const [locations, setLocations] = useState<Location[]>([]);
   const [entityLoading, setEntityLoading] = useState(false);
 
-  const [result, setResult] = useState<DiscoveryQuestionsResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -99,9 +100,23 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
   // Reset entity selection when focus area changes
   useEffect(() => {
     setEntityId("");
-    setResult(null);
     setError(null);
   }, [focusArea]);
+
+  // The questions are kept on what they are about (A7): choosing it again shows them, through
+  // a restart, until they are cleared or asked again.
+  const subjectType = {
+    character: "character",
+    location: "location",
+    scene: "node",
+    story: "story",
+  } as const;
+  const subjectId = focusArea === "story" ? storyId : entityId;
+  const kept = useKeptAnswer(
+    storyId && subjectId ? { storyId, type: subjectType[focusArea], id: subjectId } : null,
+    "discovery-questions",
+  );
+  const result = kept.answer ? (kept.answer.data as unknown as DiscoveryQuestionsResponse) : null;
 
   // Auto-select first entity when list loads
   useEffect(() => {
@@ -120,7 +135,6 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
     if (focusArea !== "story" && !entityId) return;
     setLoading(true);
     setError(null);
-    setResult(null);
     try {
       const res = await api.generateDiscoveryQuestions(
         storyId,
@@ -128,7 +142,7 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
         focusArea !== "story" ? entityId : undefined,
       );
       if (res.success && res.data) {
-        setResult(res.data as unknown as DiscoveryQuestionsResponse);
+        await kept.reload();
       } else {
         setError(res.raw_text || "Generation failed. Try again.");
       }
@@ -224,22 +238,20 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
           </div>
         )}
 
-        {/* Generate button */}
-        <button className={styles.generateBtn} onClick={generate} disabled={loading || !canGenerate}>
-          {loading ? (
-            <>
-              <Loader2 size={13} className={styles.spinner} /> Generating…
-            </>
-          ) : result ? (
-            <>
-              <RefreshCw size={13} /> Generate more
-            </>
-          ) : (
-            <>
-              <Orbit size={13} /> Generate questions
-            </>
-          )}
-        </button>
+        {/* Generate button: once questions are kept, Ask again is beside them */}
+        {!result && (
+          <button className={styles.generateBtn} onClick={generate} disabled={loading || !canGenerate}>
+            {loading ? (
+              <>
+                <Loader2 size={13} className={styles.spinner} /> Generating…
+              </>
+            ) : (
+              <>
+                <Orbit size={13} /> Generate questions
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Error */}
@@ -253,10 +265,22 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
       )}
 
       {/* Results */}
-      {result && !loading && (
+      {result && kept.answer && (
         <div className={styles.results}>
+          <KeptAnswerBar
+            answer={kept.answer}
+            heading="Discovery questions"
+            context={{
+              storyId,
+              characterId: focusArea === "character" ? entityId : undefined,
+              nodeId: focusArea === "scene" ? entityId : undefined,
+            }}
+            onAskAgain={() => void generate()}
+            asking={loading}
+            onClear={() => void kept.clear()}
+          />
           {result.observation && <p className={styles.observation}>{result.observation}</p>}
-          {result.questions.map((q, i) => (
+          {(result.questions ?? []).map((q, i) => (
             <QuestionCard key={i} q={q} />
           ))}
         </div>

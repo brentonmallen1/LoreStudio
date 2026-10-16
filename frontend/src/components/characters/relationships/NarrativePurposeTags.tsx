@@ -21,11 +21,9 @@ const PRESET_PURPOSES = [
 interface Props {
   value: string[];
   onChange: (next: string[]) => void;
-  required?: boolean;
-  error?: boolean;
 }
 
-export default function NarrativePurposeTags({ value, onChange, error }: Props) {
+export default function NarrativePurposeTags({ value, onChange }: Props) {
   const [custom, setCustom] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -43,7 +41,7 @@ export default function NarrativePurposeTags({ value, onChange, error }: Props) 
   const available = PRESET_PURPOSES.filter((p) => !value.includes(p));
 
   return (
-    <div className={`${styles.root} ${error ? styles.error : ""}`}>
+    <div className={styles.root}>
       <div className={styles.chips}>
         {value.map((tag) => (
           <span key={tag} className={styles.chip}>
@@ -91,7 +89,6 @@ export default function NarrativePurposeTags({ value, onChange, error }: Props) 
           )}
         </div>
       </div>
-      {error && <p className={styles.errorMsg}>At least one narrative purpose is required</p>}
     </div>
   );
 }

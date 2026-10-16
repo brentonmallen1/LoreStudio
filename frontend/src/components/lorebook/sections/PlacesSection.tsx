@@ -9,13 +9,10 @@ import { sceneLeaves } from "../../../lib/planning/methods";
 import { slotVar } from "../../../lib/colorSlots";
 import { usePanelStore } from "../../../stores/panelStore";
 import { useStoryStore } from "../../../stores/storyStore";
-import { useUIStore } from "../../../stores/uiStore";
 import type { Location, LocationTravel } from "../../../types";
 import AssetPicker from "../../media/AssetPicker";
 import SubjectNotes from "../../notes/SubjectNotes";
 import PortraitEditor from "../../media/PortraitEditor";
-import WorldBuildingAIPanel from "../../worldbuilding/WorldBuildingAIPanel";
-import AssistantRow from "../AssistantRow";
 import SameAsPicker from "../SameAsPicker";
 import HealthCard from "../HealthCard";
 import ConfirmDelete from "../ConfirmDelete";
@@ -34,7 +31,6 @@ function descendants(id: string, locations: Location[]): Location[] {
 
 export default function PlacesSection() {
   const { locations, setLocations, upsertLocation, sceneCast, structure, activeTemplate } = useStoryStore();
-  const { worldBuildingAIPanelOpen, openWorldBuildingAIPanel } = useUIStore();
   const openEntity = usePanelStore((s) => s.openEntity);
   const rows = useMemo(() => placeRows(locations), [locations]);
   const { storyId, selectedId, select } = useLoreSelection(
@@ -200,24 +196,7 @@ export default function PlacesSection() {
                 )}
               </>
             }
-            footer={
-              <AssistantRow
-                actions={[
-                  {
-                    label: "Brainstorm what exists",
-                    title: "Built environment, natural environment, cultural presence",
-                    onRun: () =>
-                      openWorldBuildingAIPanel({ feature: "what-exists", entityId: place.id, storyId }),
-                  },
-                  {
-                    label: "Suggest elements",
-                    title: "Creatures, flora, naming patterns",
-                    onRun: () =>
-                      openWorldBuildingAIPanel({ feature: "location-suggest", entityId: place.id, storyId }),
-                  },
-                ]}
-              />
-            }
+            assistant={{ type: "location", id: place.id, pageId: "worldbuilding" }}
           >
             {place.is_stub && (
               <div className={styles.banner} role="status">
@@ -258,7 +237,6 @@ export default function PlacesSection() {
           )
         )}
       </div>
-      {worldBuildingAIPanelOpen && <WorldBuildingAIPanel />}
       {deleting && (
         <ConfirmDelete
           name={deleting.name}

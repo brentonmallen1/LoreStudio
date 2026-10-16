@@ -1,7 +1,15 @@
 import { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Info, Orbit, Pencil, Square } from "lucide-react";
-import { characterReviewApi, type Review, type ReviewItem } from "../../api/characterReview";
+import {
+  characterReviewApi,
+  type CarefulJudgement,
+  type Review,
+  type ReviewItem,
+} from "../../api/characterReview";
+import type { AssistantResult } from "../../api/assistantResults";
+import { formatRelative } from "../../lib/utils";
+import { useKeptAnswer } from "../ai/kept/useKeptAnswer";
 import { useLLMTransparency } from "../../hooks/useLLMTransparency";
 import { useAIAvailable } from "../../lib/mode";
 import { LLMTransparencyModal, LLMTransparencyTrigger } from "../llm";
@@ -17,6 +25,18 @@ const CAREFUL_NOTE = {
   partly: "The Assistant read some of these as theirs: check each word.",
   not: "The Assistant read these as someone else's.",
 };
+
+/** Careful's kept word (A7) is for this review when it was asked about the same change. */
+function keptFor(
+  answer: AssistantResult | null,
+  request: Record<string, unknown>,
+): CarefulJudgement[] | null {
+  const asked = answer?.data.request as Record<string, unknown> | undefined;
+  if (!asked) return null;
+  const same = (k: string, empty: unknown) => (asked[k] ?? empty) === (request[k] ?? empty);
+  if (!same("pronouns_from", "") || !same("pronouns_to", "") || !same("slips", false)) return null;
+  return (answer?.data.judged as CarefulJudgement[] | undefined) ?? null;
+}
 
 export interface ReviewChange {
   pronouns?: [string, string];
@@ -54,16 +74,44 @@ export default function ManuscriptReview({
   const transparency = useLLMTransparency();
   const [asking, setAsking] = useState<AbortController | null>(null);
   const [asked, setAsked] = useState(false);
+  // Careful's answer is kept on the character with the change it was about (A7): opening the
+  // review for the same change shows its word again, until it is cleared or asked again.
+  const kept = useKeptAnswer({ storyId, type: "character", id: character.id }, "pronoun-identification");
+  const reloadKept = kept.reload;
+  const [quick, setQuick] = useState<Review | null>(null);
 
   const request = change
     ? { pronouns_from: change.pronouns?.[0], pronouns_to: change.pronouns?.[1] }
     : { slips: true };
 
+  /** Take Careful's word for the sentences it judged, on Quick's own review. */
+  function takeVerdicts(base: Review, judged: CarefulJudgement[]) {
+    const verdicts = new Map(judged.map((j) => [j.item_id, j.verdict]));
+    setReview({
+      ...base,
+      items: base.items.map((i) => {
+        const v = verdicts.get(i.id);
+        if (!v) return i;
+        return { ...i, careful: true, sure: v === "theirs", note: CAREFUL_NOTE[v] };
+      }),
+    });
+    setTicked((t) => {
+      const next = new Set(t);
+      for (const [id, v] of verdicts) {
+        if (v === "theirs") next.add(id);
+        else next.delete(id);
+      }
+      return next;
+    });
+    setAsked(true);
+  }
+
   /** Careful: ask the Assistant about the scenes Quick was unsure of, and take its word for them. */
   async function askCareful() {
-    if (!review) return;
+    const base = quick ?? review;
+    if (!base) return;
     const nodeIds = [
-      ...new Set(review.items.filter((i) => i.kind === "pronoun" && !i.sure).map((i) => i.node_id)),
+      ...new Set(base.items.filter((i) => i.kind === "pronoun" && !i.sure).map((i) => i.node_id)),
     ];
     const controller = new AbortController();
     setAsking(controller);
@@ -73,24 +121,9 @@ export default function ManuscriptReview({
         { ...request, node_ids: nodeIds },
         controller.signal,
       );
-      const verdicts = new Map(judged.map((j) => [j.item_id, j.verdict]));
-      setReview({
-        ...review,
-        items: review.items.map((i) => {
-          const v = verdicts.get(i.id);
-          if (!v) return i;
-          return { ...i, careful: true, sure: v === "theirs", note: CAREFUL_NOTE[v] };
-        }),
-      });
-      setTicked((t) => {
-        const next = new Set(t);
-        for (const [id, v] of verdicts) {
-          if (v === "theirs") next.add(id);
-          else next.delete(id);
-        }
-        return next;
-      });
-      setAsked(true);
+      setTicked(initiallyTicked(base.items));
+      takeVerdicts(base, judged);
+      void kept.reload();
       transparency.recordInteraction();
     } catch (e) {
       if (!(e instanceof Error && e.name === "AbortError"))
@@ -111,12 +144,15 @@ export default function ManuscriptReview({
       : { slips: true };
     characterReviewApi
       .review(character.id, body)
-      .then((r) => {
+      .then(async (r) => {
+        setQuick(r);
         setReview(r);
         setTicked(initiallyTicked(r.items));
+        const judged = keptFor(await reloadKept(), body);
+        if (judged) takeVerdicts(r, judged);
       })
       .catch(() => setFailed(true));
-  }, [character.id, change]);
+  }, [character.id, change, reloadKept]);
 
   const groups = review ? byScene(review) : [];
   const changes = review?.items.filter((i) => i.edits.length > 0) ?? [];
@@ -223,11 +259,30 @@ export default function ManuscriptReview({
                   <button
                     type="button"
                     className={styles.carefulBtn}
-                    disabled={asked}
                     title="The Assistant reads the scenes Quick was unsure of and says which pronouns are theirs"
                     onClick={() => void askCareful()}
                   >
-                    <Orbit size={13} aria-hidden /> {asked ? "Careful: asked" : "Careful, with the Assistant"}
+                    <Orbit size={13} aria-hidden />{" "}
+                    {asked
+                      ? `Careful: asked${kept.answer ? ` ${formatRelative(kept.answer.updated_at)}` : ""} · Ask again`
+                      : "Careful, with the Assistant"}
+                  </button>
+                )}
+                {asked && !asking && kept.answer && (
+                  <button
+                    type="button"
+                    className={styles.carefulBtn}
+                    title="Forget Careful's word and go back to Quick's"
+                    onClick={() => {
+                      void kept.clear();
+                      setAsked(false);
+                      if (quick) {
+                        setReview(quick);
+                        setTicked(initiallyTicked(quick.items));
+                      }
+                    }}
+                  >
+                    Clear
                   </button>
                 )}
                 {asked && (

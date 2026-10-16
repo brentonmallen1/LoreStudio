@@ -218,7 +218,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
   const isEditing = !!character;
 
   const [name, setName] = useState(character?.name ?? "");
-  const [role, setRole] = useState(character?.role ?? "deuteragonist");
+  const [role, setRole] = useState(character?.role ?? "");
   const [characterType, setCharacterType] = useState(character?.character_type ?? "");
   const [jungianArchetype, setJungianArchetype] = useState(character?.jungian_archetype ?? "");
   const [narrativeArchetype, setNarrativeArchetype] = useState(character?.narrative_archetype ?? "");
@@ -392,6 +392,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
             <div className={styles.field}>
               <label className={styles.label}>Role</label>
               <select value={role} onChange={(e) => setRole(e.target.value)} className={styles.select}>
+                <option value="">No role yet</option>
                 {ROLES.map((r) => (
                   <option key={r.value} value={r.value}>
                     {r.label}

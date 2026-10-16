@@ -16,6 +16,8 @@ import { api } from "../../api/client";
 import type { BatchSuggestResponse, ProposedDialogueTag, SceneWithDialogueProposals } from "../../types";
 import styles from "./AutoTagPanel.module.css";
 import AIOnly from "../ai/AIOnly";
+import { useAIAvailable } from "../../lib/mode";
+import { keptSpeakers, withKeptSpeakers } from "../../lib/dialogue/keptSpeakers";
 
 const AUTO_CONFIDENCE_THRESHOLD = 0.7;
 
@@ -107,6 +109,7 @@ export default function AutoTagPanel({
   onApplied,
   sceneId,
 }: Props) {
+  const aiAvailable = useAIAvailable();
   const [scanning, setScanning] = useState(false);
   const [applying, setApplying] = useState(false);
   const [aiRefining, setAiRefining] = useState(false);
@@ -118,10 +121,19 @@ export default function AutoTagPanel({
   async function scan() {
     setScanning(true);
     try {
-      const result =
+      const found =
         mode === "character" && characterId
           ? await api.suggestDialogueTagsForCharacter(characterId)
           : await api.suggestDialogueTagsStoryWide(storyId);
+      // The Assistant's last word on each scene, kept (A7), over the rules' guesses.
+      const kept = aiAvailable ? await keptSpeakers(storyId) : new Map();
+      const result = {
+        ...found,
+        scenes: found.scenes.map((s) => ({
+          ...s,
+          proposals: withKeptSpeakers(s.proposals, kept.get(s.scene_id)),
+        })),
+      };
       setData(result);
       setSceneIndex(Math.max(0, sceneId ? result.scenes.findIndex((s) => s.scene_id === sceneId) : 0));
       // In character mode pre-select all proposals (already filtered to this character).

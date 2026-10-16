@@ -52,7 +52,7 @@ SKIP_FILES = ("backend/app/services/seed.py",)
 #: list is the work. Lower a number when the file shrinks; delete the line when
 #: it comes under budget. Never raise one.
 OVER_BUDGET: dict[str, int] = {
-    "backend/app/routers/analysis.py": 1458,
+    "backend/app/routers/analysis.py": 1446,
     "frontend/src/types/index.ts": 1449,
     "frontend/src/api/client.ts": 1085,
     "backend/app/services/llm/prompts/analysis.py": 1127,
@@ -61,7 +61,6 @@ OVER_BUDGET: dict[str, int] = {
     "frontend/src/components/outline/OutlineManager.tsx": 680,
     "frontend/src/components/characters/RelationshipGraph.tsx": 626,
     "frontend/src/components/characters/CharacterFormDialog.tsx": 561,
-    "frontend/src/components/story/StoryIdentityPanel.tsx": 511,
     "frontend/src/components/characters/CharacterDialogueTab.tsx": 515,
     "frontend/src/components/story/StoryboardView.tsx": 514,
 }

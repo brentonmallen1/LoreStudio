@@ -4,7 +4,7 @@ import type { AIFeatureInfo } from "./types";
 export const WORLD_FEATURES: Record<string, AIFeatureInfo> = {
   "wb-what-exists": {
     id: "wb-what-exists",
-    label: "Brainstorm What Exists",
+    label: "Brainstorm what exists",
     type: "ai",
     shortDescription: "What would logically exist at this location?",
     fullDescription:
@@ -18,7 +18,7 @@ export const WORLD_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "wb-location-suggest": {
     id: "wb-location-suggest",
-    label: "Suggest Location Elements",
+    label: "Suggest creatures, plants and names",
     type: "ai",
     shortDescription: "Creature, flora, and naming ideas for this location",
     fullDescription:
@@ -28,7 +28,7 @@ export const WORLD_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "wb-culture-suggest": {
     id: "wb-culture-suggest",
-    label: "Suggest Cultural Elements",
+    label: "Suggest names, rituals and looks",
     type: "ai",
     shortDescription: "Naming, ritual, and aesthetic directions for this culture",
     fullDescription:
@@ -42,7 +42,7 @@ export const WORLD_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "wb-implications": {
     id: "wb-implications",
-    label: "Trace Present-Day Effects",
+    label: "Trace present-day effects",
     type: "ai",
     shortDescription: "What are the present-day ripples of this historical event?",
     fullDescription:
@@ -52,7 +52,7 @@ export const WORLD_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "wb-system": {
     id: "wb-system",
-    label: "Analyze Edge Cases",
+    label: "Find edge cases",
     type: "ai",
     shortDescription: "Edge cases and story implications for a world system",
     fullDescription:
@@ -62,7 +62,7 @@ export const WORLD_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "wb-calendar": {
     id: "wb-calendar",
-    label: "Suggest Special Days",
+    label: "Suggest special days",
     type: "ai",
     shortDescription: "Festival, seasonal, and historical day ideas for a calendar",
     fullDescription:
@@ -72,7 +72,7 @@ export const WORLD_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "wb-travel": {
     id: "wb-travel",
-    label: "Analyze Travel Route",
+    label: "Think through the journey",
     type: "ai",
     shortDescription: "Hazards, cultural tensions, and story potential of a route",
     fullDescription:
