@@ -38,7 +38,7 @@ describe("restorePanel", () => {
   it("keeps page tabs for pages that open beside the prose, at a path inside the page", () => {
     const raw = {
       tabs: [
-        { id: "page:storyboard", kind: "page", routeId: "storyboard", path: "/storyboard" },
+        { id: "page:summaries", kind: "page", routeId: "summaries", path: "/summaries" },
         { id: "page:lorebook", kind: "page", routeId: "lorebook", path: "/elsewhere" },
         { id: "page:write", kind: "page", routeId: "write", path: "/write" },
         { id: "page:gone", kind: "page", routeId: "gone", path: "/gone" },
@@ -47,7 +47,7 @@ describe("restorePanel", () => {
     };
     expect(restorePanel(raw)).toEqual({
       tabs: [
-        { id: "page:storyboard", kind: "page", routeId: "storyboard", path: "/storyboard" },
+        { id: "page:summaries", kind: "page", routeId: "summaries", path: "/summaries" },
         { id: "page:lorebook", kind: "page", routeId: "lorebook", path: "/lorebook" },
       ],
       showing: "scene",

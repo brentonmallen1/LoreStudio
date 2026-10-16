@@ -574,12 +574,15 @@ def _apply_fields(model, entity_id: str, expected: dict | None, values: dict, db
     db.flush()
 
 
+_REORDER_KEYS = ("id", "parent_id", "position", "level", "level_type")
+
+
 def reorder_snapshot(model, ids: list[str], db: Session) -> list[dict]:
-    """Current parent/position/level of the given rows (for before/after of a reorder)."""
+    """Current parent/position/level of the given rows (for before/after of a reorder). An outline
+    row also keeps its level's name: the Outline's Tab and Shift+Tab move a row a level."""
     rows = db.query(model).filter(getattr(model, "id").in_(ids)).all() if ids else []
     return [
-        {k: getattr(r, k) for k in ("id", "parent_id", "position", "level") if hasattr(r, k)}
-        for r in sorted(rows, key=lambda r: ids.index(r.id))
+        {k: getattr(r, k) for k in _REORDER_KEYS if hasattr(r, k)} for r in sorted(rows, key=lambda r: ids.index(r.id))
     ]
 
 
@@ -588,7 +591,7 @@ def _apply_reorder(model, ops: list[dict], db: Session) -> None:
         row = db.get(model, op["id"])
         if not row:
             continue
-        for key in ("parent_id", "position", "level"):
+        for key in _REORDER_KEYS[1:]:
             if key in op and hasattr(row, key):
                 setattr(row, key, op[key])
     db.flush()

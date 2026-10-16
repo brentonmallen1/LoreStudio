@@ -8,7 +8,6 @@ import type { UIMode } from "../mode";
  */
 export const NOT_BESIDE: Record<string, string> = {
   write: "it is the prose itself",
-  outline: "it is the strip, already beside the prose",
 };
 
 export function canOpenBeside(route: StoryRoute): boolean {
@@ -46,7 +45,7 @@ export function sectionAt(route: StoryRoute, path: string): RouteSection | undef
   return best;
 }
 
-/** A path inside the app, relative to its story (`/storyboard`), or null when it is not in it. */
+/** A path inside the app, relative to its story (`/outline`), or null when it is not in it. */
 export function storyRelative(storyId: string, pathname: string): string | null {
   const base = `/stories/${storyId}`;
   if (pathname === base) return "";
@@ -55,7 +54,7 @@ export function storyRelative(storyId: string, pathname: string): string | null 
 
 /**
  * Whether a move from inside a page tab stays in the tab (between the Lorebook's sections, or
- * to an entry) or belongs to the main window (a Storyboard card opening its scene).
+ * to an entry) or belongs to the main window (an Outline line opening its scene).
  */
 export function staysInPage(routeId: string, path: string): boolean {
   return routeAt(path)?.id === routeId;

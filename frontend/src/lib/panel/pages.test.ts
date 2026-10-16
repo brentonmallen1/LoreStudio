@@ -16,7 +16,8 @@ describe("pages beside the prose", () => {
     const studio = besideRoutes("studio", true).map((r) => r.id);
     expect(writer).not.toContain("write");
     expect(writer).toContain("freewrite"); // the rail opens it as a tab
-    expect(writer).toContain("storyboard");
+    expect(writer).toContain("summaries");
+    expect(writer).toContain("outline"); // the same lines, narrow, with the scene being written marked
     expect(writer).not.toContain("publish");
     expect(studio).toContain("publish");
   });
@@ -24,7 +25,7 @@ describe("pages beside the prose", () => {
   it("finds the page and the section a path is on", () => {
     expect(routeAt("")?.id).toBe("overview");
     expect(routeAt("/")?.id).toBe("overview");
-    expect(routeAt("/storyboard")?.id).toBe("storyboard");
+    expect(routeAt("/outline")?.id).toBe("outline");
     expect(routeAt("/lorebook/places/p1")?.id).toBe("lorebook");
     expect(routeAt("/write/n1/sheet")?.id).toBe("write");
     const lorebook = findRoute("lorebook")!;
@@ -34,15 +35,15 @@ describe("pages beside the prose", () => {
 
   it("keeps a move inside the page in the tab, and sends the rest to the main window", () => {
     expect(staysInPage("lorebook", "/lorebook/characters/c1")).toBe(true);
-    expect(staysInPage("storyboard", "/write/n1")).toBe(false);
-    expect(staysInPage("overview", "/storyboard")).toBe(false);
+    expect(staysInPage("outline", "/write/n1")).toBe(false);
+    expect(staysInPage("overview", "/outline")).toBe(false);
     expect(staysInPage("overview", "")).toBe(true);
   });
 
   it("reads a path relative to its story", () => {
     expect(storyRelative("s1", "/stories/s1")).toBe("");
-    expect(storyRelative("s1", "/stories/s1/storyboard")).toBe("/storyboard");
-    expect(storyRelative("s1", "/stories/s10/storyboard")).toBeNull();
+    expect(storyRelative("s1", "/stories/s1/outline")).toBe("/outline");
+    expect(storyRelative("s1", "/stories/s10/outline")).toBeNull();
     expect(storyRelative("s1", "/settings")).toBeNull();
   });
 
@@ -51,11 +52,11 @@ describe("pages beside the prose", () => {
       label: "Lorebook",
       title: "Lorebook › Places",
     });
-    expect(pageTabLabel("storyboard", "/storyboard")).toEqual({ label: "Storyboard", title: "Storyboard" });
+    expect(pageTabLabel("outline", "/outline")).toEqual({ label: "Outline", title: "Outline" });
   });
 
   it("opens at the page or one of its sections", () => {
-    expect(besidePath("storyboard")).toBe("/storyboard");
+    expect(besidePath("outline")).toBe("/outline");
     expect(besidePath("lorebook", "places")).toBe("/lorebook/places");
     expect(besidePath("overview")).toBe("");
     expect(besidePath("write")).toBeNull();

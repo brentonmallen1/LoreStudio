@@ -114,7 +114,7 @@ export const WRITING = [
     id: "outline",
     term: "Outline",
     definition:
-      "Your acts, chapters and scenes as one list, to add, rename and reorder them: logo menu › **Outline**.",
+      "What happens in your story, part by part: your acts, chapters and scenes as lines to type, each with a line of what happens, as a list or as cards. Logo menu › **Outline**.",
   },
   {
     id: "scene-sheet",

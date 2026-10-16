@@ -60,7 +60,6 @@ OVER_BUDGET: dict[str, int] = {
     "frontend/src/components/layout/CommandPalette.tsx": 587,
     "frontend/src/components/outline/OutlineManager.tsx": 675,
     "frontend/src/components/characters/RelationshipGraph.tsx": 626,
-    "frontend/src/components/story/StoryboardView.tsx": 514,
 }
 
 _PY_NON_CODE_TOKENS = frozenset(

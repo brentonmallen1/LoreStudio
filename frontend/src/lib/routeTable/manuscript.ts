@@ -3,7 +3,6 @@ import {
   BookOpenText,
   FileText,
   Footprints,
-  LayoutGrid,
   ListTree,
   MapIcon,
   NotebookPen,
@@ -38,7 +37,8 @@ export const WRITE_ROUTES: StoryRoute[] = [
     modes: BOTH,
     keywords: ["editor", "scene", "manuscript", "prose"],
   },
-  // The acts, chapters and scenes to add, rename and reorder: the strip, opened out on Write.
+  // What happens, part by part (doc 29 D2): the outliner over the acts, chapters and scenes,
+  // as a List or as Cards (once the Storyboard, whose address now opens Cards).
   {
     id: "outline",
     path: "/outline",
@@ -48,6 +48,16 @@ export const WRITE_ROUTES: StoryRoute[] = [
     icon: ListTree,
     domain: "manuscript",
     modes: BOTH,
+    keywords: [
+      "outliner",
+      "plan",
+      "acts",
+      "chapters",
+      "scenes",
+      "what happens",
+      "synopsis",
+      "planned scenes",
+    ],
   },
   {
     id: "plan",
@@ -59,18 +69,6 @@ export const WRITE_ROUTES: StoryRoute[] = [
     domain: "manuscript",
     modes: BOTH,
     keywords: ["beats", "snowflake", "synopsis", "logline", "method", "scene list", "beat board"],
-  },
-  {
-    // The book as cards on a board (doc 24 D12): a page of its own, no longer a view of Write.
-    id: "storyboard",
-    path: "/storyboard",
-    label: "Storyboard",
-    purpose: "Your scenes as cards you can move around",
-    guide: "structure",
-    icon: LayoutGrid,
-    domain: "manuscript",
-    modes: BOTH,
-    keywords: ["board", "cards", "index cards", "corkboard", "canvas", "scene cards", "view"],
   },
   {
     // Every scene's summary down one page, written or drafted by the Assistant (doc 24 D12).

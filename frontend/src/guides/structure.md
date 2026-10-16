@@ -14,18 +14,21 @@ Tick **Start with an outline** to begin with the shape's parts already in place 
 
 ## The Outline
 
-The **Outline** is where you add, rename and reorder your acts, chapters and scenes. Logo menu › **Outline** widens the strip down the left of the writing page so it names every part; {{key:cycleStrip}} widens it too, and narrows it again to a stop for each scene.
+The **Outline** (logo menu › **Outline**) is what happens in your story, part by part: your acts, chapters and scenes as lines, each with its title and a line of what happens. Plan there before you write, or watch it fill in as you write.
 
-- Click a row, or press **Enter** on it, to open it.
-- The **+** at the top adds an act, or a part at any level. The **+** on a row adds a part inside it.
-- Drag a row to move it, or to put it inside another.
-- Double-click a row, or press **F2**, to rename it.
-- The arrow keys move between rows and fold or unfold them.
-- **Filter scenes** at the top finds a scene by its title.
+- **Type a line** to change it: its title, then **what happens** after it. **→** at the end of a title goes on to what happens.
+- **Enter** adds the next line. A line with nothing typed in it goes away again.
+- **Tab** tucks a line under the one above it, a level deeper. **Shift+Tab** moves it out a level: a scene becomes a chapter that holds the scenes after it. A scene with words always stays a scene, because your prose lives in scenes.
+- **↑** and **↓** move between lines. **Esc** leaves the text, so **Tab** reaches the line's buttons; **Enter** goes back to typing.
+- **Drag** a line by its handle (⋮⋮) to move it among lines of its own level, or into another chapter.
+- Click the arrow at a scene's end to unfold it: **Why it's here**, **Whose eyes**, its status and words, **Write this scene** and its **Scene sheet**.
+- A scene with no words yet is **planned**, and its mark is dashed.
+
+Two ways to look at it, top right: **List** and **Cards**, a column per chapter and a card per scene, to drag about as on a corkboard. Each comes in two orders: **As the reader meets it**, and **As it happens**, the order of the story's own time (place scenes on it from the List). Your choice is remembered on this computer.
+
+Beside the prose, **Open beside the prose** under the page's ⋯ shows the same lines narrow, with the scene you are writing marked; click a line to go there. The strip on the writing page still widens with {{key:cycleStrip}}.
 
 Every change can be undone with {{key:undo}}.
-
-> **Tip:** A row shows its word count, with **~** for a revised scene and **✓** for a final one.
 
 ## Acts
 

@@ -1179,6 +1179,23 @@ def seed_demo_story(user_id: str | None = None):  # noqa: PLR0915
             )
         )
 
+        # Planned, not written (doc 29 D2): a line in the Outline with what happens and why, and
+        # the first scene the Overview's next step offers this planner's story.
+        db.add(
+            StructureNode(
+                story_id=story.id,
+                parent_id=ch3.id,
+                level=2,
+                level_type="scene",
+                title="The Torn Edge",
+                synopsis="Eleanor finds a stub of torn paper deep in the binding. Someone cut those months out by hand.",
+                purpose="Turn the gap from an absence into an act: someone chose to hide this, and Eleanor knows whose hand it was.",
+                position=2,
+                status="planned",
+            )
+        )
+        db.flush()
+
         ch4 = StructureNode(
             story_id=story.id,
             parent_id=act2.id,

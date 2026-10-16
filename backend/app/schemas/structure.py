@@ -7,6 +7,8 @@ class ReorderOperation(BaseModel):
     node_id: str
     parent_id: str | None
     position: int
+    #: The level's name when the row moves a level (the Outline's Tab and Shift+Tab, doc 29 D2).
+    level_type: str | None = None
 
 
 class ReorderStructurePayload(BaseModel):
@@ -24,6 +26,9 @@ class StructureNodeCreate(BaseModel):
     status: str = "draft"
     purpose: str = ""
     beat_id: str | None = None
+    #: Make room at `position`: the siblings from there on move down one (the Outline's Enter
+    #: adds a line in the middle, doc 29 D2). Left off, the node goes where it is told.
+    insert: bool = False
 
 
 class StructureNodeUpdate(BaseModel):

@@ -153,12 +153,12 @@ describe("launchers and tabs", () => {
   });
 
   it("opens a page beside the prose as a tab, one per page", () => {
-    usePanelStore.getState().openPage("storyboard");
+    usePanelStore.getState().openPage("summaries");
     usePanelStore.getState().openPage("lorebook", "places");
     usePanelStore.getState().openPage("lorebook", "characters");
     const s = usePanelStore.getState();
     expect(s.tabs).toEqual([
-      { id: "page:storyboard", kind: "page", routeId: "storyboard", path: "/storyboard" },
+      { id: "page:summaries", kind: "page", routeId: "summaries", path: "/summaries" },
       { id: "page:lorebook", kind: "page", routeId: "lorebook", path: "/lorebook/characters" },
     ]);
     expect(s.showing).toBe("page:lorebook");
@@ -171,10 +171,10 @@ describe("launchers and tabs", () => {
 
   it("a page opened from another page is open waiting at the prose", () => {
     usePanelStore.setState({ side: "pages" });
-    usePanelStore.getState().openPage("storyboard");
+    usePanelStore.getState().openPage("summaries");
     usePanelStore.getState().setSide("writing");
     expect(usePanelStore.getState().open).toBe(true);
-    expect(usePanelStore.getState().showing).toBe("page:storyboard");
+    expect(usePanelStore.getState().showing).toBe("page:summaries");
   });
 
   it("remembers where a page tab moved to, and saves it with the story", () => {

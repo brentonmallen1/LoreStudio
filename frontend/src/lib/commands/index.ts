@@ -28,6 +28,7 @@ import "./planning";
 import "./script";
 import "./panel";
 import "./strip";
+import "./outline";
 import "./findings";
 import "./numbers";
 import "./sessions";

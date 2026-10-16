@@ -153,7 +153,7 @@ export const api = {
   // Structure
   getStructure: (storyId: string) =>
     request<import("../types").StructureNode[]>(`/stories/${storyId}/structure`),
-  createNode: (storyId: string, data: Partial<import("../types").StructureNode>) =>
+  createNode: (storyId: string, data: Partial<import("../types").StructureNode> & { insert?: boolean }) =>
     request<import("../types").StructureNode>(`/stories/${storyId}/structure`, {
       method: "POST",
       body: JSON.stringify(data),
@@ -170,7 +170,7 @@ export const api = {
   deleteNode: (nodeId: string) => request<void>(`/structure/${nodeId}`, { method: "DELETE" }),
   reorderStructure: (
     storyId: string,
-    operations: { node_id: string; parent_id: string | null; position: number }[],
+    operations: { node_id: string; parent_id: string | null; position: number; level_type?: string }[],
   ) =>
     request<void>(`/stories/${storyId}/structure/reorder`, {
       method: "POST",

@@ -577,7 +577,15 @@ def create_structure_node(
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
-    node = StructureNode(story_id=story_id, **body.model_dump())
+    if body.insert:
+        siblings = db.query(StructureNode).filter(
+            StructureNode.story_id == story_id,
+            StructureNode.parent_id.is_(None) if body.parent_id is None else StructureNode.parent_id == body.parent_id,
+            StructureNode.position >= body.position,
+        )
+        for sibling in siblings:
+            sibling.position += 1
+    node = StructureNode(story_id=story_id, **body.model_dump(exclude={"insert"}))
     db.add(node)
     db.flush()
     change_log.record(
@@ -664,6 +672,8 @@ def reorder_structure(
                 else:
                     node.level = 0
             node.position = op.position
+            if op.level_type:
+                node.level_type = op.level_type
     db.flush()
     after = change_log.reorder_snapshot(StructureNode, ids, db)
     if before != after:
