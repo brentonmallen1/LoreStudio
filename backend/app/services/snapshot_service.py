@@ -175,6 +175,31 @@ def _get_or_create_settings(story_id: str, db: Session) -> StoryBackupSettings:
     return settings
 
 
+def claim_auto_backup(db: Session, settings: StoryBackupSettings, now: datetime) -> bool:
+    """Take this interval's auto-backup, or learn another request already has. Opening a story
+    checks twice at once (two tabs, or React running the effect twice), and both checks used to
+    read "no backup yet" before either wrote, so both backed up. One UPDATE decides: only the
+    request whose write finds the slot still open goes on. Commits."""
+    cutoff = now - timedelta(minutes=settings.interval_minutes)
+    column = StoryBackupSettings.last_auto_backup_at
+    claimed = (
+        db.query(StoryBackupSettings)
+        .filter(StoryBackupSettings.id == settings.id, (column.is_(None)) | (column <= cutoff))
+        .update({column: now}, synchronize_session=False)
+    )
+    db.commit()
+    return claimed == 1
+
+
+def release_auto_backup(db: Session, settings: StoryBackupSettings, now: datetime, previous: datetime | None) -> None:
+    """Nothing to back up after all: give the slot back, so the next check backs up as soon as
+    something changes rather than an interval later. Commits."""
+    db.query(StoryBackupSettings).filter(
+        StoryBackupSettings.id == settings.id, StoryBackupSettings.last_auto_backup_at == now
+    ).update({StoryBackupSettings.last_auto_backup_at: previous}, synchronize_session=False)
+    db.commit()
+
+
 def _find_anchor_snapshot(story_id: str, db: Session) -> "StorySnapshot | None":
     """Find the most recent manual snapshot to use as the delta base for auto backups."""
     return (

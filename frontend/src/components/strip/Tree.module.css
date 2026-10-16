@@ -169,6 +169,21 @@
   white-space: nowrap;
 }
 
+/* The act's numeral or the chapter's number, as the collapsed line shows it. */
+.nodeNumber {
+  flex-shrink: 0;
+  min-width: 1.1rem;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.nodeRowWrapActive .nodeNumber {
+  color: var(--color-accent-fg);
+}
+
 .nodeStatus {
   flex-shrink: 0;
   font-size: var(--text-xs);

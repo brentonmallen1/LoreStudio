@@ -9,6 +9,7 @@ import {
   EXPANDED_MIN_PX,
   clampStripPx,
   legendFor,
+  numberOf,
   roman,
   stopShape,
   stripPx,
@@ -83,16 +84,74 @@ describe("buildLine", () => {
     expect(line.readout.position).toBe(3);
   });
 
-  it("gives each group its own key in a tree of mixed depth", () => {
-    // An imported draft: a chapter holding prose beside chapters with scenes, twice.
-    const mixed = [
-      node("a1", "Opening", 0, {}, [node("c0", "Fade In", 1)]),
-      node("a2", "Act 1", 0, {}, [node("c1", "Chapter 1", 1, {}, [node("s1", "Lay of the Land", 2)])]),
-      node("a3", "Coda", 0, {}, [node("c9", "Fade Out", 1)]),
-    ];
+  // An imported draft: chapters holding prose beside chapters with scenes.
+  const mixed = [
+    node("a1", "Opening", 0, {}, [node("c0", "Fade In", 1)]),
+    node("a2", "Act 1", 0, {}, [
+      node("c1", "Chapter 1", 1, {}, [node("s1", "Lay of the Land", 2)]),
+      node("c2", "Chapter 2", 1),
+    ]),
+    node("a3", "Coda", 0, {}, [node("c9", "Fade Out", 1)]),
+  ];
+
+  it("gives each act one numeral, and a chapter holding prose is its own station", () => {
     const line = buildLine(mixed, template, "s1", null);
-    const keys = line.acts.map((a) => a.key);
+    expect(line.acts.map((a) => [a.label, a.node?.id])).toEqual([
+      ["I", "a1"],
+      ["II", "a2"],
+      ["III", "a3"],
+    ]);
+    expect(line.stations.map((s) => [s.number, s.node?.id])).toEqual([
+      [1, "c0"],
+      [2, "c1"],
+      [3, "c2"],
+      [4, "c9"],
+    ]);
+    const keys = [...line.acts, ...line.stations].map((g) => g.key);
     expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it("leaves a scene straight under an act unnumbered", () => {
+    const loose = [
+      node("a1", "Act 1", 0, {}, [
+        node("s0", "Prologue", 2),
+        node("c1", "Chapter 1", 1, {}, [node("s1", "A", 2)]),
+      ]),
+      node("a2", "Act 2", 0, {}, [node("c2", "Chapter 2", 1, {}, [node("s2", "B", 2)])]),
+    ];
+    const line = buildLine(loose, template, "s2", null);
+    expect(line.stations.map((s) => [s.number, s.node?.id ?? null])).toEqual([
+      [0, null],
+      [1, "c1"],
+      [2, "c2"],
+    ]);
+    expect(line.acts.map((a) => [a.label, a.stations.length])).toEqual([
+      ["I", 2],
+      ["II", 1],
+    ]);
+    expect(line.readout).toMatchObject({ position: 2, total: 2, unit: "chapter" });
+  });
+
+  it("has stations and no acts in two levels", () => {
+    const two = { levels: [{ name: "Chapter" }, { name: "Scene" }], flat: false } as StoryStructureTemplate;
+    const line = buildLine(
+      [node("c1", "One", 0, {}, [node("s1", "A", 1)]), node("c2", "Two", 0)],
+      two,
+      null,
+      null,
+    );
+    expect(line.hasActs).toBe(false);
+    expect(line.stations.map((s) => [s.number, s.node?.id])).toEqual([
+      [1, "c1"],
+      [2, "c2"],
+    ]);
+  });
+
+  it("names any act or chapter by its number in the book", () => {
+    const line = buildLine(mixed, template, null, null);
+    expect(numberOf(line, "a2")).toEqual({ kind: "act", label: "II", total: 3 });
+    expect(numberOf(line, "c2")).toEqual({ kind: "chapter", label: "3", total: 4 });
+    expect(numberOf(line, "s1")).toBeNull();
   });
 
   it("is a line of stops for a flat template", () => {

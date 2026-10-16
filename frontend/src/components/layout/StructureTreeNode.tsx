@@ -51,6 +51,7 @@ export default function NodeItem({
   const isActive = activeNode?.id === node.id;
   const stop = marks?.stops.get(node.id);
   const chapterStops = marks?.chapters.get(node.id);
+  const label = marks?.labels.get(node.id);
 
   const childLevel = depth + 1;
   const childLevelDef = activeTemplate?.levels[childLevel];
@@ -241,14 +242,23 @@ export default function NodeItem({
               }}
             />
           ) : (
-            <span
-              className={`${styles.nodeLabel} ${node.status === "planned" ? (isActive ? styles.nodePlannedActive : styles.nodePlanned) : ""}`}
-              title={
-                node.status === "planned" ? `Planned${node.synopsis ? `: ${node.synopsis}` : ""}` : undefined
-              }
-            >
-              {node.title}
-            </span>
+            <>
+              {label && (
+                <span className={styles.nodeNumber} aria-hidden>
+                  {label}
+                </span>
+              )}
+              <span
+                className={`${styles.nodeLabel} ${node.status === "planned" ? (isActive ? styles.nodePlannedActive : styles.nodePlanned) : ""}`}
+                title={
+                  node.status === "planned"
+                    ? `Planned${node.synopsis ? `: ${node.synopsis}` : ""}`
+                    : undefined
+                }
+              >
+                {node.title}
+              </span>
+            </>
           )}
           {!renaming && node.word_count > 0 && (
             <span className={styles.nodeWordCount} title={`${node.word_count.toLocaleString()} words`}>

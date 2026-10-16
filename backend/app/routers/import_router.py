@@ -8,6 +8,7 @@ Session lifecycle (in-memory, 30-minute TTL):
   POST /import/upload              → creates session, returns preview
   POST /import/{session_id}/ai-analyze → AI break suggestions (user-initiated)
   POST /import/{session_id}/adjust → apply user edits to preview
+  POST /import/{session_id}/undo   → take back the last edit (adjust or ai-analyze)
   POST /import/{session_id}/finalize   → create story from final preview
 
 All endpoints require authentication.
@@ -43,6 +44,7 @@ from ..schemas.import_schemas import (
 )
 from ..schemas.jobs import JobOut
 from ..services import import_records
+from ..services.import_review import apply_adjustment, prose_sections, relabel, resegment
 from ..services.import_script import (
     SCRIPT_EXTENSIONS,
     ScriptImport,
@@ -54,8 +56,6 @@ from ..services.import_script import candidates as script_candidates
 from ..services.import_script import finish as finish_script
 from ..services.import_service import (
     _merge_breaks,
-    apply_adjustment,
-    apply_breaks,
     build_preview_tree,
     create_entities_from_extraction,
     create_story_from_import,
@@ -101,6 +101,8 @@ class _ImportSession:
         #: The file as uploaded: kept with the story, so the import can always be checked (doc 28).
         self.filename = filename
         self.original = original
+        #: The previews before each edit in Review structure, newest last: what Undo goes back to.
+        self.history: list[ImportPreviewTree] = []
         self.created_at = time.monotonic()
 
     def is_expired(self) -> bool:
@@ -108,6 +110,17 @@ class _ImportSession:
 
 
 _sessions: dict[str, _ImportSession] = {}
+
+
+UNDO_LIMIT = 50
+
+
+def _set_preview(session: _ImportSession, preview: ImportPreviewTree) -> ImportPreviewTree:
+    """An edit in Review structure: the old preview goes on the Undo stack when anything moved."""
+    if preview.nodes != session.preview.nodes:
+        session.history = [*session.history, session.preview][-UNDO_LIMIT:]
+    session.preview = preview.model_copy(update={"undo_depth": len(session.history)})
+    return session.preview
 
 
 def _purge_expired() -> None:
@@ -166,7 +179,7 @@ def _preview(paragraphs, script, session_id, template_id, template_levels, sourc
             detected_title=detected_title,
         )
     return build_preview_tree(
-        sections=apply_breaks(paragraphs, detect_structure_heuristic(paragraphs), template_levels),
+        sections=prose_sections(paragraphs, detect_structure_heuristic(paragraphs), template_levels),
         paragraphs=paragraphs,
         session_id=session_id,
         template_id=template_id,
@@ -324,28 +337,17 @@ async def ai_analyze_structure(
             detail=ai_error or "AI analysis unavailable. Is Ollama running?",
         )
 
-    # Merge with heuristic breaks already in the preview
-    # Re-derive heuristic breaks from current nodes as a baseline
-    heuristic_breaks = detect_structure_heuristic(paragraphs)
-    merged_breaks = _merge_breaks(heuristic_breaks, ai_breaks)
-
-    sections = apply_breaks(paragraphs, merged_breaks, template_levels)
-    updated_preview = build_preview_tree(
-        sections=sections,
-        paragraphs=paragraphs,
-        session_id=session_id,
-        template_id=preview.template_id,
-        template_levels=template_levels,
-        source_format=preview.source_format,
-        detected_title=preview.detected_title,
+    # The headings and breaks the document states, with the AI's suggestions merged in
+    merged_breaks = _merge_breaks(detect_structure_heuristic(paragraphs), ai_breaks)
+    updated_preview = _set_preview(
+        session,
+        resegment(preview, paragraphs, merged_breaks, retitle=retitle if session.novelcrafter else None),
     )
 
-    session.preview = updated_preview
-
-    ai_suggestions_applied = sum(1 for b in ai_breaks if b.source == "ai")
+    ai_suggestions_applied = sum(1 for b in merged_breaks if b.source == "ai")
     reasoning = (
         "AI found no additional structural breaks."
-        if not ai_breaks
+        if not ai_suggestions_applied
         else (
             f"AI identified {ai_suggestions_applied} additional break(s). "
             "Review the highlighted sections and adjust as needed."
@@ -376,8 +378,21 @@ def adjust_preview(
     for adjustment in body.adjustments:
         preview = apply_adjustment(preview, session.paragraphs, adjustment)
 
-    session.preview = preview
-    return preview
+    return _set_preview(session, preview)
+
+
+@router.post("/import/{session_id}/undo", response_model=ImportPreviewTree)
+def undo_preview_edit(
+    session_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    """Take back the last edit in Review structure: a rename, merge, level change or Auto-segment."""
+    session = _get_session(session_id, current_user.id)
+    if not session.history:
+        raise HTTPException(status_code=409, detail="Nothing to undo")
+    *session.history, previous = session.history
+    session.preview = previous.model_copy(update={"undo_depth": len(session.history)})
+    return session.preview
 
 
 @router.post("/import/{session_id}/extract-preview", response_model=ExtractionPreview)
@@ -598,20 +613,24 @@ def finalize_import(
     if not template:
         raise HTTPException(status_code=400, detail=f"Template '{body.template_id}' not found")
 
-    # If template changed, rebuild preview with new level names
+    # Another template: the same structure under its names when it has as many levels; a script
+    # states its own structure again; anything else would lose the review, so it asks for one.
     preview = session.preview
-    if body.template_id != preview.template_id:
+    levels = _template_levels(template)
+    if body.template_id != preview.template_id and len(levels) == len(preview.template_levels):
+        preview = relabel(preview, body.template_id, levels)
+    elif body.template_id != preview.template_id and not session.script:
+        raise HTTPException(status_code=409, detail="Review the structure again for this template")
+    elif body.template_id != preview.template_id:
         preview = _preview(
             session.paragraphs,
             session.script,
             session_id,
             body.template_id,
-            _template_levels(template),
+            levels,
             preview.source_format,
             preview.detected_title,
         )
-        if session.novelcrafter:
-            preview = retitle(preview)
 
     # A Novelcrafter manuscript written as a script, imported as one when the author chose to.
     choices = body.novelcrafter or NovelcrafterChoices()
@@ -645,11 +664,28 @@ def finalize_import(
         finish_script(story, script, preview, db)
 
     record_id = _record(session, story, choices, db, current_user.id)
+    _keep_as_imported(story.id, db)
 
     # Clean up session
     _sessions.pop(session_id, None)
 
     return {"id": story.id, "title": story.title, "record_id": record_id, **entity_counts}
+
+
+def _keep_as_imported(story_id: str, db: Session) -> None:
+    """A named version of the story as it came in, so Chronicle › Versions can always go back."""
+    from ..services.dialogue_service import sync_story_dialogue
+    from ..services.snapshot_service import create_snapshot
+
+    try:
+        # Its dialogue read first, as opening the story would: otherwise the first auto-backup
+        # holds nothing but those rows.
+        sync_story_dialogue(story_id, db)
+        db.commit()
+        create_snapshot(story_id, db, trigger="manual", name="As imported", force=True)
+    except Exception as e:  # the story stands; only its first version is missing
+        logger.warning("As imported version failed (non-fatal): %s", e)
+        db.rollback()
 
 
 def _record(session: _ImportSession, story, choices: NovelcrafterChoices, db: Session, user_id: str) -> str | None:

@@ -125,21 +125,30 @@ export function buildLine(
   }));
   const up = parents(structure, null, new Map());
   const levels = template && !template.flat ? template.levels.length : 1;
-  const hasStations = levels >= 2 && stops.some((s) => up.get(s.node.id));
-  const hasActs = levels >= 3 && stops.some((s) => up.get(up.get(s.node.id)?.id ?? "") ?? null);
+  // Grouped by level, not by parent: a stop's station is the node at the level above the
+  // deepest (a chapter holding prose is its own station), its act the node at the top. A stop
+  // with no node at that level (a scene straight under an act) is loose: on the line, unnumbered.
+  const stationLevel = levels - 2;
+  const at = (n: StructureNode | null | undefined, level: number): StructureNode | null => {
+    for (let cur = n ?? null; cur; cur = up.get(cur.id) ?? null) if (cur.level === level) return cur;
+    return null;
+  };
+  const hasStations = levels >= 2 && stops.some((s) => at(s.node, stationLevel));
+  const hasActs = levels >= 3 && stops.some((s) => at(s.node, 0));
 
-  // Group consecutive stops by their parent, and parents by theirs.
   const stations: Station[] = [];
+  let numbered = 0;
   for (const stop of stops) {
-    const stationNode = hasStations ? (up.get(stop.node.id) ?? null) : null;
-    const key = stationNode?.id ?? "root";
+    const stationNode = hasStations ? at(stop.node, stationLevel) : null;
+    const actId = hasActs ? (at(stop.node, 0)?.id ?? "") : "";
+    const key = stationNode?.id ?? (hasStations ? `loose:${actId}` : "root");
     const last = stations[stations.length - 1];
     if (last && last.key === key) last.stops.push(stop);
     else
       stations.push({
         key,
         node: stationNode,
-        number: stations.length + 1,
+        number: stationNode || !hasStations ? ++numbered : 0,
         title: stationNode?.title ?? "",
         stops: [stop],
         words: 0,
@@ -153,8 +162,9 @@ export function buildLine(
     st.done = st.stops.filter((s) => s.status === "final").length / st.stops.length;
   }
   const acts: Act[] = [];
+  let actCount = 0;
   for (const st of stations) {
-    const actNode = hasActs && st.node ? (up.get(st.node.id) ?? null) : null;
+    const actNode = hasActs ? at(st.node ?? st.stops[0].node, 0) : null;
     const key = actNode?.id ?? "root";
     const last = acts[acts.length - 1];
     if (last && last.key === key) last.stations.push(st);
@@ -162,14 +172,13 @@ export function buildLine(
       acts.push({
         key,
         node: actNode,
-        label: roman(acts.length + 1),
+        label: actNode || !hasActs ? roman(++actCount) : "",
         title: actNode?.title ?? "",
         stations: [st],
       });
   }
 
-  // Stops with no parent group under "root"; in a tree of mixed depth (an imported draft whose
-  // chapters hold prose beside chapters with scenes) that can happen more than once.
+  // Safety net: an act or chapter whose parts are split by another's (dragged out of order).
   uniqueKeys(stations);
   uniqueKeys(acts);
 
@@ -185,11 +194,11 @@ export function buildLine(
   const totalWords = stops.reduce((n, s) => n + s.words, 0);
   const wordsBefore = stops.slice(0, Math.max(0, currentIndex)).reduce((n, s) => n + s.words, 0);
   const pct = totalWords ? Math.round((wordsBefore / totalWords) * 100) : 0;
+  const inChapter = hasStations && !!currentStation?.node;
   const readout: Readout = {
-    position:
-      hasStations && currentStation ? currentStation.number : currentIndex >= 0 ? currentIndex + 1 : null,
-    total: hasStations && currentStation ? stations.length : stops.length,
-    unit: hasStations && currentStation ? "chapter" : "scene",
+    position: inChapter ? currentStation.number : currentIndex >= 0 ? currentIndex + 1 : null,
+    total: inChapter ? numbered : stops.length,
+    unit: inChapter ? "chapter" : "scene",
     pct,
   };
 
@@ -206,6 +215,25 @@ export function buildLine(
     wordsBefore,
     readout,
   };
+}
+
+/** An act's or chapter's number in the whole book ("Act II", "Chapter 4 of 13"), or null. */
+export function numberOf(
+  line: Line,
+  id: string,
+): { kind: "act" | "chapter"; label: string; total: number } | null {
+  const acts = line.acts.filter((a) => a.node);
+  const act = acts.find((a) => a.node?.id === id);
+  if (act) return { kind: "act", label: act.label, total: new Set(acts.map((a) => a.node?.id)).size };
+  const stations = line.stations.filter((s) => s.node);
+  const station = stations.find((s) => s.node?.id === id);
+  if (station)
+    return {
+      kind: "chapter",
+      label: String(station.number),
+      total: new Set(stations.map((s) => s.node?.id)).size,
+    };
+  return null;
 }
 
 export interface ColourContext {

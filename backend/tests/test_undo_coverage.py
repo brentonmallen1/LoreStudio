@@ -268,6 +268,7 @@ WHOLE_STORIES = (
     "POST /api/import/{session_id}/enrich-candidates/jobs",
     "POST /api/import/{session_id}/extract-preview",
     "POST /api/import/{session_id}/finalize",
+    "POST /api/import/{session_id}/undo",
     "POST /api/stories",
     "POST /api/stories/import",
     # The example stories, added whole (the dashboard, Settings › Account).

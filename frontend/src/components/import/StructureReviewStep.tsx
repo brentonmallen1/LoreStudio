@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { ChevronDown, ChevronRight, Orbit, AlertTriangle, ArrowLeft, ArrowRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown, ChevronRight, Orbit, AlertTriangle, ArrowLeft, ArrowRight, Undo2 } from "lucide-react";
 import { api } from "../../api/client";
 import { isScriptImport } from "../../lib/storyFormat";
 import type { ImportPreviewTree, ImportPreviewNode, ImportUploadResponse } from "../../types";
 import styles from "./StructureReviewStep.module.css";
-import { MODIFIER } from "../../lib/keyboard/shortcuts";
+import { MODIFIER, SHORTCUTS, formatCombo, matchesCombo } from "../../lib/keyboard/shortcuts";
 import { useAIAvailable } from "../../lib/mode";
 import { wordTotals, wordsLabel } from "../../lib/import/wordTotals";
 
@@ -45,6 +45,34 @@ export default function StructureReviewStep({
       setAiLoading(false);
     }
   }
+
+  // Each edit here, Auto-segment's too, can be taken back; the server keeps the steps.
+  const canUndo = (preview.undo_depth ?? 0) > 0;
+  async function handleUndo() {
+    if (!canUndo) return;
+    try {
+      onPreviewUpdated(await api.importUndo(preview.session_id));
+      setAiReasoning(null);
+    } catch {
+      // ignore: nothing left to take back
+    }
+  }
+  const undoRef = useRef(handleUndo);
+  useEffect(() => {
+    undoRef.current = handleUndo;
+  });
+  useEffect(() => {
+    // Before the story's own ⌘Z (GlobalHeader): there is no story yet, only this review.
+    function onKey(e: KeyboardEvent) {
+      if (!matchesCombo(e, SHORTCUTS.undo.combo)) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      void undoRef.current();
+    }
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, []);
 
   async function handleRename(nodeId: string) {
     if (!editTitle.trim()) {
@@ -206,7 +234,7 @@ export default function StructureReviewStep({
             <button
               className={styles.actionBtn}
               onClick={() => handleMergeUp(node.id)}
-              title="Merge into previous section"
+              title="Merge into the one before it"
             >
               {MODIFIER.alt}
             </button>
@@ -287,7 +315,7 @@ export default function StructureReviewStep({
 
       <p className={styles.editHint}>
         Double-click any title to rename. Use ↑↓ to change level. {MODIFIER.alt} merges a section into the one
-        above.
+        before it. {formatCombo(SHORTCUTS.undo.combo)} takes back the last change.
       </p>
 
       {/* Navigation */}
@@ -296,10 +324,21 @@ export default function StructureReviewStep({
           <ArrowLeft size={13} />
           Back
         </button>
-        <button onClick={onNext} className={styles.nextBtn} disabled={preview.nodes.length === 0}>
-          Continue
-          <ArrowRight size={13} />
-        </button>
+        <div className={styles.footerEnd}>
+          <button
+            onClick={handleUndo}
+            className={styles.backBtn}
+            disabled={!canUndo}
+            title={`Undo the last change (${formatCombo(SHORTCUTS.undo.combo)})`}
+          >
+            <Undo2 size={13} />
+            Undo
+          </button>
+          <button onClick={onNext} className={styles.nextBtn} disabled={preview.nodes.length === 0}>
+            Continue
+            <ArrowRight size={13} />
+          </button>
+        </div>
       </div>
     </div>
   );

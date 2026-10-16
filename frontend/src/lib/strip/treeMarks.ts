@@ -12,6 +12,8 @@ export interface TreeMarks {
   stops: Map<string, Stop>;
   /** Each chapter's scenes, by node id, for the bars under a folded chapter. */
   chapters: Map<string, Stop[]>;
+  /** Each act's numeral and each chapter's number, as the line shows them, by node id. */
+  labels: Map<string, string>;
   mode: ColourMode;
   ctx: ColourContext;
   currentIndex: number;
@@ -29,6 +31,12 @@ export function useTreeMarks(): TreeMarks {
           ? line.stations.flatMap((st) => (st.node ? [[st.node.id, st.stops] as const] : []))
           : [],
       ),
+      labels: new Map([
+        ...(line.hasActs ? line.acts.flatMap((a) => (a.node ? [[a.node.id, a.label] as const] : [])) : []),
+        ...(line.hasStations
+          ? line.stations.flatMap((st) => (st.node ? [[st.node.id, String(st.number)] as const] : []))
+          : []),
+      ]),
       mode,
       ctx,
       currentIndex: line.currentIndex,

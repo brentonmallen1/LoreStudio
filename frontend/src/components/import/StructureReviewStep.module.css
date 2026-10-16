@@ -337,7 +337,17 @@
     color var(--transition);
 }
 
-.backBtn:hover {
+.footerEnd {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.backBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.backBtn:hover:not(:disabled) {
   background: var(--color-surface-2);
   color: var(--color-text);
 }

@@ -13,6 +13,7 @@ Three layers keep your work safe: undo, versions of each story, and backups of e
 A version is a snapshot of the whole story. Open logo menu › **Chronicle** › **Versions**.
 
 - **Create snapshot** saves one now, under a name like "Draft 1".
+- An imported story starts with a version called **As imported**, so you can always go back to it.
 - Automatic snapshots run on a schedule: the page's ⋯ › **Backup settings…**.
 - **Restore to this version** brings the story back, saving it as it is first.
 - **Download snapshot** saves a version as a file; **Import from a file…** brings one back.

@@ -33,7 +33,6 @@ from ..schemas.import_schemas import (
     BreakPosition,
     FinalizeImportRequest,
     ImportPreviewTree,
-    NodeAdjustment,
     ParsedParagraph,
     PreviewNode,
 )
@@ -281,8 +280,15 @@ class _Section:
         source: Literal["heuristic", "ai", "user"],
         confidence: float,
         title_para: ParsedParagraph | None = None,
+        *,
+        name: str = "",
+        anchor: int = 0,
     ):
         self.id = str(uuid.uuid4())
+        #: A section made from another's prose (a chapter's first scene) is named for it and,
+        #: while it holds nothing, sits where that prose was.
+        self.name = name
+        self.anchor = anchor
         self.level = level
         self.source = source
         self.confidence = confidence
@@ -294,7 +300,7 @@ class _Section:
     def title(self) -> str:
         if self.title_para:
             return self.title_para.text_preview
-        return ""
+        return self.name
 
     @property
     def word_count(self) -> int:
@@ -306,15 +312,16 @@ class _Section:
             return self.title_para.index
         if self.content_paras:
             return self.content_paras[0].index
-        return 0
+        return self.anchor
 
     @property
     def paragraph_end(self) -> int:
+        """Inclusive; one before the start when the section holds nothing, so it takes no prose."""
         if self.content_paras:
             return self.content_paras[-1].index
         if self.title_para:
             return self.title_para.index
-        return 0
+        return self.paragraph_start - 1
 
     @property
     def content_html(self) -> str:
@@ -641,91 +648,6 @@ def _merge_breaks(
 
     merged.sort(key=lambda b: b.after_index)
     return merged
-
-
-# ---------------------------------------------------------------------------
-# User adjustments to preview tree
-# ---------------------------------------------------------------------------
-
-
-def apply_adjustment(
-    preview: ImportPreviewTree,
-    paragraphs: list[ParsedParagraph],
-    adjustment: NodeAdjustment,
-) -> ImportPreviewTree:
-    """Apply a single user edit to the preview tree. Returns updated tree."""
-    nodes = list(preview.nodes)
-
-    node_map = {n.id: n for n in nodes}
-    target = node_map.get(adjustment.node_id)
-    if not target:
-        return preview
-
-    if adjustment.action == "rename" and adjustment.new_title:
-        idx = next(i for i, n in enumerate(nodes) if n.id == adjustment.node_id)
-        nodes[idx] = target.model_copy(update={"title": adjustment.new_title, "source": "user"})
-
-    elif adjustment.action == "relevel" and adjustment.new_level is not None:
-        template_levels = preview.template_levels
-        new_level = max(0, min(adjustment.new_level, len(template_levels) - 1))
-
-        def _level_type(level: int) -> str:
-            if level < len(template_levels):
-                return template_levels[level]["name"].lower()
-            return template_levels[-1]["name"].lower()
-
-        idx = next(i for i, n in enumerate(nodes) if n.id == adjustment.node_id)
-        nodes[idx] = target.model_copy(
-            update={
-                "level": new_level,
-                "level_type": _level_type(new_level),
-                "source": "user",
-                "confidence": 1.0,
-            }
-        )
-
-    elif adjustment.action == "merge_up":
-        # Merge this node into its previous sibling (append content)
-        target_idx = next(i for i, n in enumerate(nodes) if n.id == adjustment.node_id)
-        if target_idx > 0:
-            prev = nodes[target_idx - 1]
-            merged_preview = (prev.content_preview + " " + target.content_preview)[:200]
-            nodes[target_idx - 1] = prev.model_copy(
-                update={
-                    "word_count": prev.word_count + target.word_count,
-                    "content_preview": merged_preview,
-                    "paragraph_end": target.paragraph_end,
-                    "source": "user",
-                }
-            )
-            nodes.pop(target_idx)
-
-    # Re-assign parent_ids after any structural change
-    nodes = _reassign_parents(nodes)
-
-    return preview.model_copy(update={"nodes": nodes})
-
-
-def _reassign_parents(nodes: list[PreviewNode]) -> list[PreviewNode]:
-    """Recompute parent_id for all nodes based on their levels."""
-    level_stack: dict[int, str] = {}
-    result: list[PreviewNode] = []
-
-    for node in nodes:
-        parent_id: str | None = None
-        for lvl in range(node.level - 1, -1, -1):
-            if lvl in level_stack:
-                parent_id = level_stack[lvl]
-                break
-
-        level_stack[node.level] = node.id
-        for lvl in list(level_stack.keys()):
-            if lvl > node.level:
-                del level_stack[lvl]
-
-        result.append(node.model_copy(update={"parent_id": parent_id}))
-
-    return result
 
 
 # ---------------------------------------------------------------------------

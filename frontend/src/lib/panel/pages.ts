@@ -8,6 +8,7 @@ import type { UIMode } from "../mode";
  */
 export const NOT_BESIDE: Record<string, string> = {
   write: "it is the prose itself",
+  outline: "it is the strip, already beside the prose",
 };
 
 export function canOpenBeside(route: StoryRoute): boolean {

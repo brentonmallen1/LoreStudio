@@ -1,4 +1,5 @@
 import { request } from "./request";
+import type { ImportPreviewTree } from "../types/importWizard";
 import type { ImportReport } from "../types/novelcrafter";
 
 /** What each import did (doc 28), and settling what one still has waiting. Spread into `api`. */
@@ -11,4 +12,7 @@ export const importsApi = {
     request<{ settled: number }>(`/stories/${storyId}/proposals/imported/${recordId}/${how}`, {
       method: "POST",
     }),
+  /** Take back the last edit in Review structure (a rename, merge, level change or Auto-segment). */
+  importUndo: (sessionId: string) =>
+    request<ImportPreviewTree>(`/import/${sessionId}/undo`, { method: "POST" }),
 };

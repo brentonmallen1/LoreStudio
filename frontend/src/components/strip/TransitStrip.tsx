@@ -5,6 +5,7 @@ import {
   colourFor,
   stopShape,
   type ColourContext,
+  type Act,
   type ColourMode,
   type Line,
   type Station,
@@ -27,7 +28,8 @@ interface Props {
   storyId: string;
 }
 
-type PeekBody = { kind: "stop"; stop: Stop } | { kind: "station"; station: Station };
+type PeekBody =
+  { kind: "stop"; stop: Stop } | { kind: "station"; station: Station } | { kind: "act"; act: Act };
 type Peek = PeekBody & { top: number };
 
 /**
@@ -63,12 +65,12 @@ export default function TransitStrip({ line, mode, ctx, storyId }: Props) {
     <div className={styles.line} onMouseLeave={() => setPeek(null)}>
       {line.acts.map((act) => (
         <div key={act.key}>
-          {line.hasActs && (
+          {line.hasActs && act.node && (
             <button
               className={`${styles.row} ${styles.rowAct}`}
               onClick={() => go(act.node?.id)}
-              title={act.title ? `${act.title}: open its plan` : undefined}
-              aria-label={act.title || `Act ${act.label}`}
+              onMouseEnter={(e) => peekAt(e, { kind: "act", act })}
+              aria-label={`Act ${act.label}${act.title ? `: ${act.title}` : ""}, open its plan`}
             >
               <span className={`${styles.rail} ${railClass(act.stations[0]?.stops[0])}`} />
               <span
@@ -80,7 +82,7 @@ export default function TransitStrip({ line, mode, ctx, storyId }: Props) {
           )}
           {act.stations.map((station) => (
             <div key={station.key}>
-              {line.hasStations && (
+              {line.hasStations && station.node && (
                 <button
                   className={`${styles.row} ${styles.rowStation}`}
                   data-strip-mark
@@ -181,6 +183,21 @@ export default function TransitStrip({ line, mode, ctx, storyId }: Props) {
 
 function PeekCard({ peek, mode, ctx }: { peek: Peek; mode: ColourMode; ctx: ColourContext }) {
   const top = Math.min(peek.top - 8, window.innerHeight - 160);
+  if (peek.kind === "act") {
+    const { act } = peek;
+    const words = act.stations.reduce((n, st) => n + st.words, 0);
+    const chapters = act.stations.filter((st) => st.node).length;
+    return (
+      <div className={styles.peek} style={{ top, left: COLLAPSED_PX + 8 }} role="tooltip">
+        <span className={styles.peekKicker}>
+          Act {act.label} · {chapters} {chapters === 1 ? "chapter" : "chapters"} · click for its plan
+        </span>
+        <span className={styles.peekTitle}>{act.title}</span>
+        {act.node?.synopsis && <span className={styles.peekText}>{act.node.synopsis}</span>}
+        <span className={styles.peekKicker}>{words.toLocaleString()} words</span>
+      </div>
+    );
+  }
   if (peek.kind === "station") {
     const st = peek.station;
     return (

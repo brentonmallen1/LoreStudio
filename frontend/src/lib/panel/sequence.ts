@@ -29,6 +29,7 @@ export interface Sequence {
 export function stationName(station: Station, levelName: string | undefined): string {
   const title = station.title.trim();
   const level = levelName?.trim();
+  if (!station.number) return title; // loose scenes, straight under an act: no chapter to name
   if (!level) return title || `Part ${station.number}`;
   if (!title) return `${level} ${station.number}`;
   return title.toLowerCase().startsWith(level.toLowerCase()) ? title : `${level} ${station.number}: ${title}`;

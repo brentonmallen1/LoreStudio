@@ -83,6 +83,8 @@ class ImportPreviewTree(BaseModel):
     nodes: list[PreviewNode]
     warnings: list[str]
     total_word_count: int
+    #: How many edits Review structure can take back (each rename, merge, level, Auto-segment).
+    undo_depth: int = 0
 
 
 # ---------------------------------------------------------------------------
@@ -114,12 +116,10 @@ class AIAnalyzeResponse(BaseModel):
 class NodeAdjustment(BaseModel):
     """A single user edit to the preview tree."""
 
-    action: Literal["rename", "merge_up", "split", "relevel"]
+    action: Literal["rename", "merge_up", "relevel"]
     node_id: str
     # rename
     new_title: str | None = None
-    # split: paragraph index within the node to split at
-    split_at_paragraph: int | None = None
     # relevel
     new_level: int | None = None
 

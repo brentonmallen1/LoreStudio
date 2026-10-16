@@ -18,9 +18,11 @@ from ..services.snapshot_export import export_snapshot, import_snapshot_file
 from ..services.snapshot_service import (
     _delete_snapshot_from_disk,
     _get_or_create_settings,
+    claim_auto_backup,
     create_snapshot,
     diff_snapshots,
     get_backup_status,
+    release_auto_backup,
     restore_snapshot,
 )
 
@@ -260,16 +262,13 @@ def check_auto_backup(
         return {"created": False}
 
     now = datetime.now(UTC)
-    last = settings.last_auto_backup_at
-    if last:
-        if last.tzinfo is None:
-            last = last.replace(tzinfo=UTC)
-        elapsed_minutes = (now - last).total_seconds() / 60
-        if elapsed_minutes < settings.interval_minutes:
-            return {"created": False}
+    previous = settings.last_auto_backup_at
+    if not claim_auto_backup(db, settings, now):
+        return {"created": False}
 
     snap = create_snapshot(story_id, db, trigger="auto", settings=settings)
     if snap is None:
+        release_auto_backup(db, settings, now, previous)
         return {"created": False, "reason": "no_changes"}
     automatic.record_run(db, "story-backups", f"Backed up {story.title}")
     return {"created": True, "snapshot": SnapshotOut.from_orm_snap(snap)}
