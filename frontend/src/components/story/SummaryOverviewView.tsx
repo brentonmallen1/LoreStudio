@@ -2,7 +2,7 @@ import { jobsApi, waitForJob } from "../../api/jobs";
 import { streamAnswer } from "../../lib/ai/eventStream";
 import React, { useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { ChevronDown, ChevronRight, Orbit, Square } from "lucide-react";
+import { ChevronDown, ChevronRight, Orbit, Square, ListTree } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { StructureNode } from "../../types";
@@ -10,6 +10,8 @@ import { formatRelative, formatDate } from "../../lib/utils";
 import styles from "./SummaryOverviewView.module.css";
 import AIOnly from "../ai/AIOnly";
 import { useAIAvailable, useMode } from "../../lib/mode";
+import EmptyState from "../common/EmptyState";
+import { EMPTY } from "../../lib/emptyStates";
 
 function flattenNodes(nodes: StructureNode[]): StructureNode[] {
   const result: StructureNode[] = [];
@@ -212,11 +214,10 @@ export default function SummaryOverviewView() {
 
   if (allNodes.length === 0) {
     return (
-      <div className={styles.empty}>
-        <p className={styles.emptyText}>
-          No story structure yet. Add acts, chapters and scenes in the Outline to get started.
-        </p>
-      </div>
+      <EmptyState
+        copy={EMPTY.summaries}
+        action={{ label: "Add scenes in the Outline", icon: ListTree, to: `/stories/${storyId}/outline` }}
+      />
     );
   }
 

@@ -4,7 +4,7 @@
  * backup settings (in a modal behind the toolbar's gear button).
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { History, Loader2, Plus, Settings, Upload } from "lucide-react";
+import { Loader2, Plus, Settings, Upload } from "lucide-react";
 import { api } from "../../../api/client";
 import { toast } from "../../../stores/toastStore";
 import Modal from "../../common/Modal";
@@ -16,6 +16,8 @@ import SnapshotGraph from "./SnapshotGraph";
 import SnapshotList from "./SnapshotList";
 import { ComparePicker, CreateSnapshotDialog, RestoreDialog } from "./VersionDialogs";
 import { filenameFromDisposition, orderByAge, versionsSubtitle } from "./versionsModel";
+import EmptyState from "../../common/EmptyState";
+import { EMPTY } from "../../../lib/emptyStates";
 import styles from "./Versions.module.css";
 
 type ViewMode = "list" | "graph";
@@ -188,6 +190,7 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
     onExport: handleExport,
   };
 
+  const noneSaved = !snapshots.some((x) => x.trigger === "manual");
   return (
     <div className={styles.page}>
       <PageHeader
@@ -199,7 +202,11 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
         ]}
         view={viewMode}
         onView={(id) => setViewMode(id as ViewMode)}
-        primary={{ label: "Create snapshot", icon: Plus, onClick: () => setDialog({ type: "create" }) }}
+        primary={
+          noneSaved
+            ? undefined
+            : { label: "Create snapshot", icon: Plus, onClick: () => setDialog({ type: "create" }) }
+        }
         more={[
           { label: "Import from a file…", icon: Upload, onSelect: () => importRef.current?.click() },
           {
@@ -245,19 +252,14 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
         />
       )}
 
-      {snapshots.length === 0 ? (
-        <div className={styles.empty}>
-          <History size={32} className={styles.emptyIcon} />
-          <p className={styles.emptyTitle}>No snapshots yet</p>
-          <p className={styles.emptyHint}>
-            Create a manual snapshot to start tracking your story's history. Auto backups will appear here
-            once they run.
-          </p>
-          <button className={styles.createBtn} onClick={() => setDialog({ type: "create" })}>
-            <Plus size={14} /> Create first snapshot
-          </button>
-        </div>
-      ) : viewMode === "list" ? (
+      {/* None saved by hand yet (doc 30 D3): what a version is, above the ones LoreStudio saved. */}
+      {noneSaved && (
+        <EmptyState
+          copy={EMPTY.versions}
+          action={{ label: "Save a version now", icon: Plus, onClick: () => setDialog({ type: "create" }) }}
+        />
+      )}
+      {snapshots.length === 0 ? null : viewMode === "list" ? (
         <SnapshotList snapshots={snapshots} {...actions} />
       ) : (
         // The graph has no room for the list's inline confirm, so it asks in a dialog.

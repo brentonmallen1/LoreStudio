@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { Redo2, RotateCcw, Undo2 } from "lucide-react";
+import { Redo2, RotateCcw, Undo2, PenLine } from "lucide-react";
 import { toolsApi, type ChangeRow } from "../../api/tools";
 import { ApiError, MUTATION_EVENT } from "../../api/request";
 import { UNDO_APPLIED_EVENT } from "../../hooks/useUndoRedo";
 import { applyResult, forgetChange } from "../../stores/undoStore";
 import { formatRelative } from "../../lib/utils";
 import styles from "./ChangesView.module.css";
+import EmptyState from "../common/EmptyState";
+import { EMPTY } from "../../lib/emptyStates";
 
 const ENTITY_LABEL: Record<string, string> = {
   structure_node: "Structure",
@@ -168,7 +170,12 @@ export default function ChangesView({ storyId }: { storyId: string }) {
         </div>
       </div>
       {error && <p className={styles.error}>{error}</p>}
-      {batches.length === 0 && !loading && <p className={styles.empty}>No changes recorded yet.</p>}
+      {batches.length === 0 && !loading && (
+        <EmptyState
+          copy={EMPTY.changes}
+          action={{ label: "Go to your writing", icon: PenLine, to: `/stories/${storyId}/write` }}
+        />
+      )}
       <ul className={styles.list}>
         {batches.map((b) => (
           <li key={b.batch_id} className={`${styles.row} ${styles[`row_${b.kind}`]}`}>

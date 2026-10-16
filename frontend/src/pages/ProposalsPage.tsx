@@ -15,6 +15,8 @@ import { useOpenProposals, useProposalsStore } from "../stores/proposalsStore";
 import { useStoryStore } from "../stores/storyStore";
 import type { Proposal, ProposalKind } from "../types/proposals";
 import styles from "../components/findings/Findings.module.css";
+import EmptyState from "../components/common/EmptyState";
+import { EMPTY } from "../lib/emptyStates";
 
 const KINDS: { id: ProposalKind; label: string; heading: string }[] = [
   { id: "person", label: "People", heading: "Someone new" },
@@ -148,22 +150,25 @@ export default function ProposalsPage({ storyId }: { storyId: string }) {
             </p>
           )}
           {data && groups.length === 0 && (
-            <div className={styles.empty}>
-              <p className={styles.emptyTitle}>Nothing waiting.</p>
-              <p className={styles.emptyText}>
-                When the prose names someone or somewhere the Lorebook does not have, or a line of dialogue
-                has no speaker{aiAvailable ? ", or the Assistant suggests something" : ""}, it waits here for
-                a yes or a no.
-              </p>
-              <button
-                type="button"
-                className={styles.verb}
-                disabled={looking}
-                onClick={() => void lookAgain(aiAvailable)}
-              >
-                Look through the prose now
-              </button>
-            </div>
+            <EmptyState
+              copy={
+                aiAvailable
+                  ? {
+                      ...EMPTY.discoveries,
+                      what: EMPTY.discoveries.what.replace(
+                        "has no speaker,",
+                        "has no speaker, or the Assistant suggests something,",
+                      ),
+                    }
+                  : EMPTY.discoveries
+              }
+              action={{
+                label: "Look through the prose now",
+                icon: RefreshCw,
+                disabled: looking,
+                onClick: () => void lookAgain(aiAvailable),
+              }}
+            />
           )}
           {groups.map((g) =>
             g.id === "imported" ? (

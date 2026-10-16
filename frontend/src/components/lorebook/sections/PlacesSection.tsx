@@ -22,6 +22,8 @@ import LorebookList from "../LorebookList";
 import { placeRows } from "../../../lib/lorebook/rows";
 import { useLoreSelection } from "../useLoreSelection";
 import styles from "../Lorebook.module.css";
+import EmptyState from "../../common/EmptyState";
+import { EMPTY } from "../../../lib/emptyStates";
 
 /** Everything inside a place, at any depth: deleting it takes them too. */
 function descendants(id: string, locations: Location[]): Location[] {
@@ -230,10 +232,10 @@ export default function PlacesSection() {
           </EntitySheet>
         ) : (
           locations.length === 0 && (
-            <div className={styles.emptySheet}>
-              <MapPin size={22} aria-hidden />
-              <p>Add the first place: the island, the house, the room.</p>
-            </div>
+            <EmptyState
+              copy={EMPTY.places}
+              action={{ label: "Add a place", icon: Plus, onClick: () => add(null) }}
+            />
           )
         )}
       </div>

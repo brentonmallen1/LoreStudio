@@ -7,6 +7,7 @@ import type { Calendar, Culture, LocationTravel, WorldSystem } from "../../../ty
 import { CardRow, SheetCard } from "../EntitySheet";
 import RowsEditor from "../RowsEditor";
 import SimpleSection, { type SimpleSectionConfig } from "./SimpleSection";
+import { EMPTY } from "../../../lib/emptyStates";
 import styles from "../Lorebook.module.css";
 import { useNavigate } from "react-router-dom";
 
@@ -40,6 +41,7 @@ const SYSTEMS: SimpleSectionConfig<WorldSystem> = {
     />
   ),
   assistant: () => "world_system",
+  emptyState: { copy: EMPTY.systems, action: "Add a system" },
   empty: "No systems yet. Magic, technology, faith, trade: the rules your world runs on.",
   newName: "New system",
 };
@@ -63,6 +65,7 @@ const CULTURES: SimpleSectionConfig<Culture> = {
       ? { naming_conventions: { ...(e.naming_conventions ?? {}), notes: value } }
       : ({ [key]: value } as Partial<Culture>),
   assistant: () => "culture",
+  emptyState: { copy: EMPTY.cultures, action: "Add a culture" },
   empty: "No cultures yet. The peoples of your world: what they value, what they never do.",
   newName: "New culture",
 };
@@ -129,6 +132,7 @@ const CALENDARS: SimpleSectionConfig<Calendar> = {
     </>
   ),
   assistant: () => "calendar",
+  emptyState: { copy: EMPTY.calendars, action: "Add a calendar" },
   empty: "No calendars yet. How the people of your story count their days.",
   newName: "New calendar",
 };
@@ -227,6 +231,7 @@ export function TravelSection() {
       </SheetCard>
     ),
     assistant: () => "location_travel",
+    emptyState: { copy: EMPTY.travel, action: "Add a route" },
     empty: "No routes yet. How long it takes to get from one place to another, and what can stop you.",
     newName: "",
   };

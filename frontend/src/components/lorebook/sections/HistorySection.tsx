@@ -8,6 +8,7 @@ import { Badge, CardRow, SheetCard } from "../EntitySheet";
 import RowsEditor from "../RowsEditor";
 import { historyRows, type HistoryEntry } from "../../../lib/lorebook/rows";
 import SimpleSection, { type SimpleSectionConfig } from "./SimpleSection";
+import { EMPTY } from "../../../lib/emptyStates";
 import styles from "../Lorebook.module.css";
 
 async function loadHistory(storyId: string): Promise<HistoryEntry[]> {
@@ -138,6 +139,7 @@ export default function HistorySection() {
       ) : null;
     },
     assistant: (e) => (e.kind === "event" ? "historical_event" : null),
+    emptyState: { copy: EMPTY.history, action: "Add an era", first: "secondary" },
     empty: "No history yet. Eras and the events in them: what happened before the story began.",
     newName: "New event",
     deleteDetail: (e) =>

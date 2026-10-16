@@ -9,6 +9,8 @@ import CodexGraphView from "../../codex/CodexGraphView";
 import CodexNodePanel from "../../codex/CodexNodePanel";
 import PageHeader from "../../layout/PageHeader";
 import styles from "./Connections.module.css";
+import EmptyState from "../../common/EmptyState";
+import { EMPTY } from "../../../lib/emptyStates";
 
 const BUILD_JOB = "codex-sync";
 
@@ -67,9 +69,7 @@ export default function ConnectionsSection({ storyId }: { storyId: string }) {
       <PageHeader
         title="Connections"
         summary={
-          graph && !empty
-            ? `${graph.nodes.length} things · ${graph.edges.length} connections, built from what you have written`
-            : "What the story's people, places and scenes are to each other"
+          graph && !empty ? `${graph.nodes.length} things · ${graph.edges.length} connections` : undefined
         }
         aside={
           !empty && graph ? (
@@ -87,6 +87,12 @@ export default function ConnectionsSection({ storyId }: { storyId: string }) {
         <div className={styles.graphMain}>
           {graph === null ? (
             <p className={styles.loading}>Loading the graph…</p>
+          ) : empty ? (
+            <EmptyState
+              copy={EMPTY.connections}
+              action={{ label: buildLabel, icon: Network, onClick: () => void build(), disabled: !!building }}
+              extra={<BuildStatus building={building} failed={failed} />}
+            />
           ) : (
             <>
               <CodexGraphView

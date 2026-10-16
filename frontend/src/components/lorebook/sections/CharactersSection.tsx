@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Eye, EyeOff, Pencil, SpellCheck, Trash2, User, Users } from "lucide-react";
+import { Eye, EyeOff, Pencil, Plus, SpellCheck, Trash2, User, Users } from "lucide-react";
 import { api } from "../../../api/client";
 import { CHARACTER_QUESTIONS, KINDS } from "../../../lib/lorebook/kinds";
 import { presenceLine, scenesWith } from "../../../lib/lorebook/presence";
@@ -38,6 +38,8 @@ import WhoAreTheyView from "../character/WhoAreTheyView";
 import styles from "../Lorebook.module.css";
 import TropesHere from "../../tropes/TropesHere";
 import Term from "../../common/Term";
+import EmptyState from "../../common/EmptyState";
+import { EMPTY } from "../../../lib/emptyStates";
 import { roleTerm } from "../../../lib/glossary/roles";
 
 const VIEWS = [
@@ -300,6 +302,11 @@ export default function CharactersSection() {
             )}
             {view === "relationships" && <RelationshipsTab characterId={character.id} storyId={storyId} />}
           </EntitySheet>
+        ) : characters.length === 0 ? (
+          <EmptyState
+            copy={EMPTY.characters}
+            action={{ label: "Add a character", icon: Plus, onClick: () => setCreating(true) }}
+          />
         ) : (
           <div className={styles.landing}>
             <div className={styles.landingHeader}>

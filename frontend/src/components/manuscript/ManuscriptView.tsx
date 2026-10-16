@@ -8,7 +8,7 @@
  * The Export panel is built in — click the Export button in the toolbar to reveal it.
  */
 import { useEffect, useState, useCallback } from "react";
-import { BookOpen, RefreshCw, Download, X, Feather, Orbit } from "lucide-react";
+import { BookOpen, RefreshCw, Download, X, Feather, Orbit, ListTree } from "lucide-react";
 import { api } from "../../api/client";
 import type { Manuscript, ManuscriptSection, StoryFormat } from "../../types";
 import ExportPanel from "./ExportPanel";
@@ -22,6 +22,8 @@ import { useAIStore } from "../../stores/aiStore";
 import { aiFeatureLabel } from "../../lib/ai/features.generated";
 import { READING_RULE, readingTime, runningTimeRule, useStoryFormat } from "../../lib/storyFormat";
 import styles from "./ManuscriptView.module.css";
+import EmptyState from "../common/EmptyState";
+import { EMPTY } from "../../lib/emptyStates";
 
 type StatusFilter = "all" | "revised_final" | "final";
 
@@ -256,10 +258,19 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
         <div className={styles.content}>
           {loading ? (
             <div className={styles.loading}>Loading manuscript…</div>
+          ) : isEmpty && statusFilter === "all" ? (
+            <EmptyState
+              copy={EMPTY.manuscript}
+              action={{
+                label: "Add scenes in the Outline",
+                icon: ListTree,
+                to: `/stories/${storyId}/outline`,
+              }}
+            />
           ) : isEmpty ? (
             <div className={styles.empty}>
               <BookOpen size={32} opacity={0.3} />
-              <p>No scenes to display.</p>
+              <p>No scenes with this status.</p>
               {statusFilter !== "all" && (
                 <button className={styles.clearFilter} onClick={() => setStatusFilter("all")}>
                   Show all scenes

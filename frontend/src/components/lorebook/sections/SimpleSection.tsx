@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useReloadOnUndo } from "../../../hooks/useUndoRedo";
 import { KINDS, type FieldSpec, type LoreKind } from "../../../lib/lorebook/kinds";
 import { loreKind, seriesKindsOf } from "../../../lib/series/kinds";
 import type { SubjectType } from "../../../api/assistantResults";
 import type { MenuItem } from "../../common/PopoverMenu";
+import EmptyState, { type EmptyStateCopy } from "../../common/EmptyState";
 import ConfirmDelete from "../ConfirmDelete";
 import EntitySheet from "../EntitySheet";
 import FieldList from "../FieldList";
@@ -50,6 +51,9 @@ export interface SimpleSectionConfig<T extends Named> {
   /** What the Assistant answers about on this entry's sheet (A6), or null for none. */
   assistant?: (e: T) => SubjectType | null;
   empty: string;
+  /** The empty page (doc 30 D3), with its button's words; `first: "secondary"` starts with
+   *  the second kind (History starts with an era). */
+  emptyState?: { copy: EmptyStateCopy; action: string; first?: "secondary" };
   newName: string;
   addLabel?: string;
   /** The list's heading, when it is not the kind's plural (History holds eras and events). */
@@ -181,11 +185,26 @@ export default function SimpleSection<T extends Named>({ config }: { config: Sim
             {config.extras?.(selected, save, items)}
           </EntitySheet>
         ) : (
-          loaded && (
+          loaded &&
+          (config.emptyState && items.length === 0 ? (
+            <EmptyState
+              copy={config.emptyState.copy}
+              action={{
+                label: config.emptyState.action,
+                icon: Plus,
+                disabled: Boolean(blocked),
+                onClick: () =>
+                  void (config.emptyState?.first === "secondary" && config.secondaryAdd
+                    ? config.secondaryAdd.create(storyId, items).then(finishAdd)
+                    : add()),
+              }}
+              extra={blocked ? <span className={styles.listEmpty}>{blocked}</span> : undefined}
+            />
+          ) : (
             <div className={styles.emptySheet}>
               <p>{blocked ?? config.empty}</p>
             </div>
-          )
+          ))
         )}
       </div>
       {deleting && (
