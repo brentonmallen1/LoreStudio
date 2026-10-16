@@ -727,9 +727,11 @@ export const api = {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
   },
-  analyzeImageForCharacter: (assetId: string): Promise<Response> => {
+  /** The reading is kept on the character when one is named (A7), on the image otherwise. */
+  analyzeImageForCharacter: (assetId: string, characterId?: string): Promise<Response> => {
     const token = getToken();
-    return fetch(`${BASE}/media/${assetId}/analyze/character`, {
+    const who = characterId ? `?character_id=${encodeURIComponent(characterId)}` : "";
+    return fetch(`${BASE}/media/${assetId}/analyze/character${who}`, {
       method: "POST",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });

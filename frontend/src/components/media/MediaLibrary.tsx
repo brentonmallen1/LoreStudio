@@ -1,5 +1,8 @@
 import { streamAnswer } from "../../lib/ai/eventStream";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { assistantResultsApi, type AssistantResult } from "../../api/assistantResults";
+import { useAIAvailable } from "../../lib/mode";
+import KeptAnswerBar from "../ai/kept/KeptAnswerBar";
 import { Upload, Trash2, Edit2, Check, X, ImageIcon, FileText, Orbit, Copy, ZoomIn } from "lucide-react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client";
@@ -24,11 +27,16 @@ function formatBytes(bytes: number): string {
 
 function AssetCard({
   asset,
+  kept,
+  onKeptChange,
   onDelete,
   onUpdate,
   onLightbox,
 }: {
   asset: StoryAsset;
+  /** The Assistant's last reading of this image, kept on it (A7). */
+  kept: AssistantResult | null;
+  onKeptChange: () => Promise<void>;
   onDelete: (id: string) => void;
   onUpdate: (id: string, data: { alt_text?: string; description?: string }) => void;
   onLightbox?: () => void;
@@ -38,7 +46,7 @@ function AssetCard({
   const [description, setDescription] = useState(asset.description);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState("");
-  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [hideAnalysis, setHideAnalysis] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const isImage = asset.mime_type.startsWith("image/");
@@ -52,16 +60,25 @@ function AssetCard({
   async function runAnalysis() {
     setAnalyzing(true);
     setAnalysis("");
-    setShowAnalysis(true);
+    setHideAnalysis(false);
     try {
       const res = await api.analyzeImage(asset.id);
       if (!res.body) return;
       const { error } = await streamAnswer(res, setAnalysis);
       if (error) setAnalysis(error);
+      else {
+        // The server kept the reading on the image: show the kept one from now on.
+        await onKeptChange();
+        setAnalysis("");
+      }
     } finally {
       setAnalyzing(false);
     }
   }
+
+  const keptText = typeof kept?.data.text === "string" ? kept.data.text : "";
+  const shownAnalysis = analyzing || analysis ? analysis : keptText;
+  const showAnalysis = !hideAnalysis && (analyzing || !!shownAnalysis);
 
   return (
     <div className={styles.card}>
@@ -205,15 +222,25 @@ function AssetCard({
               <span>AI analysis</span>
               <button
                 aria-label="Hide the analysis"
-                onClick={() => setShowAnalysis(false)}
+                onClick={() => setHideAnalysis(true)}
                 className={styles.cancelBtn}
               >
                 <X size={11} />
               </button>
             </div>
             <p className={styles.analysisText}>
-              {analyzing && !analysis ? "Analyzing…" : analysis || "No response."}
+              {analyzing && !analysis ? "Analyzing…" : shownAnalysis || "No response."}
             </p>
+            {kept && !analysis && (
+              <KeptAnswerBar
+                answer={kept}
+                heading={`Mood and atmosphere: ${asset.original_filename}`}
+                context={{ storyId: asset.story_id }}
+                onAskAgain={() => void runAnalysis()}
+                asking={analyzing}
+                onClear={() => void assistantResultsApi.clear(asset.story_id, kept.id).then(onKeptChange)}
+              />
+            )}
           </div>
         )}
       </div>
@@ -222,6 +249,20 @@ function AssetCard({
 }
 
 export default function MediaLibrary({ storyId, assets, onAssetsChange }: Props) {
+  const aiAvailable = useAIAvailable();
+  // Every image's kept reading (A7), read in one call; a card shows its own.
+  const [readings, setReadings] = useState<AssistantResult[]>([]);
+  const loadReadings = useCallback(
+    () =>
+      assistantResultsApi
+        .list(storyId, "image")
+        .then((rows) => setReadings(rows.filter((r) => r.feature === "image-analysis")))
+        .catch(() => setReadings([])),
+    [storyId],
+  );
+  useEffect(() => {
+    if (aiAvailable) void loadReadings();
+  }, [aiAvailable, loadReadings]);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [filter, setFilter] = useState<"all" | "images" | "documents">("all");
@@ -328,6 +369,8 @@ export default function MediaLibrary({ storyId, assets, onAssetsChange }: Props)
             {filtered.map((asset) => (
               <AssetCard
                 key={asset.id}
+                kept={(aiAvailable && readings.find((r) => r.subject_id === asset.id)) || null}
+                onKeptChange={loadReadings}
                 asset={asset}
                 onDelete={handleDelete}
                 onUpdate={handleUpdate}

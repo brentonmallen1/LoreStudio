@@ -11,6 +11,8 @@ import RelationshipSuggestionsModal from "./RelationshipSuggestionsModal";
 import ValidationWarnings from "./ValidationWarnings";
 import styles from "./RelationshipsTab.module.css";
 import AIOnly from "../../ai/AIOnly";
+import KeptAnswerBar from "../../ai/kept/KeptAnswerBar";
+import { useKeptAnswer } from "../../ai/kept/useKeptAnswer";
 
 type ViewMode = "focus" | "matrix" | "radar";
 
@@ -34,8 +36,11 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
   const [createTarget, setCreateTarget] = useState<CreateTarget | null>(null);
   const [showHidden, setShowHidden] = useState(false);
   const [discovering, setDiscovering] = useState(false);
-  const [suggestions, setSuggestions] = useState<RelationshipSuggestion[] | null>(null);
+  const [reviewing, setReviewing] = useState(false);
   const [discoverError, setDiscoverError] = useState("");
+  // The Assistant's ideas are kept on the character (A7): there to review again, until cleared.
+  const kept = useKeptAnswer({ storyId, type: "character", id: characterId }, "relationship-suggest");
+  const keptIdeas = (kept.answer?.data.suggestions as RelationshipSuggestion[] | undefined) ?? [];
 
   const load = useCallback(() => {
     api
@@ -95,7 +100,8 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
     try {
       const result = await api.suggestRelationships(storyId, characterId);
       if (result.success && result.data?.suggestions?.length) {
-        setSuggestions(result.data.suggestions);
+        await kept.reload();
+        setReviewing(true);
       } else if (result.success && !result.data?.suggestions?.length) {
         setDiscoverError("AI returned no suggestions. Try again or add more character detail.");
       } else {
@@ -152,15 +158,22 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
 
         <div className={styles.actions}>
           <AIOnly>
-            <button
-              className={styles.discoverBtn}
-              onClick={handleDiscoverProfile}
-              disabled={discovering}
-              title="Use AI to suggest relationships based on character profiles"
-            >
-              <Orbit size={13} />
-              {discovering ? "Discovering…" : "Discover relationships"}
-            </button>
+            {kept.answer && keptIdeas.length > 0 ? (
+              <button className={styles.discoverBtn} onClick={() => setReviewing(true)}>
+                <Orbit size={13} />
+                Review {keptIdeas.length} {keptIdeas.length === 1 ? "idea" : "ideas"}
+              </button>
+            ) : (
+              <button
+                className={styles.discoverBtn}
+                onClick={handleDiscoverProfile}
+                disabled={discovering}
+                title="Use AI to suggest relationships based on character profiles"
+              >
+                <Orbit size={13} />
+                {discovering ? "Discovering…" : "Discover relationships"}
+              </button>
+            )}
           </AIOnly>
           {discoverError && <span className={styles.discoverError}>{discoverError}</span>}
           <button className={styles.addBtn} onClick={() => openCreate()}>
@@ -169,6 +182,17 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
           </button>
         </div>
       </div>
+
+      {kept.answer && (
+        <KeptAnswerBar
+          answer={kept.answer}
+          heading="Relationship ideas"
+          context={{ storyId, characterId }}
+          onAskAgain={() => void handleDiscoverProfile()}
+          asking={discovering}
+          onClear={() => void kept.clear()}
+        />
+      )}
 
       {/* ── Validation warnings ── */}
       <ValidationWarnings
@@ -255,13 +279,13 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
       )}
 
       {/* ── AI suggestions review modal ── */}
-      {suggestions && (
+      {reviewing && keptIdeas.length > 0 && (
         <RelationshipSuggestionsModal
-          suggestions={suggestions}
+          suggestions={keptIdeas}
           characterId={characterId}
           characters={characters}
           existingRelationships={relationships}
-          onClose={() => setSuggestions(null)}
+          onClose={() => setReviewing(false)}
           onSaved={load}
         />
       )}

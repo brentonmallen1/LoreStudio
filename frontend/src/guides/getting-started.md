@@ -38,7 +38,7 @@ Already have a draft? **Import** on your stories page brings it in. See [Import 
 
 <!-- studio -->
 
-In Studio mode the rail also has the **Assistant**. On a sheet in the Lorebook or Promises, **Assistant** in the header lists what it can do for that character, place or thread, each with a line on what it does. Its answers stay in a band under the header, one per question, until you clear them or ask again: **Talk it over** opens one in the Assistant, and **Fold away** tucks the band out of sight.
+In Studio mode the rail also has the **Assistant**. On a sheet in the Lorebook or Promises, **Assistant** in the header lists what it can do for that character, place or thread, each with a line on what it does. Its answers stay in a band under the header, one per question, until you clear them or ask again: **Talk it over** opens one in the Assistant, and **Fold away** tucks the band out of sight. Everywhere else the Assistant answers once (a summary on Story identity, a recap on the Overview, guidance on a Plan step, a reading of an image), the answer stays where you asked for it in the same way, even after you quit and come back, with **Talk it over**, **Ask again** and **Clear** beside it.
 <!-- /studio -->
 
 A few keys worth learning early:

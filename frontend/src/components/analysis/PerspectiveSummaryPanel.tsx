@@ -1,16 +1,28 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Layers, Copy, Check, Orbit, Square } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
-import { useLLMTransparency } from "../../hooks/useLLMTransparency";
 import { useLLMStream } from "../../hooks/useLLMStream";
 import { useLLMContextSources } from "../../hooks/useLLMContextSources";
-import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources } from "../llm";
+import { announceKept } from "../../lib/ai/keptEvents";
+import { LLMContextSources } from "../llm";
+import KeptAnswerBar from "../ai/kept/KeptAnswerBar";
+import { useKeptAnswer } from "../ai/kept/useKeptAnswer";
 import styles from "./PerspectiveSummaryPanel.module.css";
 import { useAIAvailable } from "../../lib/mode";
+import type { StructureNode } from "../../types";
 
 type PerspectiveMode = "structure" | "character";
 
+function flattenNodes(nodes: StructureNode[]): StructureNode[] {
+  return nodes.flatMap((n) => [n, ...flattenNodes(n.children)]);
+}
+
+/**
+ * A section's summary, or where a character is in their arc, from Story identity. The answer
+ * is kept on the section or the character (A7): choosing it again shows what was said, until
+ * it is cleared or asked again, through a restart.
+ */
 export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }) {
   // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
   // preference. This whole component is one, so it renders nothing rather than something dead.
@@ -18,21 +30,19 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
   const { structure, characters } = useStoryStore();
   const [mode, setMode] = useState<PerspectiveMode>("structure");
   const [selectedId, setSelectedId] = useState("");
-  const [result, setResult] = useState("");
+  const [failed, setFailed] = useState(false);
   const [copied, setCopied] = useState(false);
-  const lastResult = useRef("");
-  const lastMode = useRef<PerspectiveMode>("structure");
-  const lastSelectedId = useRef("");
-  const transparency = useLLMTransparency();
 
-  // Flatten structure for selection
-  function flattenNodes(nodes: import("../../types").StructureNode[]): import("../../types").StructureNode[] {
-    return nodes.flatMap((n) => [n, ...flattenNodes(n.children)]);
-  }
   const flatNodes = flattenNodes(structure);
-
-  const requestId =
-    mode === "structure" ? `perspective:structure:${selectedId}` : `perspective:character:${selectedId}`;
+  const subject = selectedId
+    ? { storyId, type: mode === "structure" ? ("node" as const) : ("character" as const), id: selectedId }
+    : null;
+  const kept = useKeptAnswer(subject, mode === "structure" ? "structure-summary" : "character-arc");
+  const keptText = typeof kept.answer?.data.text === "string" ? kept.answer.data.text : "";
+  const subjectName =
+    mode === "structure"
+      ? flatNodes.find((n) => n.id === selectedId)?.title
+      : characters.find((c) => c.id === selectedId)?.name;
 
   const { sources: contextSources } = useLLMContextSources(
     selectedId
@@ -48,155 +58,148 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
     text: streamingText,
     isStreaming: generating,
   } = useLLMStream({
-    requestId,
+    requestId:
+      mode === "structure" ? `perspective:structure:${selectedId}` : `perspective:character:${selectedId}`,
     label: mode === "structure" ? "Summarizing section" : "Summarizing character arc",
     tabId: "story-identity",
-    onComplete: (full) => {
-      setResult(full);
-      lastResult.current = full;
-      transparency.recordInteraction();
+    onComplete: () => {
+      void kept.reload();
+      if (subject) announceKept(subject);
     },
-    onError: () => setResult("⚠ Error generating summary."),
+    onError: () => setFailed(true),
   });
 
-  const displayText = generating ? streamingText : result;
+  const displayText = generating ? streamingText : keptText;
 
   function generate() {
     if (!selectedId) return;
-    lastMode.current = mode;
-    lastSelectedId.current = selectedId;
-    setResult("");
+    setFailed(false);
     if (mode === "structure") {
-      stream((signal) => api.summarizeStructureSection(storyId, selectedId, signal));
+      void stream((signal) => api.summarizeStructureSection(storyId, selectedId, signal));
     } else {
-      stream((signal) => api.summarizeCharacterArc(storyId, selectedId, signal));
+      void stream((signal) => api.summarizeCharacterArc(storyId, selectedId, signal));
     }
   }
 
   async function copy() {
-    await navigator.clipboard.writeText(result);
+    await navigator.clipboard.writeText(keptText);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
 
-  // When mode changes, reset selection
   function changeMode(m: PerspectiveMode) {
     setMode(m);
     setSelectedId("");
-    setResult("");
+    setFailed(false);
   }
 
   if (!aiAvailable) return null;
 
   return (
-    <>
-      <LLMTransparencyModal
-        isOpen={transparency.isOpen}
-        onClose={transparency.close}
-        data={transparency.data}
-      />
-      <div className={styles.panel}>
-        <div className={styles.header}>
-          <Layers size={14} className={styles.icon} />
-          <h3 className={styles.title}>Perspective Summary</h3>
-          <LLMTransparencyTrigger
-            disabled={!transparency.hasData}
-            onClick={() =>
-              transparency.open(
-                lastMode.current === "structure"
-                  ? { context_type: "structure-summary", story_id: storyId, node_id: lastSelectedId.current }
-                  : {
-                      context_type: "character-arc",
-                      story_id: storyId,
-                      character_id: lastSelectedId.current,
-                    },
-                lastResult.current,
-                lastMode.current === "structure"
-                  ? { feature: "structure-summary", story_id: storyId, node_id: lastSelectedId.current }
-                  : { feature: "character-arc", story_id: storyId, character_id: lastSelectedId.current },
-              )
-            }
-          />
+    <div className={styles.panel}>
+      <div className={styles.header}>
+        <Layers size={14} className={styles.icon} />
+        <h3 className={styles.title}>Perspective Summary</h3>
+      </div>
+
+      <div className={styles.controls}>
+        <div className={styles.modeToggle}>
+          <button
+            className={`${styles.modeBtn} ${mode === "structure" ? styles.modeActive : ""}`}
+            onClick={() => changeMode("structure")}
+          >
+            Section
+          </button>
+          <button
+            className={`${styles.modeBtn} ${mode === "character" ? styles.modeActive : ""}`}
+            onClick={() => changeMode("character")}
+          >
+            Character
+          </button>
         </div>
 
-        <div className={styles.controls}>
-          <div className={styles.modeToggle}>
-            <button
-              className={`${styles.modeBtn} ${mode === "structure" ? styles.modeActive : ""}`}
-              onClick={() => changeMode("structure")}
-            >
-              Section
-            </button>
-            <button
-              className={`${styles.modeBtn} ${mode === "character" ? styles.modeActive : ""}`}
-              onClick={() => changeMode("character")}
-            >
-              Character
-            </button>
-          </div>
+        <select
+          value={selectedId}
+          onChange={(e) => {
+            setSelectedId(e.target.value);
+            setFailed(false);
+          }}
+          className={styles.select}
+          aria-label={mode === "structure" ? "Section" : "Character"}
+        >
+          <option value="">{mode === "structure" ? "Select section…" : "Select character…"}</option>
+          {mode === "structure"
+            ? flatNodes.map((n) => (
+                <option key={n.id} value={n.id}>
+                  {"  ".repeat(n.level)}
+                  {n.title}
+                </option>
+              ))
+            : characters.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+        </select>
 
-          <select
-            value={selectedId}
-            onChange={(e) => setSelectedId(e.target.value)}
-            className={styles.select}
-          >
-            <option value="">{mode === "structure" ? "Select section…" : "Select character…"}</option>
-            {mode === "structure"
-              ? flatNodes.map((n) => (
-                  <option key={n.id} value={n.id}>
-                    {"  ".repeat(n.level)}
-                    {n.title}
-                  </option>
-                ))
-              : characters.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-          </select>
-
-          {generating ? (
-            <button onClick={cancel} className={styles.generateBtn} style={{ color: "var(--color-danger)" }}>
-              <Square size={12} />
-              Cancel
-            </button>
-          ) : (
+        {generating ? (
+          <button onClick={cancel} className={styles.generateBtn} style={{ color: "var(--color-danger)" }}>
+            <Square size={12} />
+            Cancel
+          </button>
+        ) : (
+          !kept.answer && (
             <button
               onClick={generate}
               disabled={!selectedId}
               className={styles.generateBtn}
-              title="Use AI to summarize a story section or character arc from a specific narrative perspective"
+              title="Summarize a section, or say where a character is in their arc"
             >
               <Orbit size={12} />
               Summarize
             </button>
-          )}
-        </div>
-
-        <LLMContextSources sources={contextSources} />
-
-        {displayText && (
-          <div className={styles.result}>
-            <div className={styles.resultHeader}>
-              <span className={styles.resultLabel}>
-                {mode === "structure" ? "Section summary" : "Character arc status"}
-              </span>
-              <button onClick={copy} className={styles.copyBtn}>
-                {copied ? <Check size={12} /> : <Copy size={12} />}
-              </button>
-            </div>
-            <div className={styles.resultText}>{displayText}</div>
-          </div>
-        )}
-
-        {!displayText && !generating && (
-          <p className={styles.hint}>
-            {mode === "structure"
-              ? "Select a section to get a summary of its content."
-              : "Select a character to see where they are in their arc."}
-          </p>
+          )
         )}
       </div>
-    </>
+
+      <LLMContextSources sources={contextSources} />
+
+      {kept.answer && subject && (
+        <KeptAnswerBar
+          answer={kept.answer}
+          heading={`${mode === "structure" ? "Section summary" : "Arc so far"}: ${subjectName ?? ""}`}
+          context={{ storyId, characterId: mode === "character" ? selectedId : undefined }}
+          onAskAgain={generate}
+          asking={generating}
+          onClear={() => void kept.clear()}
+        />
+      )}
+
+      {displayText && (
+        <div className={styles.result}>
+          <div className={styles.resultHeader}>
+            <span className={styles.resultLabel}>
+              {mode === "structure" ? "Section summary" : "Where they are in their arc"}
+            </span>
+            {!generating && (
+              <button onClick={() => void copy()} className={styles.copyBtn} aria-label="Copy to clipboard">
+                {copied ? <Check size={12} /> : <Copy size={12} />}
+              </button>
+            )}
+          </div>
+          <div className={styles.resultText}>{displayText}</div>
+        </div>
+      )}
+
+      {failed && !generating && <p className={styles.hint}>The Assistant could not answer just now.</p>}
+
+      {!displayText && !generating && !failed && (
+        <p className={styles.hint}>
+          {mode === "structure"
+            ? "Select a section to get a summary of its content."
+            : "Select a character to see where they are in their arc."}
+        </p>
+      )}
+    </div>
   );
 }

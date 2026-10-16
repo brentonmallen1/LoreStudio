@@ -576,6 +576,10 @@
   cursor: pointer;
 }
 
+.recapBar {
+  margin-top: 0.75rem;
+}
+
 .recapText {
   margin: 0;
   font-size: 0.88rem;

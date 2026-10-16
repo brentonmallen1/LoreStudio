@@ -5,6 +5,8 @@ import { useStoryStore } from "../../stores/storyStore";
 import type { ProposedDialogueTag, StructureNode } from "../../types";
 import { saveOpenScene } from "../../lib/panel/panelSync";
 import { offerTip } from "../../stores/tipStore";
+import { useAIAvailable } from "../../lib/mode";
+import { keptSpeakers, withKeptSpeakers } from "../../lib/dialogue/keptSpeakers";
 import styles from "./AutoTagDialoguePanel.module.css";
 
 interface Props {
@@ -115,7 +117,9 @@ export default function AutoTagDialoguePanel({
   onClose,
   onApplied,
 }: Props) {
-  const { characters, setCharacters } = useStoryStore();
+  const { characters, setCharacters, activeStory } = useStoryStore();
+  const aiAvailable = useAIAvailable();
+  const story = storyId ?? activeStory?.id;
   const [proposals, setProposals] = useState<ProposedDialogueTag[]>([]);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
@@ -134,7 +138,10 @@ export default function AutoTagDialoguePanel({
     setLoading(true);
     api
       .suggestDialogueTags(sceneId)
-      .then((data) => {
+      .then(async (found) => {
+        // The Assistant's last word on this scene, kept (A7), over the rules' guesses.
+        const kept = aiAvailable && story ? (await keptSpeakers(story)).get(sceneId) : undefined;
+        const data = withKeptSpeakers(found, kept);
         setProposals(data);
         // Pre-select proposals that have an inferred speaker
         const preSelected = new Set(data.filter((p) => p.inferred_speaker).map((p) => p.id));
@@ -142,7 +149,7 @@ export default function AutoTagDialoguePanel({
       })
       .catch(() => setProposals([]))
       .finally(() => setLoading(false));
-  }, [sceneId]);
+  }, [sceneId, aiAvailable, story]);
 
   function toggleAll() {
     if (selected.size === proposals.length) {
@@ -255,15 +262,22 @@ export default function AutoTagDialoguePanel({
                   {selected.size === proposals.length ? <CheckSquare size={13} /> : <Square size={13} />}
                   {selected.size === proposals.length ? "Deselect all" : "Select all"}
                 </button>
-                <button
-                  className={styles.aiRefineBtn}
-                  onClick={handleAiRefine}
-                  disabled={aiRefining || applying}
-                  title="Use AI to re-analyze speakers for this scene"
-                >
-                  {aiRefining ? <Loader size={11} className={styles.spinner} /> : <BrainCircuit size={11} />}
-                  {aiRefining ? "Refining…" : "AI refine"}
-                </button>
+                {/* Writer mode shows no AI at all. */}
+                {aiAvailable && (
+                  <button
+                    className={styles.aiRefineBtn}
+                    onClick={handleAiRefine}
+                    disabled={aiRefining || applying}
+                    title="Use AI to re-analyze speakers for this scene"
+                  >
+                    {aiRefining ? (
+                      <Loader size={11} className={styles.spinner} />
+                    ) : (
+                      <BrainCircuit size={11} />
+                    )}
+                    {aiRefining ? "Refining…" : "AI refine"}
+                  </button>
+                )}
                 <span className={styles.count}>
                   {proposals.length} proposal{proposals.length !== 1 ? "s" : ""}
                 </span>

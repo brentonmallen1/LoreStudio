@@ -243,7 +243,21 @@ const TRAVEL_ANALYSIS: SectionConfig[] = [
   },
 ];
 
+/** Discovery questions (A7): kept on the character, place, scene or story they were about. */
+const DISCOVERY_QUESTIONS: SectionConfig[] = [
+  {
+    key: "questions",
+    label: "Questions to discover",
+    icon: HelpCircle,
+    color: "var(--color-ai)",
+    type: "sublist",
+    labelField: "question",
+    descField: "why_this_matters",
+  },
+];
+
 export const RESULT_SCHEMAS: Record<string, SectionConfig[]> = {
+  "discovery-questions": DISCOVERY_QUESTIONS,
   "what-exists": WHAT_EXISTS,
   "element-suggest:location": LOCATION_ELEMENTS,
   "element-suggest:culture": CULTURE_ELEMENTS,

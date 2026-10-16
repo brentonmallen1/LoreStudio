@@ -54,11 +54,11 @@ export const CHARACTERS_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "character-arc": {
     id: "character-arc",
-    label: "Character Arc Analysis",
+    label: "Arc So Far",
     type: "ai",
-    shortDescription: "Where is this character in their arc right now?",
+    shortDescription: "A few paragraphs on where this character stands in their arc right now",
     fullDescription:
-      "Reviews the character's profile, arc milestones, and scenes where they appear to assess where they currently stand in their arc and what still needs to happen.",
+      "Asked from Story identity's Perspective summary. Reads the character's profile, arc milestones and the scenes where they appear, and says in prose where they stand in their arc and what is still to happen. For the structured review of the arc (trajectory, drift, health) use Arc Analysis on the character's sheet. The answer is kept on the character until you clear it or ask again.",
     contextSources: [
       "Character profile & arc notes",
       "Arc milestones (done/pending)",

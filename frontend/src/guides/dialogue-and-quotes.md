@@ -22,7 +22,7 @@ Choose **Dialogue** on the side panel's rail to see the scene's lines as a conve
 
 <!-- studio -->
 
-In Studio mode, **Suggest speakers** asks the Assistant who says each untagged line.
+In Studio mode, **Suggest speakers** asks the Assistant who says each untagged line. Its suggestions are kept with the scene, so they are still there when you come back, until you clear them or ask again.
 <!-- /studio -->
 
 To see it in the prose, turn on the scene's ⋯ menu › **Type and width** › **Highlight dialogue**. Lines with no speaker, and tags that name nobody, show in amber; point at a tag to fix it.

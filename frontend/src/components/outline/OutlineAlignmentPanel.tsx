@@ -1,4 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
+import KeptAnswerBar from "../ai/kept/KeptAnswerBar";
+import { useKeptAnswer } from "../ai/kept/useKeptAnswer";
 import { X, Orbit, Loader2, AlertTriangle, CheckCircle, XCircle, MinusCircle } from "lucide-react";
 import { api } from "../../api/client";
 import type { StructuredResult } from "../../types";
@@ -64,29 +67,48 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
+/**
+ * How the manuscript lines up with an outline. The answer is kept on the outline (A7): the
+ * panel shows it again when it opens, through a restart, and compares again only on Ask
+ * again, or the first time, when nothing is kept.
+ */
 export default function OutlineAlignmentPanel({ outlineId, onClose }: Props) {
   // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
   // preference. This whole component is one, so it renders nothing rather than something dead.
   const aiAvailable = useAIAvailable();
-  const [loading, setLoading] = useState(true);
+  const { storyId = "" } = useParams<{ storyId: string }>();
+  const kept = useKeptAnswer(
+    storyId ? { storyId, type: "outline", id: outlineId } : null,
+    "outline-alignment",
+  );
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<AlignmentResult | null>(null);
+  const started = useRef(false);
+  const result = kept.answer ? (kept.answer.data as unknown as AlignmentResult) : null;
 
-  useEffect(() => {
+  async function analyze() {
     setLoading(true);
     setError(null);
-    api
-      .analyzeOutlineAlignment(outlineId)
-      .then((res: StructuredResult) => {
-        if (!res.success || !res.data) {
-          setError(res.raw_text ?? "Analysis failed.");
-          return;
-        }
-        setResult(res.data as unknown as AlignmentResult);
-      })
-      .catch((e: Error) => setError(e.message ?? "Analysis failed."))
-      .finally(() => setLoading(false));
-  }, [outlineId]);
+    try {
+      const res: StructuredResult = await api.analyzeOutlineAlignment(outlineId);
+      if (!res.success || !res.data) {
+        setError(res.raw_text ?? "Analysis failed.");
+        return;
+      }
+      await kept.reload();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Analysis failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Opening the panel compares only when nothing is kept yet.
+  useEffect(() => {
+    if (!kept.loaded || kept.answer || started.current) return;
+    started.current = true;
+    queueMicrotask(() => void analyze());
+  });
 
   if (!aiAvailable) return null;
 
@@ -103,7 +125,7 @@ export default function OutlineAlignmentPanel({ outlineId, onClose }: Props) {
       </div>
 
       <div className={styles.body}>
-        {loading && (
+        {(loading || !kept.loaded) && (
           <div className={styles.loading}>
             <Loader2 size={16} className={styles.spinner} />
             <span>Analyzing alignment…</span>
@@ -117,8 +139,16 @@ export default function OutlineAlignmentPanel({ outlineId, onClose }: Props) {
           </div>
         )}
 
-        {!loading && result && (
+        {!loading && result && kept.answer && (
           <div className={styles.results}>
+            <KeptAnswerBar
+              answer={kept.answer}
+              heading="Outline alignment"
+              context={{ storyId }}
+              onAskAgain={() => void analyze()}
+              asking={loading}
+              onClear={() => void kept.clear()}
+            />
             {/* Coverage score */}
             <div className={styles.scoreSection}>
               <span className={styles.scoreName}>Coverage</span>
@@ -126,14 +156,14 @@ export default function OutlineAlignmentPanel({ outlineId, onClose }: Props) {
             </div>
 
             {/* Covered beats */}
-            {result.covered_beats.length > 0 && (
+            {(result.covered_beats ?? []).length > 0 && (
               <div className={styles.section}>
                 <h4 className={styles.sectionTitle}>
                   <CheckCircle size={12} className={styles.iconCovered} />
-                  Covered ({result.covered_beats.length})
+                  Covered ({(result.covered_beats ?? []).length})
                 </h4>
                 <div className={styles.beatList}>
-                  {result.covered_beats.map((item, i) => (
+                  {(result.covered_beats ?? []).map((item, i) => (
                     <BeatRow key={i} item={item} />
                   ))}
                 </div>
@@ -141,14 +171,14 @@ export default function OutlineAlignmentPanel({ outlineId, onClose }: Props) {
             )}
 
             {/* Missing beats */}
-            {result.missing_beats.length > 0 && (
+            {(result.missing_beats ?? []).length > 0 && (
               <div className={styles.section}>
                 <h4 className={styles.sectionTitle}>
                   <XCircle size={12} className={styles.iconMissing} />
-                  Missing ({result.missing_beats.length})
+                  Missing ({(result.missing_beats ?? []).length})
                 </h4>
                 <div className={styles.beatList}>
-                  {result.missing_beats.map((item, i) => (
+                  {(result.missing_beats ?? []).map((item, i) => (
                     <BeatRow key={i} item={item} />
                   ))}
                 </div>
@@ -156,11 +186,11 @@ export default function OutlineAlignmentPanel({ outlineId, onClose }: Props) {
             )}
 
             {/* Unplanned content */}
-            {result.unplanned_content.length > 0 && (
+            {(result.unplanned_content ?? []).length > 0 && (
               <div className={styles.section}>
                 <h4 className={styles.sectionTitle}>Unplanned content</h4>
                 <ul className={styles.simpleList}>
-                  {result.unplanned_content.map((item, i) => (
+                  {(result.unplanned_content ?? []).map((item, i) => (
                     <li key={i}>{item}</li>
                   ))}
                 </ul>
@@ -168,11 +198,11 @@ export default function OutlineAlignmentPanel({ outlineId, onClose }: Props) {
             )}
 
             {/* Divergences */}
-            {result.divergences.length > 0 && (
+            {(result.divergences ?? []).length > 0 && (
               <div className={styles.section}>
                 <h4 className={styles.sectionTitle}>Divergences</h4>
                 <ul className={styles.simpleList}>
-                  {result.divergences.map((item, i) => (
+                  {(result.divergences ?? []).map((item, i) => (
                     <li key={i}>{item}</li>
                   ))}
                 </ul>
@@ -180,11 +210,11 @@ export default function OutlineAlignmentPanel({ outlineId, onClose }: Props) {
             )}
 
             {/* Recommendations */}
-            {result.recommendations.length > 0 && (
+            {(result.recommendations ?? []).length > 0 && (
               <div className={styles.section}>
                 <h4 className={styles.sectionTitle}>Recommendations</h4>
                 <ul className={styles.simpleList}>
-                  {result.recommendations.map((item, i) => (
+                  {(result.recommendations ?? []).map((item, i) => (
                     <li key={i}>{item}</li>
                   ))}
                 </ul>

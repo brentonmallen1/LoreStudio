@@ -5,6 +5,7 @@ import { api } from "../../api/client";
 import type { StoryAsset, AssetAttachment } from "../../types";
 import styles from "./PortraitEditor.module.css";
 import AIOnly from "../ai/AIOnly";
+import { readPortrait } from "../../lib/characters/portraitReading";
 
 export interface CharacterImageDescription {
   /** Short phrases naming what is actually visible in the image. */
@@ -23,8 +24,8 @@ interface Props {
   objectId: string;
   placeholder: React.ReactNode;
   size?: number;
-  /** Called with parsed AI description when "Generate from portrait" completes */
-  onAnalyzeForCharacter?: (desc: CharacterImageDescription) => void;
+  /** Called when "Generate description" completes, with the reading when it parses. */
+  onAnalyzeForCharacter?: (desc: CharacterImageDescription | null) => void;
 }
 
 export default function PortraitEditor({
@@ -113,14 +114,15 @@ export default function PortraitEditor({
     setAnalyzing(true);
     setOpen(false);
     try {
-      const res = await api.analyzeImageForCharacter(portraitAttachment.asset_id);
+      const res = await api.analyzeImageForCharacter(
+        portraitAttachment.asset_id,
+        objectType === "character" ? objectId : undefined,
+      );
       if (!res.body) return;
       const { text: raw, error } = await streamAnswer(res);
       if (error) throw new Error(error);
-      // Strip any markdown fencing the model may have added
-      const json = raw.replace(/```(?:json)?\n?/g, "").trim();
-      const parsed = JSON.parse(json) as CharacterImageDescription;
-      onAnalyzeForCharacter(parsed);
+      // The server keeps the reading on the character (A7); the sheet shows it from there.
+      onAnalyzeForCharacter(readPortrait(raw));
     } catch (e) {
       console.error("Character analysis failed", e);
     } finally {

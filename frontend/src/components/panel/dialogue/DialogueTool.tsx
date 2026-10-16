@@ -10,6 +10,8 @@ import { layInRewrite, saveOpenScene } from "../../../lib/panel/panelSync";
 import { useStoryStore } from "../../../stores/storyStore";
 import { toast } from "../../../stores/toastStore";
 import AIFeatureInfoTrigger from "../../ai/AIFeatureInfoTrigger";
+import KeptAnswerBar from "../../ai/kept/KeptAnswerBar";
+import { useKeptAnswer } from "../../ai/kept/useKeptAnswer";
 import AttributionChecks from "./AttributionChecks";
 import AutoTagDialoguePanel from "../../story/AutoTagDialoguePanel";
 import DialogueLine from "./DialogueLine";
@@ -43,7 +45,9 @@ function SceneDialogue({ node, storyId }: { node: StructureNode; storyId: string
   const script = useStoryFormat() !== "prose";
   const { activeStory, characters, sceneCast } = useStoryStore();
   const [blocks, setBlocks] = useState<DialogueBlock[] | null>(null);
-  const [suggestions, setSuggestions] = useState<ProposedDialogueTag[]>([]);
+  // The Assistant's suggestions are kept on the scene (A7): opening the scene again shows them.
+  const kept = useKeptAnswer({ storyId, type: "node", id: node.id }, "dialogue-attribution");
+  const suggestions = (kept.answer?.data.suggestions as ProposedDialogueTag[] | undefined) ?? [];
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [suggesting, setSuggesting] = useState(false);
   const [tagging, setTagging] = useState(false);
@@ -104,9 +108,10 @@ function SceneDialogue({ node, storyId }: { node: StructureNode; storyId: string
     setSuggesting(true);
     setDismissed(new Set());
     try {
-      setSuggestions(await api.aiSuggestDialogueSpeakers(node.id, ctrl.signal));
+      await api.aiSuggestDialogueSpeakers(node.id, ctrl.signal);
+      await kept.reload();
     } catch {
-      setSuggestions([]);
+      if (!ctrl.signal.aborted) toast.error("The Assistant could not suggest speakers just now.");
     } finally {
       setSuggesting(false);
       abortRef.current = null;
@@ -164,6 +169,16 @@ function SceneDialogue({ node, storyId }: { node: StructureNode; storyId: string
           </button>
         )}
       </div>
+      {studio && !script && kept.answer && (
+        <KeptAnswerBar
+          answer={kept.answer}
+          heading={`Who says each line: ${node.title || "this scene"}`}
+          context={{ storyId, nodeId: node.id }}
+          onAskAgain={() => void suggest()}
+          asking={suggesting}
+          onClear={() => void kept.clear()}
+        />
+      )}
       {!script && <AttributionChecks storyId={storyId} nodeId={node.id} />}
       {blocks === null ? (
         <p className={styles.empty}>Reading the dialogue…</p>

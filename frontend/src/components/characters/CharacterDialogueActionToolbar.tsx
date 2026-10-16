@@ -1,109 +1,55 @@
-import { serverTime } from "../../lib/serverDate";
-import { useState, useCallback, useEffect, useRef } from "react";
-import { Orbit, Loader2, ChevronDown, ChevronRight, Waves, AlignLeft, UserCheck } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Orbit, Loader2, ChevronDown, ChevronRight, Waves, AlignLeft } from "lucide-react";
 import { api } from "../../api/client";
-import type {
-  ActivityLog,
-  VoiceDistinctnessResult,
-  CharacterDialogueProseResult,
-  VoiceFidelityResult,
-  StructuredResult,
-} from "../../types";
+import type { VoiceDistinctnessResult, CharacterDialogueProseResult } from "../../types";
 import styles from "./CharacterDialogueActionToolbar.module.css";
-import { useAIAvailable } from "../../lib/mode";
 
 interface AnalysisDef {
-  id: string;
+  id: "voice-distinctness" | "dialogue-prose";
   label: string;
   description: string;
-  type: "nlp" | "ai";
   Icon: React.ElementType;
-  run: (characterId: string, signal: AbortSignal) => Promise<unknown>;
-  summarize: (log: ActivityLog) => string;
+  run: (characterId: string) => Promise<unknown>;
 }
 
+/**
+ * The Dialogue view's own readings, made on this machine (so in both modes). Voice Fidelity,
+ * the Assistant's reading, moved to the sheet's Assistant menu (A7), where its answer is kept.
+ */
 const ANALYSES: AnalysisDef[] = [
   {
     id: "voice-distinctness",
     label: "Voice distinctness",
     description: "Vocabulary richness · signature words · how distinct this voice is vs other characters",
-    type: "nlp",
     Icon: Waves,
     run: (id) => api.analyzeCharacterVoice(id),
-    summarize: (log) => {
-      const d = log.metadata_?.distinctness as string | undefined;
-      if (!d) return log.description;
-      if (d === "distinct") return "Voice is distinct";
-      if (d === "some_overlap") return "Some overlap with others";
-      return "Voices too similar";
-    },
   },
   {
     id: "dialogue-prose",
     label: "Prose quality",
     description: "Adverbs · said-bookisms · sentence variety in this character's dialogue",
-    type: "nlp",
     Icon: AlignLeft,
     run: (id) => api.analyzeCharacterDialogueProse(id),
-    summarize: (log) => {
-      const w = log.metadata_?.word_count as number | undefined;
-      return w != null ? `${w} words analyzed` : log.description;
-    },
-  },
-  {
-    id: "voice-fidelity",
-    label: "Voice Fidelity",
-    description: "Does dialogue match how this character thinks, their education and their social manner?",
-    type: "ai",
-    Icon: UserCheck,
-    run: (id, signal) => api.analyzeCharacterVoiceFidelity(id, signal),
-    summarize: (log) => {
-      const f = log.metadata_?.result as { data?: { overall_fidelity?: string } } | undefined;
-      const fidelity = f?.data?.overall_fidelity;
-      if (fidelity === "excellent") return "Excellent fidelity";
-      if (fidelity === "good") return "Good fidelity";
-      if (fidelity === "fair") return "Fair: some inconsistencies";
-      if (fidelity === "needs_work") return "Needs work";
-      return log.description;
-    },
   },
 ];
 
-function formatAge(iso: string): string {
-  const diffMs = Math.max(0, Date.now() - serverTime(iso));
-  const diffH = diffMs / (1000 * 60 * 60);
-  if (diffH < 1) {
-    const mins = Math.round(diffMs / 60000);
-    return mins <= 0 ? "just now" : `${mins}m ago`;
-  }
-  if (diffH < 24) return `${Math.round(diffH)}h ago`;
-  return `${Math.round(diffH / 24)}d ago`;
-}
-
 interface Props {
   characterId: string;
-  storyId: string;
   hasDialogue: boolean;
   onVoiceResult: (result: VoiceDistinctnessResult) => void;
   onProseResult: (result: CharacterDialogueProseResult) => void;
-  onFidelityResult: (result: VoiceFidelityResult) => void;
   onError: (analysisId: string, message: string) => void;
 }
 
 export default function CharacterDialogueActionToolbar({
   characterId,
-  storyId,
   hasDialogue,
   onVoiceResult,
   onProseResult,
-  onFidelityResult,
   onError,
 }: Props) {
-  const aiAvailable = useAIAvailable();
   const [running, setRunning] = useState<Set<string>>(new Set());
   const [errors, setErrors] = useState<Set<string>>(new Set());
-  const [latest, setLatest] = useState<Record<string, ActivityLog | null>>({});
-  const abortRefs = useRef<Record<string, AbortController>>({});
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
@@ -125,65 +71,28 @@ export default function CharacterDialogueActionToolbar({
     });
   }, []);
 
-  const fetchLatest = useCallback(() => {
-    // voice-distinctness and dialogue-prose are not in HEALTH_FEATURES; only voice-fidelity is
-    // For the NLP analyses we just skip the last-run info (no ActivityLog written for them)
-    api
-      .getLatestAnalysis(storyId, "voice-fidelity")
-      .then((log) => setLatest((prev) => ({ ...prev, "voice-fidelity": log })))
-      .catch(() => {});
-  }, [storyId]);
-
-  useEffect(() => {
-    fetchLatest();
-  }, [fetchLatest]);
-
-  const runAnalysis = useCallback(
-    async (analysis: AnalysisDef) => {
-      const controller = new AbortController();
-      abortRefs.current[analysis.id] = controller;
-
-      setRunning((prev) => new Set(prev).add(analysis.id));
-      setErrors((prev) => {
+  async function runAnalysis(analysis: AnalysisDef) {
+    setRunning((prev) => new Set(prev).add(analysis.id));
+    setErrors((prev) => {
+      const s = new Set(prev);
+      s.delete(analysis.id);
+      return s;
+    });
+    try {
+      const result = await analysis.run(characterId);
+      if (analysis.id === "voice-distinctness") onVoiceResult(result as VoiceDistinctnessResult);
+      else onProseResult(result as CharacterDialogueProseResult);
+    } catch {
+      setErrors((prev) => new Set(prev).add(analysis.id));
+      onError(analysis.id, "Analysis failed. Ensure the character has attributed dialogue.");
+    } finally {
+      setRunning((prev) => {
         const s = new Set(prev);
         s.delete(analysis.id);
         return s;
       });
-
-      try {
-        const result = await analysis.run(characterId, controller.signal);
-        if (controller.signal.aborted) return;
-
-        if (analysis.id === "voice-distinctness") {
-          onVoiceResult(result as VoiceDistinctnessResult);
-        } else if (analysis.id === "dialogue-prose") {
-          onProseResult(result as CharacterDialogueProseResult);
-        } else if (analysis.id === "voice-fidelity") {
-          const sr = result as StructuredResult;
-          if (sr.success && sr.data) {
-            onFidelityResult(sr.data as unknown as VoiceFidelityResult);
-          } else if (sr.raw_text) {
-            onError(analysis.id, sr.raw_text || "Analysis returned no data.");
-          }
-          fetchLatest();
-        }
-      } catch (err) {
-        if (err instanceof Error && err.name === "AbortError") return;
-        if (!controller.signal.aborted) {
-          setErrors((prev) => new Set(prev).add(analysis.id));
-          onError(analysis.id, "Analysis failed. Ensure the character has attributed dialogue.");
-        }
-      } finally {
-        setRunning((prev) => {
-          const s = new Set(prev);
-          s.delete(analysis.id);
-          return s;
-        });
-        delete abortRefs.current[analysis.id];
-      }
-    },
-    [characterId, onVoiceResult, onProseResult, onFidelityResult, onError, fetchLatest],
-  );
+    }
+  }
 
   return (
     <div className={styles.toolbar}>
@@ -207,36 +116,24 @@ export default function CharacterDialogueActionToolbar({
             style={{ "--type-color": "var(--color-nlp)" } as React.CSSProperties}
           >
             <span className={styles.legendDot} />
-            NLP
-          </span>
-          <span
-            className={styles.legendItem}
-            style={{ "--type-color": "var(--color-ai)" } as React.CSSProperties}
-          >
-            <span className={styles.legendDot} />
-            AI
+            On this machine
           </span>
         </div>
       </div>
 
-      {/* Collapsible body */}
       {!collapsed && (
         <div className={styles.toolbarBody}>
           <div className={styles.actions}>
-            {ANALYSES.filter((a) => aiAvailable || a.type !== "ai").map((analysis) => {
+            {ANALYSES.map((analysis) => {
               const isRunning = running.has(analysis.id);
               const hasError = errors.has(analysis.id);
-              const log = latest[analysis.id] ?? null;
-              const typeColor = analysis.type === "nlp" ? "var(--color-nlp)" : "var(--color-ai)";
-              const disabled = isRunning || !hasDialogue;
-
               return (
                 <button
                   key={analysis.id}
                   className={`${styles.actionBtn} ${hasError ? styles.actionBtnError : ""}`}
-                  onClick={() => runAnalysis(analysis)}
-                  disabled={disabled}
-                  style={{ "--btn-color": typeColor } as React.CSSProperties}
+                  onClick={() => void runAnalysis(analysis)}
+                  disabled={isRunning || !hasDialogue}
+                  style={{ "--btn-color": "var(--color-nlp)" } as React.CSSProperties}
                   title={!hasDialogue ? "No attributed dialogue found" : analysis.description}
                 >
                   <div className={styles.btnMain}>
@@ -250,17 +147,8 @@ export default function CharacterDialogueActionToolbar({
                     <div className={styles.btnBody}>
                       <span className={styles.btnLabel}>{isRunning ? "Running…" : analysis.label}</span>
                       <span className={styles.btnDesc}>{analysis.description}</span>
-                      {!isRunning && log ? (
-                        <span className={styles.btnMeta}>
-                          <span className={styles.btnSummary}>{analysis.summarize(log)}</span>
-                          <span className={styles.btnAge}>{formatAge(log.created_at)}</span>
-                        </span>
-                      ) : (
-                        !isRunning && <span className={styles.btnNotRun}>Not run yet</span>
-                      )}
                     </div>
                   </div>
-                  {/* Top-right: Orbit = structured report (NLP or AI), Feather = conversational AI */}
                   <Orbit size={14} className={styles.typeIndicator} />
                 </button>
               );

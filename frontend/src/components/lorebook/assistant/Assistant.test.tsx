@@ -80,6 +80,50 @@ describe("kept Assistant answers on a sheet", () => {
     expect(screen.getByText(/Answers stay on this page until you clear them or ask again/)).toBeTruthy();
   });
 
+  it("keeps a character's answers from elsewhere in the band, but not Careful's verdicts", async () => {
+    const hero: Subject = { storyId: "s1", type: "character", id: "c1", name: "Eleanor" };
+    server.rows = [
+      {
+        ...kept,
+        id: "r2",
+        subject_type: "character",
+        subject_id: "c1",
+        feature: "voice-fidelity",
+        heading: "Voice Fidelity",
+        data: { overall_fidelity: "good", summary: "She sounds like herself." },
+      },
+      {
+        ...kept,
+        id: "r3",
+        subject_type: "character",
+        subject_id: "c1",
+        feature: "pronoun-identification",
+        heading: "Pronoun Identification",
+        data: { judged: [] },
+      },
+    ];
+    function CharacterSheet() {
+      const answers = useKeptAnswers(hero);
+      const actions = runActions(hero);
+      return (
+        <>
+          <AssistantMenu name={hero.name} actions={actions} kept={answers} />
+          <AssistantBand subject={hero} actions={actions} kept={answers} />
+        </>
+      );
+    }
+    const first = render(<CharacterSheet />);
+    await screen.findByText("She sounds like herself.");
+    first.unmount();
+    render(<CharacterSheet />);
+    await screen.findByText("She sounds like herself.");
+    expect(screen.getByText("1 answer kept")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /^Assistant/ }));
+    const items = screen.getAllByRole("menuitem").map((i) => i.textContent);
+    expect(items.some((t) => t?.includes("Arc Analysis"))).toBe(true);
+    expect(items.some((t) => t?.includes("Voice Fidelity") && t.includes("Answer kept below"))).toBe(true);
+  });
+
   it("shows nothing and asks nothing in Writer mode", async () => {
     useAuthStore.setState({ user: { settings: { ui: { mode: "writer" } } } as unknown as User });
     const { container } = render(<Sheet />);

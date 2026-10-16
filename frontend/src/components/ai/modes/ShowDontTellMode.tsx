@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { Eye, ChevronDown, ChevronRight, RefreshCw } from "lucide-react";
 import type { AISession } from "../../../stores/aiStore";
 import { useAIModeState } from "../../../hooks/useAIModeState";
 import { api } from "../../../api/client";
 import AIModeWrapper from "../AIModeWrapper";
+import KeptAnswerBar from "../kept/KeptAnswerBar";
+import { useKeptReading } from "../kept/useKeptReading";
 import type { ShowDontTellAnalysisResponse, ShowDontTellInstance } from "../../../types";
 import styles from "./ShowDontTellMode.module.css";
 
@@ -56,40 +58,12 @@ function InstanceCard({ instance }: { instance: ShowDontTellInstance }) {
 
 export default function ShowDontTellMode({ session }: Props) {
   const state = useAIModeState(session);
-  const [result, setResult] = useState<ShowDontTellAnalysisResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const ranRef = useRef(false);
-
   const { storyId, nodeId, selectedText } = session.context;
-
-  async function runAnalysis() {
-    if (!storyId) return;
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    try {
-      const res = await api.analyzeShowDontTell(storyId, nodeId, selectedText);
-      if (res.success && res.data) {
-        setResult(res.data as unknown as ShowDontTellAnalysisResponse);
-      } else {
-        setError(res.raw_text || "Analysis failed. Try again.");
-      }
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // Auto-run on mount when there's text to analyze
-  useEffect(() => {
-    if (ranRef.current) return;
-    if (!storyId) return;
-    if (!nodeId && !selectedText) return;
-    ranRef.current = true;
-    runAnalysis();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const reading = useKeptReading<ShowDontTellAnalysisResponse>(session.context, "show-dont-tell", () =>
+    api.analyzeShowDontTell(storyId ?? "", nodeId, selectedText),
+  );
+  const { result, loading, error } = reading;
+  const runAnalysis = () => void reading.run();
 
   const hasContent = !!selectedText || !!nodeId;
   const strong = result?.instances.filter((i) => i.severity === "strong") ?? [];
@@ -143,8 +117,16 @@ export default function ShowDontTellMode({ session }: Props) {
       )}
 
       {/* Results */}
-      {result && !loading && (
+      {result && reading.answer && !loading && (
         <div className={styles.results}>
+          <KeptAnswerBar
+            answer={reading.answer}
+            heading={session.title ?? "Show Don't Tell"}
+            context={{ storyId, nodeId }}
+            onAskAgain={runAnalysis}
+            asking={loading}
+            onClear={reading.clear}
+          />
           {/* Summary header */}
           <div className={styles.summaryCard}>
             <div className={styles.summaryRow}>
@@ -156,14 +138,6 @@ export default function ShowDontTellMode({ session }: Props) {
                   ? "No issues found"
                   : `${result.instances.length} instance${result.instances.length !== 1 ? "s" : ""}`}
               </span>
-              <button
-                className={styles.rerunBtn}
-                onClick={runAnalysis}
-                title="Re-run analysis"
-                aria-label="Re-run analysis"
-              >
-                <RefreshCw size={12} />
-              </button>
             </div>
             <p className={styles.summaryText}>{result.summary}</p>
             {result.strengths.length > 0 && (

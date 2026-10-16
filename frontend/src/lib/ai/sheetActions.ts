@@ -52,9 +52,22 @@ export function runActions(s: Subject): SheetAction[] {
         { id: "twist-impact", run: () => api.analyzeTwistImpact(id) },
       ];
     case "character":
-      return [{ id: "character-dimensionality", run: () => api.assessCharacterDimensionality(id) }];
+      return [
+        { id: "character-dimensionality", run: () => api.assessCharacterDimensionality(id) },
+        { id: "arc-analysis", run: () => api.analyzeCharacterArc(id) },
+        { id: "voice-fidelity", run: () => api.analyzeCharacterVoiceFidelity(id) },
+      ];
+    default:
+      // A scene, an image, an outline or the story: their answers show where they were asked (A7).
+      return [];
   }
 }
+
+/**
+ * Kept answers about a sheet's thing that have a place of their own and stay out of its band:
+ * Careful's verdicts belong to the pronoun review, relationship ideas to the Relationships view.
+ */
+export const KEPT_ELSEWHERE = new Set(["pronoun-identification", "relationship-suggest"]);
 
 /** The gateway feature an action's answer is kept under. */
 export function backendFeature(actionId: string): string | undefined {

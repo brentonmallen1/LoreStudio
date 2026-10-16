@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { assistantResultsApi, type AssistantResult } from "../../../api/assistantResults";
-import { backendFeature, type SheetAction, type Subject } from "../../../lib/ai/sheetActions";
+import { keptKeyOf, onKept } from "../../../lib/ai/keptEvents";
+import { backendFeature, KEPT_ELSEWHERE, type SheetAction, type Subject } from "../../../lib/ai/sheetActions";
 import { useAIAvailable } from "../../../lib/mode";
 import { toast } from "../../../stores/toastStore";
 
@@ -58,6 +59,16 @@ export function useKeptAnswers(subject: Subject | null): KeptAnswers {
     if (key && s) void load(s, key);
   }, [key, load]);
 
+  // An answer kept from somewhere else about this thing (its portrait, Story identity) shows here too.
+  useEffect(() => {
+    const s = subjectRef.current;
+    if (!key || !s) return;
+    const mine = keptKeyOf(s);
+    return onKept((k) => {
+      if (k === mine) void load(s, key);
+    });
+  }, [key, load]);
+
   async function run(action: SheetAction) {
     if (!subject || !key || !action.run) return;
     const asked = key;
@@ -90,7 +101,7 @@ export function useKeptAnswers(subject: Subject | null): KeptAnswers {
     }
   }
 
-  const answers = loaded.key === key ? loaded.rows : [];
+  const answers = loaded.key === key ? loaded.rows.filter((r) => !KEPT_ELSEWHERE.has(r.feature)) : [];
   const selectedId = pick?.key === key ? pick.id : null;
   const selected = answers.find((a) => a.id === selectedId) ?? answers[0] ?? null;
   return {

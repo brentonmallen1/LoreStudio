@@ -49,8 +49,13 @@ command.
   - On a Lorebook or Promises sheet, actions are the header's "Assistant ▾" menu (`EntitySheet`'s
     `assistant` slot; `lib/ai/sheetActions.ts`), each item a registry row's label and
     `shortDescription`. One-shot answers are kept on the server (`assistant_results`, written by
-    the route with `assistant_results.keep`) and shown in the tone-box band under the header
-    (`components/lorebook/assistant/`): Talk it over, Ask again, Clear, Fold away.
+    the route with `assistant_results.keep`, or `keep_text` as a stream's `on_complete`) and
+    shown in the tone-box band under the header (`components/lorebook/assistant/`): Talk it
+    over, Ask again, Clear, Fold away.
+  - Anywhere else a one-shot answer is kept the same way on what it is about (a scene is
+    "node", an image, an outline, or "story") and shown where it was asked for:
+    `useKeptAnswer(subject, feature)` and `KeptAnswerBar` (`components/ai/kept/`). Opening a
+    surface shows the kept answer; it runs only on Ask again, or when nothing is kept.
   - On a Plan step, its one `AssistantRow`.
   - On a page they live in the header's ⋯ menu, never as buttons across the page.
 - **The Assistant:** every conversation lives in the side panel's Assistant, opened from the

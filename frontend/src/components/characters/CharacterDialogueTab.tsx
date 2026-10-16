@@ -15,7 +15,6 @@ import type {
   DialogueBlockWithScene,
   VoiceDistinctnessResult,
   CharacterDialogueProseResult,
-  VoiceFidelityResult,
 } from "../../types";
 import AutoTagPanel from "../cleanup/AutoTagPanel";
 import CharacterDialogueActionToolbar from "./CharacterDialogueActionToolbar";
@@ -40,13 +39,10 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
   const [showVoice, setShowVoice] = useState(false);
   const [proseResult, setProseResult] = useState<CharacterDialogueProseResult | null>(null);
   const [showProse, setShowProse] = useState(false);
-  const [fidelityResult, setFidelityResult] = useState<VoiceFidelityResult | null>(null);
-  const [showFidelity, setShowFidelity] = useState(false);
   const [analysisErrors, setAnalysisErrors] = useState<Record<string, string>>({});
 
   const voicePanelRef = useRef<HTMLDivElement>(null);
   const prosePanelRef = useRef<HTMLDivElement>(null);
-  const fidelityPanelRef = useRef<HTMLDivElement>(null);
   const [showSubtextNotes, setShowSubtextNotes] = useState(false);
   const [subtextDraft, setSubtextDraft] = useState<Record<string, string>>({});
   const [subtextOpen, setSubtextOpen] = useState<Set<string>>(new Set());
@@ -126,26 +122,12 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
     voiceResult?.similar_pairs.filter((p) => p.char_a_id === characterId || p.char_b_id === characterId) ??
     [];
 
-  const fidelityColorClass = (fidelity: string) => {
-    if (fidelity === "excellent") return styles.fidelityExcellent;
-    if (fidelity === "good") return styles.fidelityGood;
-    if (fidelity === "fair") return styles.fidelityFair;
-    return styles.fidelityNeedsWork;
-  };
-
-  const severityClass = (severity: string) => {
-    if (severity === "issue") return styles.severityIssue;
-    if (severity === "warning") return styles.severityWarning;
-    return styles.severityInfo;
-  };
-
   return (
     <div className={styles.root}>
       {/* ── Dialogue Analysis toolbar ── */}
       {storyId && (
         <CharacterDialogueActionToolbar
           characterId={characterId}
-          storyId={storyId}
           hasDialogue={hasDialogue}
           onVoiceResult={(r) => {
             setVoiceResult(r);
@@ -160,14 +142,6 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
             setShowProse(true);
             setTimeout(
               () => prosePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }),
-              50,
-            );
-          }}
-          onFidelityResult={(r) => {
-            setFidelityResult(r);
-            setShowFidelity(true);
-            setTimeout(
-              () => fidelityPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }),
               50,
             );
           }}
@@ -350,77 +324,6 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
                   </span>
                 </div>
               ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── Voice Fidelity results ── */}
-      {fidelityResult && showFidelity && (
-        <div ref={fidelityPanelRef} className={styles.voicePanel}>
-          <div className={styles.voicePanelHeader}>
-            <span className={styles.voiceTitle}>
-              Voice Fidelity
-              <span
-                className={`${styles.distinctnessBadge} ${fidelityColorClass(fidelityResult.overall_fidelity)}`}
-              >
-                {fidelityResult.overall_fidelity.replace("_", " ")}
-              </span>
-            </span>
-            <HidePanelButton label="Hide fidelity analysis" onClick={() => setShowFidelity(false)} />
-          </div>
-
-          {fidelityResult.attribute_summary && (
-            <p className={styles.fidelityAttributeSummary}>{fidelityResult.attribute_summary}</p>
-          )}
-
-          {fidelityResult.summary && <p className={styles.fidelitySummary}>{fidelityResult.summary}</p>}
-
-          {/* Findings — issues and warnings only */}
-          {fidelityResult.findings.filter((f) => f.severity !== "info").length > 0 && (
-            <div className={styles.fidelityFindings}>
-              {fidelityResult.findings
-                .filter((f) => f.severity !== "info")
-                .map((finding, i) => (
-                  <div key={i} className={`${styles.findingRow} ${severityClass(finding.severity)}`}>
-                    {finding.dialogue_excerpt && (
-                      <p className={styles.findingExcerpt}>
-                        "{finding.dialogue_excerpt.slice(0, 100)}
-                        {finding.dialogue_excerpt.length > 100 ? "…" : ""}"
-                      </p>
-                    )}
-                    <p className={styles.findingExplanation}>{finding.explanation}</p>
-                    {finding.attribute_context && (
-                      <p className={styles.findingContext}>{finding.attribute_context}</p>
-                    )}
-                    {finding.suggestion && <p className={styles.findingSuggestion}>{finding.suggestion}</p>}
-                  </div>
-                ))}
-            </div>
-          )}
-
-          {/* Authentic examples */}
-          {fidelityResult.authentic_examples.length > 0 && (
-            <div className={styles.authenticSection}>
-              <p className={styles.similarityTitle}>Lines that ring true</p>
-              {fidelityResult.authentic_examples.slice(0, 4).map((ex, i) => (
-                <p key={i} className={styles.authenticExample}>
-                  "{ex.slice(0, 100)}
-                  {ex.length > 100 ? "…" : ""}"
-                </p>
-              ))}
-            </div>
-          )}
-
-          {/* Recommendations */}
-          {fidelityResult.recommendations.length > 0 && (
-            <div className={styles.fidelityRecommendations}>
-              <p className={styles.similarityTitle}>Recommendations</p>
-              <ul className={styles.recommendationList}>
-                {fidelityResult.recommendations.map((rec, i) => (
-                  <li key={i}>{rec}</li>
-                ))}
-              </ul>
             </div>
           )}
         </div>
