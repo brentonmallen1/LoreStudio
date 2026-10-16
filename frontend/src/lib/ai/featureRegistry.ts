@@ -104,7 +104,7 @@ export const PAGE_FEATURES: Record<string, string[]> = {
     "wb-travel",
   ],
   "scene-editor": ["story-summary", "scene-plan", "brainstorm", "auto-tag-dialogue", "dialogue-attribution"],
-  outline: ["extract-outline", "snowflake-guidance", "outline-alignment"],
+  outline: ["extract-outline", "snowflake-guidance"],
   codex: ["codex-suggestions"],
   "discovery-queue": ["discovery-queue", "discovery"],
   twists: ["twist-analysis", "twist-impact", "reader-knowledge-scan"],

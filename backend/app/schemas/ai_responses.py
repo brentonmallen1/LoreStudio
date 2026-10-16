@@ -440,25 +440,6 @@ class ExtractedOutlineResponse(BaseModel):
     suggested_name: str = ""  # Proposed outline tab name
 
 
-# ── Outline Alignment ─────────────────────────────────────────────────────────
-
-
-class OutlineAlignmentItem(BaseModel):
-    outline_text: str = ""
-    status: str = "missing"  # covered | partial | missing
-    evidence: str = ""  # What in the manuscript supports/doesn't support this beat
-    scene_references: list[str] = []
-
-
-class OutlineAlignmentResponse(BaseModel):
-    covered_beats: list[OutlineAlignmentItem] = []
-    missing_beats: list[OutlineAlignmentItem] = []
-    unplanned_content: list[str] = []  # Manuscript content not in the outline
-    divergences: list[str] = []  # Where prose went a different direction
-    recommendations: list[str] = []
-    coverage_score: int = 0  # 0-100 percent of outline beats covered
-
-
 # ── Cliche Analysis ──────────────────────────────────────────────────────────
 
 

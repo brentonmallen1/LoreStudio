@@ -258,6 +258,24 @@ describe("theme contrast (WCAG)", () => {
         }
         expect(failures).toEqual([]);
       });
+      // Compare takes (Takes.module.css): the words only one take has are ink on a soft tint of
+      // danger (12%, struck through) or success (14%), deeper on a dark page (18% each), on the
+      // page and in the side panel's tone.
+      it(`${file} ${block.selector.includes(".dark") ? "dark" : "light"} keeps compared takes readable`, () => {
+        const failures: string[] = [];
+        const dark = block.selector.includes(".dark");
+        for (const [fg, w] of [
+          ["--color-danger", dark ? 0.18 : 0.12],
+          ["--color-success", dark ? 0.18 : 0.14],
+        ] as const)
+          for (const page of ["--color-surface", "--color-tone"]) {
+            if (!tokens[page]) continue;
+            const ground = tint(tokens[fg], tokens[page], w);
+            const ratio = contrast(tokens["--color-text"], ground);
+            if (ratio < 7) failures.push(`${fg} on ${page}: ink on ${ground} = ${ratio.toFixed(2)} (< 7)`);
+          }
+        expect(failures).toEqual([]);
+      });
     }
   }
 });

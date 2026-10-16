@@ -50,13 +50,13 @@ describe("side panel sync", () => {
         kind: "state",
         from: "other",
         storyId: "s",
-        tabs: [{ id: "page:storyboard", kind: "page", routeId: "storyboard", path: "/storyboard" }],
+        tabs: [{ id: "page:summaries", kind: "page", routeId: "summaries", path: "/summaries" }],
         showing: "tool:dialogue",
         highlight: null,
       },
     });
     expect(usePanelStore.getState().showing).toBe("tool:dialogue");
-    expect(usePanelStore.getState().tabs.map((t) => t.id)).toEqual(["page:storyboard"]);
+    expect(usePanelStore.getState().tabs.map((t) => t.id)).toEqual(["page:summaries"]);
     expect(sent.length).toBe(before);
   });
 
@@ -84,9 +84,9 @@ describe("side panel sync", () => {
     const go = vi.fn();
     setNavigator(go);
     stop = startPanelSync("window");
-    navigateMain("/stories/s/storyboard");
+    navigateMain("/stories/s/summaries");
     expect(go).not.toHaveBeenCalled();
-    expect(sent[sent.length - 1]).toMatchObject({ kind: "navigate", to: "/stories/s/storyboard" });
+    expect(sent[sent.length - 1]).toMatchObject({ kind: "navigate", to: "/stories/s/summaries" });
     setNavigator(null);
   });
 

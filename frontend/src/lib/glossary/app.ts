@@ -48,9 +48,10 @@ export const PARTS = [
   },
   {
     id: "plan",
-    term: "Plan",
+    term: "Plan with questions",
     definition:
-      "The page where you work out the story before or while you write it, from an idea in a sentence to a list of scenes.",
+      "Guided questions that fill your Outline: small questions in order, from an idea in a sentence to a list of scenes. Your answers go into the story itself. Logo menu › **Plan with questions**.",
+    alsoCalled: ["plan", "planning method"],
   },
   {
     id: "promises",
@@ -95,7 +96,7 @@ export const WRITING = [
     id: "freewrite",
     term: "Freewrite",
     definition:
-      "A page for loose writing, a heading for each day, with no structure to keep to. Turn what you find there into notes or characters.",
+      "A page for loose writing, a heading for each day, with no structure to keep to. Turn what you find there into notes, characters, places, or a scene: planned, started, or an idea for the Outline.",
   },
   {
     id: "mention",
@@ -114,7 +115,30 @@ export const WRITING = [
     id: "outline",
     term: "Outline",
     definition:
-      "Your acts, chapters and scenes as one list, to add, rename and reorder them: logo menu › **Outline**.",
+      "What happens in your story, part by part: your acts, chapters and scenes as lines to type, each with a line of what happens, as a list or as cards. A scene with words and no line yet shows its first line, marked **from the first line**. Logo menu › **Outline**.",
+  },
+  {
+    id: "what-youve-written",
+    term: "What you've written",
+    definition:
+      "On the Overview: your scenes in a line each, who and where your prose names, new names to add, and offers to tidy up, such as splitting a long scene where the time jumps. Read from your prose on this computer; nothing changes until you say so.",
+    alsoCalled: ["what have I written"],
+  },
+  {
+    id: "not-placed-yet",
+    term: "Not placed yet",
+    definition:
+      "The tray beside the Outline: ideas for things that should happen, not tied to a scene yet. Drag one into the Outline when you know where it goes, and it becomes a planned scene there.",
+    alsoCalled: ["tray", "beat board"],
+  },
+  {
+    id: "take",
+    term: "Take",
+    definition:
+      "One version of a whole scene. **Try another version** (the scene's ⋯ menu) copies the scene into a new take to change as you like; the scene's header then switches between takes and **Compare** shows two side by side, the words that differ marked. The take marked ✓ is the one that counts: the scene in your manuscript, exports, word counts and checks. **Use this take** makes the open one count.",
+    example:
+      "“Knock at the Door” has two takes: the first draft, which counts, and “Calder speaks first”, where the visitor speaks before the door is open.",
+    alsoCalled: ["version", "alternate", "variant"],
   },
   {
     id: "scene-sheet",

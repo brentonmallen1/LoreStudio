@@ -69,6 +69,8 @@ export interface Story {
   synopsis: string;
   /** The Plan page's method (lib/planning/methods.ts), "" until chosen. */
   planning_method: string;
+  /** How the writer likes to work (doc 29 D1, lib/workingStyle.ts); "" for an older story. */
+  working_style?: WorkingStyle;
   created_at: string;
   updated_at: string;
 }
@@ -91,6 +93,9 @@ export interface DiscoveredElement {
   created_at: string;
   reviewed_at: string | null;
 }
+
+/** How the writer likes to work (doc 29 D1): where a story opens and the Overview's next step. */
+export type WorkingStyle = "plan" | "discover" | "both" | "";
 
 export interface StoryStructureTemplate {
   id: string;
@@ -161,6 +166,8 @@ export interface StructureNode {
   pov_character_id: string | null;
   created_at: string;
   updated_at: string;
+  /** How many takes the scene has (doc 29 D7): 1 until "Try another version". */
+  take_count?: number;
   children: StructureNode[];
 }
 
@@ -632,37 +639,13 @@ export interface ReaderKnowledgeEvent {
 
 // ── Outline ──
 
-export type OutlineBeatType = "plot" | "character" | "theme" | "setting";
-
-export interface Outline {
+/** An idea in the Outline's Not placed yet tray (doc 29 D3): something that should happen,
+ * not tied to a scene yet. */
+export interface TrayItem {
   id: string;
-  story_id: string;
-  name: string;
-  position: number;
-  source_beat_sheet_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface OutlineWithItems extends Outline {
-  items: OutlineItem[];
-}
-
-export interface OutlineItem {
-  id: string;
-  outline_id: string;
-  parent_id: string | null;
-  level: number;
-  position: number;
   text: string;
-  beat_type: OutlineBeatType | null;
   notes: string;
-  collapsed: boolean;
-  scene_id: string | null;
-  scene_title: string | null;
-  created_at: string;
-  updated_at: string;
-  children: OutlineItem[];
+  position: number;
 }
 
 export interface SceneLink {

@@ -21,7 +21,6 @@ export const ROUTE_ELEMENTS: Record<StoryRoute["id"], Page> = {
   "first-story": lazy(() => import("../components/firstStory/FirstStoryPage")),
   freewrite: lazy(() => import("../components/freewrite/FreewritePage")),
   plan: lazy(() => import("../components/plan/PlanPage")),
-  storyboard: lazy(() => import("../components/story/StoryboardPage")),
   summaries: lazy(() => import("../components/story/SummaryOverviewView")),
   manuscript: lazy(() => import("./ManuscriptPage")),
   proposals: lazy(() => import("./ProposalsPage")),

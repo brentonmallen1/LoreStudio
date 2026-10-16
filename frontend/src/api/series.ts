@@ -350,6 +350,7 @@ export const seriesApi = {
       scaffold?: boolean;
       carry: CarryItem[];
       series_name?: string;
+      working_style?: import("../types").WorkingStyle;
     },
   ) => request<SequelCreated>(`/stories/${storyId}/sequel`, json(body)),
 };

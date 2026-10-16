@@ -50,7 +50,6 @@ const WRITER_ENTRY_POINTS = [
   "src/pages/ChroniclePage.tsx",
   "src/components/chronicle/versions/VersionsSection.tsx",
   "src/components/imports/ImportsSection.tsx",
-  "src/components/story/StoryboardView.tsx",
   "src/components/story/SummaryOverviewView.tsx",
   "src/pages/ManuscriptPage.tsx",
   "src/components/story/StoryIdentityPanel.tsx",
@@ -171,7 +170,6 @@ describe("the story routes this test walks", () => {
       "promises.threads",
       "promises.twists",
       "proposals",
-      "storyboard",
       "summaries",
       "write",
     ]);

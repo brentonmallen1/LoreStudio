@@ -11,13 +11,16 @@ import {
 } from "../components/overview/OverviewCards";
 import { RecapCard, RecapTrigger } from "../components/overview/Recap";
 import { useRecap } from "../components/overview/useRecap";
+import NextStepCard from "../components/overview/NextStepCard";
 import ResumeCard from "../components/overview/ResumeCard";
 import StartPaths from "../components/overview/StartPaths";
+import WhatYouveWritten from "../components/overview/written/WhatYouveWritten";
 import PlanNextStep from "../components/plan/PlanNextStep";
 import { useReloadOnUndo } from "../hooks/useUndoRedo";
 import { useAIAvailable } from "../lib/mode";
 import { sectionPath } from "../lib/routes";
 import { useStoryStore } from "../stores/storyStore";
+import { nextStep, styleOf } from "../lib/workingStyle";
 import { useUIStore } from "../stores/uiStore";
 import type { StoryOverview } from "../types";
 import { lengthForm } from "../utils/wordCount";
@@ -30,6 +33,8 @@ import styles from "../components/overview/Overview.module.css";
  */
 export default function StoryOverviewPage({ storyId }: { storyId: string }) {
   const story = useStoryStore((s) => s.activeStory);
+  const structure = useStoryStore((s) => s.structure);
+  const template = useStoryStore((s) => s.activeTemplate);
   const aiAvailable = useAIAvailable();
   const [ov, setOv] = useState<StoryOverview | null>(null);
   const [failed, setFailed] = useState(false);
@@ -49,6 +54,10 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
 
   if (!story) return <div className={styles.loading}>Loading…</div>;
   const hasContent = !!ov && (ov.word_count > 0 || ov.scene_count > 0);
+  // The next step follows how the writer works (doc 29 D8); "both" and an older story keep
+  // "Where you left off".
+  const style = styleOf(story);
+  const step = ov ? nextStep(structure, template, style, ov.recent_scenes[0]?.id) : null;
   const line = story.logline || story.premise || story.narrative_intent;
   // What the story is, as facts to read rather than chips to press (doc 14 Overview).
   const facts = [
@@ -106,7 +115,11 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
           // Each part is a tone box, not a rule; the figures sit up by the title.
           <div className={styles.desk}>
             <div className={styles.col} aria-label="What to do next">
-              <ResumeCard storyId={storyId} ov={ov} />
+              {step ? (
+                <NextStepCard storyId={storyId} ov={ov} style={style} step={step} />
+              ) : (
+                <ResumeCard storyId={storyId} ov={ov} />
+              )}
               <NeedsYourEye storyId={storyId} />
             </div>
             <aside className={styles.col} aria-label="The story at a glance">
@@ -118,6 +131,7 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
         ) : (
           <PlanNextStep storyId={storyId} />
         )}
+        {ov && hasContent && <WhatYouveWritten storyId={storyId} discover={style === "discover"} />}
         {ov && !hasContent && <StartPaths storyId={storyId} />}
       </div>
     </div>

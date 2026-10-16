@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight, ListTree, Settings2 } from "lucide-react";
 import { api } from "../../api/client";
+import { inPatternOrder } from "../../lib/patterns";
 import { useStoryStore } from "../../stores/storyStore";
 import BeatSheetManagerDialog from "./BeatSheetManagerDialog";
 import styles from "./BeatSheetSelector.module.css";
@@ -8,10 +9,11 @@ import styles from "./BeatSheetSelector.module.css";
 interface Props {
   value: string | null;
   onChange: (id: string | null) => void;
-  onInject?: (beatSheetId: string) => void;
+  /** Open the Outline with the pattern shown on it. */
+  onShowOnOutline?: () => void;
 }
 
-export default function BeatSheetSelector({ value, onChange, onInject }: Props) {
+export default function BeatSheetSelector({ value, onChange, onShowOnOutline }: Props) {
   const { beatSheets: sheets, setBeatSheets } = useStoryStore();
   const [expanded, setExpanded] = useState(false);
   const [showManager, setShowManager] = useState(false);
@@ -32,9 +34,10 @@ export default function BeatSheetSelector({ value, onChange, onInject }: Props) 
           className={styles.select}
           value={value ?? ""}
           onChange={(e) => onChange(e.target.value || null)}
+          aria-label="Classic pattern"
         >
           <option value="">None</option>
-          {sheets.map((s) => (
+          {inPatternOrder(sheets).map((s) => (
             <option key={s.id} value={s.id}>
               {s.name}
             </option>
@@ -43,8 +46,8 @@ export default function BeatSheetSelector({ value, onChange, onInject }: Props) 
         <button
           className={styles.manageBtn}
           onClick={() => setShowManager(true)}
-          title="Manage beat sheets"
-          aria-label="Manage beat sheets"
+          title="Manage patterns, or make your own"
+          aria-label="Manage patterns, or make your own"
         >
           <Settings2 size={13} />
         </button>
@@ -55,12 +58,12 @@ export default function BeatSheetSelector({ value, onChange, onInject }: Props) 
           <div className={styles.previewRow}>
             <button className={styles.toggleBtn} onClick={() => setExpanded((e) => !e)}>
               {expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
-              <span>{active.beats.length} beats</span>
+              <span>{active.beats.length} moments</span>
             </button>
-            {onInject && (
-              <button className={styles.injectBtn} onClick={() => onInject(active.id)}>
+            {onShowOnOutline && (
+              <button className={styles.injectBtn} onClick={onShowOnOutline}>
                 <ListTree size={12} />
-                Use as Outline
+                Show on the Outline
               </button>
             )}
           </div>

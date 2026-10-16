@@ -14,6 +14,7 @@ from ...schemas.trope import TURNING_STANCES
 from ..codex.presence import known_as, name_patterns
 from ..held_prose import holders
 from ..mice_validation import validate_thread_nesting
+from ..structure_scaffold import FLAT
 from ..thread_roles import tries
 from ..tropes import STANCE_PHRASES
 from .make import make, severity
@@ -199,7 +200,7 @@ def _held_prose(view: StoryView) -> list[Finding]:
     """Prose on a chapter or an act, outside any scene: the strip, the export and Numbers read
     only scenes, so it goes missing from them (an older import left it there)."""
     levels = list(view.template.levels) if view.template else []
-    found = holders(view.ordered, levels)
+    found = holders(view.ordered, levels, flat=bool(view.template and view.template.id in FLAT))
     if not found:
         return []
     words = sum(n.word_count or 0 for n in found)

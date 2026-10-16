@@ -4,21 +4,11 @@ import { Placeholder } from "@tiptap/extensions";
 import { proseStarterKit } from "../editor/starterKit";
 import { freewriteApi } from "../../api/freewrite";
 import { dayLabel, lastDay, trimEmptyDay } from "../../lib/freewrite/day";
-import { MadeMark } from "./MadeMark";
+import { MadeMark, refsIn } from "./MadeMark";
 import MakeBar from "./MakeBar";
 import styles from "./Freewrite.module.css";
 
 const SAVE_AFTER_MS = 800;
-
-/** Every ref the page's marks carry, in the order they appear. */
-function refsIn(editor: Editor): string[] {
-  const out: string[] = [];
-  editor.state.doc.descendants((node) => {
-    for (const m of node.marks)
-      if (m.type.name === "made" && m.attrs.ref && !out.includes(m.attrs.ref)) out.push(m.attrs.ref);
-  });
-  return out;
-}
 
 /** Start today's section at the end of the page, unless the last one is already today's. */
 function openToday(editor: Editor) {

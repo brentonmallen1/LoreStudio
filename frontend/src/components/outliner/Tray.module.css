@@ -1,0 +1,244 @@
+/* The Outline's Not placed yet tray (doc 29 D3, B-Outline): a tone box of ideas, each on the
+   paper, with a line to jot the next. */
+
+.tray {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.9rem;
+  border-radius: var(--radius-xl);
+  background: var(--color-tone);
+  min-width: 0;
+}
+
+.tray[data-compact] {
+  gap: 0.4rem;
+  padding: 0.6rem;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.count {
+  font-weight: 400;
+  color: var(--color-text-subtle);
+}
+
+.foldHead {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: -0.3rem;
+  padding: 0.3rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.foldHead:hover {
+  background: var(--color-hover);
+}
+
+.foldHead .count {
+  margin-left: auto;
+}
+
+.why {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.idea {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.55rem 0.5rem 0.55rem 0.75rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  cursor: grab;
+}
+
+.tray[data-compact] .idea {
+  padding: 0.35rem 0.35rem 0.35rem 0.6rem;
+}
+
+.idea[data-drop="above"] {
+  box-shadow: 0 -2px 0 var(--color-accent);
+}
+
+.idea[data-drop="below"] {
+  box-shadow: 0 2px 0 var(--color-accent);
+}
+
+.ideaLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.3rem;
+}
+
+.grip {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.05rem;
+  display: inline-flex;
+  align-items: center;
+  height: 1.3rem;
+  color: var(--color-text-subtle);
+  opacity: 0;
+}
+
+.idea:hover .grip,
+.idea:focus-within .grip {
+  opacity: 1;
+}
+
+.ideaText {
+  flex: 1;
+  min-width: 0;
+  padding-top: 0.1rem;
+  font-size: var(--text-base);
+  line-height: 1.4;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.tray[data-compact] .ideaText {
+  font-size: var(--text-sm);
+}
+
+.ideaNotes {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  color: var(--color-text-muted);
+  white-space: pre-line;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* A text action in content: the secondary button (DESIGN.md, the Pressable Rule). */
+.placeBtn {
+  composes: btn-secondary from global;
+  align-self: flex-start;
+}
+
+/* On a card it shows where you are: under the pointer, from the keyboard, on a touch screen. */
+.placeIt {
+  composes: btn-secondary from global;
+  align-self: flex-start;
+  display: none;
+}
+
+.idea:hover .placeIt,
+.idea:focus-within .placeIt {
+  display: inline-flex;
+}
+
+@media (hover: none) {
+  .grip {
+    opacity: 1;
+  }
+
+  .placeIt {
+    display: inline-flex;
+  }
+}
+
+.placeBtn:focus-visible,
+.placeIt:focus-visible,
+.foldHead:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.rename,
+.jot,
+.select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-base);
+}
+
+.rename {
+  flex: 1;
+  resize: vertical;
+}
+
+/* The line to jot on reads as a card waiting for words. */
+.jot {
+  border-color: transparent;
+  border-radius: var(--radius-lg);
+  padding: 0.55rem 0.75rem;
+}
+
+.tray[data-compact] .jot {
+  padding: 0.35rem 0.6rem;
+  font-size: var(--text-sm);
+}
+
+.jot::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.rename:focus,
+.jot:focus,
+.select:focus {
+  border-color: var(--color-accent);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  cursor: default;
+}
+
+.pickerLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.pickerNone {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.pickerButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}

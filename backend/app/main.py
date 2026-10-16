@@ -52,7 +52,7 @@ from .routers.media import router as media_router
 from .routers.notes import router as notes_router
 from .routers.numbers import router as numbers_router
 from .routers.ollama import router as ollama_router
-from .routers.outlines import router as outlines_router
+from .routers.organize import router as organize_router
 from .routers.panel_interviews import router as panel_interviews_router
 from .routers.plot_threads import router as plot_threads_router
 from .routers.promises import router as promises_router
@@ -74,13 +74,16 @@ from .routers.stories import router as stories_router
 from .routers.streams import router as streams_router
 from .routers.structure import router as structure_router
 from .routers.system import router as system_router
+from .routers.takes import router as takes_router
 from .routers.templates import router as templates_router
+from .routers.tray import router as tray_router
 from .routers.tropes import router as tropes_router
 from .routers.twists import router as twists_router
 from .routers.users import router as users_router
 from .routers.whatif import router as whatif_router
 from .routers.world_systems import router as world_systems_router
 from .routers.worldbuilding_ai import router as worldbuilding_ai_router
+from .routers.written import router as written_router
 from .services import examples
 from .services.automatic import at_start, automatic_loop
 from .services.change_headers import EXPOSED as CHANGE_HEADERS
@@ -214,7 +217,10 @@ app.include_router(tropes_router, prefix="/api", tags=["tropes"])
 app.include_router(notes_router, prefix="/api", tags=["notes"])
 app.include_router(freewrite_router, prefix="/api", tags=["freewrite"])
 app.include_router(scratch_pad_router, prefix="/api", tags=["scratch-pad"])
-app.include_router(outlines_router, prefix="/api", tags=["outline"])
+app.include_router(tray_router, prefix="/api", tags=["outline"])
+app.include_router(written_router, prefix="/api", tags=["outline"])
+app.include_router(organize_router, prefix="/api", tags=["outline"])
+app.include_router(takes_router, prefix="/api", tags=["structure"])
 app.include_router(snapshots_router, prefix="/api", tags=["snapshots"])
 app.include_router(import_router, prefix="/api", tags=["import"])
 app.include_router(imports_router, prefix="/api", tags=["import"])

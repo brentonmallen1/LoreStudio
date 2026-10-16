@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Settings2 } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { api } from "../../api/client";
 import { seriesApi, type CarryCandidate } from "../../api/series";
 import { useStoryStore } from "../../stores/storyStore";
@@ -8,30 +8,14 @@ import { toast } from "../../stores/toastStore";
 import CarryOverStep from "../series/CarryOverStep";
 import { carryItem, carryKey } from "../../lib/series/carry";
 import { sequelCandidates } from "../../lib/series/sequelOf";
-import { DEFAULT_TEMPLATE, FORMATS, formatOf, templatesFor } from "../../lib/storyFormat";
-import { outlineHint } from "../../lib/starterOutline";
-import type { StoryFormat, StoryStructureTemplate } from "../../types";
+import { DEFAULT_TEMPLATE, formatOf, templatesFor } from "../../lib/storyFormat";
+import { landingPath, styleOf } from "../../lib/workingStyle";
+import type { StoryFormat, StoryStructureTemplate, WorkingStyle } from "../../types";
 import TemplateManagerDialog from "../templates/TemplateManagerDialog";
 import { Modal } from "../common";
+import NewStoryMore from "./NewStoryMore";
+import { HowYouWork, WhatYouWrite } from "./NewStoryStyle";
 import styles from "./CreateStoryDialog.module.css";
-
-type Begin = "write" | "idea" | "plan" | "first";
-
-/** Four ways in (refactor doc 10 P7, doc 18 C10); none is a gate, and writing stays one click away. */
-const BEGINNINGS: { id: Begin; label: string; hint: string }[] = [
-  {
-    id: "first",
-    label: "First story guide",
-    hint: "Seven short steps, from an idea to the first scene. Each says what it becomes.",
-  },
-  { id: "write", label: "Just write", hint: "Open the first scene and start typing." },
-  { id: "idea", label: "Start from an idea", hint: "Write down what you know, then sort it into the story." },
-  {
-    id: "plan",
-    label: "Plan it out",
-    hint: "A few small questions in order: a sentence, who wants what, the scenes.",
-  },
-];
 
 interface Props {
   onClose: () => void;
@@ -40,9 +24,12 @@ interface Props {
 }
 
 /**
- * A new story, or the next book of a series (series doc): "A sequel to…" makes it the book
- * after the one chosen, made a series now if it is not one yet, and a second step asks who
- * carries over. Every door to a new book opens this one dialog.
+ * A new story, or the next book of a series (series doc), in plain words (doc 29 P1): what it
+ * is called, what it is, and how the writer likes to work, which decides where it opens (a
+ * planner in the Outline, a discovery writer in the first scene, anyone else on the
+ * Overview). The shape, a line about it and the series fold under "More options". "A sequel
+ * to…" makes it the book after the one chosen, made a series now if it is not one yet, and a
+ * second step asks who carries over. Every door to a new book opens this one dialog.
  */
 export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
   const [title, setTitle] = useState("");
@@ -51,7 +38,9 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
   // Left unchosen, a sequel is laid out like the book before it.
   const [templateChoice, setTemplateId] = useState<string | null>(null);
   const [scaffold, setScaffold] = useState(true);
-  const [begin, setBegin] = useState<Begin>("write");
+  // Left unchosen, a sequel is worked on as the book before it was.
+  const [styleChoice, setStyle] = useState<WorkingStyle | null>(null);
+  const [firstStory, setFirstStory] = useState(false);
   const [templates, setTemplates] = useState<StoryStructureTemplate[]>([]);
   const [loading, setLoading] = useState(false);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
@@ -73,6 +62,7 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
   // A sequel is written as the book before it was; the server carries the format over.
   const format = previous ? formatOf(previous) : formatChoice;
   const templateId = templateChoice ?? previous?.structure_template_id ?? DEFAULT_TEMPLATE[format];
+  const style: WorkingStyle = styleChoice ?? (styleOf(previous) || "discover");
 
   useEffect(() => {
     api.listStructureTemplates().then(setTemplates).catch(console.error);
@@ -115,12 +105,14 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
             scaffold,
             carry: (candidates ?? []).filter((c) => chosen.has(carryKey(c))).map(carryItem),
             series_name: seriesOf ? undefined : seriesName.trim() || undefined,
+            working_style: style,
           })
         : await api.createStory({
             title: title.trim(),
             description,
             structure_template_id: templateId,
             story_format: format,
+            working_style: style,
             scaffold,
           });
       upsertStory(story);
@@ -130,16 +122,7 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
           .catch(() =>
             toast.error("The story was made, but its series could not be: start it from its Lorebook."),
           );
-      if (begin === "first") navigate(`/stories/${story.id}/first-story`);
-      else if (begin === "idea") navigate(`/stories/${story.id}/freewrite`);
-      else if (begin === "plan") navigate(`/stories/${story.id}/plan`);
-      // Straight into the first scene of the new outline, ready to type.
-      else
-        navigate(
-          story.start_node_id
-            ? `/stories/${story.id}/write?node=${story.start_node_id}`
-            : `/stories/${story.id}`,
-        );
+      navigate(landingPath(story.id, styleOf(story) || style, story.start_node_id, offerFirst && firstStory));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "The story could not be made.");
     } finally {
@@ -148,7 +131,8 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
   }
 
   const offered = templatesFor(templates, format);
-  const selectedTemplate = templates.find((t) => t.id === templateId);
+  // The First story guide is written for prose, and for a book of its own.
+  const offerFirst = !previous && format === "prose";
 
   const carrying = previous !== null && step === "carry";
   const footer = (
@@ -168,7 +152,11 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
             ? carrying
               ? "Create the book"
               : "Next: who carries over"
-            : "Create story"}
+            : offerFirst && firstStory
+              ? "Start the guide"
+              : style === "plan"
+                ? "Start planning"
+                : "Start writing"}
       </button>
     </>
   );
@@ -189,9 +177,9 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
       <Modal
         isOpen
         onClose={onClose}
-        title={previous ? `The book after “${previous.title}”` : "New story"}
+        title={previous ? `The book after “${previous.title}”` : "A new story"}
         icon={<BookOpen size={15} />}
-        size="sm"
+        size="md"
         footer={footer}
       >
         <form id="create-story-form" onSubmit={handleSubmit} className={styles.form}>
@@ -205,173 +193,63 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
           ) : (
             <>
               <div className={styles.field}>
-                <label className={styles.label}>Title</label>
+                <label className={styles.question} htmlFor="new-story-title">
+                  What's it called?
+                </label>
                 <input
+                  id="new-story-title"
                   autoFocus
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
                   className={styles.input}
                 />
+                <span className={styles.questionHint}>
+                  A working title is fine. You can change it whenever you like.
+                </span>
               </div>
 
-              <div className={styles.field}>
-                <label className={styles.label}>Description (optional)</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={2}
-                  className={styles.textarea}
+              {!previous && (
+                <WhatYouWrite
+                  format={format}
+                  onChange={(f: StoryFormat) => {
+                    setFormat(f);
+                    setTemplateId(null);
+                  }}
                 />
-              </div>
-
-              {!previous && (
-                <fieldset className={styles.begin}>
-                  <legend className={styles.label}>Written as</legend>
-                  {FORMATS.map((f) => (
-                    <label
-                      key={f.id}
-                      className={`${styles.beginOption} ${format === f.id ? styles.beginChosen : ""}`}
-                    >
-                      <input
-                        type="radio"
-                        name="format"
-                        value={f.id}
-                        checked={format === f.id}
-                        onChange={() => {
-                          setFormat(f.id);
-                          setTemplateId(null);
-                          if (f.id !== "prose" && begin === "first") setBegin("write");
-                        }}
-                      />
-                      <span>
-                        <span className={styles.beginName}>{f.label}</span>
-                        <span className={styles.beginHint}>{f.hint}</span>
-                      </span>
-                    </label>
-                  ))}
-                </fieldset>
               )}
 
-              {sequelCandidates(stories).length > 0 && (
-                <div className={styles.field}>
-                  <label className={styles.label} htmlFor="sequel-of">
-                    A sequel to (optional)
-                  </label>
-                  <select
-                    id="sequel-of"
-                    value={sequelOf}
-                    onChange={(e) => setSequelOf(e.target.value)}
-                    className={styles.select}
-                  >
-                    <option value="">Nothing: a book of its own</option>
-                    {sequelCandidates(stories).map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.title}
-                      </option>
-                    ))}
-                  </select>
-                  {previous && (
-                    <p className={styles.templateHint}>
-                      {seriesOf
-                        ? `The book after “${previous.title}” in ${seriesOf}.`
-                        : `“${previous.title}” and this book become a series.`}{" "}
-                      Its format, genre, tone, point of view and byline carry over; who carries over comes
-                      next.
-                    </p>
-                  )}
-                </div>
-              )}
-              {!previous && (
-                <label className={styles.scaffold}>
-                  <input
-                    type="checkbox"
-                    checked={firstOfSeries}
-                    onChange={(e) => setFirstOfSeries(e.target.checked)}
-                  />
-                  <span>
-                    The first book of a series
-                    <span className={styles.scaffoldHint}>
-                      The series is made with it, ready to plan the books to come on its own page.
-                    </span>
-                  </span>
-                </label>
-              )}
-              {((previous && !seriesOf) || (!previous && firstOfSeries)) && (
-                <div className={styles.field}>
-                  <label className={styles.label} htmlFor="series-name">
-                    The series is called
-                  </label>
-                  <input
-                    id="series-name"
-                    value={seriesName}
-                    onChange={(e) => setSeriesName(e.target.value)}
-                    placeholder={previous?.title ?? (title.trim() || "The Lighthouse Years")}
-                    className={styles.input}
-                  />
-                </div>
-              )}
+              <HowYouWork
+                style={style}
+                onChange={setStyle}
+                offerFirstStory={offerFirst}
+                firstStory={firstStory}
+                onFirstStory={setFirstStory}
+              />
 
-              <div className={styles.field}>
-                <div className={styles.labelRow}>
-                  <label className={styles.label}>Story structure</label>
-                  <button
-                    type="button"
-                    onClick={() => setShowTemplateManager(true)}
-                    className={styles.manageTemplatesBtn}
-                    title="Manage custom templates"
-                  >
-                    <Settings2 size={12} />
-                    Manage
-                  </button>
-                </div>
-                <select
-                  value={templateId}
-                  onChange={(e) => setTemplateId(e.target.value)}
-                  className={styles.select}
-                >
-                  {offered.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                      {!t.is_system ? " (custom)" : ""}
-                    </option>
-                  ))}
-                </select>
-                {selectedTemplate?.description && (
-                  <p className={styles.templateHint}>{selectedTemplate.description}</p>
-                )}
-              </div>
-
-              {!!selectedTemplate?.starter_outline?.length && (
-                <label className={styles.scaffold}>
-                  <input type="checkbox" checked={scaffold} onChange={(e) => setScaffold(e.target.checked)} />
-                  <span>
-                    Start with an outline
-                    <span className={styles.scaffoldHint}>{outlineHint(selectedTemplate)}</span>
-                  </span>
-                </label>
-              )}
-              <fieldset className={styles.begin}>
-                <legend className={styles.label}>How do you want to begin?</legend>
-                {BEGINNINGS.filter((b) => b.id !== "first" || (!previous && format === "prose")).map((b) => (
-                  <label
-                    key={b.id}
-                    className={`${styles.beginOption} ${begin === b.id ? styles.beginChosen : ""}`}
-                  >
-                    <input
-                      type="radio"
-                      name="begin"
-                      value={b.id}
-                      checked={begin === b.id}
-                      onChange={() => setBegin(b.id)}
-                    />
-                    <span>
-                      <span className={styles.beginName}>{b.label}</span>
-                      <span className={styles.beginHint}>{b.hint}</span>
-                    </span>
-                  </label>
-                ))}
-              </fieldset>
+              <NewStoryMore
+                offered={offered}
+                templateId={templateId}
+                onTemplate={setTemplateId}
+                scaffold={scaffold}
+                onScaffold={setScaffold}
+                description={description}
+                onDescription={setDescription}
+                onManage={() => setShowTemplateManager(true)}
+                defaultOpen={!!sequelTo}
+                series={{
+                  candidates: sequelCandidates(stories),
+                  sequelOf,
+                  setSequelOf,
+                  previous,
+                  seriesOf,
+                  firstOfSeries,
+                  setFirstOfSeries,
+                  seriesName,
+                  setSeriesName,
+                  title,
+                }}
+              />
             </>
           )}
         </form>

@@ -63,8 +63,8 @@ export default function SceneWhenField({
         </p>
       )}
       <p className={styles.overviewHint}>
-        The Plan's <Link to={`/stories/${storyId}/plan?view=timeline`}>Timeline</Link> lays scenes out in the
-        order they happen.
+        The Outline's <Link to={`/stories/${storyId}/outline?order=time`}>As it happens</Link> lays scenes out
+        in the order they happen.
       </p>
     </div>
   );

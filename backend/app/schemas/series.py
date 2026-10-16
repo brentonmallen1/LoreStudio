@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from .story import WorkingStyle
+
 
 class SeriesCreate(BaseModel):
     name: str
@@ -126,6 +128,8 @@ class SequelCreate(BaseModel):
     carry: list[CarryItem] = []
     #: For the series a sequel to a standalone book starts; defaults to that book's title.
     series_name: str | None = None
+    #: How the writer likes to work on this book (doc 29 D1); left out, as the book before it.
+    working_style: WorkingStyle | None = None
 
 
 class FieldValueOut(BaseModel):

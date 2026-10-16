@@ -17,11 +17,13 @@ interface Args {
   addNote: (kind: "note" | "todo") => void;
   /** `/image`: the image picker, as ⋯ › Insert image. */
   insertImage: () => void;
+  /** `/split`: the scene split at the cursor (doc 29 D6), as ⋯ › Split the scene here. */
+  splitScene?: () => void;
   /** The practice page (doc 26, P5): no scene, so no notes or images. */
   practice?: boolean;
 }
 
-const NEEDS_A_SCENE = new Set(["note", "todo", "image"]);
+const NEEDS_A_SCENE = new Set(["note", "todo", "image", "split"]);
 
 /**
  * The `/` command picker (lib/editor/slashCommands.ts) and what its commands drive: the
@@ -34,6 +36,7 @@ export function useSlashCommands({
   openDialoguePicker,
   addNote,
   insertImage,
+  splitScene,
   practice,
 }: Args) {
   const [open, setOpen] = useState(false);
@@ -73,6 +76,7 @@ export function useSlashCommands({
       markUsed("image");
     } else if (action.kind === "element") setElement(editor, action.el);
     else if (action.kind === "help") return navigateTo("/guides/typing");
+    else if (action.kind === "split") return splitScene?.();
     else if (action.kind === "together" && toggleDual(editor) === "none")
       toast.info(
         "Put the cursor in a speech that follows another; the two are then spoken at the same time.",

@@ -137,17 +137,10 @@ CASES = [
     ),
     Case(
         "extract-outline",
-        lambda c, w: c.post(f"/api/stories/{w.sid}/outlines/extract-from-prose"),
+        lambda c, w: c.post(f"/api/stories/{w.sid}/tray/from-prose"),
         lambda w: ("story", w.sid),
         "extract-outline",
-        {"items": [], "suggested_name": "From the prose"},
-    ),
-    Case(
-        "outline-alignment",
-        lambda c, w: c.post(f"/api/outlines/{w.outline}/analyze-alignment"),
-        lambda w: ("outline", w.outline),
-        "outline-alignment",
-        {"covered_beats": [], "missing_beats": [], "coverage_score": 50},
+        {"items": []},
     ),
     Case(
         "snowflake-guidance",

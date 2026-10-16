@@ -1,4 +1,4 @@
-"""Undo/redo through the change log: structure, characters, outlines; per-tab isolation; conflicts."""
+"""Undo/redo through the change log: structure, characters, the tray; per-tab isolation; conflicts."""
 
 H1 = {"X-Client-Id": "tab-1"}
 H2 = {"X-Client-Id": "tab-2"}
@@ -151,17 +151,15 @@ def test_character_delete_undo_restores_relationships(client):
     assert len(client.get(f"/api/characters/{a['id']}/relationships").json()) == 1
 
 
-def test_outline_item_undo(client):
+def test_tray_idea_undo(client):
     sid = _story(client)
-    outline = client.post(f"/api/stories/{sid}/outlines", json={"name": "Main"}).json()
-    item = client.post(f"/api/outlines/{outline['id']}/items", json={"text": "Act 1"}, headers=H1).json()
-    client.patch(f"/api/outline-items/{item['id']}", json={"text": "Act One"}, headers=H1)
+    item = client.post(f"/api/stories/{sid}/tray", json={"text": "Act 1"}, headers=H1).json()
+    client.patch(f"/api/tray-items/{item['id']}", json={"text": "Act One"}, headers=H1)
     client.post(f"/api/stories/{sid}/undo", headers=H1)
-    items = client.get(f"/api/outlines/{outline['id']}").json()["items"]
-    assert items[0]["text"] == "Act 1"
-    client.delete(f"/api/outline-items/{item['id']}", headers=H1)
+    assert client.get(f"/api/stories/{sid}/tray").json()[0]["text"] == "Act 1"
+    client.delete(f"/api/tray-items/{item['id']}", headers=H1)
     client.post(f"/api/stories/{sid}/undo", headers=H1)
-    assert len(client.get(f"/api/outlines/{outline['id']}").json()["items"]) == 1
+    assert len(client.get(f"/api/stories/{sid}/tray").json()) == 1
 
 
 def test_story_relationship_todo_location_undo(client):

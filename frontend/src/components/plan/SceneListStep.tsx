@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PenLine, Plus } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
@@ -81,6 +81,24 @@ export default function SceneListStep({ storyId }: { storyId: string }) {
         Add {levelName.toLowerCase()}
       </button>
       {hint && <p className={styles.hint}>{hint}</p>}
+      {scenes.length > 0 && <InOutline storyId={storyId} scenes={scenes} />}
+    </div>
+  );
+}
+
+/** Each line here is a planned scene in the Outline (doc 29 D4): it says so, with the way there. */
+function InOutline({ storyId, scenes }: { storyId: string; scenes: StructureNode[] }) {
+  const planned = scenes.filter((s) => !s.word_count).length;
+  const written = scenes.length - planned;
+  const counts = [
+    planned ? `${planned} planned scene${planned === 1 ? "" : "s"}, no words yet` : "",
+    written ? `${written} with words` : "",
+  ].filter(Boolean);
+  return (
+    <div className={styles.inOutline} role="note">
+      <span className={styles.inOutlineTitle}>In your Outline now</span>
+      <span className={styles.inOutlineCount}>{counts.join(" · ")}</span>
+      <Link to={`/stories/${storyId}/outline`}>Open the Outline</Link>
     </div>
   );
 }

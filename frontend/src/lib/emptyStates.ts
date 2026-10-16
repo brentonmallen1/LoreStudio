@@ -98,15 +98,16 @@ export const EMPTY = {
     },
     guide: { id: "structure", label: "How scenes and chapters work" },
   },
-  storyboard: {
-    title: "Your scenes as cards",
-    what: "Every scene of the book as a card on a board, in reading order.",
-    why: "Seeing the whole book at once shows where it drags and where it rushes, and moving a card moves the scene.",
+  /** The Outline of a writer who finds the story as they write (doc 29 D2). */
+  outlineDiscover: {
+    title: "This fills in as you write",
+    what: "You don't need an outline to start. Each scene you write shows up here as a line, so you can always see the shape of what you have.",
+    why: "Later you can rename lines, move scenes around, and group them into chapters, all from here.",
     example: {
       name: "Knock at the Door",
-      text: ": Eleanor opens the door to find the Visitor standing in the rain.",
+      text: ": A stranger, soaked through, asks for shelter.",
     },
-    guide: { id: "structure", label: "How scenes and chapters work" },
+    guide: { id: "structure", label: "How the Outline works" },
   },
   manuscript: {
     title: "Nothing to read yet",

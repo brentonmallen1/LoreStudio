@@ -17,7 +17,9 @@ export type SlashAction =
   | { kind: "element"; el: ScriptElement }
   | { kind: "together" }
   /** The Typing guide (doc 26). */
-  | { kind: "help" };
+  | { kind: "help" }
+  /** Split the scene at the cursor (doc 29 D6). */
+  | { kind: "split" };
 
 export interface SlashCommandDef {
   name: string;
@@ -109,8 +111,17 @@ const ELEMENT_FASTER: Partial<Record<ScriptElement, (format: StoryFormat) => Hel
   paren: () => "script-paren",
 };
 
+/** Prose only: a script starts a scene at its heading (doc 25). */
+const SPLIT: SlashCommandDef = {
+  name: "split",
+  label: "Split the scene here",
+  description: "The words after the cursor become the next scene",
+  keywords: ["split", "cut", "new scene", "break", "divide", "scene"],
+  action: { kind: "split" },
+};
+
 export function slashCommandsFor(format: StoryFormat): SlashCommandDef[] {
-  if (format === "prose") return [DIALOGUE, { name: "character", ...MENTION }, ...SHARED];
+  if (format === "prose") return [DIALOGUE, { name: "character", ...MENTION }, ...SHARED, SPLIT];
   const elements = ELEMENTS.map(([name, el, keywords, description]) => ({
     name,
     label: elementLabel(el, format),

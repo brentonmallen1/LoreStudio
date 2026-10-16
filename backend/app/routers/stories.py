@@ -2,6 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
 
@@ -11,6 +12,7 @@ from ..models.activity_log import ActivityLog
 from ..models.character import Character, CharacterRelationship
 from ..models.interview import CharacterInterview
 from ..models.plot_thread import PlotThread
+from ..models.scene_take import SceneTake
 from ..models.story import Story
 from ..models.structure import StoryStructureTemplate, StructureNode
 from ..models.user import User
@@ -30,6 +32,7 @@ from ..schemas.structure import ReorderStructurePayload, StructureNodeCreate, St
 from ..services import assistant_results, change_log
 from ..services.codex.mentions import render_mentions, resolve_mentions
 from ..services.color_slots import next_slot
+from ..services.first_line import first_line
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.generation import build_relationship_suggestion_prompt
 from ..services.llm.prompts.snowflake import LAYER_SPECS, build_snowflake_guidance_prompt
@@ -39,7 +42,7 @@ from ..services.story_delete import delete_story as delete_story_and_rows
 from ..services.story_format import TEMPLATE_LENGTHS, is_script, story_format
 from ..services.structure_scaffold import scaffold_story
 from ..services.text_utils import for_model, last_paragraphs
-from ..services.word_count import length_status, story_pages, story_target
+from ..services.word_count import count_lines, count_words, length_status, story_pages, story_target
 
 router = APIRouter()
 
@@ -543,10 +546,19 @@ def get_story_structure(story_id: str, db: Session = Depends(get_db), current_us
     )
     # Python attribute names for all column properties (handles metadata_ → "metadata" DB column)
     col_attrs = [prop.key for prop in sa_inspect(StructureNode).mapper.column_attrs]
+    takes = dict(
+        db.query(SceneTake.node_id, func.count(SceneTake.id))
+        .join(StructureNode, StructureNode.id == SceneTake.node_id)
+        .filter(StructureNode.story_id == story_id)
+        .group_by(SceneTake.node_id)
+        .all()
+    )
     # Build flat dict map, then assemble into tree
     node_dicts: dict[str, dict] = {}
     for node in all_nodes:
         d = {attr: getattr(node, attr) for attr in col_attrs}
+        d["first_line"] = first_line(node.content) if node.content and not (node.synopsis or "").strip() else ""
+        d["take_count"] = takes.get(node.id) or 1
         d["children"] = []
         node_dicts[d["id"]] = d
     roots = []
@@ -577,7 +589,17 @@ def create_structure_node(
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
-    node = StructureNode(story_id=story_id, **body.model_dump())
+    if body.insert:
+        siblings = db.query(StructureNode).filter(
+            StructureNode.story_id == story_id,
+            StructureNode.parent_id.is_(None) if body.parent_id is None else StructureNode.parent_id == body.parent_id,
+            StructureNode.position >= body.position,
+        )
+        for sibling in siblings:
+            sibling.position += 1
+    node = StructureNode(story_id=story_id, **body.model_dump(exclude={"insert"}))
+    # A scene made with words (Freewrite's Start a scene, doc 29 D9) counts them.
+    node.word_count, node.line_count = count_words(node.content), count_lines(story, node.content)
     db.add(node)
     db.flush()
     change_log.record(
@@ -664,6 +686,8 @@ def reorder_structure(
                 else:
                     node.level = 0
             node.position = op.position
+            if op.level_type:
+                node.level_type = op.level_type
     db.flush()
     after = change_log.reorder_snapshot(StructureNode, ids, db)
     if before != after:

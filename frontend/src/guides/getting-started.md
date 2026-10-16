@@ -15,9 +15,15 @@ Studio adds the **Assistant** and the other AI tools. They answer questions and 
 
 ## Your first session
 
-1. Choose **New story** on your stories page (logo menu › **All stories**). Give it a title and pick a **Story structure**: **Three-Act Structure** gives you acts, chapters and scenes; **Freeform** gives you sections and scenes.
-2. Under **How do you want to begin?**, choose one. New to writing a long story? The **First story guide** walks you from an idea in a sentence to your first scene in seven short steps; it stays in the logo menu with how far you have got, so you can come back to any step. **Just write** opens the first scene.
-3. Write. The light at the bottom right turns green a moment after you pause: your words are saved. Type `/` in the text for its commands: `/dialogue` for a line someone says, `/note` and `/todo` for the margin, `/image`, `/character` and `/place` to name someone or somewhere from the Lorebook.
+1. Choose **New story** on your stories page (logo menu › **All stories**). Say what it's called and what you are writing: a novel or story, a screenplay or a stage play.
+2. Under **How do you like to work?**, choose one. There is no right answer, and every tool stays available whichever you choose:
+   - **I like to plan first** opens the **Outline**, where you jot down what happens, a line for each scene, before you write.
+   - **I find the story as I write** opens the first scene on a blank page. As you write, the Overview's **What you've written** keeps your scenes in a line each, who and where your prose names, and offers to tidy up when you're ready.
+   - **A bit of both, or not sure yet** opens the story's **Overview**.
+
+   New to writing a long story? **First story?**, under the three, offers the **First story guide**: seven short steps from an idea in a sentence to your first scene. It stays in the logo menu with how far you have got, so you can come back to any step. **More options** holds a shape for the story's big parts (**Freeform** is fine), and whether it is part of a series. You can change how you like to work later in **Lorebook › Story identity**.
+
+3. Write. The light at the bottom right turns green a moment after you pause: your words are saved. Type `/` in the text for its commands: `/dialogue` for a line someone says, `/note` and `/todo` for the margin, `/image`, `/character` and `/place` to name someone or somewhere from the Lorebook, and `/split` to start a new scene at the cursor.
 4. Open **This scene** in the side panel to see the scene at a glance. Choose **Scene sheet** there to fill in what happens, who is there and why the scene matters.
 5. Add your next chapter or scene from the strip: press {{key:cycleStrip}} to widen it, then use **+**.
 
@@ -34,7 +40,7 @@ Already have a draft? **Import** on your stories page brings it in. See [Import 
 - **Side panel** (on the right): a rail of buttons for **This scene**, **Characters**, **Places**, **Threads**, **Notes**, **Freewrite** and **Dialogue**. Choose the one already showing to fold the panel away. {{key:togglePanel}} shows or hides it. The first time, each button wears its name; point at one, or reach it with Tab, to see it again, or choose **Show what the side panel's buttons do** in the palette.
 - **Tabs** in the side panel: whatever you opened beside your prose, such as a character or a place. Choose **Open beside the prose** on any page's ⋯ menu to keep that page in a tab while you write.
 - **Status corner** (bottom right): the save light (green saved, yellow saving, red offline or a conflict) and the scene's word count. Click it for the chapter, the book, today and your goal.
-- **The scene's ⋯ menu**: type and width, notes in the margin, a writing sprint, images and the scene's tools.
+- **The scene's ⋯ menu**: type and width, notes in the margin, a writing sprint, images and the scene's tools, among them **Try another version**, which keeps the scene as it is and gives you a copy, a second **take**, to change (see [Structure](/guides/structure)).
 
 <!-- studio -->
 

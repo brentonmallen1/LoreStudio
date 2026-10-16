@@ -18,6 +18,7 @@ from ..models.story import Story
 from ..models.structure import StoryStructureTemplate, StructureNode
 from . import change_log
 from .script_scene import _NOTE_ID
+from .structure_scaffold import FLAT
 
 
 def template_levels(story: Story | None, db: Session) -> list[dict]:
@@ -26,8 +27,11 @@ def template_levels(story: Story | None, db: Session) -> list[dict]:
     return list(template.levels) if template else []
 
 
-def holders(nodes: list[StructureNode], levels: list[dict]) -> list[StructureNode]:
-    """The nodes above the deepest level that hold words of their own."""
+def holders(nodes: list[StructureNode], levels: list[dict], *, flat: bool = False) -> list[StructureNode]:
+    """The nodes above the deepest level that hold words of their own. A flat shape (Single
+    MICE) has its levels side by side, each a kind of scene: nothing there is above a scene."""
+    if flat:
+        return []
     deepest = len(levels) - 1
     return [n for n in nodes if n.level < deepest and (n.word_count or 0) > 0]
 
@@ -105,7 +109,7 @@ def give_scenes(db: Session, story: Story, *, actor_id: str | None, client_id: s
     """Every holder in the story given its scene, as one change. Does not commit."""
     levels = template_levels(story, db)
     nodes = db.query(StructureNode).filter(StructureNode.story_id == story.id).all()
-    found = holders(nodes, levels)
+    found = holders(nodes, levels, flat=story.structure_template_id in FLAT)
     batch = str(uuid.uuid4())
     label = f"Give the prose in {len(found)} {'chapter' if len(found) == 1 else 'chapters'} scenes of their own"
     return [give_scene(db, n, levels, actor_id=actor_id, client_id=client_id, batch=batch, label=label) for n in found]

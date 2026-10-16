@@ -7,6 +7,7 @@ import SceneThreadBadges from "../threads/SceneThreadBadges";
 import { getSegmentIcon, segmentColor } from "./segmentMeta";
 import { useUIStore } from "../../stores/uiStore";
 import EditorMoreMenu from "./EditorMoreMenu";
+import TakeSwitcher from "./takes/TakeSwitcher";
 import PopoverMenu from "../common/PopoverMenu";
 import type { NotesView } from "../../lib/notes/view";
 import { toast } from "../../stores/toastStore";
@@ -192,6 +193,7 @@ export default function EditorTopbar(p: Props) {
           </div>
         )}
       </div>
+      <TakeSwitcher />
       <div className={styles.metaGroup}>
         <EditorMoreMenu
           wordCount={p.wordCount}

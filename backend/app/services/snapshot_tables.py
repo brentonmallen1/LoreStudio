@@ -43,6 +43,7 @@ _DELTA_ENTITY_KEYS = [
     "dialogue_blocks",
     "compendium_attachments",
     "character_journey_summaries",
+    "scene_takes",
 ]
 
 #: Every table that carries a ``story_id`` column, mapped to the key it is
@@ -97,6 +98,8 @@ SNAPSHOT_INDIRECT_TABLES: dict[str, str] = {
     "asset_attachments": "asset_attachments",
     "compendium_attachments": "compendium_attachments",
     "dialogue_blocks": "dialogue_blocks",
+    # A scene's other takes (doc 29 D7), under its scene.
+    "scene_takes": "scene_takes",
     "chat_messages": "chat_sessions",  # nested inside each session
 }
 

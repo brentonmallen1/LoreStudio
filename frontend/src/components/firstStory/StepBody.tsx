@@ -389,8 +389,8 @@ function Tour({ storyId, progress, onBack }: Props) {
     {
       done: !!progress.sceneIds?.length,
       what: "Your scenes",
-      where: "The strip down the left, and the Plan page",
-      to: `/stories/${storyId}/plan`,
+      where: "The strip down the left, and the Outline",
+      to: `/stories/${storyId}/outline`,
     },
   ];
   return (

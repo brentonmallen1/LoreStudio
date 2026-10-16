@@ -23,7 +23,7 @@ const ABOUT: About = {
     [
       "How to read it",
       [
-        "Every answer is optional, and an empty one is only a word in the Add row. Plan › The essentials asks the same questions of each main character, and the character interview speaks from these answers.",
+        "Every answer is optional, and an empty one is only a word in the Add row. Plan with questions › Four questions asks the same questions of each main character, and the character interview speaks from these answers.",
       ],
     ],
   ],

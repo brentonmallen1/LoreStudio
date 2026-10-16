@@ -7,6 +7,8 @@ class ReorderOperation(BaseModel):
     node_id: str
     parent_id: str | None
     position: int
+    #: The level's name when the row moves a level (the Outline's Tab and Shift+Tab, doc 29 D2).
+    level_type: str | None = None
 
 
 class ReorderStructurePayload(BaseModel):
@@ -24,6 +26,9 @@ class StructureNodeCreate(BaseModel):
     status: str = "draft"
     purpose: str = ""
     beat_id: str | None = None
+    #: Make room at `position`: the siblings from there on move down one (the Outline's Enter
+    #: adds a line in the middle, doc 29 D2). Left off, the node goes where it is told.
+    insert: bool = False
 
 
 class StructureNodeUpdate(BaseModel):
@@ -84,6 +89,8 @@ class StructureNodeOut(BaseModel):
     metadata_: dict = {}
     created_at: datetime
     updated_at: datetime
+    #: How many takes the scene has (doc 29 D7); 1 until "Try another version".
+    take_count: int = 1
     children: list["StructureNodeOut"] = []
 
     model_config = {"from_attributes": True}
@@ -119,6 +126,10 @@ class StructureNodeMeta(BaseModel):
     metadata_: dict = {}
     created_at: datetime
     updated_at: datetime
+    #: A scene with words and no line of what happens: its first sentence (doc 29 D6).
+    first_line: str = ""
+    #: How many takes the scene has (doc 29 D7); 1 until "Try another version".
+    take_count: int = 1
     children: list["StructureNodeMeta"] = []
 
     model_config = {"from_attributes": True}

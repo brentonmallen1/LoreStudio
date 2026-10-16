@@ -3,7 +3,6 @@ import {
   BookOpenText,
   FileText,
   Footprints,
-  LayoutGrid,
   ListTree,
   MapIcon,
   NotebookPen,
@@ -14,7 +13,7 @@ import type { StoryRoute } from "../routes";
 
 const BOTH: UIMode[] = ["writer", "studio"];
 
-/** The Write group of the logo menu: the overview, the prose and the ways to plan and see it. Part of `STORY_ROUTES` (lib/routes.ts). */
+/** The Write group of the logo menu: the overview, the prose and the ways to plan and see it, in the order of B-Wayfinding (doc 29 D8). Part of `STORY_ROUTES` (lib/routes.ts). */
 export const WRITE_ROUTES: StoryRoute[] = [
   {
     id: "overview",
@@ -25,7 +24,7 @@ export const WRITE_ROUTES: StoryRoute[] = [
     icon: Book,
     domain: "home",
     modes: BOTH,
-    keywords: ["home", "dashboard", "summary"],
+    keywords: ["home", "dashboard", "summary", "what you've written", "what have i written"],
   },
   {
     id: "write",
@@ -38,7 +37,8 @@ export const WRITE_ROUTES: StoryRoute[] = [
     modes: BOTH,
     keywords: ["editor", "scene", "manuscript", "prose"],
   },
-  // The acts, chapters and scenes to add, rename and reorder: the strip, opened out on Write.
+  // What happens, part by part (doc 29 D2): the outliner over the acts, chapters and scenes,
+  // as a List or as Cards (once the Storyboard, whose address now opens Cards).
   {
     id: "outline",
     path: "/outline",
@@ -48,53 +48,47 @@ export const WRITE_ROUTES: StoryRoute[] = [
     icon: ListTree,
     domain: "manuscript",
     modes: BOTH,
+    keywords: [
+      "outliner",
+      "plan",
+      "acts",
+      "chapters",
+      "scenes",
+      "what happens",
+      "synopsis",
+      "planned scenes",
+      "not placed yet",
+      "tray",
+      "ideas",
+      "beat board",
+      "beat boards",
+    ],
   },
+  // Guided questions that fill the Outline (doc 29 D4): the ways in, in plain words. The beat
+  // boards it once held are the Outline's tray; its Timeline, the Outline as it happens.
   {
     id: "plan",
     path: "/plan",
-    label: "Plan",
+    label: "Plan with questions",
     purpose: "Guided questions that fill your Outline",
     guide: "planning",
     icon: MapIcon,
     domain: "manuscript",
     modes: BOTH,
-    keywords: ["beats", "snowflake", "synopsis", "logline", "method", "scene list", "beat board"],
-  },
-  {
-    // The book as cards on a board (doc 24 D12): a page of its own, no longer a view of Write.
-    id: "storyboard",
-    path: "/storyboard",
-    label: "Storyboard",
-    purpose: "Your scenes as cards you can move around",
-    guide: "structure",
-    icon: LayoutGrid,
-    domain: "manuscript",
-    modes: BOTH,
-    keywords: ["board", "cards", "index cards", "corkboard", "canvas", "scene cards", "view"],
-  },
-  {
-    // Every scene's summary down one page, written or drafted by the Assistant (doc 24 D12).
-    id: "summaries",
-    path: "/summaries",
-    label: "Summaries",
-    purpose: "Each scene in a few lines, to see the story at a glance",
-    guide: "structure",
-    icon: FileText,
-    domain: "manuscript",
-    modes: BOTH,
-    keywords: ["scene summaries", "synopsis", "recap", "what happens", "view"],
-  },
-  {
-    // The book read straight through, and exported from there (doc 24 D12).
-    id: "manuscript",
-    path: "/manuscript",
-    label: "Manuscript",
-    purpose: "The whole story as one document, to read through or export",
-    guide: "import-and-export",
-    icon: BookOpenText,
-    domain: "manuscript",
-    modes: BOTH,
-    keywords: ["read through", "read it through", "whole book", "full text", "export", "print", "view"],
+    keywords: [
+      "plan",
+      "guided planning",
+      "questions",
+      "four questions",
+      "the essentials",
+      "snowflake",
+      "mice",
+      "method",
+      "logline",
+      "scene list",
+      "classic pattern",
+      "beat sheet",
+    ],
   },
   {
     // Loose writing, a heading for each day; words made into notes and characters (doc 15 N3).
@@ -129,5 +123,29 @@ export const WRITE_ROUTES: StoryRoute[] = [
       "onboarding",
       "start here",
     ],
+  },
+  {
+    // Every scene's summary down one page, written or drafted by the Assistant (doc 24 D12).
+    id: "summaries",
+    path: "/summaries",
+    label: "Summaries",
+    purpose: "Each scene in a few lines, to see the story at a glance",
+    guide: "structure",
+    icon: FileText,
+    domain: "manuscript",
+    modes: BOTH,
+    keywords: ["scene summaries", "synopsis", "recap", "what happens", "view"],
+  },
+  {
+    // The book read straight through, and exported from there (doc 24 D12).
+    id: "manuscript",
+    path: "/manuscript",
+    label: "Manuscript",
+    purpose: "The whole story as one document, to read through or export",
+    guide: "import-and-export",
+    icon: BookOpenText,
+    domain: "manuscript",
+    modes: BOTH,
+    keywords: ["read through", "read it through", "whole book", "full text", "export", "print", "view"],
   },
 ];

@@ -63,6 +63,8 @@ export const STORY_REDIRECTS: Record<string, string> = {
   "/lorebook/threads": "/promises/threads",
   "/proposals": "/discoveries",
   "/lorebook/twists": "/promises/twists",
+  // The Storyboard is the Outline's Cards (doc 29 D2).
+  "/storyboard": "/outline?view=cards",
 };
 
 export const DOMAIN_LABELS: Record<Domain, string> = {

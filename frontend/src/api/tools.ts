@@ -59,6 +59,8 @@ export const toolsApi = {
       dry_run: boolean;
       changed_chars: number;
       scenes: { node_id: string; title: string; changed: number }[];
+      /** Every scene rewritten, its other takes included (doc 29 D7). */
+      node_ids: string[];
     }>(`/stories/${storyId}/quotes/normalize`, { method: "POST", body: JSON.stringify(body) }),
 };
 

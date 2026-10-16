@@ -28,6 +28,7 @@ import "./planning";
 import "./script";
 import "./panel";
 import "./strip";
+import "./outline";
 import "./findings";
 import "./numbers";
 import "./sessions";
@@ -35,6 +36,7 @@ import "./appearance";
 import "./series";
 import "./jobs";
 import "./prose";
+import "./organize";
 import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
 import { toolsApi } from "../../api/tools";
 import { STORY_ROUTES, sectionModes, sectionPath, storyPath } from "../routes";
@@ -72,7 +74,7 @@ for (const style of ["curly", "straight"] as const) {
       )
         return;
       const done = await toolsApi.normalizeQuotes(story.id, { style });
-      announceScenesRewritten(done.scenes.map((scene) => scene.node_id));
+      announceScenesRewritten(done.node_ids);
     },
   });
 }

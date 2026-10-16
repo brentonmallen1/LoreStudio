@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from ...models.character import Character, CharacterRelationship
 from ...models.discovered_element import DiscoveredElement
 from ...models.location import Location
+from ...models.proposal_decline import ProposalDecline
 from ...models.reader_knowledge import ReaderKnowledgeEvent
 from ...models.structure import StructureNode
 from ...schemas.proposals import Proposal, ProposalAction, ProposalKind
@@ -166,8 +167,11 @@ def scanned_names(story_id: str, db: Session, titles: dict[str, str]) -> list[Pr
     }
     known |= {d.name for d in db.query(DiscoveredElement).filter(DiscoveredElement.story_id == story_id)}
     known_words = {w for name in known for w in _words(name)}
+    # "Marlowe’s" (a café) makes "Marlowe" known: the scan reads the possessive as a name.
+    known_words |= {_POSSESSIVE.sub("", w) for w in known_words}
     lowercase = _lowercase_words(story_id, db)
-    out = []
+    out: list[Proposal] = []
+    times: dict[str, int] = {}
     found: tuple[tuple[str, ProposalKind, str], ...] = (
         ("character_suggestions", "person", "Add as a character"),
         ("location_suggestions", "place", "Add to Places"),
@@ -196,13 +200,63 @@ def scanned_names(story_id: str, db: Session, titles: dict[str, str]) -> list[Pr
                     node_id=scenes[0] if scenes else None,
                     where=", ".join(s.get("scene_titles") or [])[:120],
                     actions=[ProposalAction(id="add", label=verb, primary=True)],
+                    decline="Not a person" if kind == "person" else "Not a place",
                     created_at=run.created_at,
                 )
             )
+            times[out[-1].id] = n
+    declined = {
+        f
+        for (f,) in db.query(ProposalDecline.fingerprint).filter(
+            ProposalDecline.story_id == story_id, ProposalDecline.fingerprint.startswith("name:")
+        )
+    }
+    return one_per_name([p for p in out if p.id not in declined], times)
+
+
+#: A name the scan read as a person and as a place, asked once (doc 29 D6).
+EITHER = (ProposalAction(id="person", label="Add as a person"), ProposalAction(id="place", label="Add as a place"))
+
+
+def one_per_name(found: list[Proposal], times: dict[str, int]) -> list[Proposal]:
+    """One proposal for each name. The scan can read one name as a person and as a place
+    ("Delia"); it is asked once, as whichever the scan read it as more often (a person on a
+    tie), with both yeses and a "Neither" that declines both (`name_keys`)."""
+    by_name: dict[str, list[Proposal]] = {}
+    for p in found:
+        by_name.setdefault(p.subject.casefold(), []).append(p)
+    out = []
+    for same in by_name.values():
+        if len(same) == 1:
+            out.append(same[0])
+            continue
+        best = max(same, key=lambda p: (times.get(p.id, 0), p.kind == "person"))
+        out.append(
+            best.model_copy(
+                update={
+                    "text": f"{best.subject}, named {_times(times.get(best.id, 1))}: a person or a place?",
+                    "actions": [a.model_copy(update={"primary": a.id == best.kind}) for a in EITHER],
+                    "decline": "Neither",
+                }
+            )
+        )
     return out
 
 
+def _times(n: int) -> str:
+    return "once" if n == 1 else f"{n} times"
+
+
+def name_keys(p: Proposal) -> list[str]:
+    """What a "no" to a scanned name declines: the name as asked, and as the other kind too when
+    it was asked as either."""
+    if len(p.actions) < 2:
+        return [p.id]
+    return [name_key("person", p.subject), name_key("place", p.subject)]
+
+
 _WORD = re.compile(r"[^\W\d_][\w'’]*")
+_POSSESSIVE = re.compile(r"['’]s$")
 _LOWER = re.compile(r"(?<![\w'’])[a-z][a-z'’]+")
 
 

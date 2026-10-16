@@ -31,6 +31,7 @@ from .plot_thread import PlotThread, PlotThreadAppearance
 from .proposal_decline import ProposalDecline
 from .reader_knowledge import ReaderKnowledgeEvent
 from .scene_link import SceneLink
+from .scene_take import SceneTake
 from .series import Series, SeriesElement, SeriesElementMember, SeriesSceneLink, SeriesStory
 from .setting import Setting
 from .snapshot import StoryBackupSettings, StorySnapshot, UserBackupDefaults
@@ -94,6 +95,7 @@ __all__ = [
     "PlotThread",
     "PlotThreadAppearance",
     "SceneLink",
+    "SceneTake",
     "BeatSheet",
     "PanelInterview",
     "DiscoveredElement",

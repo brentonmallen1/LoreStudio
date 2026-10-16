@@ -53,14 +53,12 @@ SKIP_FILES = ("backend/app/services/seed.py",)
 #: it comes under budget. Never raise one.
 OVER_BUDGET: dict[str, int] = {
     "backend/app/routers/analysis.py": 1446,
-    "frontend/src/types/index.ts": 1449,
-    "frontend/src/api/client.ts": 1085,
+    "frontend/src/types/index.ts": 1428,
+    "frontend/src/api/client.ts": 1038,
     "backend/app/services/llm/prompts/analysis.py": 1127,
     "backend/app/services/import_service.py": 832,
     "frontend/src/components/layout/CommandPalette.tsx": 587,
-    "frontend/src/components/outline/OutlineManager.tsx": 675,
-    "frontend/src/components/characters/RelationshipGraph.tsx": 626,
-    "frontend/src/components/story/StoryboardView.tsx": 514,
+    "frontend/src/components/characters/RelationshipGraph.tsx": 624,
 }
 
 _PY_NON_CODE_TOKENS = frozenset(

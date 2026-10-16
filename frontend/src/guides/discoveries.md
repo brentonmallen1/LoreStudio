@@ -10,7 +10,7 @@ Nothing here changes your story until you say yes. The chips along the top, such
 
 ## What turns up here
 
-- **Someone new** and **Somewhere new**: a name your prose uses that the Lorebook does not have, with how often it is named and where. **Add as a character** or **Add to Places** makes the entry. A place that is named but not yet filled in also offers **Same as…**, to fold it into a place you already have, and **Not a place**.
+- **Someone new** and **Somewhere new**: a name your prose uses that the Lorebook does not have, with how often it is named and where. **Add as a character** or **Add to Places** makes the entry. **Not a person** or **Not a place** keeps the name from asking again. The newest of them wait on the Overview too, under **What you've written**, with the same yes and no. A place that is named but not yet filled in also offers **Same as…**, to fold it into a place you already have, and **Not a place**.
 - **Lines with no speaker**: lines of dialogue nobody can tell the speaker of, one row per scene. **Tag them** opens the scene's lines so you can say who speaks each; **Leave them** sets them aside.
 - **From an import**: what an import brought that had no clear home. See below.
 - **From the series**: in a book of a series, someone or somewhere the series shares who is named here but not yet in this book (**Add from the series**), or an entry of this book's with the same name as one of the series' (**The same one**).

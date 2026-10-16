@@ -46,7 +46,7 @@ It is not a medical record: there is no severity scale or symptom list.
 
 **Overview** opens on **The three questions**, from Debra Dixon: what do they want, why, and what stands in the way? Many writers add a fourth: what if they don't get it? A want, a reason and an obstacle give a character something to do in every scene.
 
-**Needs** and **Believes** (the lie the story tests) follow. Plan › **The essentials** asks the same questions of your main characters.
+**Needs** and **Believes** (the lie the story tests) follow. Plan with questions › **Four questions** asks the same questions of your main characters.
 
 ## In the scene
 

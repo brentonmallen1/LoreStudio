@@ -157,6 +157,7 @@ def test_delete_story_leaves_no_orphans(client, db_session, test_user):
         "character_journey_summaries",
         "plot_thread_appearances",
         "character_interviews",
+        "scene_takes",
     ):
         assert db_session.execute(text(f"SELECT count(*) FROM {t}")).scalar() == 0, t
 

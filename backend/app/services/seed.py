@@ -33,6 +33,7 @@ from .first_run import new_account_settings
 from .seed_chronicle import seed_lighthouse_answer, seed_lighthouse_chronicle
 from .seed_jobs import seed_lighthouse_jobs
 from .seed_numbers import seed_lighthouse_numbers
+from .seed_takes import seed_knock_takes
 from .seed_who import seed_audition_who, seed_lighthouse_who
 from .word_count import recount_story
 
@@ -214,260 +215,294 @@ def seed_structure_templates():
 
 
 BEAT_SHEETS: list[dict[str, Any]] = [
+    # The classic patterns (doc 29 D5), by their plain names, each with a line a writer with no
+    # craft training can read. Every moment says in plain words what happens there, and a
+    # jargon name ("Catalyst", "B story", "Pinch point") says what it means. The name a writer
+    # may have met a pattern by is the frontend's small print (lib/patterns.ts).
     {
         "id": "save-the-cat",
         "name": "Save the Cat",
-        "description": "Blake Snyder's 15-beat structure for screenplays and novels. Emphasizes an emotional journey with a clear midpoint transformation.",
+        "description": "15 moments, from an opening image to a final one. Detailed; popular for screenplays and page-turners.",
         "beats": [
             {
                 "id": "opening-image",
-                "name": "Opening Image",
+                "name": "Opening image",
                 "position_pct": 1,
-                "description": "A visual that represents the struggle and tone of the story. The opposite of the final image.",
+                "description": "A first picture of the main character's world, and what's wrong in it, before anything changes. The final image will answer it.",
             },
             {
                 "id": "theme-stated",
-                "name": "Theme Stated",
+                "name": "Theme stated",
                 "position_pct": 5,
-                "description": "The theme of the movie is stated, usually in a question or statement by a character other than the main character.",
+                "description": "Someone, usually not the main character, says out loud what the story is really about. The main character doesn't see it yet.",
             },
             {
                 "id": "set-up",
-                "name": "Set-Up",
+                "name": "Set-up",
                 "position_pct": 8,
-                "description": "Introduce the protagonist, their world, their flaws, and what needs to change.",
+                "description": "The main character's everyday life: who they are, what they lack, and what will have to change.",
             },
             {
                 "id": "catalyst",
                 "name": "Catalyst",
                 "position_pct": 12,
-                "description": "The inciting incident — the life-changing event that kicks the story into motion.",
+                "description": "The event that knocks the main character's life off course: news, a meeting, a knock at the door. Nothing can go back to how it was. Also called the inciting incident.",
             },
             {
                 "id": "debate",
                 "name": "Debate",
                 "position_pct": 18,
-                "description": "The protagonist debates whether to engage with the new world. A question is posed.",
+                "description": "The main character hesitates. Should they go? Can they? It's their last chance to say no.",
             },
             {
                 "id": "break-into-two",
-                "name": "Break into Two",
+                "name": "Break into two",
                 "position_pct": 25,
-                "description": "The protagonist makes a clear choice and enters Act Two — a new world with new rules.",
+                "description": "The main character decides, and steps into a new situation with new rules. The story's middle, its second act, begins.",
             },
             {
                 "id": "b-story",
-                "name": "B Story",
+                "name": "B story",
                 "position_pct": 30,
-                "description": "A secondary story begins, often involving a love interest or mentor who carries the theme.",
+                "description": "A second story starts beside the main one, often a friendship or a love, and it carries what the story is about. The B means second.",
             },
             {
                 "id": "fun-and-games",
-                "name": "Fun & Games",
+                "name": "Fun and games",
                 "position_pct": 40,
-                "description": "The promise of the premise — the most entertaining part of the story.",
+                "description": "The heart of the idea: what the reader came for, as the main character finds their way in the new situation.",
             },
             {
                 "id": "midpoint",
                 "name": "Midpoint",
                 "position_pct": 50,
-                "description": "A false victory or false defeat. Stakes are raised; the protagonist is changed.",
+                "description": "Something shifts. It looks like a win or a loss, but it isn't the end: the stakes go up, and the main character stops reacting and starts acting.",
             },
             {
                 "id": "bad-guys-close-in",
-                "name": "Bad Guys Close In",
+                "name": "Bad guys close in",
                 "position_pct": 62,
-                "description": "The antagonistic forces regroup and close in on the protagonist.",
+                "description": "Pressure builds from outside and doubt from inside. Whatever stands in the way regroups, and things start to come apart. The bad guys needn't be people.",
             },
             {
                 "id": "all-is-lost",
-                "name": "All Is Lost",
+                "name": "All is lost",
                 "position_pct": 75,
-                "description": "The lowest point — the protagonist loses everything they have gained.",
+                "description": "The lowest point. The main character loses what they wanted, or someone they need. Often something, or someone, ends here.",
             },
             {
                 "id": "dark-night",
-                "name": "Dark Night of the Soul",
+                "name": "Dark night of the soul",
                 "position_pct": 80,
-                "description": "The protagonist wallows in despair before finding the answer within themselves.",
+                "description": "The main character sits with the loss. It's quiet and grim, and it's where they begin to see what they've been missing.",
             },
             {
                 "id": "break-into-three",
-                "name": "Break into Three",
+                "name": "Break into three",
                 "position_pct": 85,
-                "description": "The protagonist synthesizes A and B stories and discovers a new way forward.",
+                "description": "An answer comes, often from the B story. The main character knows what to do, and the last part of the story, its third act, begins.",
             },
             {
                 "id": "finale",
                 "name": "Finale",
                 "position_pct": 90,
-                "description": "The protagonist storms the castle and defeats the antagonist using what they've learned.",
+                "description": "The main character acts on what they've learned and faces the problem head on, changed.",
             },
             {
                 "id": "final-image",
-                "name": "Final Image",
+                "name": "Final image",
                 "position_pct": 99,
-                "description": "The opposite of the opening image, proving that change has occurred.",
+                "description": "A last picture of the main character's world that mirrors the opening image and shows how much has changed.",
             },
         ],
     },
     {
         "id": "story-circle",
-        "name": "Story Circle (Dan Harmon)",
-        "description": "Dan Harmon's 8-step circle based on the Hero's Journey. Emphasizes a cyclical journey of need, transformation, and return.",
+        "name": "The story circle",
+        "description": "8 steps: someone wants something, goes after it, gets it, pays for it, and comes back changed.",
         "beats": [
-            {"id": "you", "name": "You", "position_pct": 0, "description": "A character is in a zone of comfort."},
-            {"id": "need", "name": "Need", "position_pct": 12.5, "description": "But they want something."},
-            {"id": "go", "name": "Go", "position_pct": 25, "description": "They enter an unfamiliar situation."},
-            {"id": "search", "name": "Search", "position_pct": 37.5, "description": "Adapt to it."},
-            {"id": "find", "name": "Find", "position_pct": 50, "description": "Get what they wanted."},
-            {"id": "take", "name": "Take", "position_pct": 62.5, "description": "Pay a heavy price for it."},
+            {
+                "id": "you",
+                "name": "You",
+                "position_pct": 0,
+                "description": "Someone in a world they know, comfortable in it, or at least used to it.",
+            },
+            {
+                "id": "need",
+                "name": "Need",
+                "position_pct": 12.5,
+                "description": "They want something, or something is missing.",
+            },
+            {
+                "id": "go",
+                "name": "Go",
+                "position_pct": 25,
+                "description": "They cross into a situation they don't know.",
+            },
+            {
+                "id": "search",
+                "name": "Search",
+                "position_pct": 37.5,
+                "description": "They find their way in it: they try things, adapt and struggle.",
+            },
+            {"id": "find", "name": "Find", "position_pct": 50, "description": "They get what they wanted."},
+            {
+                "id": "take",
+                "name": "Take",
+                "position_pct": 62.5,
+                "description": "It costs them, sometimes more than it was worth.",
+            },
             {
                 "id": "return",
                 "name": "Return",
                 "position_pct": 75,
-                "description": "Return to their familiar situation.",
+                "description": "They go back to the world they knew.",
             },
-            {"id": "change", "name": "Change", "position_pct": 87.5, "description": "Having changed."},
+            {
+                "id": "change",
+                "name": "Change",
+                "position_pct": 87.5,
+                "description": "They have changed, and so has the way they see that world.",
+            },
         ],
     },
     {
         "id": "heros-journey",
-        "name": "Hero's Journey (Campbell / Vogler)",
-        "description": "Joseph Campbell's monomyth as adapted by Christopher Vogler. A 12-stage universal story pattern.",
+        "name": "The hero's journey",
+        "description": "12 stages of leaving home, being tested and returning. Suits quests and coming-of-age stories.",
         "beats": [
             {
                 "id": "ordinary-world",
-                "name": "Ordinary World",
+                "name": "Ordinary world",
                 "position_pct": 0,
-                "description": "The hero's normal world before the story begins.",
+                "description": "The main character at home, in the life they know, before anything happens.",
             },
             {
                 "id": "call-to-adventure",
-                "name": "Call to Adventure",
+                "name": "Call to adventure",
                 "position_pct": 8,
-                "description": "The hero is presented with a problem, challenge, or adventure.",
+                "description": "A problem, a challenge or an invitation arrives that could take them away from home.",
             },
             {
                 "id": "refusal",
-                "name": "Refusal of the Call",
+                "name": "Refusal of the call",
                 "position_pct": 12,
-                "description": "The hero initially refuses the call due to fear or reluctance.",
+                "description": "They hold back, out of fear, duty or doubt.",
             },
             {
                 "id": "meeting-mentor",
-                "name": "Meeting the Mentor",
+                "name": "Meeting the mentor",
                 "position_pct": 17,
-                "description": "The hero meets a mentor who gives advice, training, or a magical gift.",
+                "description": "Someone wiser gives them advice, training or something they'll need. A mentor is a guide.",
             },
             {
                 "id": "crossing-threshold",
-                "name": "Crossing the Threshold",
+                "name": "Crossing the threshold",
                 "position_pct": 25,
-                "description": "The hero commits to the adventure and enters a special world.",
+                "description": "They commit, and leave the world they know for one they don't. A threshold is a doorway.",
             },
             {
                 "id": "tests",
-                "name": "Tests, Allies, Enemies",
+                "name": "Tests, allies, enemies",
                 "position_pct": 35,
-                "description": "The hero faces tests, makes allies, and confronts enemies.",
+                "description": "In the new world they're tested, make friends, and find out who's against them.",
             },
             {
                 "id": "approach",
-                "name": "Approach to the Inmost Cave",
+                "name": "Approach to the inmost cave",
                 "position_pct": 47,
-                "description": "The hero approaches the central crisis of the adventure.",
+                "description": "They close in on the place, or the moment, they fear most. The inmost cave is wherever the greatest danger is.",
             },
             {
                 "id": "ordeal",
                 "name": "Ordeal",
                 "position_pct": 55,
-                "description": "The hero faces their greatest challenge and confronts death (literal or metaphorical).",
+                "description": "The greatest challenge so far: a brush with death, real or not, that they barely come through.",
             },
             {
                 "id": "reward",
                 "name": "Reward",
                 "position_pct": 65,
-                "description": "The hero takes possession of the treasure they sought.",
+                "description": "Having come through, they take what they came for: a thing, a truth, or a change in themselves.",
             },
             {
                 "id": "road-back",
-                "name": "Road Back",
+                "name": "The road back",
                 "position_pct": 75,
-                "description": "The hero deals with the consequences of confronting evil and begins the journey back.",
+                "description": "They start for home, and what they've done follows them.",
             },
             {
                 "id": "resurrection",
                 "name": "Resurrection",
                 "position_pct": 85,
-                "description": "The hero is severely tested once more on the threshold of home — a final climax.",
+                "description": "A last, hardest test on the edge of home, where everything they've learned is put to use.",
             },
             {
                 "id": "return",
-                "name": "Return with Elixir",
+                "name": "Return with the elixir",
                 "position_pct": 95,
-                "description": "The hero returns home with the elixir and uses it to help others.",
+                "description": "They come home changed, bringing something that helps others. The elixir is whatever they bring back.",
             },
         ],
     },
     {
         "id": "three-act-beats",
-        "name": "Three-Act Beats",
-        "description": "Essential story beats for a classic three-act structure.",
+        "name": "Three turning points",
+        "description": "9 moments: the hook, the event that starts it all, the midpoint, the darkest point, the climax and what follows. A good first pattern.",
         "beats": [
             {
                 "id": "hook",
                 "name": "Hook",
                 "position_pct": 1,
-                "description": "Opening hook that grabs the reader's attention.",
+                "description": "The opening that makes a reader want to keep going: a question, a voice, someone in trouble.",
             },
             {
                 "id": "inciting-incident",
-                "name": "Inciting Incident",
+                "name": "Inciting incident",
                 "position_pct": 12,
-                "description": "The event that sets the main conflict in motion.",
+                "description": "The event that starts it all: something happens that the main character can't ignore and can't undo.",
             },
             {
                 "id": "first-plot-point",
-                "name": "First Plot Point",
+                "name": "First turning point",
                 "position_pct": 25,
-                "description": "End of Act One — the protagonist commits to the main conflict.",
+                "description": "The main character commits to going after what they want, and there's no easy way back. The beginning ends here.",
             },
             {
                 "id": "first-pinch",
-                "name": "First Pinch Point",
+                "name": "First pinch point",
                 "position_pct": 37,
-                "description": "A reminder of the antagonist's power; raises the stakes.",
+                "description": "A squeeze between the big turns: whatever stands in the way shows how strong it is, and the stakes feel real.",
             },
             {
                 "id": "midpoint",
                 "name": "Midpoint",
                 "position_pct": 50,
-                "description": "A major revelation or shift that changes the direction of the story.",
+                "description": "Something shifts. It looks like a win or a loss, but it isn't the end: the stakes go up, and the main character stops reacting and starts acting.",
             },
             {
                 "id": "second-pinch",
-                "name": "Second Pinch Point",
+                "name": "Second pinch point",
                 "position_pct": 62,
-                "description": "Another push from the antagonist; things look bleak.",
+                "description": "The opposition squeezes again, harder. Things look worse than before, and the cost of failing is clearer.",
             },
             {
                 "id": "second-plot-point",
-                "name": "Second Plot Point",
+                "name": "Second turning point",
                 "position_pct": 75,
-                "description": "End of Act Two — the protagonist is at their lowest; finds what they need to win.",
+                "description": "The darkest point, and a turn out of it. The main character is at their lowest, then finds what they need to face the end.",
             },
             {
                 "id": "climax",
                 "name": "Climax",
                 "position_pct": 88,
-                "description": "The final confrontation between protagonist and antagonist.",
+                "description": "The biggest moment: the main character faces what stands in the way, and the story's main question is answered.",
             },
             {
                 "id": "resolution",
                 "name": "Resolution",
                 "position_pct": 96,
-                "description": "The aftermath — loose ends tied up, new normal established.",
+                "description": "What follows: loose ends are tied, and we see how the main character and their world have changed.",
             },
         ],
     },
@@ -516,6 +551,9 @@ def seed_demo_story(user_id: str | None = None):  # noqa: PLR0915
         story = Story(
             user_id=owner.id,
             title=sample_titles.NOVEL,
+            # The sample shows a planner's story (doc 29 D1): the Overview offers its next
+            # planned scene, and the Outline shows the planned chapter still to write.
+            working_style="plan",
             description="A lighthouse keeper on a remote island discovers something unexpected when a stranger arrives during a storm.",
             structure_template_id="three-act",
             intent="A quiet, atmospheric story about solitude, memory, and the things we keep hidden.",
@@ -1175,6 +1213,23 @@ def seed_demo_story(user_id: str | None = None):  # noqa: PLR0915
                 note="The missing entries correspond exactly to the months before Thomas Vance died. Eleanor asks the Visitor directly: did you know my father?",
             )
         )
+
+        # Planned, not written (doc 29 D2): a line in the Outline with what happens and why, and
+        # the first scene the Overview's next step offers this planner's story.
+        db.add(
+            StructureNode(
+                story_id=story.id,
+                parent_id=ch3.id,
+                level=2,
+                level_type="scene",
+                title="The Torn Edge",
+                synopsis="Eleanor finds a stub of torn paper deep in the binding. Someone cut those months out by hand.",
+                purpose="Turn the gap from an absence into an act: someone chose to hide this, and Eleanor knows whose hand it was.",
+                position=2,
+                status="planned",
+            )
+        )
+        db.flush()
 
         ch4 = StructureNode(
             story_id=story.id,
@@ -2358,136 +2413,18 @@ def seed_demo_story(user_id: str | None = None):  # noqa: PLR0915
         )
         db.flush()
 
-        # ── Story Outline ────────────────────────────────────────────────────
-        outline = Outline(story_id=story.id, name="Outline", position=0)
-        db.add(outline)
+        # ── Not placed yet: ideas with no place in the Outline yet (doc 29 D3) ──
+        tray = Outline(story_id=story.id, name="Not placed yet", position=0)
+        db.add(tray)
         db.flush()
-
-        act1 = OutlineItem(
-            outline_id=outline.id,
-            level=0,
-            position=0,
-            beat_type="plot",
-            text="The Storm Arrives",
-            notes="Everything that disrupts Eleanor's solitary routine begins here.",
-        )
-        db.add(act1)
-        db.flush()
-
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act1.id,
-                level=1,
-                position=0,
-                beat_type="character",
-                text="Eleanor writes in the lighthouse log — her one comfort in isolation",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act1.id,
-                level=1,
-                position=1,
-                beat_type="plot",
-                text="Boat arrives carrying an unexpected visitor claiming to be from a heritage foundation",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act1.id,
-                level=1,
-                position=2,
-                beat_type="setting",
-                text="Storm cuts off the island — Eleanor and the visitor are trapped together",
-            )
-        )
-
-        act2 = OutlineItem(
-            outline_id=outline.id,
-            level=0,
-            position=1,
-            beat_type="plot",
-            text="Cracks in the Record",
-            notes="Eleanor begins to see that the logs she trusted are not complete.",
-        )
-        db.add(act2)
-        db.flush()
-
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act2.id,
-                level=1,
-                position=0,
-                beat_type="character",
-                text="Eleanor notices the visitor knows details only someone who'd been here before could know",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act2.id,
-                level=1,
-                position=1,
-                beat_type="plot",
-                text="Five years of log entries are missing — the same period her father fell ill",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act2.id,
-                level=1,
-                position=2,
-                beat_type="theme",
-                text="Eleanor must decide: is memory something you preserve, or something you construct?",
-            )
-        )
-
-        act3 = OutlineItem(
-            outline_id=outline.id,
-            level=0,
-            position=2,
-            beat_type="plot",
-            text="The Truth in the Glass",
-            notes="Both truths — her father's and the visitor's — surface at the same moment.",
-        )
-        db.add(act3)
-        db.flush()
-
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act3.id,
-                level=1,
-                position=0,
-                beat_type="plot",
-                text="Eleanor discovers her father falsified the logs the night the Ardent went down",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act3.id,
-                level=1,
-                position=1,
-                beat_type="character",
-                text="Visitor reveals she spoke with Thomas Vance two weeks before his death",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=act3.id,
-                level=1,
-                position=2,
-                beat_type="character",
-                text="Eleanor chooses what to do with the truth — and what to write in the log",
-            )
-        )
+        for i, (idea, why) in enumerate(
+            [
+                ("Calder lies about her name", "She says historian. When does Eleanor first doubt it?"),
+                ("A second storm, worse, in act 3?", ""),
+                ("Margaret knew all along", "What she saw from the mainland that week. Does she tell Eleanor?"),
+            ]
+        ):
+            db.add(OutlineItem(outline_id=tray.id, position=i, text=idea, notes=why))
 
         # ── Demo TODOs ──────────────────────────────────────────────────────
         db.add(
@@ -2626,6 +2563,9 @@ def seed_demo_story(user_id: str | None = None):  # noqa: PLR0915
         # and the last session's recap on the Overview (A7). Writer mode shows no AI at all.
         seed_lighthouse_answer(db, user=owner, story=story, place_id=lighthouse.id, place_name=lighthouse.name)
 
+        # Takes (doc 29 D7): "Knock at the Door" tried a second way, the Visitor speaking first.
+        seed_knock_takes(db, scene2)
+
         # Counted from the prose, as the editor counts, not written in by hand.
         recount_story(story.id, db)
         db.commit()
@@ -2654,6 +2594,7 @@ def seed_scifi_demo_story(user_id: str | None = None):  # noqa: PLR0915
         story = Story(
             user_id=owner.id,
             title=sample_titles.SCIFI,
+            working_style="plan",
             description="A communications officer on humanity's most remote relay station intercepts an anomalous signal that could be the first contact with alien intelligence — or a distress call from a colony ship that vanished thirty years ago.",
             structure_template_id="three-act",
             intent="A hopeful, tension-filled story about connection, isolation, and the courage to reach out across the void.",
@@ -4213,6 +4154,7 @@ def seed_flash_fiction_demo(user_id: str | None = None):
         story = Story(
             user_id=owner.id,
             title=sample_titles.FLASH,
+            working_style="discover",
             description="A grieving woman sits outside the house she shared with her late husband, key in hand, unable to go in.",
             structure_template_id="mice-single",
             intent="A small story about the difference between holding on and holding still.",
@@ -4444,6 +4386,7 @@ def seed_short_story_demo(user_id: str | None = None):  # noqa: PLR0915
         story = Story(
             user_id=owner.id,
             title=sample_titles.SHORT,
+            working_style="both",
             description="A concert pianist with early-stage Parkinson's prepares for what may be her last performance — and discovers that endings can be gifts.",
             structure_template_id="mice-nested",
             intent="A story about what it means to give something away before it can be taken.",
@@ -4923,107 +4866,6 @@ def seed_short_story_demo(user_id: str | None = None):  # noqa: PLR0915
             )
         )
 
-        # ── Outline ───────────────────────────────────────────────────────────
-        outline = Outline(story_id=story.id, name="Outline", position=0)
-        db.add(outline)
-        db.flush()
-
-        out_m1 = OutlineItem(
-            outline_id=outline.id,
-            parent_id=None,
-            level=0,
-            position=0,
-            beat_type="plot",
-            text="Movement 1: Before — Elena prepares backstage; Character thread opens (tremor), Event thread opens (commitment to stage)",
-        )
-        db.add(out_m1)
-        db.flush()
-
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=out_m1.id,
-                level=1,
-                position=0,
-                beat_type="character",
-                text="The Tremor — Elena notices her left hand is worse. She does not withdraw. Character MICE thread opens.",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=out_m1.id,
-                level=1,
-                position=1,
-                beat_type="plot",
-                text="Twenty Minutes — Stage manager calls. Elena commits. Event MICE thread opens.",
-            )
-        )
-
-        out_m2 = OutlineItem(
-            outline_id=outline.id,
-            parent_id=None,
-            level=0,
-            position=1,
-            beat_type="plot",
-            text="Movement 2: The Audition — Elena performs; Event thread develops and closes at the final bars",
-        )
-        db.add(out_m2)
-        db.flush()
-
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=out_m2.id,
-                level=1,
-                position=0,
-                beat_type="plot",
-                text="Allegro — First movement clean. False hope.",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=out_m2.id,
-                level=1,
-                position=1,
-                beat_type="character",
-                text="Adagio — Left hand fails in bar 16. Elena adjusts. The panel sees. The audition is functionally over.",
-            )
-        )
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=out_m2.id,
-                level=1,
-                position=2,
-                beat_type="plot",
-                text="The Final Bars — Elena finishes. Bows. Walks offstage. Event MICE thread closes: she got through it.",
-            )
-        )
-
-        out_m3 = OutlineItem(
-            outline_id=outline.id,
-            parent_id=None,
-            level=0,
-            position=2,
-            beat_type="character",
-            text="Movement 3: After — Elena meets Mira; teaches; realizes what she has been preparing for. Character thread closes.",
-        )
-        db.add(out_m3)
-        db.flush()
-
-        db.add(
-            OutlineItem(
-                outline_id=outline.id,
-                parent_id=out_m3.id,
-                level=1,
-                position=0,
-                beat_type="character",
-                text="The Student — Mira asks how Elena got through it. Elena tells her. Thirty-one years compressed into twenty minutes. Character MICE thread closes.",
-            )
-        )
-
         # Elena's Parkinson's as one Body and mind entry, with who knows (doc 20).
         db.flush()
         seed_audition_who(db, story.id)
@@ -5031,6 +4873,77 @@ def seed_short_story_demo(user_id: str | None = None):  # noqa: PLR0915
         # Counted from the prose, as the editor counts, not written in by hand.
         recount_story(story.id, db)
         db.commit()
+
+
+# Sixty Minutes' middle scene runs long, and the time jumps twice inside it, so What you've
+# written and the This scene tab offer to split it there (doc 29 D6). Delia, at the next table,
+# is named but not in the Lorebook: Discoveries' name scan finds her.
+SIXTY_MINUTES_MIDDLE = (
+    "<p>Marlowe\u2019s does a lunch rush that sounds like a tray of cutlery being dropped and never quite landing. The woman at the next table has been on the same page of her paperback since I sat down. She isn\u2019t reading. She is Delia, his head of communications, and she got here six minutes before he did, which means someone told her to have a look at me first.</p>"
+    "<p><em>Good. Let her look. There\u2019s nothing on this table she can\u2019t see.</em></p>"
+    "<p>I ask about the early days, because everyone likes the early days. He tells me about the garage, which was not a garage but a rented room above a dry cleaner\u2019s, and about the first server, which ran so hot that they kept it in a fridge with the door propped open. He has told this story often enough that it has a shape: a pause before the fridge, a small shrug after it, a glance at me to see whether I\u2019ve heard it before. I have. I laugh where the laugh goes. It costs me nothing, and it buys the next question.</p>"
+    "<p>\u201cPeople forget we were four engineers and a whiteboard,\u201d&lt;Victor Harlan&gt; he says. \u201cEverything since then is just the whiteboard getting bigger.\u201d</p>"
+    "<p>I write <em>whiteboard</em> in my notebook and underline it, because he watches me write and I want him to think it matters.</p>"
+    "<p>The thing about a man like Victor is that he is never only in the conversation he\u2019s having. Part of him is in the room, counting the tables, noting who has recognised him. Part of him is in the version of this interview that will be published, trimming it. Part of him, the part I\u2019m here for, is in 2019, and has been since the moment he shook my hand. He doesn\u2019t know I can see that part. Nobody ever does. It shows in the gaps: the half-beat before he answers a question that is near it, the way his hand goes to his glass when we pass close.</p>"
+    "<p>I keep us far away from it. We talk about hiring. We talk about the office in Lisbon. We talk about his daughter, who is eleven and has opinions about the company\u2019s logo, and when he tells me what they are he forgets for a second to perform, and I like him a little, which is a thing I have learned to notice and set aside.</p>"
+    "<p><em>Liking him is fine. Believing him is the mistake.</em></p>"
+    "<p>He asks about me, which is a courtesy and also a reconnaissance. Where did I train, who did I work for before, do I miss print. I give him true answers that are shorter than the questions. I tell him I miss the smell of a newsroom at deadline and the way nobody looked up when you swore. I don\u2019t tell him that the best story I ever broke started with a man at a table like this one telling me, unprompted, that he had never heard of a company he had founded.</p>"
+    "<p>Delia turns a page. She has turned four pages in fourteen minutes, each of them at a moment when Victor said something she would want to have heard twice. I write that down too, in the shorthand I learned from a court reporter in my first year, which nobody at this table can read.</p>"
+    "<p>I have a rule about interviews like this one, which I learned the hard way in my second year: never ask the question you came for until the other person has stopped expecting it. Expecting is a muscle. It tires. Everyone arrives braced, and the bracing costs them something every minute it is held, and the price is paid in small things: a joke that goes on too long, a name dropped that didn\u2019t need dropping, a hand that stops going to the glass. I watch for the hand. Right now it still goes to the glass every time we drift toward anything with a date on it.</p>"
+    "<p>\u201cYou\u2019re not recording?\u201d&lt;Victor Harlan&gt; he asks, nodding at the notebook.</p>"
+    "<p>\u201cI am.\u201d I tap the phone face down by the sugar. \u201cThe notebook is for me. It\u2019s where I put what I want to ask you later.\u201d</p>"
+    "<p>\u201cThat\u2019s a long list?\u201d&lt;Victor Harlan&gt;</p>"
+    "<p>\u201cIt\u2019s getting shorter.\u201d</p>"
+    "<p>He smiles at that, the real one, and I understand that he thinks we are flirting with the idea of a hard question rather than circling one. That\u2019s fine too. I would rather he thought I was playing. People who think you\u2019re playing keep a little less of themselves in reserve.</p>"
+    "<p>The waiter brings my coffee and a plate of something neither of us ordered, compliments of the kitchen. Victor thanks him by name. Of course he knows his name. He comes to Marlowe\u2019s so that he can be seen being the kind of man who knows the waiter\u2019s name.</p>"
+    "<p>Victor eats nothing and talks about everything. Margins. The sales team in Austin. A podcast he was on last month, which he assumes I heard; I did. He has a way of finishing a sentence by looking at me, as if he were handing me the end of it to hold, and I hold it, and I nod, and I wait for the next one. Interviews like this are mostly waiting. The trick is to wait the way a person waits for a bus, not the way a person waits for a verdict.</p>"
+    "<p>\u201cYou\u2019ve done your homework,\u201d&lt;Victor Harlan&gt; he says, when I ask about a board member by her first name. \u201cMost people get her title wrong.\u201d</p>"
+    "<p>\u201cI read a lot of org charts.\u201d</p>"
+    "<p>\u201cThat sounds lonely.\u201d&lt;Victor Harlan&gt;</p>"
+    "<p>\u201cIt has its moments.\u201d</p>"
+    "<p><em>He\u2019s testing whether I\u2019ll talk about myself. I won\u2019t. The less of me there is at this table, the more room he has to fill.</em></p>"
+    "<p>So he fills it. He tells me about the time a journalist from a business weekly spent a day following him around and wrote, in the end, mostly about his shoes. He tells it as a joke against himself, and it is also a warning, gently made: <em>other people have tried this; look what they came away with.</em> I laugh again. I look at his shoes, which are very good, and say so, and for a moment we are two people having lunch.</p>"
+    "<p>The fried things go cold. The man at the counter finishes his sandwich and leaves a tip that Victor notices, I can tell, because he notices everything that is money. I ask whether he still writes code. He says no, then yes, then explains that he reads every change to the core product and approves about one in five, which is either a lie or a very bad use of a chief executive\u2019s time, and I can\u2019t tell which yet, and I write down <em>one in five</em> in case it turns out to matter.</p>"
+    "<p>Twenty minutes later, the rush has thinned to the people who don\u2019t have offices to go back to, and I ask about growth markets. Ten minutes after that I ask about the Senate hearing. He gives me the subcommittee answer and I nod like I haven&#x27;t read the transcript.</p>"
+    "<p>I have read the transcript four times. I have read it aloud, once, in my kitchen at two in the morning, doing both voices, to hear where he slowed down. He slowed down in three places. Two of them were about the Dataloom acquisition, which is public and dull. The third was a question from a senator about pilot programmes involving minors, and his answer was eleven words long, the shortest of the day.</p>"
+    "<p><em>Eleven words. He had a paragraph for everything else.</em></p>"
+    "<p>\u201cIt was a long day,\u201d&lt;Victor Harlan&gt; he says now, as if I had asked. \u201cYou prepare for the questions you think they\u2019ll ask, and they ask about something else entirely. Usually the thing a staffer read about on the train in.\u201d</p>"
+    "<p>\u201cWhat did you think they\u2019d ask?\u201d</p>"
+    "<p>\u201cMarket share. Interoperability. The usual.\u201d&lt;Victor Harlan&gt; He lifts one shoulder. \u201cThey wanted to talk about kids. Everyone wants to talk about kids. I understand it. I\u2019m a parent.\u201d</p>"
+    "<p>He says <em>I\u2019m a parent</em> the way some people say <em>I\u2019m a lawyer</em>, as a credential rather than a fact. I let it sit. Delia\u2019s paperback doesn\u2019t move.</p>"
+    "<p>I go back to safer ground. The Lisbon office again; the four-day week they tried and quietly ended; the rumour about a hospital partnership, which he won\u2019t confirm and very much wants me to know about. He leans in when he talks about the hospital. He leans back when he talks about the Senate. I have started a column in the notebook for each, and the hospital column is longer, and both columns are about the same thing.</p>"
+    "<p>The plate from the kitchen turns out to be small fried things with a sauce. Neither of us touches them. Somewhere behind the counter a milk steamer screams and stops. Victor talks about the four-day week for longer than the four-day week deserves, and I let him, because a man explaining something he is proud of is a man practising being believed, and I want him well practised by the time it matters.</p>"
+    "<p>\u201cThe thing nobody tells you,\u201d&lt;Victor Harlan&gt; he says, \u201cis that most of running a company is deciding what not to know. You can\u2019t carry all of it. You pick the things you\u2019ll be accountable for and you trust people with the rest.\u201d</p>"
+    "<p><em>Write that down. Write it down exactly.</em></p>"
+    "<p>I write it down exactly. He watches my pen and doesn\u2019t see what it is writing, which is the whole sentence, word for word, with the time beside it.</p>"
+    "<p>A man at the counter recognises him and raises a hand. Victor raises one back without looking away from me, which is a trick, and a good one. It says <em>you have my whole attention</em> while it reminds me that half the room would like some of it.</p>"
+    "<p>\u201cCan I ask you something off the record?\u201d&lt;Victor Harlan&gt;</p>"
+    "<p>\u201cYou can ask. I\u2019ll tell you if I can\u2019t keep it off.\u201d</p>"
+    "<p>\u201cFair.\u201d He turns his glass a quarter turn on the table. \u201cWhy this story? You\u2019ve been at it, what, the better part of a year? People talk. There are bigger companies doing worse things in plain sight.\u201d&lt;Victor Harlan&gt;</p>"
+    "<p><em>He knows how long. Somebody has been counting for him.</em></p>"
+    "<p>\u201cBigger companies don\u2019t say they\u2019re different,\u201d I say. \u201cYou do. You say it on every stage you stand on. I wanted to know if it was true.\u201d</p>"
+    "<p>\u201cAnd?\u201d&lt;Victor Harlan&gt;</p>"
+    "<p>\u201cI\u2019m still at the table.\u201d</p>"
+    "<p>That lands somewhere. He looks at Delia for the first time since he sat down, a glance so short I would have missed it if I hadn\u2019t been waiting for it all morning, and she closes her paperback on her thumb.</p>"
+    "<p>Something has changed at the table, and he feels it before he can name it. He starts talking faster about less. The hospital, again. The daughter, again. A charity ride he does every spring, which he mentions twice in four minutes without noticing the first time. I keep my face where it was. I drink my coffee, which has gone cold, and I don\u2019t ask for another, because a fresh cup is a fresh start and I don\u2019t want him to have one.</p>"
+    "<p>Delia gets up to take a call. She stands by the window with the phone pressed flat to her ear and her back to us, and Victor watches her go the way you watch a lifeguard leave the pool.</p>"
+    "<p><em>Now. Not yet. Soon.</em></p>"
+    "<p>I turn the notebook to a clean page, write the date at the top, and nothing under it. He sees the blank page and relaxes by a degree. People always do. A blank page looks like a question that hasn\u2019t been decided yet. It is the most decided thing I own.</p>"
+    "<p>\u201cYou\u2019re good at this,\u201d&lt;Victor Harlan&gt; he says, not unkindly. \u201cThe silence thing. I do it in board meetings. Most people can\u2019t stand it past four seconds.\u201d</p>"
+    "<p>\u201cHow long can you stand it?\u201d</p>"
+    "<p>He thinks about it, and smiles, and doesn\u2019t answer, which is an answer.</p>"
+    "<p>We sit in it together for a while, his silence and mine, and it is almost companionable. I count to nine in my head. On ten he picks up his phone, looks at nothing on it, and puts it back down, and I write the number nine in the notebook beside the date.</p>"
+)
+
+SIXTY_MINUTES_AFTER = (
+    "<p>Delia comes back from the window and sits down without looking at either of us. Whatever the call was, it was short and it was about this table. Victor doesn\u2019t ask her. He doesn\u2019t have to. They have worked together long enough to say everything with where they put their hands.</p>"
+    "<p>Across the aisle, Delia opens her book again. Victor reaches for the plate the kitchen sent and eats one of whatever is on it, slowly, like a man with nowhere to be. The clock above the counter says we have seventeen minutes left. Seventeen minutes is a long time to wait for someone to forget something. It is also, in my experience, about how long it takes.</p>"
+    "<p>Mine are flat on the table, either side of the notebook. I have one question left and I have known for eight months what it is. What I didn\u2019t know until today was the order of everything that has to come before it: the garage, the fridge, the whiteboard, the shoes, the hospital, the daughter. All of it is runway. You can\u2019t land a question like mine on a man like this without a long, flat stretch of ground to come down on.</p>"
+    "<p>Outside, a bus pulls away from the stop on Fourth Street and the window shakes in its frame. Victor glances at it. I don\u2019t. When he looks back I\u2019m still where he left me, smiling a little, and I ask the easiest question I have left.</p>"
+    "<p>He tells me about a conference in Berlin where he shared a stage with a minister who mispronounced the company\u2019s name three times, and how he never corrected her, because the story of not correcting her was worth more than the correction. I believe that story completely. It is the most honest thing he has said all hour, and he has no idea.</p>"
+    "<p>Behind him, the waiter starts stacking chairs on the far tables, though it is nowhere near closing. The room is emptying around us the way a beach empties when the tide turns: nobody decides to leave, and then everyone has. Victor doesn\u2019t notice. Victor is still telling me about Berlin.</p>"
+    "<p>I ask him about the logo, the one his daughter has opinions about, and he laughs and tells me again, and this time I don\u2019t write anything down at all.</p>"
+)
 
 
 def seed_first_person_demo(user_id: str | None = None):
@@ -5058,6 +4971,7 @@ def seed_first_person_demo(user_id: str | None = None):
         story = Story(
             user_id=owner.id,
             title=sample_titles.FIRST_PERSON,
+            working_style="discover",
             description="An investigative journalist sits across from a tech CEO with sixty minutes to get him to say the one thing he doesn't want to say.",
             structure_template_id="mice-single",
             intent="A story about the patience required to ask the right question at the right moment.",
@@ -5068,7 +4982,7 @@ def seed_first_person_demo(user_id: str | None = None):
             narrative_intent="Demonstrate first-person narration: close interiority, deliberate pacing, and a narrator who is both participant and observer in the same scene.",
             premise="Journalist Maya Chen has one hour with tech CEO Victor Harlan \u2014 and one question she knows he\u2019ll lie about.",
             logline="An investigative journalist goes into a one-hour interview knowing exactly what she\u2019s looking for \u2014 and has to wait fifty-eight minutes to find it.",
-            intended_length="flash_fiction",
+            intended_length="short_story",
             goals=[
                 {
                     "id": str(uuid.uuid4()),
@@ -5103,7 +5017,7 @@ def seed_first_person_demo(user_id: str | None = None):
             personality="Patient, methodical, disarmingly pleasant. She uses warmth as a tool and is aware that she does.",
             motivation="She has been working this story for eight months. This interview is the last piece.",
             background="Maya is 34. Investigative journalist, nine years in. Currently at a digital outlet known for data privacy reporting. She does not record until the subject is comfortable.",
-            appearance="Dark blazer, small notebook she doesn&#x27;t really use. Hair down, which she calculated is less threatening than up.",
+            appearance="Dark blazer, small notebook she doesn\u2019t really use. Hair down, which she calculated is less threatening than up.",
             arc_notes="No arc \u2014 Maya knows what she needs and gets it. The story is about method, not transformation.",
             arc_milestones=[
                 {"id": str(uuid.uuid4()), "text": "Arrives and establishes rapport", "completed": True},
@@ -5137,14 +5051,23 @@ def seed_first_person_demo(user_id: str | None = None):
             motivation="He built Harlanic from a seed round. He is not going to let one reporter burn it down.",
             background="Victor is 47. Founded Harlanic Analytics at 31. Three acquisitions, two near-misses with regulators, one Senate subcommittee appearance he got through without consequence. He has a comms team of eleven people.",
             appearance="Open collar, expensive watch worn loose. The kind of casual that costs money.",
-            arc_notes="No arc \u2014 Victor is a force to push against. He is very good at this, and that&#x27;s the point.",
+            arc_notes="No arc \u2014 Victor is a force to push against. He is very good at this, and that\u2019s the point.",
             interview_prompts=[
                 "What does accountability mean to a company like yours?",
                 "Walk me through the decision to shut down Project Telemetry.",
-                "What would you want people to know about you that they don&#x27;t?",
+                "What would you want people to know about you that they don\u2019t?",
             ],
         )
         db.add(victor)
+        db.add(
+            Location(
+                story_id=story.id,
+                name="Marlowe\u2019s",
+                location_type="building",
+                description="A loud caf\u00e9 Victor chose for the interview: central, busy, a place to be seen having a normal lunch.",
+                color_slot=5,
+            )
+        )
         db.flush()
 
         db.add(
@@ -5176,13 +5099,15 @@ def seed_first_person_demo(user_id: str | None = None):
             level=0,
             level_type="Opening",
             title="Before He Arrives",
-            synopsis="Maya arrives early, arranges herself, and reviews what she knows. Victor is four minutes late.",
+            # No line of what happens: a discovery writer's scene, which the Outline and What
+            # you've written show by its first line (doc 29 D6).
+            synopsis="",
             position=0,
             status="final",
             word_count=218,
             entry_state="Maya alone at the corner table, ten minutes early.",
             exit_state="Victor walks in. Maya sets her notebook on the table.",
-            key_events="Maya&#x27;s inner monologue establishes the stakes; Victor arrives; first exchange.",
+            key_events="Maya\u2019s inner monologue establishes the stakes; Victor arrives; first exchange.",
             purpose="Establish first-person interiority. Maya is in control before Victor arrives — her thoughts are tactical, not anxious. The Event thread opens the moment she sits down.",
             metadata_={
                 "mice_opens": "What is Victor hiding? — thread opens here, when Maya arrives with eight months of research.",
@@ -5191,14 +5116,14 @@ def seed_first_person_demo(user_id: str | None = None):
             content=(
                 "<p>I get there ten minutes early. I always do \u2014 not from anxiety, but because "
                 "the first thing a subject sees when they walk in should be a reporter who is already "
-                "settled, already comfortable, already at home in a room they&#x27;ve only just entered. "
+                "settled, already comfortable, already at home in a room they\u2019ve only just entered. "
                 "It establishes something without anyone having to say it.</p>"
-                "<p>The caf\u00e9 is his choice. That tells me things. It&#x27;s loud enough that he "
+                "<p>Marlowe\u2019s is his choice. That tells me things. It\u2019s loud enough that he "
                 "feels unmonitored, central enough that he can be seen having a normal lunch. "
                 "The table in the corner is mine \u2014 I got here first.</p>"
-                "<p><em>He&#x27;s going to be late. They always are.</em></p>"
-                "<p>I open my notebook to a clean page and set it on the table where he&#x27;ll see it. "
-                "It&#x27;s a prop. Everything I need is already in my head.</p>"
+                "<p><em>He\u2019s going to be late. They always are.</em></p>"
+                "<p>I open my notebook to a clean page and set it on the table where he\u2019ll see it. "
+                "It\u2019s a prop. Everything I need is already in my head.</p>"
                 "<p>He walks in at four minutes past. @Victor scans the room and finds me \u2014 "
                 "he does the thing where the smile reaches his eyes. He extends his hand "
                 'before he sits down. "Maya. Great to finally meet you."</p>'
@@ -5225,12 +5150,14 @@ def seed_first_person_demo(user_id: str | None = None):
             level_type="Try/Fail Beat",
             title="The Fifty-Seven Minutes",
             synopsis="The interview moves through easy territory, then harder. Maya steers. Victor parries. They are both good at this.",
+            # Long, and the time jumps twice ("Twenty minutes later", "Ten minutes later"): What
+            # you've written and the This scene tab offer to split it there (doc 29 D6).
             position=1,
             status="revised",
             word_count=381,
-            entry_state="Victor seated, comfortable. Maya&#x27;s recorder is on the table \u2014 he agreed to it.",
+            entry_state="Victor seated, comfortable. Maya\u2019s recorder is on the table \u2014 he agreed to it.",
             exit_state="Victor has deflected everything. Maya has one question left. She has been saving it.",
-            key_events="Professional rapport; Victor&#x27;s polished deflections; Maya escalates to the 2019 pilot; Victor holds; rapid back-and-forth exchange.",
+            key_events="Professional rapport; Victor\u2019s polished deflections; Maya escalates to the 2019 pilot; Victor holds; rapid back-and-forth exchange.",
             purpose="The try/fail engine: Maya tries to get Victor to engage with the 2019 pilot directly. He evades without lying. She tries again. The tension is that he’s very good at this.",
             metadata_={
                 "dialogue_note": "The rapid exchange demonstrates alternating attribution. After two speakers are established (Maya via explicit, Victor via explicit), subsequent unattributed lines resolve to the alternating method."
@@ -5245,19 +5172,17 @@ def seed_first_person_demo(user_id: str | None = None):
                 '<p>"Consent architecture. Opt-out by default in the EU. '
                 'Regular third-party audits."&lt;Victor Harlan&gt;</p>'
                 "<p><em>He\u2019s reciting. That\u2019s fine. I let him.</em></p>"
-                "<p>Twenty minutes in, I ask about growth markets. Thirty minutes in, I ask about the "
-                "Senate hearing. He gives me the subcommittee answer and I nod like I haven&#x27;t "
-                "read the transcript.</p>"
-                "<p>At forty minutes I shift.</p>"
+                + SIXTY_MINUTES_MIDDLE
+                + "<p>Ten minutes later, I shift.</p>"
                 '<p>"You ran a behavioral inference pilot in 2019."&lt;Maya Chen&gt;</p>'
                 '<p>"We ran several pilots that year."&lt;Victor Harlan&gt;</p>'
-                '<p>"This one used data from a children&#x27;s education platform."</p>'
-                '<p>"I&#x27;d have to look at the specifics."&lt;Victor Harlan&gt;</p>'
+                '<p>"This one used data from a children\u2019s education platform."</p>'
+                '<p>"I\u2019d have to look at the specifics."&lt;Victor Harlan&gt;</p>'
                 '<p>"It was called Project Telemetry internally."</p>'
-                '<p>"I don&#x27;t recall that name."&lt;Victor Harlan&gt;</p>'
+                '<p>"I don\u2019t recall that name."&lt;Victor Harlan&gt;</p>'
                 "<p><em>He does. I can see it in the half-second before his face does anything.</em></p>"
-                "<p>I write something in my notebook. I haven&#x27;t asked the real question yet. "
-                "I\u2019m going to wait until he\u2019s forgotten I was going to ask it.</p>"
+                "<p>I write something in my notebook. I haven\u2019t asked the real question yet. "
+                "I\u2019m going to wait until he\u2019s forgotten I was going to ask it.</p>" + SIXTY_MINUTES_AFTER
             ),
         )
         db.add(confrontation)

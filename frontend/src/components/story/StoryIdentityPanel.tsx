@@ -52,6 +52,7 @@ import styles from "./StoryIdentityPanel.module.css";
     target_audience: "",
     narrative_intent: "",
     premise: "",
+    working_style: "",
   });
 
   useEffect(() => {
@@ -70,6 +71,7 @@ import styles from "./StoryIdentityPanel.module.css";
       target_audience: activeStory.target_audience ?? "",
       narrative_intent: activeStory.narrative_intent ?? "",
       premise: activeStory.premise ?? "",
+      working_style: activeStory.working_style ?? "",
     });
   }, [activeStory?.id]);
 
@@ -91,9 +93,9 @@ import styles from "./StoryIdentityPanel.module.css";
     scheduleSync({ pov_character_id: id || null } as Parameters<typeof scheduleSync>[0]);
   }
 
-  async function handleInjectBeatSheet(beatSheetId: string) {
-    const result = await api.injectBeatSheet(storyId, beatSheetId);
-    navigate(`/stories/${storyId}/plan?tab=${result.id}`);
+  /** The pattern shown on the Outline, where its moments tag the scenes (doc 29 D5). */
+  function showOnOutline() {
+    navigate(`/stories/${storyId}/outline`);
   }
 
   function updateBeatSheet(id: string | null) {
@@ -139,7 +141,7 @@ import styles from "./StoryIdentityPanel.module.css";
               {...form}
               beatSheetId={activeStory.beat_sheet_id}
               onBeatSheet={updateBeatSheet}
-              onInjectBeatSheet={handleInjectBeatSheet}
+              onShowOnOutline={showOnOutline}
             />
             <Substance {...form} />
             <Compass {...form} goals={activeStory.goals ?? []} />

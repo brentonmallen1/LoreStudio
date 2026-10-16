@@ -38,7 +38,7 @@ export default function QuotesField({ activeNode }: { activeNode: StructureNode 
       const done = await toolsApi.normalizeQuotes(activeNode.story_id, { style });
       // Not setActiveNode(fresh): that refreshed updated_at under an editor still holding
       // the old text, and its next autosave wrote the straight quotes back unopposed.
-      announceScenesRewritten(done.scenes.map((scene) => scene.node_id));
+      announceScenesRewritten(done.node_ids);
       setReport(await toolsApi.quoteStyles(activeNode.story_id));
     } finally {
       setBusy(false);

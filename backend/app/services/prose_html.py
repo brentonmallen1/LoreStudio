@@ -34,6 +34,8 @@ class Paragraph:
     element: str | None = None
     #: A cue spoken at the same time as the speech before it (`data-dual`, doc 25 P8).
     dual: bool = False
+    #: The block's tag ("p", "h2", "li"…): a heading is not a line of the prose (doc 29 D6).
+    tag: str = ""
 
     def html_range(self, start: int, end: int) -> tuple[int, int]:
         """The HTML holding text[start:end]; an empty range is the point after text[start-1]."""
@@ -64,6 +66,8 @@ def paragraphs(html: str) -> list[Paragraph]:
             tag = name.group(1).lower() if name else ""
             if tag in _BLOCKS:
                 flush()
+                if not tok.startswith("</"):
+                    cur.tag = tag
                 if not tok.startswith("</") and (el := _ELEMENT.search(tok)):
                     cur.element = el.group(1)
                     cur.dual = bool(_DUAL.search(tok))

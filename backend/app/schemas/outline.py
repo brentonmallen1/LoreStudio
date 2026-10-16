@@ -1,90 +1,43 @@
-from datetime import datetime
+"""The Outline's Not placed yet tray (doc 29 D3): ideas without a place yet."""
 
-from pydantic import BaseModel
-
-# ── Outline ────────────────────────────────────────────────────────────────────
+from pydantic import BaseModel, Field
 
 
-class OutlineCreate(BaseModel):
-    name: str = "Outline"
-
-
-class OutlineUpdate(BaseModel):
-    name: str | None = None
-    position: int | None = None
-
-
-class OutlineOut(BaseModel):
+class TrayItemOut(BaseModel):
     id: str
-    story_id: str
-    name: str
-    position: int
-    source_beat_sheet_id: str | None
-    created_at: datetime
-    updated_at: datetime
-
-    model_config = {"from_attributes": True}
-
-
-class OutlineWithItemsOut(OutlineOut):
-    items: list["OutlineItemOut"] = []
-
-
-class InjectBeatSheetPayload(BaseModel):
-    beat_sheet_id: str
-
-
-# ── OutlineItem ────────────────────────────────────────────────────────────────
-
-
-class OutlineItemCreate(BaseModel):
     text: str
-    parent_id: str | None = None
-    position: int = 0
-    beat_type: str | None = None
-    notes: str = ""
-
-
-class OutlineItemUpdate(BaseModel):
-    text: str | None = None
-    parent_id: str | None = None
-    position: int | None = None
-    beat_type: str | None = None
-    notes: str | None = None
-    collapsed: bool | None = None
-    scene_id: str | None = None
-    scene_title: str | None = None
-
-
-class OutlineItemOut(BaseModel):
-    id: str
-    outline_id: str
-    parent_id: str | None
-    level: int
-    position: int
-    text: str
-    beat_type: str | None
     notes: str
-    collapsed: bool
-    scene_id: str | None = None
-    scene_title: str | None = None
-    created_at: datetime
-    updated_at: datetime
-    children: list["OutlineItemOut"] = []
+    position: int
 
     model_config = {"from_attributes": True}
 
 
-class ReorderPayload(BaseModel):
-    parent_id: str | None
+class TrayItemCreate(BaseModel):
+    text: str = Field(min_length=1)
+    notes: str = ""
+    #: Where in the tray; the end when left out.
+    position: int | None = None
+
+
+class TrayItemsCreate(BaseModel):
+    """Several ideas at once, as one change (the picks of Fill the tray from my prose)."""
+
+    items: list[TrayItemCreate]
+
+
+class TrayItemUpdate(BaseModel):
+    text: str | None = Field(default=None, min_length=1)
+    notes: str | None = None
+
+
+class TrayReorder(BaseModel):
     item_ids: list[str]
 
 
-class BulkReorderOp(BaseModel):
-    item_id: str
-    parent_id: str | None
-    position: int
+class TrayPlace(BaseModel):
+    """Where an idea becomes a planned scene: under a part (or at the top), at a position."""
 
-
-class BulkReorderPayload(BaseModel):
-    operations: list[BulkReorderOp]
+    parent_id: str | None = None
+    position: int = 0
+    level: int = 0
+    level_type: str = "scene"

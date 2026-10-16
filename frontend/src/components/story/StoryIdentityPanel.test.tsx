@@ -37,6 +37,7 @@ const form: IdentityForm = {
     target_audience: "",
     narrative_intent: "",
     premise: "",
+    working_style: "",
   },
   update: () => {},
   collapsed: {},
@@ -57,7 +58,7 @@ describe("Story identity's sections", () => {
       <MemoryRouter>
         <Foundation {...form} />
         <Voice {...form} characters={[]} onPovCharacter={() => {}} />
-        <Form {...form} beatSheetId={null} onBeatSheet={() => {}} onInjectBeatSheet={() => {}} />
+        <Form {...form} beatSheetId={null} onBeatSheet={() => {}} onShowOnOutline={() => {}} />
         <Substance {...form} />
         <Compass {...form} goals={[]} />
         <Summaries storyId="s1" />

@@ -39,7 +39,7 @@ export default function StatusCorner({ node, autosave, wordCount, script, contex
   const { saveState, conflict } = autosave;
   const [open, setOpen] = useState(false);
   // A conflict opens the popover; closing it hides that conflict, not the next one.
-  const [dismissed, setDismissed] = useState<StructureNode | null>(null);
+  const [dismissed, setDismissed] = useState<AutosaveState["conflict"]>(null);
   const shown = open || (saveState === "conflict" && !!conflict && dismissed !== conflict);
   const wrap = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -51,7 +51,7 @@ export default function StatusCorner({ node, autosave, wordCount, script, contex
   const today = useTodayWords(node.story_id, node.id, node.word_count ?? 0);
   useHostFocusExit();
 
-  const { led, label } = ledFor(saveState);
+  const { led, label } = ledFor(saveState, !!conflict?.take);
 
   function close() {
     setOpen(false);

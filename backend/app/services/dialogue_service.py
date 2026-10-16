@@ -437,15 +437,42 @@ def _rows(db: Session, scene_id: str, *, fresh: bool = False) -> list[DialogueBl
     return q.order_by(DialogueBlock.paragraph_index, DialogueBlock.position_in_paragraph).all()
 
 
-def plan_scene(node: StructureNode, story: Story | None, characters: list[Character]) -> list[dict]:
-    """Every line in the scene's prose as the reader attributes it, before any hand correction."""
+def plan_scene(
+    node: StructureNode, story: Story | None, characters: list[Character], content: str | None = None
+) -> list[dict]:
+    """Every line in the scene's prose (or `content`, a take of it) as the reader attributes it,
+    before any hand correction."""
+    text = node.content or "" if content is None else content
     if is_script(story):
         # A script says who speaks with its cues (doc 25, P4).
-        return plan_script(node.content or "", _speaker_resolver(characters))
+        return plan_script(text, _speaker_resolver(characters))
     pov_id = node.pov_character_id or (story.pov_character_id if story else None)
     first_person = bool(story and story.narrative_perspective in _FIRST_PERSON_PERSPECTIVES)
     pov_char = next((c for c in characters if c.id == pov_id), None) if first_person else None
-    return _plan(node.content or "", characters, pov_char)
+    return _plan(text, characters, pov_char)
+
+
+def take_lines(node: StructureNode, content: str, db: Session) -> list[dict]:
+    """The lines of a take that does not count (doc 29 D7), in reading order: read from its words
+    and never stored, since the scene's rows are its prose's. A line the writer corrected by hand
+    in the scene's prose keeps that speaker here, matched by its words as rows are."""
+    story = db.get(Story, node.story_id)
+    characters = db.query(Character).filter(Character.story_id == node.story_id).all()
+    planned = plan_scene(node, story, characters, content)
+    corrected: dict[str, list[DialogueBlock]] = defaultdict(list)
+    for row in _rows(db, node.id):
+        if row.attribution_method == "manual":
+            corrected[row.content].append(row)
+    for line in planned:
+        if corrected[line["content"]]:
+            row = corrected[line["content"]].pop(0)
+            line.update(
+                speaker_name=row.speaker_name,
+                character_id=row.character_id,
+                attribution_method="manual",
+                confidence=1.0,
+            )
+    return planned
 
 
 def _sync(node: StructureNode, story: Story | None, characters: list[Character], db: Session) -> list[DialogueBlock]:

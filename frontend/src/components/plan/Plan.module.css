@@ -1,4 +1,4 @@
-/* The Plan page: a method's steps beside the open step, and the beat boards. */
+/* Plan with questions (doc 29 D4): the ways in, then a way's steps beside the open step. */
 
 .page {
   flex: 1;
@@ -82,14 +82,6 @@
   background: color-mix(in srgb, var(--color-accent) 10%, var(--color-tone));
 }
 
-.methodCardIdea {
-  background: transparent;
-}
-
-.methodCardIdea:hover {
-  background: var(--color-hover);
-}
-
 .methodName {
   font-weight: 700;
 }
@@ -104,6 +96,60 @@
   font-size: var(--text-xs);
   color: var(--color-text-subtle);
   line-height: 1.5;
+}
+
+/* The ways in, one under another (B-GuidedPlanning): the name, then roughly how long. */
+.ways {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.wayGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wayPatterns {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-left: 1.25rem;
+}
+
+.wayHead {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+}
+
+.wayTime {
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
+}
+
+.wayWhere {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.rather {
+  margin: 0.5rem 0 1rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.rather a {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.keepBtn {
+  composes: btn-secondary from global;
 }
 
 /* ── Steps ── */
@@ -734,4 +780,32 @@
   color: var(--color-text);
   font-size: var(--text-sm);
   line-height: 1.5;
+}
+
+/* The scene list's lines are the Outline's planned scenes: said, with the way there. */
+.inOutline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  margin-top: 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-tone);
+  font-size: var(--text-sm);
+}
+
+.inOutlineTitle {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.inOutlineCount {
+  color: var(--color-text-muted);
+}
+
+.inOutline a {
+  margin-left: auto;
+  color: var(--color-accent);
+  font-weight: 600;
 }

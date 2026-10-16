@@ -1,0 +1,147 @@
+/* Make a scene from Freewrite (doc 29 D9): which way, the title, and where it lands. Lifted off
+   the desk (a popover's shadow and 1px edge); type and space inside, no rules. */
+
+.chooser {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: min(24rem, calc(100vw - 16px));
+  padding: 0.9rem 1rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.hows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.legend {
+  margin-bottom: 0.35rem;
+  padding: 0;
+  font-weight: 600;
+}
+
+.how {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.how:hover {
+  background: var(--color-hover);
+}
+
+.how[data-on] {
+  background: var(--color-tone);
+}
+
+.how input {
+  margin-top: 0.2rem;
+  accent-color: var(--color-accent);
+}
+
+.how > span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.howLabel {
+  font-weight: 600;
+}
+
+.howHint {
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-weight: 600;
+}
+
+.input {
+  height: 2rem;
+  padding: 0 0.55rem;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 400;
+}
+
+.input:focus {
+  border-color: var(--color-accent);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.where {
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.stay {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.secondary {
+  composes: btn-secondary from global;
+  height: 2rem;
+}
+
+.primary {
+  height: 2rem;
+  padding: 0 0.85rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.primary:disabled {
+  background: var(--color-button);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.secondary:focus-visible,
+.primary:focus-visible,
+.how:focus-within {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}

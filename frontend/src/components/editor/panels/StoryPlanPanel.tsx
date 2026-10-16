@@ -38,7 +38,7 @@ export default function StoryPlanPanel({ node, story, characters }: Props) {
           <p className={styles.logline}>{story.logline}</p>
         ) : (
           <p className={styles.empty}>
-            No one-sentence summary yet. <Link to={planPath}>Write one on the Plan page</Link>
+            No one-sentence summary yet. <Link to={planPath}>Write one in Plan with questions</Link>
           </p>
         )}
         {story.central_conflict && (
@@ -105,7 +105,7 @@ export default function StoryPlanPanel({ node, story, characters }: Props) {
         {next ? (
           <Link to={`${planPath}?step=${next.id}`}>Next in the plan: {next.label}</Link>
         ) : (
-          <Link to={planPath}>Open the Plan page</Link>
+          <Link to={planPath}>Open Plan with questions</Link>
         )}
       </footer>
     </div>

@@ -1,23 +1,25 @@
 import { useEffect } from "react";
 import type { Editor } from "@tiptap/react";
 import { api } from "../../api/client";
+import { takesApi } from "../../api/takes";
 import { FORCE_DIALOGUE_KEY, setSceneDialogue } from "../story/DialogueExtension";
 
 /**
  * The scene's lines as the server attributes them (doc 16, D1), fetched when the scene
  * opens and again after each save (a save moves `updatedAt`), then handed to the dialogue
  * decorations. A failure leaves untagged lines plain: nothing is guessed in their place.
+ * With a take that does not count open (doc 29 D7), its own lines, read from its words.
  */
 export function useSceneDialogue(
   editor: Editor | null,
   sceneId: string | undefined,
   updatedAt: string | undefined,
+  takeId?: string,
 ) {
   useEffect(() => {
     if (!editor || !sceneId) return;
     let gone = false;
-    api
-      .listDialogue(sceneId)
+    (takeId ? takesApi.dialogue(takeId) : api.listDialogue(sceneId))
       .then((lines) => {
         if (gone || editor.isDestroyed) return;
         setSceneDialogue(lines);
@@ -28,5 +30,5 @@ export function useSceneDialogue(
       gone = true;
       setSceneDialogue([]);
     };
-  }, [editor, sceneId, updatedAt]);
+  }, [editor, sceneId, updatedAt, takeId]);
 }

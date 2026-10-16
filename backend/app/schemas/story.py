@@ -1,8 +1,12 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel
 
 from ..services.story_format import StoryFormat
+
+#: How the writer likes to work (doc 29 D1); "" is a story made before New Story asked.
+WorkingStyle = Literal["plan", "discover", "both", ""]
 
 
 class StoryGoal(BaseModel):
@@ -17,6 +21,7 @@ class StoryCreate(BaseModel):
     intent: str = ""
     structure_template_id: str = "freeform"
     story_format: StoryFormat = "prose"
+    working_style: WorkingStyle = ""
     #: Lay out the template's first outline (services/structure_scaffold.py).
     scaffold: bool = True
 
@@ -60,6 +65,7 @@ class StoryUpdate(BaseModel):
     paragraph_summary: str | None = None
     synopsis: str | None = None
     planning_method: str | None = None
+    working_style: WorkingStyle | None = None
 
 
 class StoryOut(BaseModel):
@@ -94,6 +100,7 @@ class StoryOut(BaseModel):
     paragraph_summary: str
     synopsis: str
     planning_method: str
+    working_style: str = ""
     created_at: datetime
     updated_at: datetime
 

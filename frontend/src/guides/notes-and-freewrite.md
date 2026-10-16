@@ -27,7 +27,15 @@ Logo menu › **Compendium** › **Notes** lists them all in story order. **Tie 
 
 ## Freewrite
 
-**Freewrite** is a page for thinking on paper, under a heading for each day. When a sentence turns out to be something, select it and choose from **Make it**: a note, a character, a place, or under **More** a planned scene or the logline. The words stay where you wrote them, linked to what they became.
+**Freewrite** is a page for thinking on paper, under a heading for each day. When a sentence turns out to be something, select it and choose from **Make it**: a note, a character, a place, a scene, or under **More** a theme or the logline. The words stay where you wrote them, dotted, and **Made from this page** lists what each became. The same words can become more than one thing, a question and later a scene, and the list keeps both.
+
+**Scene** asks which you mean:
+
+- **Plan a scene**: the words become what happens, for a scene you'll write later.
+- **Start a scene**: the words become its first draft.
+- **Save as an idea**: the words go to the Outline's **Not placed yet** tray, to place when you know where.
+
+Before you confirm, it says where a scene will land, such as "New scene in Chapter 3, after “The Gap”", with a list to place it elsewhere. **Made from this page** then names it as a **Planned scene**, a **Scene, first draft** or an **Idea, not placed yet**.
 
 Open it from the logo menu as a full page, or from **Freewrite** on the side panel's rail as a tab beside your prose. The tab's **Full page** switches to the whole page.
 

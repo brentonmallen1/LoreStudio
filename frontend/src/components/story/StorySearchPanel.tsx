@@ -52,6 +52,8 @@ export default function StorySearchPanel({ storyId, onClose, onNavigateToNode }:
   const [replaceResult, setReplaceResult] = useState<{
     replaced_count: number;
     scenes_affected: number;
+    /** Replaced in scenes' takes that don't count, which Find does not list (doc 29 D7). */
+    in_other_takes: number;
   } | null>(null);
   const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(new Set());
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -95,10 +97,10 @@ export default function StorySearchPanel({ storyId, onClose, onNavigateToNode }:
     setReplacing(true);
     try {
       const res = await api.storyReplace(storyId, query, replacement, caseSensitive, nodeIds);
-      setReplaceResult(res);
       announceScenesRewritten(res.node_ids ?? []);
-      // Re-run search to update matches
+      // Re-run search to update matches; it clears the last result, so say this one after.
       await runSearch(query, caseSensitive);
+      setReplaceResult(res);
     } finally {
       setReplacing(false);
     }
@@ -190,7 +192,10 @@ export default function StorySearchPanel({ storyId, onClose, onNavigateToNode }:
         {replaceResult && (
           <p className={styles.replaceResult}>
             Replaced {replaceResult.replaced_count} occurrence{replaceResult.replaced_count !== 1 ? "s" : ""}{" "}
-            across {replaceResult.scenes_affected} scene{replaceResult.scenes_affected !== 1 ? "s" : ""}.
+            across {replaceResult.scenes_affected} scene{replaceResult.scenes_affected !== 1 ? "s" : ""}
+            {replaceResult.in_other_takes > 0 &&
+              `, and ${replaceResult.in_other_takes} in ${replaceResult.in_other_takes === 1 ? "another take" : "other takes"}`}
+            .
           </p>
         )}
       </div>

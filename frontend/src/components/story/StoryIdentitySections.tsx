@@ -1,4 +1,4 @@
-import type { Character, StoryFormat } from "../../types";
+import type { Character, StoryFormat, WorkingStyle } from "../../types";
 import { lengthForm, lengthOptions } from "../../utils/wordCount";
 import PerspectiveSummaryPanel from "../analysis/PerspectiveSummaryPanel";
 import { SectionCard } from "../common";
@@ -9,6 +9,7 @@ import { CharCount, CompletionDots, GroupLabel, SeriesCard } from "./StoryIdenti
 import { GoalsPanel, ThemeInput } from "./StoryIdentityLists";
 import StorySummaryPanel from "./StorySummaryPanel";
 import { IDENTITY_SECTIONS, type SectionId } from "./identitySections";
+import { WORKING_STYLES } from "../../lib/workingStyle";
 import styles from "./StoryIdentityPanel.module.css";
 import Term from "../common/Term";
 
@@ -29,6 +30,8 @@ export interface IdentityFields {
   target_audience: string;
   narrative_intent: string;
   premise: string;
+  /** How the writer likes to work (doc 29 D1): "plan", "discover", "both" or "". */
+  working_style: WorkingStyle;
 }
 
 /** What every group is drawn from: the fields, how to change one, and which cards are folded. */
@@ -191,11 +194,11 @@ export function Form({
   toggle,
   beatSheetId,
   onBeatSheet,
-  onInjectBeatSheet,
+  onShowOnOutline,
 }: IdentityForm & {
   beatSheetId: string | null;
   onBeatSheet: (id: string | null) => void;
-  onInjectBeatSheet: (id: string) => void;
+  onShowOnOutline: () => void;
 }) {
   return (
     <>
@@ -206,6 +209,27 @@ export function Form({
           onChange={(v) => update("story_format", v)}
           storyId={storyId}
         />
+        <div>
+          <label className={styles.subFieldLabel} htmlFor="identity-working-style">
+            How you like to work
+          </label>
+          <p className={styles.fieldHint}>
+            Where the story opens and the Overview's next step. Every tool stays available either way.
+          </p>
+          <select
+            id="identity-working-style"
+            value={fields.working_style}
+            onChange={(e) => update("working_style", e.target.value)}
+            className={styles.input}
+          >
+            {!fields.working_style && <option value="">Not chosen</option>}
+            {WORKING_STYLES.map((w) => (
+              <option key={w.id} value={w.id}>
+                {w.label}
+              </option>
+            ))}
+          </select>
+        </div>
         <div>
           <p className={styles.subFieldLabel}>Intended length</p>
           <p className={styles.fieldHint}>
@@ -226,12 +250,13 @@ export function Form({
         </div>
         <div>
           <p className={styles.subFieldLabel}>
-            <Term id="beat-sheet">Beat sheet</Term>
+            <Term id="beat-sheet">Classic pattern</Term>
           </p>
           <p className={styles.fieldHint}>
-            Optional story structure framework. Helps track where key beats fall relative to your word count.
+            Optional. A list of moments many stories share, shown on your Outline so you can see which you
+            have. It changes nothing in the story.
           </p>
-          <BeatSheetSelector value={beatSheetId} onChange={onBeatSheet} onInject={onInjectBeatSheet} />
+          <BeatSheetSelector value={beatSheetId} onChange={onBeatSheet} onShowOnOutline={onShowOnOutline} />
         </div>
       </SectionCard>
     </>

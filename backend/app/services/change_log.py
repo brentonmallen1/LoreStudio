@@ -42,6 +42,7 @@ from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.proposal_decline import ProposalDecline
 from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.scene_link import SceneLink
+from ..models.scene_take import SceneTake
 from ..models.series import SeriesElementMember, SeriesSceneLink, SeriesStory
 from ..models.story import Story
 from ..models.structure import StructureNode
@@ -49,6 +50,7 @@ from ..models.trope import Trope, TropeLink
 from ..models.twist import Twist, TwistClue
 from ..models.world_system import WorldSystem
 from . import change_headers
+from .word_count import count_words
 
 #: entity_type -> model. Deletes capture a bundle of rows keyed by table name.
 ENTITY_MODELS: dict[str, type] = {
@@ -85,6 +87,8 @@ ENTITY_MODELS: dict[str, type] = {
     "scene_setting": SceneSetting,
     "location_travel": LocationTravel,
     "scene_link": SceneLink,
+    # A scene's takes (doc 29 D7): made, switched, chosen, renamed and deleted.
+    "scene_take": SceneTake,
     # Which row in this book is a series element: added with the row, undone with it.
     "series_element_member": SeriesElementMember,
     # A setup that pays off in another book: undone in the book it was made in.
@@ -106,6 +110,7 @@ BUNDLE_MODELS: dict[str, type] = {
     "locations": Location,
     "location_travel": LocationTravel,
     "structure_nodes": StructureNode,
+    "scene_takes": SceneTake,
     "scene_settings": SceneSetting,
     "scene_links": SceneLink,
     "plot_threads": PlotThread,
@@ -265,7 +270,7 @@ def record(
 
 def rewrite_prose(
     db: Session,
-    node: StructureNode,
+    node: StructureNode | SceneTake,
     content: str,
     *,
     label: str,
@@ -279,7 +284,19 @@ def rewrite_prose(
     editor's own history; a tool's rewrite is the change log's, and ⌘Z reaches both (doc 23
     P5b). Undo refuses a scene written in since rather than overwrite it (the before/after
     check every update gets).
+
+    A take that does not count (doc 29 D7) is rewritten the same way, its words counted again,
+    so a replace or a rename that reaches a scene's takes undoes with the scene's prose.
     """
+    if isinstance(node, SceneTake):
+        data = {"content": content, "word_count": count_words(content)}
+        after = record_update(
+            db, node, data, entity_type="scene_take", story_id=node.node.story_id, label=label,
+            actor_id=actor_id, client_id=client_id, batch_id=batch_id,
+        )  # fmt: skip
+        for key, value in (after or {}).items():
+            setattr(node, key, value)
+        return
     record(
         db,
         story_id=node.story_id,
@@ -298,11 +315,11 @@ def rewrite_prose(
 
 def prose_writer(
     db: Session, *, label: str, batch_id: str, actor_id: str | None, client_id: str | None
-) -> Callable[[StructureNode, str], None]:
-    """``rewrite_prose`` bound to one batch: for a rename or new pronouns, whose scenes undo
-    together with the record that changed (doc 20)."""
+) -> Callable[[StructureNode | SceneTake, str], None]:
+    """``rewrite_prose`` bound to one batch: for a rename or new pronouns, whose scenes (and
+    their other takes) undo together with the record that changed (doc 20)."""
 
-    def write(node: StructureNode, content: str) -> None:
+    def write(node: StructureNode | SceneTake, content: str) -> None:
         rewrite_prose(db, node, content, label=label, batch_id=batch_id, actor_id=actor_id, client_id=client_id)
 
     return write
@@ -333,6 +350,7 @@ def capture_node_tree(node: StructureNode, db: Session) -> dict[str, list[dict]]
         ],
         "dialogue_blocks": [_row(b) for b in db.query(DialogueBlock).filter(DialogueBlock.scene_id.in_(ids)).all()],
         "trope_links": [_row(t) for t in db.query(TropeLink).filter(TropeLink.node_id.in_(ids)).all()],
+        "scene_takes": [_row(t) for t in db.query(SceneTake).filter(SceneTake.node_id.in_(ids)).all()],
     }
 
 
@@ -574,12 +592,15 @@ def _apply_fields(model, entity_id: str, expected: dict | None, values: dict, db
     db.flush()
 
 
+_REORDER_KEYS = ("id", "parent_id", "position", "level", "level_type")
+
+
 def reorder_snapshot(model, ids: list[str], db: Session) -> list[dict]:
-    """Current parent/position/level of the given rows (for before/after of a reorder)."""
+    """Current parent/position/level of the given rows (for before/after of a reorder). An outline
+    row also keeps its level's name: the Outline's Tab and Shift+Tab move a row a level."""
     rows = db.query(model).filter(getattr(model, "id").in_(ids)).all() if ids else []
     return [
-        {k: getattr(r, k) for k in ("id", "parent_id", "position", "level") if hasattr(r, k)}
-        for r in sorted(rows, key=lambda r: ids.index(r.id))
+        {k: getattr(r, k) for k in _REORDER_KEYS if hasattr(r, k)} for r in sorted(rows, key=lambda r: ids.index(r.id))
     ]
 
 
@@ -588,7 +609,7 @@ def _apply_reorder(model, ops: list[dict], db: Session) -> None:
         row = db.get(model, op["id"])
         if not row:
             continue
-        for key in ("parent_id", "position", "level"):
+        for key in _REORDER_KEYS[1:]:
             if key in op and hasattr(row, key):
                 setattr(row, key, op[key])
     db.flush()

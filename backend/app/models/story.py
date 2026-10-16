@@ -85,6 +85,9 @@ class Story(Base):
     synopsis: Mapped[str] = mapped_column(Text, default="", server_default="")
     # Which method the Plan page follows (frontend lib/planning/methods.ts); "" until chosen
     planning_method: Mapped[str] = mapped_column(String, default="", server_default="")
+    #: How the writer likes to work (doc 29 D1): "plan", "discover", "both", or "" for a story
+    #: made before New Story asked. Decides where it opens and the Overview's next step only.
+    working_style: Mapped[str] = mapped_column(String, default="", server_default="")
     # The brain dump, sorted fragment by fragment (migration 0017 has the shape)
     #: The Freewrite page (doc 15 N3): loose writing, as HTML from the editor.
     freewrite: Mapped[str] = mapped_column(Text, default="", server_default="")

@@ -14,6 +14,11 @@ describe("ledFor", () => {
     expect(ledFor("offline").led).toBe("trouble");
     expect(ledFor("conflict").led).toBe("trouble");
   });
+
+  it("says whether the scene or the open take changed elsewhere", () => {
+    expect(ledFor("conflict").label).toBe("This scene changed elsewhere. Choose which version to keep");
+    expect(ledFor("conflict", true).label).toBe("This take changed elsewhere. Choose which version to keep");
+  });
 });
 
 describe("statusFigures", () => {

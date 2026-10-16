@@ -61,7 +61,7 @@ describe("the strip at the panel's default width", () => {
   });
 
   it("leaves room for Full page while a page is showing", () => {
-    const b = stripBudget(strip(0), "page:storyboard", CONTENT, { fullPage: true });
+    const b = stripBudget(strip(0), "page:summaries", CONTENT, { fullPage: true });
     expect(CONTENT - b.room).toBeGreaterThanOrEqual(STRIP_PX.fullPage + STRIP_PX.open);
   });
 
