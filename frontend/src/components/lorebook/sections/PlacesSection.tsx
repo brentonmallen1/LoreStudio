@@ -96,6 +96,7 @@ export default function PlacesSection() {
           if (l) openEntity("location", l.id, l.name);
         }}
         onAdd={() => add(null)}
+        pageEmpty={!place}
         seriesKinds={["location"]}
         onFromSeries={(id) => select(id)}
         empty={

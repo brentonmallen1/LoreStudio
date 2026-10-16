@@ -57,7 +57,9 @@ export default function LogoMenuPages({
   const aiAvailable = useAIAvailable();
   const activeNode = useStoryStore((s) => s.activeNode);
   const routes = routesFor(mode).filter((r) => !r.ai || aiAvailable);
-  const tip = useHoverTip();
+  // The tip stands beside its column: right of the menu for a page, right of the flyout for a
+  // section, so it never covers the rows under it or the flyout.
+  const tip = useHoverTip({ beside: "[data-fan], [role=dialog]" });
   const isHere = (r: StoryRoute) =>
     r.path === "" ? /^\/stories\/[^/]+\/?$/.test(pathname) : pathname.startsWith(storyPath(storyId, r));
   const openScene = activeNode?.story_id === storyId ? activeNode.title : undefined;
@@ -84,6 +86,9 @@ export default function LogoMenuPages({
     const panel = row?.closest<HTMLElement>("[role=dialog]");
     if (!row || !panel) return;
     const r = row.getBoundingClientRect();
+    // The flyout takes the right of the menu, where the page's tip would stand: the tip goes and
+    // the page's line heads the flyout instead.
+    tip.hide();
     setFan({ id, top: r.top - 6, left: panel.getBoundingClientRect().right + 4 });
   }
   function later(fn: () => void, ms: number) {
@@ -241,7 +246,10 @@ export default function LogoMenuPages({
           data-fan
           className={styles.fan}
           style={{
-            top: Math.max(8, Math.min(fan.top, window.innerHeight - fanSections.length * 34 - 24)),
+            top: Math.max(
+              8,
+              Math.min(fan.top, window.innerHeight - fanSections.length * 34 - (fanRoute.purpose ? 72 : 24)),
+            ),
             left: fan.left,
           }}
           role="group"
@@ -250,6 +258,11 @@ export default function LogoMenuPages({
           onMouseLeave={() => later(hide, CLOSE_MS)}
           onKeyDown={onFanKey}
         >
+          {fanRoute.purpose && (
+            <p className={styles.fanPurpose} aria-hidden>
+              {fanRoute.purpose}
+            </p>
+          )}
           {fanSections.map((sec) => {
             const on = isHere(fanRoute) && sectionOn(fanRoute, sec);
             return (

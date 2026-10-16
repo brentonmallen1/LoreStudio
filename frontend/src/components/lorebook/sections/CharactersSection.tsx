@@ -151,6 +151,7 @@ export default function CharactersSection() {
         seriesKinds={["character"]}
         onFromSeries={(id) => select(id)}
         empty={<p className={styles.listEmpty}>No characters yet. Who is this story about?</p>}
+        pageEmpty={!character}
         footer={
           characters.length > 1 && (
             <div className={styles.listFooter}>

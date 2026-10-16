@@ -146,6 +146,7 @@ export default function SimpleSection<T extends Named>({ config }: { config: Sim
           }
         }
         empty={<p className={styles.listEmpty}>{blocked ?? config.empty}</p>}
+        pageEmpty={loaded && !selected && Boolean(config.emptyState)}
         seriesKinds={seriesKinds.length ? seriesKinds : undefined}
         onFromSeries={(id) => void reload().then(() => select(id))}
       />
