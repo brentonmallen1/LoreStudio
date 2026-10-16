@@ -5,6 +5,8 @@ import { sceneStatus } from "../../lib/outline/status";
 import { loadFolded, saveFolded } from "../../lib/outline/prefs";
 import { shapeOf, visibleRows } from "../../lib/outline/tree";
 import { useStoryStore } from "../../stores/storyStore";
+import { useHoverTip } from "../common/useHoverTip";
+import { clipTipHandlers } from "./clipTip";
 import OutlineMark from "./OutlineMark";
 import Tray from "./Tray";
 import { useTray } from "./useTray";
@@ -27,6 +29,7 @@ export default function OutlinePanel({ storyId }: { storyId: string }) {
   const [folded, setFolded] = useState(() => loadFolded(storyId));
   const [renaming, setRenaming] = useState<string | null>(null);
   const current = useRef<HTMLButtonElement>(null);
+  const tip = useHoverTip({ side: "left" });
   const rows = visibleRows(structure, folded, shape);
 
   useEffect(() => {
@@ -88,6 +91,7 @@ export default function OutlinePanel({ storyId }: { storyId: string }) {
                   : node.children?.length && fold(node.id)
               }
               onDoubleClick={() => setRenaming(node.id)}
+              {...clipTipHandlers(tip, [node.title, node.synopsis].filter(Boolean).join(" · "))}
             >
               {scene ? (
                 <OutlineMark status={sceneStatus(node)} />
@@ -108,13 +112,16 @@ export default function OutlinePanel({ storyId }: { storyId: string }) {
                   {on && <span className={styles.panelHere}> · writing now</span>}
                 </span>
                 {scene && (node.synopsis || !node.word_count) && (
-                  <span className={styles.panelWhat}>{node.synopsis || "planned, no words yet"}</span>
+                  <span className={styles.panelWhat} data-clip title={node.synopsis || undefined}>
+                    {node.synopsis || "planned, no words yet"}
+                  </span>
                 )}
               </span>
             </button>
           );
         })}
       </div>
+      {tip.node}
       <Tray tray={tray} compact />
       <button
         type="button"

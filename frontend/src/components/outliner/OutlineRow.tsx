@@ -1,4 +1,4 @@
-import type { DragEvent, FocusEvent } from "react";
+import { useLayoutEffect, useRef, useState, type DragEvent, type FocusEvent } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown, ChevronRight, GripVertical, PenLine } from "lucide-react";
 import { sceneSheetPath } from "../../lib/scene/glance";
@@ -10,6 +10,8 @@ import Term from "../common/Term";
 import MomentTag from "./MomentTag";
 import OutlineMark from "./OutlineMark";
 import { useActiveSheet } from "./usePattern";
+import { clipTipHandlers } from "./clipTip";
+import type { useHoverTip } from "../common/useHoverTip";
 import styles from "./Outline.module.css";
 
 export interface RowProps {
@@ -26,6 +28,8 @@ export interface RowProps {
   onDragStart: (e: DragEvent, id: string) => void;
   onDragOver: (e: DragEvent, row: Row) => void;
   onDrop: (e: DragEvent, row: Row) => void;
+  /** The list's one tip: a row reached by the keyboard shows its whole line when cut short. */
+  tip: ReturnType<typeof useHoverTip>;
 }
 
 /**
@@ -49,6 +53,19 @@ export default function OutlineRow(props: RowProps) {
   const fieldKey = `${node.id}:${node.title}:${node.synopsis}`;
   const unfoldable = (container && !!node.children?.length) || (scene && !draft);
   const expanded = container ? !folded : open;
+  const meta =
+    container && !draft
+      ? partSummary(node, depth, shape)
+      : scene && !draft && !node.word_count
+        ? "planned, no words yet"
+        : "";
+  // An unfolded scene shows its whole line of what happens when the row cuts it short.
+  const synopsisRef = useRef<HTMLInputElement>(null);
+  const [cut, setCut] = useState(false);
+  useLayoutEffect(() => {
+    const el = synopsisRef.current;
+    setCut(!!open && !!el && el.scrollWidth > el.clientWidth + 1);
+  }, [open, node.synopsis]);
 
   return (
     <div
@@ -67,6 +84,7 @@ export default function OutlineRow(props: RowProps) {
       style={{ "--depth": depth } as React.CSSProperties}
       onDragOver={(e) => props.onDragOver(e, row)}
       onDrop={(e) => props.onDrop(e, row)}
+      {...clipTipHandlers(props.tip, [node.title, node.synopsis, meta].filter(Boolean).join(" · "))}
     >
       <div className={styles.line}>
         {!draft && (
@@ -99,6 +117,8 @@ export default function OutlineRow(props: RowProps) {
             className={styles.title}
             data-outline-line={node.id}
             data-field="title"
+            data-clip
+            title={node.title || undefined}
             defaultValue={node.title}
             placeholder={titleHint}
             aria-label={draft ? titleHint : `${level} title`}
@@ -110,6 +130,9 @@ export default function OutlineRow(props: RowProps) {
             className={styles.synopsis}
             data-outline-line={node.id}
             data-field="synopsis"
+            data-clip
+            ref={synopsisRef}
+            title={node.synopsis || undefined}
             defaultValue={node.synopsis}
             placeholder="what happens…"
             aria-label="What happens"
@@ -117,8 +140,11 @@ export default function OutlineRow(props: RowProps) {
             onBlur={(e) => props.onBlurLine(node.id, e)}
           />
         </span>
-        {container && !draft && <span className={styles.meta}>{partSummary(node, depth, shape)}</span>}
-        {scene && !draft && !node.word_count && <span className={styles.meta}>planned, no words yet</span>}
+        {meta && (
+          <span className={styles.meta} data-clip title={meta}>
+            {meta}
+          </span>
+        )}
         {scene && !draft && <SceneMoment nodeId={node.id} beatId={node.beat_id} />}
         {scene && !draft && (
           <button
@@ -132,7 +158,7 @@ export default function OutlineRow(props: RowProps) {
           </button>
         )}
       </div>
-      {scene && open && !draft && <SceneDetails storyId={storyId} nodeId={node.id} />}
+      {scene && open && !draft && <SceneDetails storyId={storyId} nodeId={node.id} whole={cut} />}
     </div>
   );
 }
@@ -175,13 +201,14 @@ function CarriesMoment({ nodeId, beatId }: { nodeId: string; beatId: string | nu
 }
 
 /** A scene unfolded: why it is here, whose eyes, where it stands, and the way to it. */
-function SceneDetails({ storyId, nodeId }: { storyId: string; nodeId: string }) {
+function SceneDetails({ storyId, nodeId, whole }: { storyId: string; nodeId: string; whole: boolean }) {
   const node = useStoryStore((s) => findNode(s.structure, nodeId));
   const characters = useStoryStore((s) => s.characters);
   if (!node) return null;
   const eyes = characters.find((c) => c.id === node.pov_character_id)?.name;
   return (
     <div className={styles.details}>
+      {whole && <p className={styles.whole}>{node.synopsis}</p>}
       <dl className={styles.facts}>
         <div>
           <dt>

@@ -298,6 +298,8 @@
   color: var(--color-text);
   font: inherit;
   font-size: var(--text-base);
+  /* A line too long for the row ends in "…"; its title has the rest. */
+  text-overflow: ellipsis;
 }
 
 .title {
@@ -339,10 +341,22 @@
 }
 
 .meta {
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 45%;
+  overflow: hidden;
   font-size: var(--text-sm);
   color: var(--color-text-subtle);
   white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* An unfolded scene's whole line of what happens, when the row cuts it short. */
+.whole {
+  margin: 0;
+  max-width: 40rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .details {
@@ -762,6 +776,7 @@
 }
 
 .panelText {
+  flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -786,8 +801,11 @@
 }
 
 .panelWhat {
+  overflow: hidden;
   font-size: var(--text-xs);
   color: var(--color-text-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .panelFull {

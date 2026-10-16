@@ -30,6 +30,7 @@ import {
 } from "../../lib/outline/tree";
 import { useStoryStore } from "../../stores/storyStore";
 import type { StructureNode } from "../../types";
+import { useHoverTip } from "../common/useHoverTip";
 import OutlineRow from "./OutlineRow";
 import { useOutlineActions } from "./useOutlineActions";
 import { ideaDrag, useTrayContext } from "./useTray";
@@ -64,6 +65,7 @@ export default function OutlineList({
   const shape = useMemo(() => shapeOf(template), [template]);
   const actions = useOutlineActions(storyId);
   const tray = useTrayContext();
+  const tip = useHoverTip();
   const [folded, setFolded] = useState(() => loadFolded(storyId));
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   // From the empty Outline: its first line is saved, and the next is ready to type.
@@ -427,9 +429,11 @@ export default function OutlineList({
             onDragStart={onDragStart}
             onDragOver={onDragOver}
             onDrop={onDrop}
+            tip={tip}
           />
         ))}
       </div>
+      {tip.node}
       <p className={styles.notice} role="status" aria-live="polite">
         {notice}
       </p>

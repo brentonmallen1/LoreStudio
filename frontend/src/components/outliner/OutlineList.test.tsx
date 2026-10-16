@@ -136,3 +136,17 @@ describe("the Outline's keys", () => {
     expect(sent.reordered).toHaveLength(0);
   });
 });
+
+describe("a line too long for its row", () => {
+  it("keeps the whole line for the pointer, and the row's tip for the keyboard", () => {
+    const long = "Eleanor monitors the approaching storm and prepares the light for a long night alone";
+    useStoryStore.setState({
+      structure: [node("S1", {}, [{ ...scene("a"), synopsis: long, word_count: 900 }])],
+    });
+    draw();
+    const what = document.querySelector<HTMLInputElement>('[data-outline-line="a"][data-field="synopsis"]')!;
+    expect(what.title).toBe(long);
+    expect(what.dataset.clip).toBeDefined();
+    expect(title("a").title).toBe("a");
+  });
+});
