@@ -16,10 +16,14 @@ export default function NoteItem({
   notes,
   showKind = true,
   onOpen,
+  actionsBelow = false,
 }: {
   note: Note;
   notes: StoryNotes;
   showKind?: boolean;
+  /** The buttons on a line of their own under the words, for a narrow column (Freewrite's
+   * Made from this page), so the words keep the column's width. */
+  actionsBelow?: boolean;
   /** Opens where the note is tied (its passage, its scene); absent when it is tied nowhere. */
   onOpen?: () => void;
 }) {
@@ -41,6 +45,45 @@ export default function NoteItem({
     setAnswering(false);
     void notes.change(note.id, { answer: answer.trim(), done: !!answer.trim() });
   }
+
+  const actions = (
+    <div className={styles.itemActions} data-below={actionsBelow || undefined}>
+      {note.kind === "question" && !note.answer && !answering && (
+        <button type="button" className={styles.textBtn} onClick={() => setAnswering(true)}>
+          Answer
+        </button>
+      )}
+      {note.kind !== "todo" && !(note.kind === "question" && !note.answer && !note.done) && (
+        <button
+          type="button"
+          className={styles.textBtn}
+          onClick={() => void notes.change(note.id, { done: !note.done })}
+          title={note.done ? "Reopen" : "Resolve: done with it"}
+        >
+          {note.done ? "Reopen" : "Resolve"}
+        </button>
+      )}
+      {loose && !tying && (
+        <button type="button" className={styles.textBtn} onClick={() => setTying(true)}>
+          Tie to…
+        </button>
+      )}
+      {onOpen && (
+        <button type="button" className={styles.textBtn} onClick={onOpen}>
+          {note.anchor ? "Show in the prose" : "Open"}
+        </button>
+      )}
+      <button
+        type="button"
+        className={styles.remove}
+        onClick={() => void notes.remove(note.id)}
+        aria-label={`Delete this ${KIND_LABEL[note.kind].toLowerCase()}`}
+        title="Delete"
+      >
+        <X size={12} />
+      </button>
+    </div>
+  );
 
   return (
     <li className={styles.item} data-kind={note.kind} data-done={note.done || undefined}>
@@ -114,43 +157,9 @@ export default function NoteItem({
             }}
           />
         )}
+        {actionsBelow && actions}
       </div>
-      <div className={styles.itemActions}>
-        {note.kind === "question" && !note.answer && !answering && (
-          <button type="button" className={styles.textBtn} onClick={() => setAnswering(true)}>
-            Answer
-          </button>
-        )}
-        {note.kind !== "todo" && !(note.kind === "question" && !note.answer && !note.done) && (
-          <button
-            type="button"
-            className={styles.textBtn}
-            onClick={() => void notes.change(note.id, { done: !note.done })}
-            title={note.done ? "Reopen" : "Resolve: done with it"}
-          >
-            {note.done ? "Reopen" : "Resolve"}
-          </button>
-        )}
-        {loose && !tying && (
-          <button type="button" className={styles.textBtn} onClick={() => setTying(true)}>
-            Tie to…
-          </button>
-        )}
-        {onOpen && (
-          <button type="button" className={styles.textBtn} onClick={onOpen}>
-            {note.anchor ? "Show in the prose" : "Open"}
-          </button>
-        )}
-        <button
-          type="button"
-          className={styles.remove}
-          onClick={() => void notes.remove(note.id)}
-          aria-label={`Delete this ${KIND_LABEL[note.kind].toLowerCase()}`}
-          title="Delete"
-        >
-          <X size={12} />
-        </button>
-      </div>
+      {!actionsBelow && actions}
     </li>
   );
 }

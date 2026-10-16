@@ -27,7 +27,7 @@ Logo menu › **Compendium** › **Notes** lists them all in story order. **Tie 
 
 ## Freewrite
 
-**Freewrite** is a page for thinking on paper, under a heading for each day. When a sentence turns out to be something, select it and choose from **Make it**: a note, a character, a place, a scene, or under **More** a theme or the logline. The words stay where you wrote them, dotted, and **Made from this page** lists what each became.
+**Freewrite** is a page for thinking on paper, under a heading for each day. When a sentence turns out to be something, select it and choose from **Make it**: a note, a character, a place, a scene, or under **More** a theme or the logline. The words stay where you wrote them, dotted, and **Made from this page** lists what each became. The same words can become more than one thing, a question and later a scene, and the list keeps both.
 
 **Scene** asks which you mean:
 

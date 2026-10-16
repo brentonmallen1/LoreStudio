@@ -18,15 +18,24 @@ class NamedCount(BaseModel):
     color_slot: int | None = None
 
 
+class NameAction(BaseModel):
+    id: str
+    label: str
+
+
 class NewName(BaseModel):
     """A name the prose uses that the Lorebook does not have, from Discoveries' name scan."""
 
     proposal_id: str
+    #: The list it shows in: a name read as a person and as a place shows once, as the likelier.
     kind: Literal["person", "place"]
     name: str
     times: int
-    #: The proposal's own "yes" (its action id), answered through the Discoveries routes.
-    add_action: str
+    #: The proposal's own yeses, answered through the Discoveries routes: one, or "Add as a
+    #: person" and "Add as a place" for a name the scan read as either.
+    actions: list[NameAction]
+    #: Its "no": "Not a person", "Not a place", or "Neither", which declines both.
+    decline: str
 
 
 class Jump(BaseModel):

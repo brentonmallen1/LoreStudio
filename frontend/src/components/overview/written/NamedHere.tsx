@@ -46,13 +46,16 @@ export default function NamedHere({
   const heading = people ? "People you've written about" : "Places you've written about";
   const id = `written-${section}`;
 
-  async function answer(n: NewName, yes: boolean) {
+  /** A yes (an action's id) or a no (null). */
+  async function answer(n: NewName, action: string | null) {
     setBusy(n.proposal_id);
     try {
-      if (yes) await proposalsApi.act(storyId, n.proposal_id, n.add_action);
+      if (action) await proposalsApi.act(storyId, n.proposal_id, action);
       else await proposalsApi.decline(storyId, n.proposal_id);
-      if (yes && people) await reloadCharacters();
-      if (yes && !people) useStoryStore.getState().setLocations(await api.listLocationsFlat(storyId));
+      // A name asked as either became what its action said, whichever list it showed in.
+      const person = action === "person" || (action !== "place" && people);
+      if (action && person) await reloadCharacters();
+      if (action && !person) useStoryStore.getState().setLocations(await api.listLocationsFlat(storyId));
       void useProposalsStore.getState().refetch();
       onAnswered();
     } catch (e) {
@@ -107,21 +110,24 @@ export default function NamedHere({
             <strong>“{n.name}”</strong> turns up {times(n.times)} but isn't in your Lorebook.
           </span>
           <span className={styles.actions}>
+            {n.actions.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                className={styles.secondary}
+                disabled={busy === n.proposal_id}
+                onClick={() => void answer(n, a.id)}
+              >
+                {a.label}
+              </button>
+            ))}
             <button
               type="button"
               className={styles.secondary}
               disabled={busy === n.proposal_id}
-              onClick={() => void answer(n, true)}
+              onClick={() => void answer(n, null)}
             >
-              {people ? "Add as a person" : "Add as a place"}
-            </button>
-            <button
-              type="button"
-              className={styles.secondary}
-              disabled={busy === n.proposal_id}
-              onClick={() => void answer(n, false)}
-            >
-              {people ? "Not a person" : "Not a place"}
+              {n.decline}
             </button>
           </span>
         </div>

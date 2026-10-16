@@ -25,7 +25,7 @@ from ..models.location import Location, ScenePresence
 from ..models.proposal_decline import ProposalDecline
 from ..models.story import Story
 from ..models.structure import StructureNode
-from ..schemas.written import ChaptersOffer, Jump, NamedCount, NewName, SplitOffer, WrittenOut
+from ..schemas.written import ChaptersOffer, Jump, NameAction, NamedCount, NewName, SplitOffer, WrittenOut
 from . import change_log
 from .codex.presence import known_as, name_patterns
 from .findings.runs import latest_runs
@@ -137,6 +137,11 @@ def _counts(texts: dict[str, str], patterns: dict[str, list[re.Pattern[str]]]) -
     return times, scenes
 
 
+def _yes(label: str, kind: str) -> str:
+    """The yes in the Overview's words: a person, a place ("Add as a character" in Discoveries)."""
+    return label if label.startswith("Add as a p") else ("Add as a person" if kind == "person" else "Add as a place")
+
+
 def _most_named(x: NamedCount | NewName) -> tuple[int, int, str]:
     return (-x.times, -getattr(x, "scenes", 0), x.name.lower())
 
@@ -179,7 +184,6 @@ def written(story_id: str, db: Session) -> WrittenOut:
         for p in [*scanned_names(story_id, db, titles), *stubs(story_id, db, titles)]
         if p.id not in declined and p.source == "local" and p.kind in ("person", "place") and p.actions
     ]
-    # Each name counted on its own: the scan can find one name as a person and as a place.
     n_times = {p.id: _counts(texts, name_patterns({p.id: p.subject}))[0][p.id] for p in found}
     new_names = [
         NewName(
@@ -187,7 +191,8 @@ def written(story_id: str, db: Session) -> WrittenOut:
             kind="person" if p.kind == "person" else "place",
             name=p.subject,
             times=n_times[p.id],
-            add_action=p.actions[0].id,
+            actions=[NameAction(id=a.id, label=_yes(a.label, p.kind)) for a in p.actions],
+            decline=p.decline,
         )
         for p in found
     ]

@@ -28,7 +28,14 @@ const WRITTEN: WrittenOut = {
   people: [{ id: "c1", name: "Nell", times: 58, scenes: 6, color_slot: 1 }],
   places: [{ id: "l1", name: "Harrow Island", times: 19, scenes: 4, color_slot: 2 }],
   new_names: [
-    { proposal_id: "name:person:abc", kind: "person", name: "Margaret", times: 4, add_action: "add" },
+    {
+      proposal_id: "name:person:abc",
+      kind: "person",
+      name: "Margaret",
+      times: 4,
+      actions: [{ id: "add", label: "Add as a person" }],
+      decline: "Not a person",
+    },
   ],
   last_scan: "2026-10-16T10:00:00",
   split_offers: [
@@ -150,6 +157,36 @@ describe("What you've written", () => {
     draw();
     fireEvent.click(await screen.findByRole("button", { name: "Not a person" }));
     await waitFor(() => expect(sent.declined).toEqual(["name:person:abc"]));
+  });
+
+  it("asks once about a name read as a person and a place, with Neither", async () => {
+    const sent = serve();
+    server.use(
+      http.get("/api/stories/s1/written", () =>
+        HttpResponse.json({
+          ...WRITTEN,
+          new_names: [
+            {
+              proposal_id: "name:place:dd",
+              kind: "place",
+              name: "Delia",
+              times: 3,
+              actions: [
+                { id: "person", label: "Add as a person" },
+                { id: "place", label: "Add as a place" },
+              ],
+              decline: "Neither",
+            },
+          ],
+        }),
+      ),
+    );
+    draw();
+    expect(await screen.findAllByText("“Delia”")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Add as a person" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add as a place" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Neither" }));
+    await waitFor(() => expect(sent.declined).toEqual(["name:place:dd"]));
   });
 
   it("writes an edited line as the scene's line of what happens", async () => {

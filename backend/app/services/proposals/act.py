@@ -23,7 +23,7 @@ from ..codex.presence import derive_facts, derive_presence
 from ..findings.fingerprint import content_hash
 from ..findings.runs import latest_runs, result_of
 from ..who_knows import character_ids
-from .sources import knowledge_key
+from .sources import knowledge_key, name_keys
 
 
 class CannotAct(Exception):
@@ -115,7 +115,8 @@ def act(story_id: str, p: Proposal, action: str, db: Session, actor: str, client
 
     if source == "name":
         name = p.subject
-        if p.kind == "person":
+        # A name asked as either says which in the action ("person", "place"); else its kind.
+        if (action if action in ("person", "place") else p.kind) == "person":
             c = Character(id=str(uuid.uuid4()), story_id=story_id, name=name, role="supporting")
             _create(db, c, "characters", "character", story_id, f"Add {name}, found in the prose", actor, client)
             result = ActResult(entity_type="character", entity_id=c.id)
@@ -270,24 +271,31 @@ def decline(story_id: str, p: Proposal, db: Session, actor: str, client: str | N
         db.delete(rel)
     else:
         node = db.get(StructureNode, p.node_id) if source == "dialogue" and p.node_id else None
-        row = ProposalDecline(
-            id=str(uuid.uuid4()),
-            story_id=story_id,
-            fingerprint=p.id,
-            node_content_hash=content_hash(node.content) if node is not None else None,
-        )
-        existing = (
-            db.query(ProposalDecline)
-            .filter(ProposalDecline.story_id == story_id, ProposalDecline.fingerprint == p.id)
-            .first()
-        )
-        if existing is not None:
-            existing.node_content_hash = row.node_content_hash
-        else:
-            db.add(row)
-            db.flush()
-            change_log.record_row_create(
-                db, row, "proposal_declines", entity_type="proposal_decline", story_id=story_id,
-                label="Decline a proposal", actor_id=actor, client_id=client,
-            )  # fmt: skip
+        batch = str(uuid.uuid4())
+        # A name asked as a person or a place: "Neither" declines it as both.
+        for fingerprint in name_keys(p) if source == "name" else [p.id]:
+            _decline_one(story_id, fingerprint, node, db, actor, client, batch)
     db.commit()
+
+
+def _decline_one(story_id: str, fingerprint: str, node, db: Session, actor: str, client, batch: str) -> None:
+    row = ProposalDecline(
+        id=str(uuid.uuid4()),
+        story_id=story_id,
+        fingerprint=fingerprint,
+        node_content_hash=content_hash(node.content) if node is not None else None,
+    )
+    existing = (
+        db.query(ProposalDecline)
+        .filter(ProposalDecline.story_id == story_id, ProposalDecline.fingerprint == fingerprint)
+        .first()
+    )
+    if existing is not None:
+        existing.node_content_hash = row.node_content_hash
+        return
+    db.add(row)
+    db.flush()
+    change_log.record_row_create(
+        db, row, "proposal_declines", entity_type="proposal_decline", story_id=story_id,
+        label="Decline a proposal", actor_id=actor, client_id=client, batch_id=batch,
+    )  # fmt: skip

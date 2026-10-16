@@ -7,6 +7,7 @@ import { toast } from "../../stores/toastStore";
 import type { NoteKind } from "../../types/notes";
 import { KIND_LABEL } from "../notes/kinds";
 import { makeFrom, type FileChoice } from "./makeFrom";
+import { markMade } from "./MadeMark";
 import SceneChooser, { type SceneChoice } from "./SceneChooser";
 import styles from "./Freewrite.module.css";
 
@@ -78,7 +79,7 @@ export default function MakeBar({ editor, storyId }: { editor: Editor; storyId: 
   const range = sel;
 
   function mark(ref: string) {
-    editor.chain().setTextSelection({ from: range.from, to: range.to }).setMark("made", { ref }).run();
+    markMade(editor, range.from, range.to, ref);
     editor.commands.setTextSelection(range.to);
     setSel(null);
     setAsking(null);

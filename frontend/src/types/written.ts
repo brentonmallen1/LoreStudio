@@ -17,8 +17,11 @@ export interface NewName {
   kind: "person" | "place";
   name: string;
   times: number;
-  /** The Discoveries proposal's own "yes". */
-  add_action: string;
+  /** The Discoveries proposal's own yeses: one, or "Add as a person" and "Add as a place" for a
+   * name the scan read as either (shown once, in the list it is likelier for). */
+  actions: { id: string; label: string }[];
+  /** Its "no": "Not a person", "Not a place", or "Neither", which declines both. */
+  decline: string;
 }
 
 export interface SplitOffer {

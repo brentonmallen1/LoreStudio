@@ -56,7 +56,8 @@ def test_new_names_from_the_scan_with_the_discoveries_yes_and_no(client, db_sess
     out = _written(client, story)
     assert out["last_scan"] is not None
     [gull] = out["new_names"]
-    assert (gull["name"], gull["kind"], gull["times"], gull["add_action"]) == ("Gull", "person", 3, "add")
+    assert (gull["name"], gull["kind"], gull["times"]) == ("Gull", "person", 3)
+    assert (gull["actions"], gull["decline"]) == ([{"id": "add", "label": "Add as a person"}], "Not a person")
     feed = client.get(f"/api/stories/{story.id}/proposals").json()["proposals"]
     assert next(p for p in feed if p["id"] == gull["proposal_id"])["decline"] == "Not a person"
     assert client.post(f"/api/stories/{story.id}/proposals/{gull['proposal_id']}/decline").status_code == 204
@@ -114,17 +115,7 @@ def test_another_writers_story_is_not_read(client, db_session):
     assert client.post(f"/api/stories/{story.id}/written/not-now", json={"key": "split:x"}).status_code == 404
 
 
-def test_a_name_found_as_a_person_and_a_place_is_counted_as_each(client, db_session, test_user):
-    story, nodes = build_findings_story(db_session, test_user)
-    nodes["Supper"].content += "<p>Delia waved. Delia sat. At Marlowe’s the coffee was cold.</p>"
-    db_session.add(Location(id=str(uuid.uuid4()), story_id=story.id, name="Marlowe’s"))
-    result = {
-        "character_suggestions": [
-            {"text": "Delia", "label": "PERSON", "occurrences": 2},
-            {"text": "Marlowe", "label": "PERSON", "occurrences": 2},
-        ],
-        "location_suggestions": [{"text": "Delia", "label": "GPE", "occurrences": 2}],
-    }
+def _scan(db_session, test_user, story, result):
     db_session.add(
         ActivityLog(
             user_id=test_user.id,
@@ -136,9 +127,68 @@ def test_a_name_found_as_a_person_and_a_place_is_counted_as_each(client, db_sess
         )
     )
     db_session.commit()
-    found = {(n["name"], n["kind"]): n["times"] for n in _written(client, story)["new_names"]}
-    # "Marlowe’s" is in Places, so the scan's "Marlowe" is not someone new.
-    assert found == {("Delia", "person"): 2, ("Delia", "place"): 2}
+
+
+def test_a_name_found_as_a_person_and_a_place_is_asked_once(client, db_session, test_user):
+    story, nodes = build_findings_story(db_session, test_user)
+    nodes["Supper"].content += "<p>Delia waved. Delia sat. At Marlowe’s the coffee was cold. Delia left.</p>"
+    db_session.add(Location(id=str(uuid.uuid4()), story_id=story.id, name="Marlowe’s"))
+    _scan(
+        db_session,
+        test_user,
+        story,
+        {
+            "character_suggestions": [
+                {"text": "Delia", "label": "PERSON", "occurrences": 2},
+                {"text": "Marlowe", "label": "PERSON", "occurrences": 2},
+            ],
+            "location_suggestions": [{"text": "Delia", "label": "GPE", "occurrences": 3}],
+        },
+    )
+    # "Marlowe’s" is in Places, so the scan's "Marlowe" is not someone new; "Delia" shows once,
+    # as the place the scan read her as more often, with both yeses and "Neither".
+    [delia] = _written(client, story)["new_names"]
+    assert (delia["name"], delia["kind"], delia["times"], delia["decline"]) == ("Delia", "place", 3, "Neither")
+    assert [a["label"] for a in delia["actions"]] == ["Add as a person", "Add as a place"]
+    feed = [
+        p
+        for p in client.get(f"/api/stories/{story.id}/proposals").json()["proposals"]
+        if p["kind"] in ("person", "place")
+    ]
+    assert [(p["subject"], p["decline"]) for p in feed] == [("Delia", "Neither")]
+
+    # "Add as a person" makes her a character, whichever list she showed in.
+    r = client.post(f"/api/stories/{story.id}/proposals/{delia['proposal_id']}/act", json={"action": "person"})
+    assert r.status_code == 200, r.text
+    assert r.json()["entity_type"] == "character"
+    assert _written(client, story)["new_names"] == []
+
+
+def test_neither_declines_a_name_as_both(client, db_session, test_user):
+    story, nodes = build_findings_story(db_session, test_user)
+    nodes["Supper"].content += "<p>Delia waved. Delia sat.</p>"
+    found = {"text": "Delia", "occurrences": 2}
+    _scan(
+        db_session,
+        test_user,
+        story,
+        {"character_suggestions": [{**found, "label": "PERSON"}], "location_suggestions": [{**found, "label": "GPE"}]},
+    )
+    [delia] = _written(client, story)["new_names"]
+    assert delia["kind"] == "person"  # a tie is a person
+    assert client.post(f"/api/stories/{story.id}/proposals/{delia['proposal_id']}/decline").status_code == 204
+    assert _written(client, story)["new_names"] == []
+    # Declining it as both: a later scan that reads her as a place more often asks nothing.
+    _scan(
+        db_session,
+        test_user,
+        story,
+        {"character_suggestions": [], "location_suggestions": [{**found, "label": "GPE", "occurrences": 5}]},
+    )
+    assert _written(client, story)["new_names"] == []
+    # One ⌘Z brings the question back.
+    assert client.post(f"/api/stories/{story.id}/undo").status_code == 200
+    assert [n["name"] for n in _written(client, story)["new_names"]] == ["Delia"]
 
 
 def test_a_part_holding_many_scenes_is_offered_chapters_until_not_now(client, db_session, test_user):

@@ -61,7 +61,11 @@ export default function MadeList({ storyId, refs }: { storyId: string; refs: str
         const id = at < 0 ? "" : ref.slice(at + 1);
         if (kind === "note") {
           const note = notes.notes?.find((n) => n.id === id);
-          return note ? <NoteItem key={ref} note={note} notes={notes} /> : <Gone key={ref} what="A note" />;
+          return note ? (
+            <NoteItem key={ref} note={note} notes={notes} actionsBelow />
+          ) : (
+            <Gone key={ref} what="A note" />
+          );
         }
         if (kind === "idea")
           return (
