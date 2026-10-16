@@ -149,21 +149,14 @@
   padding-top: 2px;
 }
 
+/* A secondary button (DESIGN.md §5), sized as the primary beside it. */
 .skipBtn {
+  composes: btn-secondary from global;
   flex: 1;
   padding: 7px 10px;
   font-size: var(--text-sm);
-  background: none;
-  border: none;
-  border-radius: 5px;
-  color: var(--color-text-subtle);
-  cursor: pointer;
   transition: all 0.1s;
-}
-
-.skipBtn:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
+  height: auto;
 }
 
 .startBtn {

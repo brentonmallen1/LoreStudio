@@ -195,6 +195,7 @@ export default function SummaryOverviewView() {
                   <AIOnly>
                     <button
                       className={styles.generateBtn}
+                      data-ai
                       onClick={() => generate(node)}
                       disabled={!!generatingId || !canGenerate}
                     >

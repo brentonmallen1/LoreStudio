@@ -390,32 +390,15 @@ button.typeBtn[aria-expanded="true"] {
   font-weight: 400;
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .summaryRefreshBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.2rem 0.5rem;
-  font-size: var(--text-xs);
-  font-family: inherit;
-  font-weight: 500;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-ai-border);
-  background: transparent;
-  color: var(--color-ai);
-  cursor: pointer;
+  composes: btn-secondary from global;
   transition:
     background var(--transition),
     color var(--transition);
-  white-space: nowrap;
-}
-
-.summaryRefreshBtn:hover:not(:disabled) {
-  background: var(--color-ai-subtle);
-  border-color: color-mix(in srgb, var(--color-ai) 50%, var(--color-border));
 }
 
 .summaryRefreshBtn:disabled {
-  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -428,29 +411,13 @@ button.typeBtn[aria-expanded="true"] {
   gap: 0.35rem;
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .addLinkBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.2rem 0.5rem;
-  font-size: var(--text-xs);
-  font-family: inherit;
-  font-weight: 500;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
+  composes: btn-secondary from global;
   transition:
     background var(--transition),
     color var(--transition),
     border-color var(--transition);
-}
-
-.addLinkBtn:hover {
-  background: var(--color-surface-2);
-  color: var(--color-text);
-  border-color: var(--color-accent);
 }
 
 .diagramThumbnails {

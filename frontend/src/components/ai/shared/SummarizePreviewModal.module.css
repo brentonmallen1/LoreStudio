@@ -82,23 +82,15 @@
   gap: 0.5rem;
 }
 
+/* A secondary button (DESIGN.md §5), sized as the primary beside it. */
 .cancelBtn {
+  composes: btn-secondary from global;
   padding: 0.4rem 0.85rem;
-  border-radius: var(--radius-sm);
-  border: none;
-  background: none;
-  color: var(--color-text-muted);
   font-size: 0.83rem;
-  font-family: inherit;
-  cursor: pointer;
   transition:
     background var(--transition),
     color var(--transition);
-}
-
-.cancelBtn:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
+  height: auto;
 }
 
 .applyBtn {

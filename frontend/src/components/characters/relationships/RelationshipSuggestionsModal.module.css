@@ -487,26 +487,15 @@
   flex-shrink: 0;
 }
 
+/* A secondary button (DESIGN.md §5), sized as the primary beside it. */
 .cancelBtn {
+  composes: btn-secondary from global;
   padding: 0.4rem 1rem;
   font-size: 0.82rem;
-  font-family: inherit;
-  background: transparent;
-  border: none;
-  border-radius: var(--radius);
-  color: var(--color-text-muted);
-  cursor: pointer;
   transition:
     background var(--transition),
     color var(--transition);
-}
-.cancelBtn:hover:not(:disabled) {
-  background: var(--color-hover);
-  color: var(--color-text);
-}
-.cancelBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  height: auto;
 }
 
 .saveBtn {

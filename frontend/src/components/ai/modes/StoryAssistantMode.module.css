@@ -124,20 +124,10 @@
 .resumeContinueBtn:hover {
   opacity: 0.85;
 }
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .resumeFreshBtn {
-  padding: 0.4rem 0.875rem;
-  border-radius: var(--radius);
-  font-size: 0.78rem;
-  font-family: inherit;
-  background: transparent;
-  color: var(--color-text-muted);
-  border: none;
-  cursor: pointer;
+  composes: btn-secondary from global;
   transition:
     background var(--transition),
     color var(--transition);
-}
-.resumeFreshBtn:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
 }

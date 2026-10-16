@@ -66,27 +66,12 @@
   color: var(--color-accent);
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .bulkBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.3rem 0.6rem;
-  border: none;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: 0.78rem;
-  cursor: pointer;
-}
-
-.bulkBtn:hover:not(:disabled) {
-  background: var(--color-surface-2);
-  color: var(--color-text);
+  composes: btn-secondary from global;
 }
 
 .bulkBtn:disabled {
-  opacity: 0.5;
   cursor: default;
 }
 

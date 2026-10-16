@@ -266,33 +266,10 @@
   background: var(--color-ai-subtle);
 }
 
+/* A row's own actions are secondary buttons (DESIGN.md §5): pressable at rest. */
 .verb {
+  composes: btn-secondary from global;
   flex-shrink: 0;
-  height: 1.867rem;
-  padding: 0 0.7rem;
-  border: none;
-  border-radius: var(--radius);
-  /* The ghost tier: the row's own action, quiet until pointed at (DESIGN.md). */
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: 0.78rem;
-  font-weight: 500;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.verb:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
-}
-
-.verb[data-ai] {
-  color: var(--color-ai);
-}
-
-.verb[data-ai]:hover {
-  background: var(--color-ai-subtle);
 }
 
 .verb:focus-visible,
@@ -696,22 +673,8 @@ button.runItem:focus-visible {
 }
 
 .no {
+  composes: btn-secondary from global;
   flex-shrink: 0;
-  height: 1.867rem;
-  padding: 0 0.55rem;
-  border: none;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: 0.78rem;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.no:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
 }
 
 .yes:focus-visible,
@@ -721,10 +684,13 @@ button.runItem:focus-visible {
   outline-offset: 2px;
 }
 
-.yes:disabled,
+.yes:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
 .no:disabled,
 .verb:disabled {
-  opacity: 0.55;
   cursor: progress;
 }
 
@@ -797,13 +763,7 @@ button.runItem:focus-visible {
 .rowActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-left: -0.7rem;
-}
-
-.verb[aria-expanded="true"] {
-  background: var(--color-surface-3);
-  color: var(--color-text);
+  gap: 0.4rem;
 }
 
 /* The key (doc 30 D5): severity's shapes and who said so, on the page in a tone box. */

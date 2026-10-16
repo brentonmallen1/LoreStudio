@@ -295,23 +295,12 @@
 }
 
 /* ── Capture btn ── */
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .captureBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: var(--text-xs);
-  font-family: inherit;
-  color: var(--color-ai);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
+  composes: btn-secondary from global;
   transition: opacity var(--transition);
 }
-.captureBtn:hover:not(:disabled) {
-  opacity: 0.7;
-}
+
 .captureBtn:disabled {
-  opacity: 0.4;
   cursor: default;
 }

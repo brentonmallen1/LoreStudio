@@ -369,19 +369,10 @@
   padding-top: 0.5rem;
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .resetBtn {
-  font-size: 0.78rem;
-  color: var(--color-text-subtle);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  font-family: inherit;
+  composes: btn-secondary from global;
   transition: color var(--transition);
-}
-
-.resetBtn:hover {
-  color: var(--color-text-muted);
 }
 
 /* Destructive, deliberate: deleting stored prompts cannot be undone. */

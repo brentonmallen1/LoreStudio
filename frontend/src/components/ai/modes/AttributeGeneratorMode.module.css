@@ -91,21 +91,10 @@
   margin: 0;
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .retryBtn {
-  padding: 0.25rem 0.6rem;
-  font-size: 0.78rem;
-  font-family: inherit;
-  border-radius: var(--radius-sm);
-  border: none;
-  background: transparent;
-  color: var(--color-danger);
-  cursor: pointer;
-  white-space: nowrap;
+  composes: btn-secondary from global;
   transition: background var(--transition);
-}
-
-.retryBtn:hover {
-  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
 }
 
 /* Results */

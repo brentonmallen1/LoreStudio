@@ -76,6 +76,7 @@
   font: inherit;
   color: var(--color-accent);
   cursor: pointer;
+  font-weight: 600;
 }
 
 .link:hover {

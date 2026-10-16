@@ -66,6 +66,7 @@ export default function SceneSummaryField({
         </label>
         <button
           className={styles.summaryRefreshBtn}
+          data-ai
           onClick={() => stream((signal) => api.summarizeNode(activeNode.id, signal))}
           disabled={isStreaming || !activeNode.content?.trim()}
           title="Generate/Refresh summary"

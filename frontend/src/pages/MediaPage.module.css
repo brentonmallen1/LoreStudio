@@ -78,14 +78,12 @@
   cursor: not-allowed;
 }
 
+/* A secondary button (DESIGN.md §5), sized as the primary beside it. */
 .cancelBtn {
+  composes: btn-secondary from global;
   padding: 5px 10px;
   font-size: var(--text-sm);
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
-  color: var(--color-text-subtle);
-  cursor: pointer;
+  height: auto;
 }
 
 .hint {
@@ -248,14 +246,9 @@
   cursor: pointer;
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .confirmNo {
-  padding: 3px 8px;
-  font-size: var(--text-xs);
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  color: var(--color-text-subtle);
-  cursor: pointer;
+  composes: btn-secondary from global;
 }
 
 /* In a book of a series: share the diagram with every book, or see that it is (v1.5) */

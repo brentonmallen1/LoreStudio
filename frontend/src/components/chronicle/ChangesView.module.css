@@ -120,21 +120,13 @@
 }
 
 /* Undo this one change (doc 23 P5): quiet until the row is hovered or focused. */
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .undoOne {
+  composes: btn-secondary from global;
   justify-self: end;
-  min-height: 24px;
-  font: inherit;
-  font-size: var(--text-xs);
-  padding: 0.15rem 0.5rem;
-  border-radius: var(--radius);
-  border: none;
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
 }
 
 .undoOne:hover,
 .undoOne:focus-visible {
-  background: var(--color-hover);
   color: var(--color-text);
 }

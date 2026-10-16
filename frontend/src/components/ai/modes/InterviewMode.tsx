@@ -391,6 +391,7 @@ export default function InterviewMode({ session }: Props) {
           session.messages.length > 0 ? (
             <button
               className={styles.captureBtn}
+              data-ai
               onClick={showNotes ? () => setShowNotes(true) : captureInsights}
               disabled={isSummarizing || session.messages.length === 0}
             >

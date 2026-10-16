@@ -87,20 +87,9 @@
   cursor: default;
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .textBtn {
-  background: none;
-  border: none;
-  padding: 0.2rem 0.3rem;
-  min-height: 1.5rem;
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.textBtn:hover {
-  color: var(--color-text);
+  composes: btn-secondary from global;
 }
 
 .iconBtn {

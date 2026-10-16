@@ -70,27 +70,13 @@
   margin-left: auto;
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .discoverBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.8rem;
-  font-size: 0.78rem;
-  font-family: inherit;
-  background: transparent;
-  color: var(--color-ai);
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
+  composes: btn-secondary from global;
   transition: background var(--transition);
 }
 
-.discoverBtn:hover:not(:disabled) {
-  background: var(--color-hover);
-}
-
 .discoverBtn:disabled {
-  opacity: 0.6;
   cursor: not-allowed;
 }
 

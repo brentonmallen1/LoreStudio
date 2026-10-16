@@ -133,14 +133,9 @@
   color: var(--color-warning);
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .retryBtn {
-  font-size: 0.78rem;
-  color: var(--color-ai);
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-decoration: underline;
-  font-family: inherit;
+  composes: btn-secondary from global;
 }
 
 /* ── Results ── */
@@ -250,21 +245,9 @@
 }
 
 /* ── Re-run ── */
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .rerunBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
+  composes: btn-secondary from global;
   align-self: flex-start;
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  padding: 0;
   transition: color var(--transition);
-}
-
-.rerunBtn:hover {
-  color: var(--color-ai);
 }

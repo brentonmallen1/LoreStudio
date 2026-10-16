@@ -211,20 +211,10 @@
   background: var(--color-surface-2);
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .resolve {
+  composes: btn-secondary from global;
   flex-shrink: 0;
-  padding: 0.1rem 0.35rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: none;
-  color: var(--color-accent);
-  font: inherit;
-  font-size: var(--text-xs);
-  cursor: pointer;
-}
-
-.resolve:hover {
-  background: var(--color-surface-2);
 }
 
 .resolve:focus-visible,

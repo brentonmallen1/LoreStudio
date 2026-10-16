@@ -123,6 +123,14 @@ const PAIRS: [string, string, number, string][] = [
   ["--color-text-muted", "--color-surface-3", 4.5, "muted text on hover"],
   ["--color-text-muted", "--color-surface-raised", 4.5, "muted text on raised cards"],
   ["--color-text-subtle", "--color-surface-3", 3, "subtle text on hover"],
+  // The secondary button (DESIGN.md §5): ink on the vellum at rest and the deep vellum under the
+  // pointer, muted when disabled; an Assistant one is violet on the vellum and on its own tint;
+  // on a vellum box it rests on the paper (the TEXT pairs above hold that).
+  ["--color-text", "--color-surface-2", 4.5, "secondary button text at rest"],
+  ["--color-text", "--color-surface-3", 4.5, "secondary button text under the pointer"],
+  ["--color-text-muted", "--color-surface-2", 4.5, "a disabled secondary button"],
+  ["--color-ai", "--color-surface-2", 4.5, "an Assistant secondary button at rest"],
+  ["--color-ai", "tint:--color-surface-2", 4.5, "an Assistant secondary button under the pointer"],
   // Text on filled buttons and badges, at rest and under the pointer.
   ...FILLS.flatMap((f): [string, string, number, string][] => [
     [`--color-${f}-fg`, `--color-${f}`, 4.5, `text on ${f} buttons`],
