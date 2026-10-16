@@ -45,10 +45,11 @@ export const PARTS = [
       "What the story promises the reader and where it keeps them: threads, twists, setups and payoffs, and what the reader knows.",
   },
   {
-    id: "proposals",
-    term: "Proposals",
+    id: "discoveries",
+    term: "Discoveries",
     definition:
-      "Things LoreStudio found in your prose and has not added on its own, such as a new name or a line with no speaker. You accept or dismiss each one.",
+      "Things LoreStudio found in your writing and won't decide without you, such as a new name or a line with no speaker. Say yes and it's added; say no and it won't ask again.",
+    alsoCalled: ["proposals"],
   },
   {
     id: "story-identity",

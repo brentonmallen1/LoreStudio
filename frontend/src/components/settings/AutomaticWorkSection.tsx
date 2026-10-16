@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import { ApiError } from "../../api/request";
 import {
@@ -217,7 +218,8 @@ export default function AutomaticWorkSection() {
         <p className={s.sectionHint}>
           What LoreStudio does by itself, and when. While one of these runs it shows in Jobs in the header,
           like anything you start; when it finishes it says nothing. Pausing stops them all; your own buttons,
-          like Back up now and Measure now, still work.
+          like Back up now and Measure now, still work.{" "}
+          <Link to="/guides/jobs">How jobs and automatic work run</Link>.
         </p>
         {work && (
           <label className={s.toggleRow}>

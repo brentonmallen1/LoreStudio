@@ -202,7 +202,7 @@ export default function PlacesSection() {
               <div className={styles.banner} role="status">
                 <span className={styles.bannerText}>
                   Found in your prose{scenes.length ? `, in ${scenes[0].title}` : ""}. Describing it keeps it;
-                  it also waits in <Link to={`/stories/${storyId}/proposals?kind=place`}>Proposals</Link>.
+                  it also waits in <Link to={`/stories/${storyId}/discoveries?kind=place`}>Discoveries</Link>.
                 </span>
                 <button
                   type="button"

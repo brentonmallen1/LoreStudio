@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { MoreHorizontal, PanelRight, Tag } from "lucide-react";
 import PopoverMenu, { type MenuItem } from "../common/PopoverMenu";
+import { guideItem, usePageHere } from "../layout/usePageAbout";
 import SlotPicker from "../common/SlotPicker";
 import AlsoCalled from "./AlsoCalled";
 import { useSeriesSheet, type SheetSeries } from "../series/useSeriesSheet";
@@ -106,6 +107,8 @@ export default function EntitySheet({
     ...(alsoCalled ? [{ label: "Add another name…", icon: Tag, onSelect: () => setAddingName(true) }] : []),
     ...inSeries.items,
   ];
+  const guide = guideItem(usePageHere().guide);
+  if (guide) menu.push(guide);
 
   return (
     <article className={styles.sheet} aria-label={name}>

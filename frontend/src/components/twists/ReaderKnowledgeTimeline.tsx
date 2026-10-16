@@ -219,7 +219,7 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
               className={styles.scanBtn}
               onClick={handleScan}
               disabled={scanning}
-              title="The Assistant reads the scenes for reveals, misdirections and clues; what it finds waits in Proposals"
+              title="The Assistant reads the scenes for reveals, misdirections and clues; what it finds waits in Discoveries"
             >
               <Orbit size={12} className={scanning ? styles.scanSpin : undefined} />
               {scanning ? "Reading…" : "Find what the reader learns"}
@@ -243,7 +243,7 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
           ) : (
             <>
               {scanNote} {scanNote === 1 ? "event waits" : "events wait"} for a yes in{" "}
-              <Link to={`/stories/${storyId}/proposals?kind=fact`}>Proposals</Link>.
+              <Link to={`/stories/${storyId}/discoveries?kind=fact`}>Discoveries</Link>.
             </>
           )}
         </p>

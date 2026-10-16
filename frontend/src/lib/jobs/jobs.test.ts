@@ -109,7 +109,7 @@ describe("jobs", () => {
   });
 
   it("opens a job where its result is", () => {
-    expect(jobOpen(job({ status: "done", kind: "codex-suggest" }))?.to).toBe("/stories/s1/proposals");
+    expect(jobOpen(job({ status: "done", kind: "codex-suggest" }))?.to).toBe("/stories/s1/discoveries");
     expect(jobOpen(job({ status: "error", kind: "codex-suggest" }))).toBeNull();
     expect(jobOpen(job({ status: "done", kind: "unknown" }))).toBeNull();
     expect(jobOpen(job({ status: "done", kind: "editorial-pass", result: { report_id: "r1" } }))?.to).toBe(

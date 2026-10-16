@@ -15,6 +15,13 @@ import search from "./search-and-replace.md?raw";
 import glossary from "./glossary.md?raw";
 import typing from "./typing.md?raw";
 import practice from "./practice.md?raw";
+import findings from "./findings.md?raw";
+import discoveries from "./discoveries.md?raw";
+import chronicle from "./chronicle.md?raw";
+import lorebook from "./lorebook.md?raw";
+import compendium from "./compendium.md?raw";
+import connections from "./connections.md?raw";
+import assistantSetup from "./setting-up-the-assistant.md?raw";
 import type { UIMode } from "../lib/mode";
 import { SHORTCUTS, formatCombo, type ShortcutId } from "../lib/keyboard/shortcuts";
 
@@ -27,6 +34,7 @@ export interface Guide {
 }
 
 const BOTH: UIMode[] = ["writer", "studio"];
+const STUDIO: UIMode[] = ["studio"];
 
 /**
  * In-app guides (refactor doc 04 §8). Markdown files next to this index, imported raw and
@@ -126,6 +134,84 @@ const GUIDE_LIST: Guide[] = [
       "saga",
       "duology",
     ],
+  },
+  {
+    id: "lorebook",
+    title: "The Lorebook",
+    body: lorebook,
+    modes: BOTH,
+    keywords: [
+      "canon",
+      "characters",
+      "places",
+      "world",
+      "systems",
+      "cultures",
+      "history",
+      "calendars",
+      "travel",
+      "sheet",
+      "bible",
+    ],
+  },
+  {
+    id: "discoveries",
+    title: "Discoveries",
+    body: discoveries,
+    modes: BOTH,
+    keywords: [
+      "proposals",
+      "new names",
+      "stubs",
+      "unattributed dialogue",
+      "no speaker",
+      "imported",
+      "yes or no",
+      "inbox",
+    ],
+  },
+  {
+    id: "connections",
+    title: "Connections",
+    body: connections,
+    modes: BOTH,
+    keywords: ["graph", "map", "codex", "network", "links", "relationships map"],
+  },
+  {
+    id: "compendium",
+    title: "The Compendium",
+    body: compendium,
+    modes: BOTH,
+    keywords: ["research", "references", "sources", "links", "documents", "images", "diagrams"],
+  },
+  {
+    id: "findings",
+    title: "Findings: what needs your eye",
+    body: findings,
+    modes: BOTH,
+    keywords: [
+      "checks",
+      "story health",
+      "issues",
+      "dismiss",
+      "it's intended",
+      "prose habits",
+      "passive voice",
+    ],
+  },
+  {
+    id: "chronicle",
+    title: "The Chronicle",
+    body: chronicle,
+    modes: BOTH,
+    keywords: ["history", "activity", "changes", "undo", "versions", "imports", "log", "what happened"],
+  },
+  {
+    id: "setting-up-the-assistant",
+    title: "Setting up the Assistant",
+    body: assistantSetup,
+    modes: STUDIO,
+    keywords: ["ollama", "model", "gemma", "ai", "set up", "install", "connection", "llm", "test connection"],
   },
   {
     id: "typing",

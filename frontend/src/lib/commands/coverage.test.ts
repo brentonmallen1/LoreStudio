@@ -69,6 +69,7 @@ describe("command palette coverage", () => {
     ["story health", "nav-findings"],
     ["discoveries", "nav-proposals"],
     ["codex review", "nav-proposals"],
+    ["proposals", "nav-proposals"],
   ])("finds %s", (query, id) => {
     useStoryStore.setState({ activeStory: { id: "s1" } as Story });
     const nav = commandRegistry

@@ -327,3 +327,8 @@
     display: none;
   }
 }
+
+/* The Jobs guide, last in the popover (doc 30 D2). */
+.guideLink {
+  align-self: flex-start;
+}

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api } from "../../api/client";
 import { setAIEnabled, useAIAvailable } from "../../lib/mode";
@@ -82,87 +83,93 @@ export default function AISwitchCard() {
   }
 
   return (
-    <div className={styles.card}>
-      <div className={styles.field}>
-        <label className={styles.label}>
-          <input
-            type="checkbox"
-            checked={enabled ?? true}
-            disabled={enabled === null || saving}
-            onChange={(e) => toggle(e.target.checked)}
-          />{" "}
-          Use AI features
-        </label>
-        <p className={styles.sectionHint}>
-          {enabled === false
-            ? "AI is off. No AI surface is shown anywhere, and the server refuses AI calls even if one is requested. Your manuscript tools, checks and exports are unaffected."
-            : "When this is off, every AI surface disappears and the server refuses AI calls. Non-AI tools (checks, quote normalisation, NLP analyses, export) keep working."}
-          {available ? "" : " Writer mode also hides AI; this switch is separate."}
-        </p>
-      </div>
+    <>
+      <p className={styles.sectionHint}>
+        New to this? <Link to="/guides/setting-up-the-assistant">Setting up the Assistant</Link> explains
+        Ollama in plain words, step by step.
+      </p>
+      <div className={styles.card}>
+        <div className={styles.field}>
+          <label className={styles.label}>
+            <input
+              type="checkbox"
+              checked={enabled ?? true}
+              disabled={enabled === null || saving}
+              onChange={(e) => toggle(e.target.checked)}
+            />{" "}
+            Use AI features
+          </label>
+          <p className={styles.sectionHint}>
+            {enabled === false
+              ? "AI is off. No AI surface is shown anywhere, and the server refuses AI calls even if one is requested. Your manuscript tools, checks and exports are unaffected."
+              : "When this is off, every AI surface disappears and the server refuses AI calls. Non-AI tools (checks, quote normalisation, NLP analyses, export) keep working."}
+            {available ? "" : " Writer mode also hides AI; this switch is separate."}
+          </p>
+        </div>
 
-      <div className={styles.field}>
-        <label className={styles.label}>Context window ceiling</label>
-        <select
-          aria-label="Context window ceiling"
-          className={styles.input}
-          value={ceiling}
-          disabled={enabled === false}
-          onChange={(e) => saveCeiling(Number(e.target.value))}
-        >
-          {CEILINGS.map((c) => (
-            <option key={c.value} value={c.value}>
-              {c.label}
-            </option>
-          ))}
-        </select>
-        <p className={styles.sectionHint}>
-          Each feature asks for the window it needs: a whole-manuscript analysis asks for more than a scene
-          chat. This caps every request, whatever the model would allow, for machines where a large window
-          does not fit in VRAM.
-        </p>
-      </div>
-
-      <div className={styles.field}>
-        <label className={styles.label}>After a reply, jobs wait</label>
-        <select
-          aria-label="After a reply, jobs wait"
-          className={styles.input}
-          value={COOLDOWNS.some((c) => c.value === cooldown) ? cooldown : 60}
-          disabled={enabled === false || parallel}
-          onChange={(e) => void saveCooldown(Number(e.target.value))}
-        >
-          {COOLDOWNS.map((c) => (
-            <option key={c.value} value={c.value}>
-              {c.label}
-            </option>
-          ))}
-        </select>
-        <p className={styles.sectionHint}>
-          The model answers one thing at a time, and your replies always go first: a reply stops the job that
-          is running, which carries on from where it was. After your last reply, jobs wait this long before
-          starting again, so a conversation is never held up between turns. Start now, in Jobs, skips the
-          wait.
-        </p>
-      </div>
-
-      <div className={styles.field}>
-        <label className={styles.label}>
-          <input
-            type="checkbox"
-            checked={parallel}
+        <div className={styles.field}>
+          <label className={styles.label}>Context window ceiling</label>
+          <select
+            aria-label="Context window ceiling"
+            className={styles.input}
+            value={ceiling}
             disabled={enabled === false}
-            onChange={(e) => void saveParallel(e.target.checked)}
-          />{" "}
-          My model answers several requests at once
-        </label>
-        <p className={styles.sectionHint}>
-          Turn this on for Ollama started with OLLAMA_NUM_PARALLEL above 1, or a hosted model. Then a reply no
-          longer stops a job and there is no wait after it: replies and jobs share the model side by side.
-          Jobs still run one at a time. Leave it off if you are not sure: on a model that answers one thing at
-          a time, your replies would wait behind a job.
-        </p>
+            onChange={(e) => saveCeiling(Number(e.target.value))}
+          >
+            {CEILINGS.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+          <p className={styles.sectionHint}>
+            Each feature asks for the window it needs: a whole-manuscript analysis asks for more than a scene
+            chat. This caps every request, whatever the model would allow, for machines where a large window
+            does not fit in VRAM.
+          </p>
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label}>After a reply, jobs wait</label>
+          <select
+            aria-label="After a reply, jobs wait"
+            className={styles.input}
+            value={COOLDOWNS.some((c) => c.value === cooldown) ? cooldown : 60}
+            disabled={enabled === false || parallel}
+            onChange={(e) => void saveCooldown(Number(e.target.value))}
+          >
+            {COOLDOWNS.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+          <p className={styles.sectionHint}>
+            The model answers one thing at a time, and your replies always go first: a reply stops the job
+            that is running, which carries on from where it was. After your last reply, jobs wait this long
+            before starting again, so a conversation is never held up between turns. Start now, in Jobs, skips
+            the wait.
+          </p>
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label}>
+            <input
+              type="checkbox"
+              checked={parallel}
+              disabled={enabled === false}
+              onChange={(e) => void saveParallel(e.target.checked)}
+            />{" "}
+            My model answers several requests at once
+          </label>
+          <p className={styles.sectionHint}>
+            Turn this on for Ollama started with OLLAMA_NUM_PARALLEL above 1, or a hosted model. Then a reply
+            no longer stops a job and there is no wait after it: replies and jobs share the model side by
+            side. Jobs still run one at a time. Leave it off if you are not sure: on a model that answers one
+            thing at a time, your replies would wait behind a job.
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

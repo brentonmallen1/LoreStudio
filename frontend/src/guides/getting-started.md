@@ -76,4 +76,7 @@ Stories filled in to show what LoreStudio does, each titled for what it is: _Sam
 - [Screenplays and stage plays](/guides/screenplays): write a script, laid out as it prints.
 - [Notes, Freewrite and the scratch pad](/guides/notes-and-freewrite): somewhere for every loose thought.
 - [Snapshots, backups and undo](/guides/snapshots-and-backups): keep your work safe.
+- [The Lorebook](/guides/lorebook): everything true in your story.
+- [Findings: what needs your eye](/guides/findings) and [Discoveries](/guides/discoveries): what LoreStudio noticed, and what waits for your yes.
+- [The Chronicle](/guides/chronicle): the story's history, and how to take something back.
 - [Glossary](/guides/glossary): what each word in LoreStudio means.

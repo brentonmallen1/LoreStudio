@@ -15,6 +15,7 @@ import { guideStatus } from "../../lib/firstStory/progress";
 import { useStoryStore } from "../../stores/storyStore";
 import { openBesideTheProse } from "../../lib/panel/openBeside";
 import { canOpenBeside } from "../../lib/panel/pages";
+import { useHoverTip } from "../common/useHoverTip";
 import styles from "./LogoMenu.module.css";
 
 /** The menu's groups, each a run of domains from `lib/routes.ts`, in the table's order. */
@@ -56,6 +57,7 @@ export default function LogoMenuPages({
   const aiAvailable = useAIAvailable();
   const activeNode = useStoryStore((s) => s.activeNode);
   const routes = routesFor(mode).filter((r) => !r.ai || aiAvailable);
+  const tip = useHoverTip();
   const isHere = (r: StoryRoute) =>
     r.path === "" ? /^\/stories\/[^/]+\/?$/.test(pathname) : pathname.startsWith(storyPath(storyId, r));
   const openScene = activeNode?.story_id === storyId ? activeNode.title : undefined;
@@ -135,6 +137,9 @@ export default function LogoMenuPages({
               const fanned = fan?.id === r.id;
               const current = here ? sections.find((sec) => sec.path !== "" && sectionOn(r, sec)) : undefined;
               const status = r.id === "first-story" ? guideStatus(storyId) : null;
+              // The First story guide says what it is under its name (A2); every other page says
+              // it in a tooltip, on hover and on focus (doc 30 D2b), and to a screen reader.
+              const purposeShown = r.id === "first-story";
               return (
                 <div
                   key={r.id}
@@ -152,6 +157,8 @@ export default function LogoMenuPages({
                     onClick={done}
                     className={`${styles.row} ${here ? styles.rowOn : ""}`}
                     aria-current={here ? "page" : undefined}
+                    aria-describedby={r.purpose ? `purpose-${r.id}` : undefined}
+                    {...tip.bind(purposeShown ? undefined : r.purpose)}
                     onKeyDown={(e) => {
                       if (e.key === "ArrowRight" && sections.length) {
                         e.preventDefault();
@@ -161,10 +168,17 @@ export default function LogoMenuPages({
                     }}
                   >
                     <Icon size={16} className={styles.rowIcon} aria-hidden />
-                    {r.purpose ? (
+                    {r.purpose && !purposeShown && (
+                      <span id={`purpose-${r.id}`} hidden>
+                        {r.purpose}
+                      </span>
+                    )}
+                    {r.purpose && purposeShown ? (
                       <span className={styles.rowText}>
                         <span className={styles.rowLabel}>{r.label}</span>
-                        <span className={styles.purpose}>{r.purpose}</span>
+                        <span className={styles.purpose} id={`purpose-${r.id}`}>
+                          {r.purpose}
+                        </span>
                       </span>
                     ) : (
                       <span className={styles.rowLabel}>{r.label}</span>
@@ -245,13 +259,21 @@ export default function LogoMenuPages({
                 onClick={done}
                 className={`${styles.fanItem} ${on ? styles.rowOn : ""}`}
                 aria-current={on ? "page" : undefined}
+                aria-describedby={sec.purpose ? `purpose-${fanRoute.id}-${sec.id}` : undefined}
+                {...tip.bind(sec.purpose)}
               >
                 {sec.label}
+                {sec.purpose && (
+                  <span id={`purpose-${fanRoute.id}-${sec.id}`} hidden>
+                    {sec.purpose}
+                  </span>
+                )}
               </Link>
             );
           })}
         </div>
       )}
+      {tip.node}
     </nav>
   );
 }

@@ -47,6 +47,7 @@ export default function SectionedPage({ route, storyId }: { route: StoryRoute; s
         icon: s.icon,
         end: s.path === "",
         gap: GAP_BEFORE.has(`${route.id}.${s.id}`),
+        purpose: s.purpose,
       }))}
     >
       <Routes>

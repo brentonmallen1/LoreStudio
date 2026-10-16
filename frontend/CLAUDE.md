@@ -11,7 +11,9 @@ Add to the list; never hard-code a copy.
 
 - **Story pages:** `lib/routes.ts` drives the logo menu, the palette and `ModeGate`. A grouped
   page declares `sections`, old paths go in `STORY_REDIRECTS`, bodies in `pages/routeElements.ts`.
-  Every page but the prose uses `components/layout/PageHeader`.
+  Every page but the prose uses `components/layout/PageHeader`. Each page and section has a
+  `purpose` (under its title, its logo-menu tooltip) and a `guide` (the header ⋯'s "How this page
+  works"); `lib/pageAbout.test.ts` fails without them. The table itself is in `lib/routeTable/`.
 - **Keyboard shortcuts:** `lib/keyboard/shortcuts.ts` (`matchesCombo`, `formatCombo`).
 - **Settings sections:** `pages/settings/sections.ts`.
 - **Guides:** `guides/index.ts`, one `.md` each.

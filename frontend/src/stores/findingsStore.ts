@@ -149,7 +149,7 @@ export function useFeedSync(storyId: string | undefined) {
     const onMutation = (e: Event) => {
       // The stores' own calls refetch themselves.
       const path = (e as CustomEvent<MutationEventDetail>).detail?.path ?? "";
-      if (!path.includes("/findings") && !path.includes("/proposals")) soon();
+      if (!path.includes("/findings") && !path.includes("/discoveries")) soon();
     };
     window.addEventListener(MUTATION_EVENT, onMutation);
     window.addEventListener(UNDO_APPLIED_EVENT, soon);

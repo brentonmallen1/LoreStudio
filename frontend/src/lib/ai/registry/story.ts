@@ -48,9 +48,9 @@ export const STORY_FEATURES: Record<string, AIFeatureInfo> = {
     id: "reader-knowledge-scan",
     label: "Find what the reader learns",
     type: "ai",
-    shortDescription: "Propose what the reader learns, scene by scene; each waits in Proposals",
+    shortDescription: "Propose what the reader learns, scene by scene; each waits in Discoveries",
     fullDescription:
-      "Reads the scenes in order (the synopsis, or the opening of a scene with none) and proposes what the reader learns where: truths revealed, misdirections planted, clues, and moments only the reader knows. Each waits in Proposals for a yes; people are named from your cast and an event can say which twist it serves.",
+      "Reads the scenes in order (the synopsis, or the opening of a scene with none) and proposes what the reader learns where: truths revealed, misdirections planted, clues, and moments only the reader knows. Each waits in Discoveries for a yes; people are named from your cast and an event can say which twist it serves.",
     contextSources: [
       "Scene synopses or openings, in reading order",
       "Characters",

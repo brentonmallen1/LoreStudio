@@ -249,6 +249,16 @@ export default function JobsIndicator() {
             <input type="checkbox" checked={inTitle} onChange={(e) => setInTitle(e.target.checked)} />
             Show the count in the browser tab&rsquo;s title
           </label>
+          <button
+            type="button"
+            className={`${styles.link} ${styles.guideLink}`}
+            onClick={() => {
+              close();
+              navigateTo("/guides/jobs");
+            }}
+          >
+            How jobs work
+          </button>
         </div>
       )}
     </div>

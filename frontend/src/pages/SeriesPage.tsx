@@ -122,6 +122,7 @@ export default function SeriesPage() {
     <div className={styles.page}>
       <PageHeader
         title={series.name}
+        guide="writing-a-series"
         summary={`${series.books.length === 0 ? "A series with no books yet" : `A series of ${series.books.length} ${series.books.length === 1 ? "book" : "books"}`}, ${
           shared === 0 ? "nothing shared yet" : `${shared} shared ${shared === 1 ? "element" : "elements"}`
         }`}

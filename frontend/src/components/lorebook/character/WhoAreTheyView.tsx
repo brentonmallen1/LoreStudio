@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { api } from "../../../api/client";
@@ -62,7 +63,9 @@ export default function WhoAreTheyView({
     <div className={styles.view}>
       <p className={styles.lede}>
         Who they are, in your words. Every field is optional and nothing here is counted or scored.
-        {aiAvailable && " The interview and the Assistant use what you write, unless you keep an entry out."}
+        {aiAvailable &&
+          " The interview and the Assistant use what you write, unless you keep an entry out."}{" "}
+        <Link to="/guides/who-are-they">Writing people: the guide</Link>.
       </p>
 
       <section className={styles.block} aria-labelledby="who-identity">

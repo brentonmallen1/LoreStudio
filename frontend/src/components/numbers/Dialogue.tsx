@@ -61,7 +61,7 @@ export default function Dialogue({
                 {" "}
                 {dialogue.unattributed} {dialogue.unattributed === 1 ? "has" : "have"} no speaker yet and{" "}
                 {dialogue.unattributed === 1 ? "is" : "are"} left out below:{" "}
-                <Link to={`/stories/${storyId}/proposals?kind=dialogue`}>tag them in Proposals</Link>.
+                <Link to={`/stories/${storyId}/discoveries?kind=dialogue`}>tag them in Discoveries</Link>.
               </>
             )}
           </p>
