@@ -65,6 +65,10 @@ class Finding(BaseModel):
     passages: list[str] = []
     #: A question or direction, never a rewrite.
     suggestion: str = ""
+    #: Why it can matter, and what to try (doc 30 D5): plain words, never a rule. Every check
+    #: that runs without the model has both (`services/findings/why.py`).
+    why: str = ""
+    what_to_try: str = ""
     #: Human words for the anchor: the scene title, the character's name.
     where: str = ""
     anchor: FindingAnchor = FindingAnchor()

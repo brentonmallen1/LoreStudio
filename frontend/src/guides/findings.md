@@ -23,6 +23,21 @@ _The Last Lighthouse_'s Chapter 7: The Mainland has no words yet, but it has a p
 
 The rest run when you ask: **Run checks** › **Prose habits, tense, point of view** looks for passive voice, adverbs, dialogue tags other than said, words repeated close together, sentences all of one length, and slips of tense or point of view. In a script it reads the action lines. It runs as a job, so you can keep writing.
 
+## Reading a finding
+
+Each row starts with a shape that says how much it may matter: a triangle for **Look at this first**, a square for **Worth a look**, a ring for **A small thing**. A key at the top of the page says so too, and names who noticed it:
+
+- **Checked here**: read in your prose, on this computer.
+- **Story shape**: read from your threads, chapters and cast, also on this computer.
+
+<!-- studio -->
+
+In Studio, what the Assistant read is marked **Assistant**.
+
+<!-- /studio -->
+
+**Why?** on a row opens two short notes: **Why it can matter** to a reader, and **What to try**. They are suggestions, not rules. For a run of dialogue tags other than said, it says that words like “hissed” pull the eye to the tag, and suggests swapping a few for “said”.
+
 ## Views
 
 **By place** groups findings by scene in reading order, then by character, place, thread or twist, then the whole story. **By urgency** sorts them into **Look at these first**, **Worth a look** and **Small things**. The chips along the top, such as **Prose** or **Cast**, narrow the list to one kind.
@@ -30,7 +45,7 @@ The rest run when you ask: **Run checks** › **Prose habits, tense, point of vi
 ## Act on a finding
 
 - The button on the row does the one thing it suggests: **Open the scene**, **Show in the scene** (the words light up), **Open the sheet**, or a fix such as **Change to “Eleanor”** or **Add to the Lorebook**. A fix says exactly what it will change and waits for your yes; **Not now** leaves it.
-- **It's intended**, in the row's ⋯ menu, dismisses it. A finding about a scene comes back if that scene changes. The foot of the page counts how many you have dismissed.
+- **It's on purpose**, under **Why?** or in the row's ⋯ menu, dismisses it. A finding about a scene comes back if that scene changes. The foot of the page counts how many you have dismissed.
 - Fixes and dismissals are changes like any other: {{key:undo}} takes one back, and so does **Undo** beside it in logo menu › **Chronicle** › **Changes**.
 
 ## Findings and Discoveries
@@ -41,6 +56,6 @@ Findings asks you to look again at something already in your story. **Discoverie
 
 ## In Studio: the Assistant's checks
 
-**Run checks** also lists the Assistant's checks, run only when you ask: **Pacing**, **Plot holes**, **Continuity**, **Character depth**, **Themes**, **Clichés**, **First-pass editor**, **Story compass**, **Story economy** and the **Editorial pass…**. Their findings join the list marked **Assistant**. On any row, ⋯ › **Ask about this** opens a conversation about it, and **Read the whole run** opens the full answer in the Chronicle.
+**Run checks** also lists the Assistant's checks, run only when you ask: **Pacing**, **Plot holes**, **Continuity**, **Character depth**, **Themes**, **Clichés**, **First-pass editor**, **Story compass**, **Story economy** and the **Editorial pass…**. Their findings join the list marked **Assistant**. On any row, **Ask the Assistant** (under **Why?**, or in ⋯) opens a conversation about it, and **Read the whole run** opens the full answer in the Chronicle.
 
 <!-- /studio -->

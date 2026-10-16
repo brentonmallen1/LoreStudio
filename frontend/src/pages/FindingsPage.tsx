@@ -6,6 +6,7 @@ import { jobsApi } from "../api/jobs";
 import AIFeatureInfoTrigger from "../components/ai/AIFeatureInfoTrigger";
 import FindingRow from "../components/findings/FindingRow";
 import RunChecksMenu from "../components/findings/RunChecksMenu";
+import { FindingsKey } from "../components/findings/SeverityMark";
 import PageHeader from "../components/layout/PageHeader";
 import type { MenuItem } from "../components/common/PopoverMenu";
 import { groupByPlace, groupByUrgency, KIND_LABELS, type GroupBy } from "../lib/findings/group";
@@ -146,6 +147,9 @@ export default function FindingsPage({ storyId }: { storyId: string }) {
       />
       <div className={styles.scroll}>
         <div className={styles.column} data-mixed={new Set(shown.map((f) => f.source)).size > 1 || undefined}>
+          {findings.length > 0 && (
+            <FindingsKey sources={aiAvailable ? ["local", "data", "ai"] : ["local", "data"]} />
+          )}
           {data && groups.length === 0 && (
             <div className={styles.empty}>
               <p className={styles.emptyTitle}>
@@ -178,7 +182,9 @@ export default function FindingsPage({ storyId }: { storyId: string }) {
             <p className={styles.footer}>
               {data.dismissed_count > 0 &&
                 `${data.dismissed_count} dismissed: they stay out until their scene changes. `}
-              Every run is kept in the <Link to={`/stories/${storyId}/chronicle`}>Chronicle</Link>.
+              Every run is kept in the <Link to={`/stories/${storyId}/chronicle`}>Chronicle</Link>. What each
+              check looks for, and when to let it be, is in{" "}
+              <Link to="/guides/findings">the Findings guide</Link>.
             </p>
           )}
         </div>
