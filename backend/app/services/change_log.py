@@ -42,6 +42,7 @@ from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.proposal_decline import ProposalDecline
 from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.scene_link import SceneLink
+from ..models.scene_take import SceneTake
 from ..models.series import SeriesElementMember, SeriesSceneLink, SeriesStory
 from ..models.story import Story
 from ..models.structure import StructureNode
@@ -85,6 +86,8 @@ ENTITY_MODELS: dict[str, type] = {
     "scene_setting": SceneSetting,
     "location_travel": LocationTravel,
     "scene_link": SceneLink,
+    # A scene's takes (doc 29 D7): made, switched, chosen, renamed and deleted.
+    "scene_take": SceneTake,
     # Which row in this book is a series element: added with the row, undone with it.
     "series_element_member": SeriesElementMember,
     # A setup that pays off in another book: undone in the book it was made in.
@@ -106,6 +109,7 @@ BUNDLE_MODELS: dict[str, type] = {
     "locations": Location,
     "location_travel": LocationTravel,
     "structure_nodes": StructureNode,
+    "scene_takes": SceneTake,
     "scene_settings": SceneSetting,
     "scene_links": SceneLink,
     "plot_threads": PlotThread,
@@ -333,6 +337,7 @@ def capture_node_tree(node: StructureNode, db: Session) -> dict[str, list[dict]]
         ],
         "dialogue_blocks": [_row(b) for b in db.query(DialogueBlock).filter(DialogueBlock.scene_id.in_(ids)).all()],
         "trope_links": [_row(t) for t in db.query(TropeLink).filter(TropeLink.node_id.in_(ids)).all()],
+        "scene_takes": [_row(t) for t in db.query(SceneTake).filter(SceneTake.node_id.in_(ids)).all()],
     }
 
 

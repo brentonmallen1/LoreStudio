@@ -9,6 +9,8 @@ import { clearDraft, loadDraft, saveDraft, type Draft } from "../../lib/draftBuf
 import { countWordsClean } from "./segmentMeta";
 import { SCENES_REWRITTEN_EVENT } from "../../lib/sceneEvents";
 import { loadScene, patchScene } from "../../lib/undo/sceneHistory";
+import { takesApi } from "../../api/takes";
+import { editingTake, useTakesStore } from "../../stores/takesStore";
 
 export type SaveState = "idle" | "unsaved" | "saving" | "saved" | "offline" | "conflict";
 
@@ -31,7 +33,8 @@ export function useSceneAutosave(editor: Editor | null) {
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryCountRef = useRef(0);
-  const lastContentRef = useRef<{ nodeId: string; content: string } | null>(null);
+  /** What was typed last, and where it saves: the scene's prose, or a take that does not count. */
+  const lastContentRef = useRef<{ nodeId: string; content: string; takeId: string | null } | null>(null);
   const saveStateRef = useRef<SaveState>("idle");
   const inflightRef = useRef<Promise<void> | null>(null);
   useEffect(() => {
@@ -43,23 +46,29 @@ export function useSceneAutosave(editor: Editor | null) {
   const [liveCount, setLiveCount] = useState(0);
   const wordCount = activeNode && countedNodeId === activeNode.id ? liveCount : (activeNode?.word_count ?? 0);
 
-  // On entering a node, look for a draft newer than what the server has.
-  useEffect(() => {
-    if (!activeNode) return;
-    const nodeId = activeNode.id;
-    const serverContent = activeNode.content ?? "";
+  /**
+   * Offer a draft newer than what the server has: the scene's (keyed by its id), or a take's
+   * that does not count (keyed "take:<id>"). Returns a canceller for an effect.
+   */
+  function checkDraft(key: string, serverContent: string, updatedAt: string): () => void {
     // Compared as instants: read as local time, the server copy looked hours newer than
     // any draft west of Greenwich, and the draft was cleared instead of offered.
-    const serverSavedAt = serverTime(activeNode.updated_at);
+    const serverSavedAt = serverTime(updatedAt);
     let cancelled = false;
-    loadDraft(nodeId).then((draft) => {
+    loadDraft(key).then((draft) => {
       if (cancelled) return;
       if (draft && draft.content !== serverContent && draft.savedAt > serverSavedAt) setPendingDraft(draft);
-      else if (draft) clearDraft(nodeId);
+      else if (draft) clearDraft(key);
     });
     return () => {
       cancelled = true;
     };
+  }
+
+  // On entering a node, look for a draft newer than what the server has.
+  useEffect(() => {
+    if (!activeNode) return;
+    return checkDraft(activeNode.id, activeNode.content ?? "", activeNode.updated_at);
   }, [activeNode?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // A scene rewritten from outside the editor (quote conversion, replace, undo). With
@@ -73,6 +82,8 @@ export function useSceneAutosave(editor: Editor | null) {
       const node = useStoryStore.getState().activeNode;
       if (!editor || !node || !nodeIds.includes(node.id)) return;
       if (["unsaved", "saving", "offline", "conflict"].includes(saveStateRef.current)) return;
+      // A scene with takes may be showing one that does not count: its takes lay the text in.
+      if (useTakesStore.getState().nodeId === node.id && useTakesStore.getState().takes.length) return;
       api.getNode(node.id).then((fresh) => {
         if (useStoryStore.getState().activeNode?.id !== fresh.id) return;
         setActiveNode(fresh);
@@ -93,8 +104,8 @@ export function useSceneAutosave(editor: Editor | null) {
     return doc.body.textContent ?? "";
   }
 
-  function persist(nodeId: string, content: string, force: boolean): Promise<void> {
-    const saving = save(nodeId, content, force).finally(() => {
+  function persist(nodeId: string, content: string, force: boolean, takeId: string | null): Promise<void> {
+    const saving = (takeId ? saveTake(nodeId, takeId, content) : save(nodeId, content, force)).finally(() => {
       if (inflightRef.current === saving) inflightRef.current = null;
     });
     inflightRef.current = saving;
@@ -125,12 +136,8 @@ export function useSceneAutosave(editor: Editor | null) {
         });
       }
       await clearDraft(nodeId);
-      retryCountRef.current = 0;
       setConflict(null);
-      setSaveState("saved");
-      saveStateRef.current = "saved";
-      if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
-      savedTimeoutRef.current = setTimeout(() => setSaveState("idle"), SAVED_FLASH_MS);
+      settled();
       if (activeStory?.discovery_enabled && activeStory?.discovery_auto_analyze) {
         discoverIn(node.story_id, nodeId).catch(() => {});
       }
@@ -140,11 +147,40 @@ export function useSceneAutosave(editor: Editor | null) {
         setSaveState("conflict");
         return;
       }
-      // Network or server trouble: keep the draft, retry with backoff.
-      setSaveState("offline");
-      const delay = RETRY_DELAYS_MS[Math.min(retryCountRef.current, RETRY_DELAYS_MS.length - 1)];
-      retryCountRef.current += 1;
-      saveTimeoutRef.current = setTimeout(() => persist(nodeId, content, force), delay);
+      retry(() => persist(nodeId, content, force, null));
+    }
+  }
+
+  function settled() {
+    retryCountRef.current = 0;
+    setSaveState("saved");
+    saveStateRef.current = "saved";
+    if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+    savedTimeoutRef.current = setTimeout(() => setSaveState("idle"), SAVED_FLASH_MS);
+  }
+
+  /** Network or server trouble: keep the draft, retry with backoff. */
+  function retry(again: () => void) {
+    setSaveState("offline");
+    const delay = RETRY_DELAYS_MS[Math.min(retryCountRef.current, RETRY_DELAYS_MS.length - 1)];
+    retryCountRef.current += 1;
+    saveTimeoutRef.current = setTimeout(again, delay);
+  }
+
+  /** Typing in a take that does not count (doc 29 D7): saved to the take, the scene untouched. */
+  async function saveTake(nodeId: string, takeId: string, content: string) {
+    if (useStoryStore.getState().activeNode?.id !== nodeId) return;
+    setSaveState("saving");
+    saveStateRef.current = "saving";
+    const count = countWordsClean(
+      editor && editor.getHTML() === content ? editor.getText() : htmlText(content),
+    );
+    try {
+      useTakesStore.getState().saved(await takesApi.write(takeId, { content, word_count: count }));
+      await clearDraft(`take:${takeId}`);
+      settled();
+    } catch {
+      retry(() => persist(nodeId, content, false, takeId));
     }
   }
 
@@ -152,15 +188,24 @@ export function useSceneAutosave(editor: Editor | null) {
     const node = useStoryStore.getState().activeNode;
     if (!node) return;
     const content = ed.getHTML();
-    lastContentRef.current = { nodeId: node.id, content };
-    setLiveCount(countWordsClean(ed.getText()));
-    setCountedNodeId(node.id);
+    // Where it saves is decided as it is typed: a switch of take after this still saves it here.
+    const takeId = editingTake(node.id)?.id ?? null;
+    lastContentRef.current = { nodeId: node.id, content, takeId };
+    recount(ed);
     setSaveState("unsaved");
     saveStateRef.current = "unsaved";
-    saveDraft(node.id, content);
+    saveDraft(takeId ? `take:${takeId}` : node.id, content);
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     retryCountRef.current = 0;
-    saveTimeoutRef.current = setTimeout(() => persist(node.id, content, false), SAVE_DEBOUNCE_MS);
+    saveTimeoutRef.current = setTimeout(() => persist(node.id, content, false, takeId), SAVE_DEBOUNCE_MS);
+  }
+
+  /** Count what the editor holds now: after typing, or after another take is laid in. */
+  function recount(ed: Editor) {
+    const node = useStoryStore.getState().activeNode;
+    if (!node) return;
+    setLiveCount(countWordsClean(ed.getText()));
+    setCountedNodeId(node.id);
   }
 
   /**
@@ -172,7 +217,7 @@ export function useSceneAutosave(editor: Editor | null) {
     if (saveTimeoutRef.current && last && saveStateRef.current === "unsaved") {
       clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = null;
-      await persist(last.nodeId, last.content, false);
+      await persist(last.nodeId, last.content, false, last.takeId);
     } else if (inflightRef.current) {
       await inflightRef.current;
     }
@@ -183,7 +228,7 @@ export function useSceneAutosave(editor: Editor | null) {
     const last = lastContentRef.current;
     if (!last) return;
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    persist(last.nodeId, last.content, true);
+    persist(last.nodeId, last.content, true, last.takeId);
   }
 
   /** Conflict: adopt the server's version and drop local edits. */
@@ -219,6 +264,8 @@ export function useSceneAutosave(editor: Editor | null) {
     pendingDraft,
     restoreDraft,
     discardDraft,
+    checkDraft,
+    recount,
   };
 }
 

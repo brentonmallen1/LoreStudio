@@ -45,6 +45,7 @@ from app.models import (
     SceneLink,
     ScenePresence,
     SceneSetting,
+    SceneTake,
     Setting,
     Story,
     StoryAsset,
@@ -111,6 +112,8 @@ def build_full_story(db: Session, user: User, title: str = "Factory Story") -> S
     db.add(CharacterInterview(id=_uid(), character_id=hero.id))
     db.add(CharacterJourneySummary(id=_uid(), character_id=hero.id, up_to_node_id=scene1.id, summary="So far"))
     db.add(DialogueBlock(id=_uid(), scene_id=scene1.id, character_id=hero.id, content="We should go"))
+    db.add(SceneTake(id=_uid(), node_id=scene1.id, label="first draft", position=0, counts=True, is_open=True))
+    db.add(SceneTake(id=_uid(), node_id=scene1.id, position=1, content="<p>We should stay.</p>", word_count=3))
 
     thread = PlotThread(id=_uid(), story_id=sid, name="Escape")
     db.add(thread)

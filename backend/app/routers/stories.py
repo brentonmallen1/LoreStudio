@@ -2,6 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
 
@@ -11,6 +12,7 @@ from ..models.activity_log import ActivityLog
 from ..models.character import Character, CharacterRelationship
 from ..models.interview import CharacterInterview
 from ..models.plot_thread import PlotThread
+from ..models.scene_take import SceneTake
 from ..models.story import Story
 from ..models.structure import StoryStructureTemplate, StructureNode
 from ..models.user import User
@@ -544,11 +546,19 @@ def get_story_structure(story_id: str, db: Session = Depends(get_db), current_us
     )
     # Python attribute names for all column properties (handles metadata_ → "metadata" DB column)
     col_attrs = [prop.key for prop in sa_inspect(StructureNode).mapper.column_attrs]
+    takes = dict(
+        db.query(SceneTake.node_id, func.count(SceneTake.id))
+        .join(StructureNode, StructureNode.id == SceneTake.node_id)
+        .filter(StructureNode.story_id == story_id)
+        .group_by(SceneTake.node_id)
+        .all()
+    )
     # Build flat dict map, then assemble into tree
     node_dicts: dict[str, dict] = {}
     for node in all_nodes:
         d = {attr: getattr(node, attr) for attr in col_attrs}
         d["first_line"] = first_line(node.content) if node.content and not (node.synopsis or "").strip() else ""
+        d["take_count"] = takes.get(node.id) or 1
         d["children"] = []
         node_dicts[d["id"]] = d
     roots = []

@@ -89,6 +89,8 @@ class StructureNodeOut(BaseModel):
     metadata_: dict = {}
     created_at: datetime
     updated_at: datetime
+    #: How many takes the scene has (doc 29 D7); 1 until "Try another version".
+    take_count: int = 1
     children: list["StructureNodeOut"] = []
 
     model_config = {"from_attributes": True}
@@ -126,6 +128,8 @@ class StructureNodeMeta(BaseModel):
     updated_at: datetime
     #: A scene with words and no line of what happens: its first sentence (doc 29 D6).
     first_line: str = ""
+    #: How many takes the scene has (doc 29 D7); 1 until "Try another version".
+    take_count: int = 1
     children: list["StructureNodeMeta"] = []
 
     model_config = {"from_attributes": True}

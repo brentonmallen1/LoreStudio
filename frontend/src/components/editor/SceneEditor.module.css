@@ -1522,3 +1522,14 @@ button.typeBtn[aria-expanded="true"] {
   vertical-align: middle;
   margin-right: 0.2rem;
 }
+
+/* Compare (doc 29 D7) in place of the prose, which stays open underneath. */
+.compareArea {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.scrollArea[hidden] {
+  display: none;
+}

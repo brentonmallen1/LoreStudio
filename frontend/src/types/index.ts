@@ -166,6 +166,8 @@ export interface StructureNode {
   pov_character_id: string | null;
   created_at: string;
   updated_at: string;
+  /** How many takes the scene has (doc 29 D7): 1 until "Try another version". */
+  take_count?: number;
   children: StructureNode[];
 }
 

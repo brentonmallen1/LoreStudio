@@ -132,6 +132,15 @@ export const WRITING = [
     alsoCalled: ["tray", "beat board"],
   },
   {
+    id: "take",
+    term: "Take",
+    definition:
+      "One version of a whole scene. **Try another version** (the scene's ⋯ menu) copies the scene into a new take to change as you like; the scene's header then switches between takes and **Compare** shows two side by side, the words that differ marked. The take marked ✓ is the one that counts: the scene in your manuscript, exports, word counts and checks. **Use this take** makes the open one count.",
+    example:
+      "“Knock at the Door” has two takes: the first draft, which counts, and “Calder speaks first”, where the visitor speaks before the door is open.",
+    alsoCalled: ["version", "alternate", "variant"],
+  },
+  {
     id: "scene-sheet",
     term: "Scene sheet",
     definition:

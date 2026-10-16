@@ -61,6 +61,18 @@ Scenes found as you write rarely arrive in their final shape. Each of these is o
 - **Join with the next scene**: from the scene's ⋯ menu, the palette, or an unfolded scene in the Outline. The next scene's words follow this one's after a scene break (a rule across the page, the same break an import reads as a new scene), so the seam stays where it was; delete the break if you want none. Their lines of what happens join, the joined scene starts where the first started and ends where the second ended, and notes, links, threads, places and who is there move over. Scenes join only within one chapter: move one first to join across.
 - **Wrap in a chapter**: in the Outline's List, **Shift+click** scenes, or press **Shift+↓** and **Shift+↑** on a line, to choose scenes that sit next to each other; **Esc** or a plain click lets them go. **Wrap in a chapter** (in your shape's own word: a section, a sequence…) asks for a name and puts them in a new chapter in their place. Scenes from the middle of a chapter leave its later scenes in a chapter of their own after it, named "(continued)", so the order never changes. A shape whose parts sit side by side, such as Single MICE, has no level to wrap scenes in.
 
+## Takes: another version of a scene
+
+Not sure a scene works? Write it another way without losing the first. **Try another version**, from the scene's ⋯ menu or the palette, copies the whole scene into a new **take** and opens it; change as much or as little as you like. The scene's header then shows its takes, **Take 1 · first draft**, **Take 2** and so on, with **+ Try another version** for one more. A click on a take opens it to write; what you type saves to the take that is open.
+
+- **The take that counts** wears ✓. It is the scene everywhere else: your manuscript, exports, word counts, the strip, checks and findings, and search. The others are kept until you delete them.
+- **Use this take** (in the header while a take that does not count is open, or in **Compare**) makes the open take the one that counts. Its words become the scene's; the take that counted keeps its words as before.
+- **Compare** shows two takes side by side, one above the other in the side panel, with the words only take 1 has struck through on red and the words only take 2 has on green. Unmarked text is the same in both. Rework one passage and only that passage is marked. With three takes or more, choose which two.
+- **The scene's ⋯ menu** renames the open take ("Calder speaks first") or deletes it, and has **Compare takes** too. The take that counts is deleted only once another counts; down to one take, the header is quiet again.
+- **This scene** in the side panel and the scene's line in the Outline say "2 takes" when there is more than one, and This scene's **Compare** shows them there.
+
+Making, switching, choosing, renaming and deleting takes are each one change {{key:undo}} takes back. Typing in a take is undone as typing always is, take by take: switching to another starts its own history, so {{key:undo}} never carries one take's typing into another. A scene with several takes is not split or joined: keep the one that counts and delete the others first.
+
 ## Classic patterns
 
 A **classic pattern** is a list of moments many stories share, and roughly where each one falls: **Three turning points**, **Save the Cat**, **The story circle** and **The hero's journey**, plus any you make yourself. Turning one on changes nothing in your story; it shows on your Outline, so you can see which moments you have and which you might want.

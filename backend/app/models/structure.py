@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from .plot_thread import PlotThreadAppearance
     from .reader_knowledge import ReaderKnowledgeEvent
     from .scene_link import SceneLink
+    from .scene_take import SceneTake
     from .story import Story
     from .trope import TropeLink
     from .twist import Twist, TwistClue
@@ -118,6 +119,10 @@ class StructureNode(Base):
     trope_links: Mapped[list["TropeLink"]] = relationship(
         "TropeLink", back_populates="node", cascade="all, delete-orphan"
     )
+    #: Its other takes, when it has more than one (doc 29 D7): rows go with the scene.
+    takes: Mapped[list["SceneTake"]] = relationship(
+        "SceneTake", back_populates="node", cascade="all, delete-orphan", order_by="SceneTake.position"
+    )
     # Rows that merely point at the node: their reference is nulled on delete.
     reader_knowledge_events: Mapped[list["ReaderKnowledgeEvent"]] = relationship(
         "ReaderKnowledgeEvent", foreign_keys="ReaderKnowledgeEvent.node_id", back_populates="node"
@@ -139,3 +144,8 @@ class StructureNode(Base):
     parent: Mapped["StructureNode | None"] = relationship(
         "StructureNode", back_populates="children", remote_side="StructureNode.id"
     )
+
+    @property
+    def take_count(self) -> int:
+        """How many takes the scene has (doc 29 D7): 1 until "Try another version" makes two."""
+        return len(self.takes) or 1

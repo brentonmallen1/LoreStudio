@@ -36,6 +36,7 @@ from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.proposal_decline import ProposalDecline
 from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.scene_link import SceneLink
+from ..models.scene_take import SceneTake
 from ..models.setting import Setting
 from ..models.snapshot import StoryBackupSettings, StorySnapshot
 from ..models.story import Story
@@ -382,6 +383,12 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
     )
     data["dialogue_blocks"] = (
         [_model_to_dict(b) for b in db.query(DialogueBlock).filter(DialogueBlock.scene_id.in_(node_id_set)).all()]
+        if node_id_set
+        else []
+    )
+    # A scene's other takes (doc 29 D7); the take that counts is the scene's content.
+    data["scene_takes"] = (
+        [_model_to_dict(t) for t in db.query(SceneTake).filter(SceneTake.node_id.in_(node_id_set)).all()]
         if node_id_set
         else []
     )
@@ -828,11 +835,15 @@ def _delete_story_content(story_id: str, db: Session, state: dict | None = None)
         db.flush()
 
     # Leaves first: rows that reference characters, nodes, locations, threads.
-    _bulk_delete(CharacterRelationship, CharacterRelationship.character_id, char_ids)
-    _bulk_delete(CharacterJourneySummary, CharacterJourneySummary.character_id, char_ids)
-    _bulk_delete(DialogueBlock, DialogueBlock.scene_id, node_ids)
-    _bulk_delete(PlotThreadAppearance, PlotThreadAppearance.thread_id, thread_ids)
-    _bulk_delete(TwistClue, TwistClue.twist_id, twist_ids)
+    for model, column, ids in (
+        (CharacterRelationship, CharacterRelationship.character_id, char_ids),
+        (CharacterJourneySummary, CharacterJourneySummary.character_id, char_ids),
+        (DialogueBlock, DialogueBlock.scene_id, node_ids),
+        (SceneTake, SceneTake.node_id, node_ids),
+        (PlotThreadAppearance, PlotThreadAppearance.thread_id, thread_ids),
+        (TwistClue, TwistClue.twist_id, twist_ids),
+    ):
+        _bulk_delete(model, column, ids)
     tropes = db.query(Trope.id).filter(Trope.story_id == story_id)
     db.query(TropeLink).filter(TropeLink.trope_id.in_(tropes)).delete(synchronize_session=False)
     _bulk_delete(SceneSetting, SceneSetting.location_id, loc_ids)
@@ -922,6 +933,7 @@ def _insert_story_content(state: dict, db: Session) -> None:  # noqa: PLR0915
         story.pov_character_id = story_dict["pov_character_id"]
         db.flush()
     _insert_ordered_tree(StructureNode, state.get("structure_nodes", []), db)
+    _insert_all(SceneTake, state.get("scene_takes", []))
     _insert_ordered_tree(Location, state.get("locations", []), db)
     _insert_all(Outline, state.get("outlines", []))
     _insert_ordered_tree(OutlineItem, state.get("outline_items", []), db)

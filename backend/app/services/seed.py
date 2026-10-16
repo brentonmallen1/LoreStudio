@@ -33,6 +33,7 @@ from .first_run import new_account_settings
 from .seed_chronicle import seed_lighthouse_answer, seed_lighthouse_chronicle
 from .seed_jobs import seed_lighthouse_jobs
 from .seed_numbers import seed_lighthouse_numbers
+from .seed_takes import seed_knock_takes
 from .seed_who import seed_audition_who, seed_lighthouse_who
 from .word_count import recount_story
 
@@ -2561,6 +2562,9 @@ def seed_demo_story(user_id: str | None = None):  # noqa: PLR0915
         # Kept Assistant answers: one on the Lighthouse's sheet (A6), under the sheet's header,
         # and the last session's recap on the Overview (A7). Writer mode shows no AI at all.
         seed_lighthouse_answer(db, user=owner, story=story, place_id=lighthouse.id, place_name=lighthouse.name)
+
+        # Takes (doc 29 D7): "Knock at the Door" tried a second way, the Visitor speaking first.
+        seed_knock_takes(db, scene2)
 
         # Counted from the prose, as the editor counts, not written in by hand.
         recount_story(story.id, db)

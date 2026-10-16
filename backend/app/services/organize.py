@@ -36,6 +36,7 @@ from . import change_log
 from .held_prose import template_levels
 from .prose_html import paragraphs
 from .structure_scaffold import FLAT
+from .takes import TakeError, refuse_cut
 from .word_count import count_lines, count_words
 
 #: What goes between two joined scenes' words: the editor's scene break.
@@ -173,6 +174,11 @@ _POINTERS = (
 
 
 def _refuse_join(db: Session, node: StructureNode, nxt: StructureNode | None) -> None:
+    try:
+        refuse_cut(db, node)
+        refuse_cut(db, nxt)
+    except TakeError as e:
+        raise OrganizeError(str(e)) from e
     if _holds_parts(db, node):
         raise OrganizeError(f"“{_title(node)}” holds other parts; only scenes join.")
     if nxt is None:

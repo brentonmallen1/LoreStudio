@@ -74,6 +74,7 @@ from .routers.stories import router as stories_router
 from .routers.streams import router as streams_router
 from .routers.structure import router as structure_router
 from .routers.system import router as system_router
+from .routers.takes import router as takes_router
 from .routers.templates import router as templates_router
 from .routers.tray import router as tray_router
 from .routers.tropes import router as tropes_router
@@ -219,6 +220,7 @@ app.include_router(scratch_pad_router, prefix="/api", tags=["scratch-pad"])
 app.include_router(tray_router, prefix="/api", tags=["outline"])
 app.include_router(written_router, prefix="/api", tags=["outline"])
 app.include_router(organize_router, prefix="/api", tags=["outline"])
+app.include_router(takes_router, prefix="/api", tags=["structure"])
 app.include_router(snapshots_router, prefix="/api", tags=["snapshots"])
 app.include_router(import_router, prefix="/api", tags=["import"])
 app.include_router(imports_router, prefix="/api", tags=["import"])

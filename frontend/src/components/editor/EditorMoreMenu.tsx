@@ -3,6 +3,8 @@ import {
   ArrowLeft,
   BookMarked,
   ClipboardList,
+  Columns2,
+  CopyPlus,
   Cpu,
   EyeOff,
   Highlighter,
@@ -13,10 +15,12 @@ import {
   Merge,
   MoreHorizontal,
   Palette,
+  PenLine,
   Quote,
   Scissors,
   StickyNote,
   Tag,
+  Trash2,
   Type,
   Zap,
   type LucideIcon,
@@ -30,6 +34,7 @@ import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import { useProseViewStore } from "../../stores/proseViewStore";
 import { useEditorBridge } from "../../stores/editorBridge";
+import { useTakesStore } from "../../stores/takesStore";
 import type { WritingGuideTab } from "../help/WritingGuidesModal";
 import AIFeatureInfoModal from "../ai/AIFeatureInfoModal";
 import FontSettings from "../story/FontSettings";
@@ -68,6 +73,9 @@ export default function EditorMoreMenu(p: Props) {
   const { elementGuides, setElementGuides } = useUIStore();
   const { speakerColors, setSpeakerColors, hideSpeakerTags, setHideSpeakerTags } = useProseViewStore();
   const organize = useEditorBridge((s) => s.organize);
+  const takes = useEditorBridge((s) => s.takes);
+  const takeCount = useTakesStore((s) => s.takes.length);
+  const openTake = useTakesStore((s) => s.takes.find((t) => t.is_open));
   const wrap = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const ai = useAIAvailable();
@@ -166,6 +174,38 @@ export default function EditorMoreMenu(p: Props) {
             title="Find names not yet linked"
             onSelect={then(p.onOpenAutoLink)}
           />
+          {takes && (
+            <Item
+              label="Try another version"
+              icon={CopyPlus}
+              title="A copy of this scene to change as you like, as a new take; the one that counts stays as it is"
+              onSelect={then(takes.tryAnother)}
+            />
+          )}
+          {takes && takeCount > 1 && (
+            <Item
+              label="Compare takes"
+              icon={Columns2}
+              title="Two takes side by side, the words that differ marked"
+              onSelect={then(() => takes.compare(true))}
+            />
+          )}
+          {takes && openTake && (
+            <Item
+              label="Rename this take…"
+              icon={PenLine}
+              title={`A few words to tell Take ${openTake.number} from the others`}
+              onSelect={then(() => takes.rename(openTake.id))}
+            />
+          )}
+          {takes && openTake && !openTake.counts && (
+            <Item
+              label="Delete this take"
+              icon={Trash2}
+              title="The take that counts stays; undo brings this one back"
+              onSelect={then(() => takes.remove(openTake.id))}
+            />
+          )}
           {organize && (
             <Item
               label="Split the scene here…"

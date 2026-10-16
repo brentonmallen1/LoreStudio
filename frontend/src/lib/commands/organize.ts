@@ -1,14 +1,16 @@
 /**
  * The discovery loop's commands (doc 29 D6): What you've written on the Overview, and organizing
  * the prose: split the open scene at the cursor, join it with the next one, and wrap scenes in a
- * chapter from the Outline. Kept apart from index.ts, which is at its size budget.
+ * chapter from the Outline; and a scene's takes (doc 29 D7): try another version, compare them, and
+ * use the open one. Kept apart from index.ts, which is at its size budget.
  */
-import { FolderPlus, Merge, Scissors, ScrollText } from "lucide-react";
+import { CheckCircle2, Columns2, CopyPlus, FolderPlus, Merge, Scissors, ScrollText } from "lucide-react";
 import { commandRegistry } from "./registry";
 import { navigateTo } from "../navigation";
 import { useEditorBridge } from "../../stores/editorBridge";
 import { useStoryStore } from "../../stores/storyStore";
 import { toast } from "../../stores/toastStore";
+import { openTake, useTakesStore } from "../../stores/takesStore";
 import { CHOOSE_HINT } from "../outline/selection";
 
 commandRegistry.register({
@@ -60,5 +62,54 @@ commandRegistry.register({
     if (!story) return;
     navigateTo(`/stories/${story.id}/outline?view=list`);
     toast.info(CHOOSE_HINT);
+  },
+});
+
+commandRegistry.register({
+  id: "takes-try",
+  label: "Try another version",
+  description: "A copy of this scene to change as you like, as a new take; the one that counts stays",
+  keywords: [
+    "take",
+    "takes",
+    "version",
+    "alternate",
+    "variant",
+    "rewrite",
+    "draft",
+    "another version",
+    "copy",
+  ],
+  icon: CopyPlus,
+  group: "Editor",
+  when: () => !!useEditorBridge.getState().takes,
+  action: () => useEditorBridge.getState().takes?.tryAnother(),
+});
+
+commandRegistry.register({
+  id: "takes-compare",
+  label: "Compare takes",
+  description: "Two takes of this scene side by side, the words that differ marked",
+  keywords: ["compare", "takes", "versions", "diff", "difference", "side by side"],
+  icon: Columns2,
+  group: "Editor",
+  when: () => !!useEditorBridge.getState().takes && useTakesStore.getState().takes.length > 1,
+  action: () => useEditorBridge.getState().takes?.compare(true),
+});
+
+commandRegistry.register({
+  id: "takes-use",
+  label: "Use this take",
+  description: "Make the open take the one that counts: the scene in your manuscript, exports and checks",
+  keywords: ["use", "take", "choose", "counts", "keep", "pick version"],
+  icon: CheckCircle2,
+  group: "Editor",
+  when: () => {
+    const take = openTake(useStoryStore.getState().activeNode?.id);
+    return !!useEditorBridge.getState().takes && !!take && !take.counts;
+  },
+  action: () => {
+    const take = openTake(useStoryStore.getState().activeNode?.id);
+    if (take) useEditorBridge.getState().takes?.use(take.id);
   },
 });

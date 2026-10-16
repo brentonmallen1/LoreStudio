@@ -17,6 +17,7 @@ import type { Story, StructureNode } from "../../../types";
 import { useStoryNotes } from "../../notes/useStoryNotes";
 import styles from "./SceneGlance.module.css";
 import SplitOffer from "./SplitOffer";
+import TakesGlance from "../../editor/takes/TakesGlance";
 import { stanceLabel } from "../../../lib/tropes/stances";
 import { tropesAt, useTropes } from "../../../lib/tropes/useTropes";
 
@@ -92,6 +93,7 @@ export default function SceneGlance({
             {[
               STATUS_LABEL[node.status] ?? node.status,
               `${words.toLocaleString()} ${words === 1 ? "word" : "words"}`,
+              (node.take_count ?? 1) > 1 ? `${node.take_count} takes` : "",
               `Scene ${sequence.position} of ${sequence.total}`,
             ]
               .filter(Boolean)
@@ -175,6 +177,7 @@ export default function SceneGlance({
         </dl>
       )}
 
+      <TakesGlance node={node} />
       <SplitOffer storyId={story.id} nodeId={node.id} words={words} />
 
       <div className={styles.rows}>

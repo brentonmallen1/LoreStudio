@@ -40,7 +40,7 @@ Already have a draft? **Import** on your stories page brings it in. See [Import 
 - **Side panel** (on the right): a rail of buttons for **This scene**, **Characters**, **Places**, **Threads**, **Notes**, **Freewrite** and **Dialogue**. Choose the one already showing to fold the panel away. {{key:togglePanel}} shows or hides it. The first time, each button wears its name; point at one, or reach it with Tab, to see it again, or choose **Show what the side panel's buttons do** in the palette.
 - **Tabs** in the side panel: whatever you opened beside your prose, such as a character or a place. Choose **Open beside the prose** on any page's ⋯ menu to keep that page in a tab while you write.
 - **Status corner** (bottom right): the save light (green saved, yellow saving, red offline or a conflict) and the scene's word count. Click it for the chapter, the book, today and your goal.
-- **The scene's ⋯ menu**: type and width, notes in the margin, a writing sprint, images and the scene's tools.
+- **The scene's ⋯ menu**: type and width, notes in the margin, a writing sprint, images and the scene's tools, among them **Try another version**, which keeps the scene as it is and gives you a copy, a second **take**, to change (see [Structure](/guides/structure)).
 
 <!-- studio -->
 

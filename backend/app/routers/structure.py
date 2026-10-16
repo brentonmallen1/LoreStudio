@@ -21,6 +21,7 @@ from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
 from ..services.llm.prompts.summaries import build_scene_summary_prompt, build_structure_section_summary_prompt
 from ..services.llm.sse import sse_message, sse_stream
 from ..services.script_scene import derive_heading, split_at_headings, split_scene
+from ..services.takes import TakeError, refuse_cut
 from ..services.text_utils import for_model
 from ..services.word_count import count_lines
 
@@ -176,6 +177,14 @@ def _unchanged_since(node: StructureNode, expected: datetime | None) -> None:
         )
 
 
+def _one_take(db: Session, node: StructureNode) -> None:
+    """A scene with several takes is not cut (doc 29 D7): which take would be split?"""
+    try:
+        refuse_cut(db, node)
+    except TakeError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
 class SplitBody(BaseModel):
     """The scene's words up to the cut, and from it on: a script's new heading (doc 25, D3), or
     the cursor in prose (doc 29 D6), whose new scene is named `title`."""
@@ -198,6 +207,7 @@ def split_node(
     keeps what came before it, the new scene after it takes the rest, and ⌘Z puts them back."""
     node = _verify_node_access(node_id, db, current_user)
     _unchanged_since(node, body.expected_updated_at)
+    _one_take(db, node)
     if not body.new_content.strip():
         raise HTTPException(status_code=400, detail="Nothing to start the new scene with.")
     new = split_scene(
@@ -226,6 +236,7 @@ def split_at_every_heading(
     once ask (doc 25, P6). One change ⌘Z takes back whole; returns the scene as it now reads."""
     node = _verify_node_access(node_id, db, current_user)
     _unchanged_since(node, body.expected_updated_at)
+    _one_take(db, node)
     made = split_at_headings(db, node, actor_id=current_user.id, client_id=client_id)
     if not made:
         raise HTTPException(status_code=400, detail="There is no other heading in this scene.")

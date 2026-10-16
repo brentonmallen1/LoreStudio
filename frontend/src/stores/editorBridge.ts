@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { InlineNotesState } from "../components/editor/useInlineNotes";
 import type { ScriptElement } from "../lib/script/syntax";
+import type { TakesBridge } from "../components/editor/takes/useSceneTakes";
 
 /** Words to show in a scene once its prose is open (a finding's passages). */
 export interface PendingPassage {
@@ -39,6 +40,9 @@ interface EditorBridge {
   /** Split the open prose scene at the cursor, or join it with the next one (doc 29 D6). */
   organize: { split: () => void; merge: () => void } | null;
   setOrganize: (organize: { split: () => void; merge: () => void } | null) => void;
+  /** The open scene's takes (doc 29 D7): try another version, switch, use, compare. */
+  takes: TakesBridge | null;
+  setTakes: (takes: TakesBridge | null) => void;
 }
 
 export const useEditorBridge = create<EditorBridge>((set) => ({
@@ -56,4 +60,6 @@ export const useEditorBridge = create<EditorBridge>((set) => ({
   setScriptDual: (fn) => set({ scriptDual: fn }),
   organize: null,
   setOrganize: (organize) => set({ organize }),
+  takes: null,
+  setTakes: (takes) => set({ takes }),
 }));

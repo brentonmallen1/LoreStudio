@@ -64,12 +64,13 @@ export default function OutlineRow(props: RowProps) {
   // A scene with words and no line of its own shows its first line, marked (doc 29 D6).
   const line = scene && !draft ? sceneLine(node) : { text: node.synopsis, fromFirstLine: false };
   const first = line.fromFirstLine ? `“${line.text}”` : "";
+  const takes = scene && !draft && (node.take_count ?? 1) > 1 ? `${node.take_count} takes` : "";
   const meta =
     container && !draft
       ? partSummary(node, depth, shape)
-      : scene && !draft && !node.word_count
-        ? "planned, no words yet"
-        : "";
+      : [scene && !draft && !node.word_count ? "planned, no words yet" : "", takes]
+          .filter(Boolean)
+          .join(" · ");
   // An unfolded scene shows its whole line of what happens when the row cuts it short.
   const synopsisRef = useRef<HTMLInputElement>(null);
   const [cut, setCut] = useState(false);
