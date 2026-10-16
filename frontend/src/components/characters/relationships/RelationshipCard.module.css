@@ -128,7 +128,8 @@
     color var(--transition);
 }
 
-.card:hover .deleteBtn {
+.card:hover .deleteBtn,
+.card:focus-within .deleteBtn {
   opacity: 1;
 }
 
@@ -239,4 +240,11 @@
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .deleteBtn {
+    opacity: 1;
+  }
 }

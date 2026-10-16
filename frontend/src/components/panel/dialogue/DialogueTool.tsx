@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageSquare, Orbit, Square, Tag } from "lucide-react";
 import { api } from "../../../api/client";
@@ -235,6 +236,9 @@ function SceneDialogue({ node, storyId }: { node: StructureNode; storyId: string
           onApplied={applyUpdated}
         />
       )}
+      <Link to="/guides/dialogue-and-quotes" className={styles.guide}>
+        How dialogue and speakers work
+      </Link>
     </section>
   );
 }

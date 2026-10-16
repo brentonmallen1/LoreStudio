@@ -33,7 +33,8 @@
 
 .checkVisible,
 [role="button"]:hover > .check,
-.check:focus-visible {
+.check:focus-visible,
+[role="button"]:focus-within > .check {
   width: 1.2rem;
   opacity: 1;
 }
@@ -65,27 +66,12 @@
   color: var(--color-accent);
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .bulkBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.3rem 0.6rem;
-  border: none;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: 0.78rem;
-  cursor: pointer;
-}
-
-.bulkBtn:hover:not(:disabled) {
-  background: var(--color-surface-2);
-  color: var(--color-text);
+  composes: btn-secondary from global;
 }
 
 .bulkBtn:disabled {
-  opacity: 0.5;
   cursor: default;
 }
 
@@ -224,4 +210,11 @@
   text-align: center;
   font-size: 0.84rem;
   color: var(--color-text-subtle);
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .check {
+    opacity: 1;
+  }
 }

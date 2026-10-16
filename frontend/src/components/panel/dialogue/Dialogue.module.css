@@ -285,3 +285,22 @@
   height: 0.55rem;
   border-radius: 50%;
 }
+
+/* The Dialogue guide, at the foot of the tool (doc 30 D2). */
+.guide {
+  align-self: flex-start;
+  margin: 0.5rem 1rem 0.75rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.guide:hover {
+  text-decoration: underline;
+}
+
+.guide:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}

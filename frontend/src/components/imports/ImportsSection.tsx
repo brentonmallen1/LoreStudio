@@ -117,7 +117,7 @@ export default function ImportsSection({ storyId }: { storyId: string }) {
 function Report({ storyId, report: r }: { storyId: string; report: ImportReport }) {
   const ai = useAIAvailable();
   const came = CAME.filter((c) => (r.came_over[c.key] ?? 0) > 0 && (!c.ai || ai));
-  const proposals = `/stories/${storyId}/proposals?kind=imported`;
+  const proposals = `/stories/${storyId}/discoveries?kind=imported`;
   return (
     <article className={styles.report} aria-label="The import's report">
       <h2 className={styles.title}>
@@ -148,7 +148,7 @@ function Report({ storyId, report: r }: { storyId: string; report: ImportReport 
         {r.waiting > 0 ? (
           <p className={styles.text}>
             {r.waiting} {r.waiting === 1 ? "piece has" : "pieces have"} no home yet.{" "}
-            <Link to={proposals}>Sort them in Proposals</Link>
+            <Link to={proposals}>Sort them in Discoveries</Link>
           </p>
         ) : (
           <p className={styles.text}>Nothing: everything has a place.</p>

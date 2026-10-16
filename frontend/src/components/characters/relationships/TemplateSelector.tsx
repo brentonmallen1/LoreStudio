@@ -1,4 +1,5 @@
 import type { RelationshipTemplate } from "../../../types";
+import { purposeLabel } from "../../../lib/characters/relationshipPurposes";
 import styles from "./TemplateSelector.module.css";
 
 interface Props {
@@ -16,7 +17,7 @@ export default function TemplateSelector({ templates, onSelect }: Props) {
           <div className={styles.tags}>
             {t.default_narrative_purpose.slice(0, 2).map((p) => (
               <span key={p} className={styles.tag}>
-                {p}
+                {purposeLabel(p)}
               </span>
             ))}
           </div>

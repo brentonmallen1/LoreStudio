@@ -274,7 +274,8 @@
   flex-shrink: 0;
 }
 
-.groupHeader:hover .viewBtn {
+.groupHeader:hover .viewBtn,
+.groupHeader:focus-within .viewBtn {
   opacity: 1;
 }
 
@@ -359,4 +360,11 @@
   flex: 1;
   overflow: auto;
   padding: 0.75rem 1.5rem;
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .viewBtn {
+    opacity: 1;
+  }
 }

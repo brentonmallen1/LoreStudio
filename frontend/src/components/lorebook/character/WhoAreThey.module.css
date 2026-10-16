@@ -347,3 +347,13 @@
 .arcArrow {
   color: var(--color-text-subtle);
 }
+
+.lede a {
+  font-weight: 600;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.lede a:hover {
+  text-decoration: underline;
+}

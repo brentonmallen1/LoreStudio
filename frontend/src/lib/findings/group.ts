@@ -53,7 +53,7 @@ function readingOrder(nodes: StructureNode[]): { node: StructureNode; parent: st
 const ENTITY_KEYS = [
   ["character_id", "Character"],
   ["location_id", "Place"],
-  ["thread_id", "Plot thread"],
+  ["thread_id", "Thread"],
   ["twist_id", "Twist"],
   ["trope_id", "Trope"],
 ] as const;

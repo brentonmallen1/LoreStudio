@@ -291,6 +291,15 @@
 .mindNode:hover .handle,
 .centralNode:hover .handle,
 .mindNodeSelected .handle,
-.centralNodeSelected .handle {
+.centralNodeSelected .handle,
+.mindNode:focus-within .handle,
+.centralNode:focus-within .handle {
   opacity: 1;
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .handle {
+    opacity: 1;
+  }
 }

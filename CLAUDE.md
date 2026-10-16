@@ -15,6 +15,8 @@ rules are in `DESIGN.md`.
 - **Structured flexibility.** Structure is a template (named levels) over a `StructureNode` tree.
 - **Transparent, proactive, never presumptuous.** Background work and every AI call are logged and
   visible; the system prepares data and flags issues but never acts without permission.
+- **No tool assumes craft training.** Every craft word explains itself where it appears (`Term`,
+  read from `lib/glossary`), and every page says what it is for.
 - **An estimate says what it assumes.** A figure built on a rule of thumb (a minute a page, screen
   time as the whole of each scene) names the rule where it is shown, and the guide says it too.
 

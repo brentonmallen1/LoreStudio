@@ -98,21 +98,11 @@
 }
 
 /* Apply button */
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .applyBtn {
+  composes: btn-secondary from global;
   margin-top: 8px;
-  padding: 4px 12px;
-  font-size: var(--text-sm);
-  font-weight: 500;
-  border-radius: 4px;
-  border: none;
-  background: transparent;
-  color: var(--section-color, var(--color-accent));
-  cursor: pointer;
   transition: background 0.15s;
-}
-
-.applyBtn:hover {
-  background: var(--color-hover);
 }
 
 /* Fallback warning banner */

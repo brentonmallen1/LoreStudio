@@ -25,7 +25,7 @@ export default function CompactLocationSheet({ location }: { location: Location 
       {location.is_stub && activeStory && (
         <p className={styles.empty}>
           Found in your prose ·{" "}
-          <Link to={`/stories/${activeStory.id}/proposals?kind=place`}>review in Proposals</Link>
+          <Link to={`/stories/${activeStory.id}/discoveries?kind=place`}>review in Discoveries</Link>
         </p>
       )}
       <section className={styles.section}>

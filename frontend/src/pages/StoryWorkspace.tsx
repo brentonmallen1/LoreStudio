@@ -3,6 +3,7 @@ import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import { sceneCastApi } from "../api/sceneCast";
 import { loadStoryIntoStores } from "../lib/story/loadStory";
+import { noteStoryOpened } from "../lib/firstRun/startHere";
 import { findNode } from "../components/layout/structureTreeMeta";
 import { rememberScene, sceneToResume } from "../lib/resumeScene";
 import { useReloadOnUndo } from "../hooks/useUndoRedo";
@@ -48,6 +49,7 @@ export default function StoryWorkspacePage() {
     setLoading(true);
     loadStoryIntoStores(storyId)
       .then((structure) => {
+        noteStoryOpened(storyId);
         // Open the scene a link names, keep one already open in this story, or resume
         // where the author left off (lib/resumeScene.ts). Read once, at load.
         const requested = new URLSearchParams(window.location.search).get("node");

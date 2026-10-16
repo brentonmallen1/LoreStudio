@@ -892,7 +892,7 @@ export const api = {
   resetLLMSettings: () => request<import("../types").LLMSettings>("/llm-settings", { method: "DELETE" }),
 
   // Ollama connectivity
-  ollamaStatus: () =>
+  ollamaStatus: (quick = false) =>
     request<{
       connected: boolean;
       model: string;
@@ -900,7 +900,7 @@ export const api = {
       model_in_list: boolean;
       error: string | null;
       base_url: string;
-    }>("/ollama/status"),
+    }>(`/ollama/status${quick ? "?quick=true" : ""}`),
   ollamaModels: () =>
     request<{ models: Array<{ name: string; size: number; details?: { parameter_size?: string } }> }>(
       "/ollama/models",

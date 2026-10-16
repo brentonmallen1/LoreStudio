@@ -48,10 +48,10 @@ const SCENE_PLAN_SCHEMA: SectionConfig[] = [
     type: "text",
     applyable: true,
   },
-  { key: "purpose", label: "Purpose", icon: Target, color: "var(--color-warning)", type: "text" },
+  { key: "purpose", label: "Why it's here", icon: Target, color: "var(--color-warning)", type: "text" },
   {
     key: "entry_state",
-    label: "Entry state",
+    label: "Starts",
     icon: LogIn,
     color: "var(--segment-part)",
     type: "text",
@@ -59,7 +59,7 @@ const SCENE_PLAN_SCHEMA: SectionConfig[] = [
   },
   {
     key: "exit_state",
-    label: "Exit state",
+    label: "Ends",
     icon: LogOut,
     color: "var(--segment-beat)",
     type: "text",
@@ -103,7 +103,7 @@ const SCENE_PLAN_SCHEMA: SectionConfig[] = [
 const FOLLOW_UPS = [
   "Give me an alternative direction for this scene.",
   "What characters should be in this scene?",
-  "Which plot threads should this scene advance?",
+  "Which threads should this scene advance?",
   "How does this scene connect to the next one?",
   "What's the emotional core of this scene?",
 ];
@@ -290,8 +290,8 @@ export default function ScenePlannerPanel({ storyId, nodeId }: Props) {
       {showingNotesForm && (
         <div className={styles.notesForm}>
           <p className={styles.notesIntro}>
-            I'll suggest ideas for how this scene might work (synopsis, purpose, entry &amp; exit state, key
-            events), based on your story's context.
+            I'll suggest ideas for how this scene might work (what happens, why it's here, how it starts and
+            ends, key events), based on your story's context.
           </p>
           <p className={styles.notesIntro} style={{ marginTop: "2px" }}>
             These are starting points for your own thinking, not instructions. Share what you already have in

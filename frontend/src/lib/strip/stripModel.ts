@@ -18,7 +18,7 @@ export const COLOUR_MODES = [
   { id: "none", label: "Nothing, just position", short: "Plain", sub: "Behind you solid, ahead hollow" },
   { id: "cast", label: "Who's on the page", short: "Who", sub: "The character each scene is mostly about" },
   { id: "pov", label: "Whose eyes", short: "POV", sub: "The point-of-view character, planned scenes too" },
-  { id: "threads", label: "Plot threads", short: "Threads", sub: "Every thread the scene carries" },
+  { id: "threads", label: "Threads", short: "Threads", sub: "Every thread the scene carries" },
   { id: "status", label: "Draft status", short: "Status", sub: "Planned, draft, revised, final" },
   { id: "beat", label: "Story beat", short: "Beats", sub: "The beat sheet beat it carries" },
   { id: "findings", label: "Findings", short: "Findings", sub: "What needs your eye, worst first" },
@@ -257,6 +257,8 @@ const MAX_PIPS = 4;
 export interface Swatch {
   color: string;
   label: string;
+  /** In the Findings mode: the severity, drawn as its shape (doc 30 D8), never colour alone. */
+  severity?: Finding["severity"];
 }
 
 /** The colours a stop shows in a mode: none, one, or several (a scene carrying several threads). */
@@ -267,7 +269,11 @@ export function colourFor(mode: ColourMode, stop: Stop, ctx: ColourContext): Swa
       .filter((f) => f.anchor.node_id === stop.node.id)
       .sort(bySeverity)
       .slice(0, MAX_PIPS)
-      .map((f) => ({ color: SEVERITY_COLOUR[f.severity], label: SEVERITY_LABELS[f.severity] }));
+      .map((f) => ({
+        color: SEVERITY_COLOUR[f.severity],
+        label: SEVERITY_LABELS[f.severity],
+        severity: f.severity,
+      }));
   }
   if (mode === "pov") {
     // The viewpoint is decided while planning, so a planned scene shows it too.
@@ -299,7 +305,7 @@ export function legendFor(mode: ColourMode, stops: Stop[], ctx: ColourContext): 
     const present = new Set(stops.flatMap((stop) => colourFor(mode, stop, ctx).map((s) => s.label)));
     return (["high", "mid", "low"] as const)
       .filter((sev) => present.has(SEVERITY_LABELS[sev]))
-      .map((sev) => ({ color: SEVERITY_COLOUR[sev], label: SEVERITY_LABELS[sev] }));
+      .map((sev) => ({ color: SEVERITY_COLOUR[sev], label: SEVERITY_LABELS[sev], severity: sev }));
   }
   if (mode === "status") {
     return [
@@ -315,9 +321,9 @@ export function legendFor(mode: ColourMode, stops: Stop[], ctx: ColourContext): 
 }
 
 /**
- * Two states (doc 14 strip): collapsed to the line of dots, or expanded to the outline at
- * the width the author dragged it to. The outline is the one expanded view (doc 24: the
- * chapter rows it once had beside it showed the same book twice).
+ * Two states (doc 14 strip): narrow, a line of dots, or wide, every part named, at the width
+ * the author dragged it to. The wide strip is the one expanded view (doc 24: the chapter rows
+ * it once had beside it showed the same book twice).
  */
 /** The collapsed line, with the strip's 14px gutter from the window's edge (Strip.module.css). */
 export const COLLAPSED_PX = 78;
@@ -335,7 +341,7 @@ export function stripPx(width: StripWidth, expandedPx: number): number {
   return width === "strip" ? COLLAPSED_PX : clampStripPx(expandedPx);
 }
 
-/** Collapse to the line, or expand to the outline. */
+/** Narrow the strip, or widen it. */
 export function toggleStrip(width: StripWidth): StripWidth {
   return width === "strip" ? "scenes" : "strip";
 }

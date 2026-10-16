@@ -32,6 +32,7 @@ Choose the header's sign, or **Show jobs** in the palette ({{key:palette}}), to 
 - **Running**: what each job is doing, and how far it has got.
 - **Queued**: what runs next. **Run next** moves a job to the front; **Remove** takes it out.
 - **While you were away** and **Earlier**: the last day's finished jobs. **Open** goes to the result, **Retry** runs a failed or stopped job again, and **Details** opens it in the Chronicle.
+- **The key** at the top of the list names each mark: the ring, waiting, finished, failed and stopped.
 
 > **Tip:** **Show the count in the browser tab's title**, at the foot of the list, lets you see from another tab that work is running.
 
@@ -59,8 +60,8 @@ Replies show in **Jobs** while they are written, and **Stop** ends one. Writer m
 
 Some jobs LoreStudio does by itself:
 
-- **Story auto-backups** and **Numbers readings** while a story is open.
-- **Database backup**, a copy of everything.
+- **Story versions** and **Numbers readings** while a story is open.
+- **Backups of everything**, a copy of all of LoreStudio.
 - Trimming the **Undo history** and old **Automatic job records**.
 - **Check for updates**, off unless you switch it on.
 

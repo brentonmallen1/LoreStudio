@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { jobsApi, type AIJob, type LiveCall } from "../api/jobs";
 import { MUTATION_EVENT } from "../api/request";
-import { finishedSince, isActive, isUnseen, jobDetailsPath, jobOpen } from "../lib/jobs/jobs";
+import { finishedSince, isActive, isUnseen, jobDetailsPath, jobName, jobOpen } from "../lib/jobs/jobs";
 import { getAIAvailable } from "../lib/mode";
 import { navigateTo } from "../lib/navigation";
 import { useToastStore } from "./toastStore";
@@ -71,7 +71,7 @@ function announce(job: AIJob) {
   if (job.status === "error") {
     const details = jobDetailsPath(job);
     show(
-      `${job.label} failed`,
+      `${jobName(job)} failed`,
       "error",
       8000,
       details ? { label: "Details", run: () => navigateTo(details) } : undefined,
@@ -81,7 +81,7 @@ function announce(job: AIJob) {
   const details = jobDetailsPath(job);
   const go = open ?? (details ? { to: details, label: "Open" } : null);
   show(
-    `${job.label} finished`,
+    `${jobName(job)} finished`,
     "success",
     6000,
     go ? { label: "Open", run: () => navigateTo(go.to) } : undefined,

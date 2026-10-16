@@ -16,7 +16,7 @@ Plan a series from the start, or let one grow from a book you have finished.
 1. Choose **Write a sequel**, **New book** on the series page, or **New book in this series** in the palette ({{key:palette}}).
 2. Name the book, then choose **Next: who carries over**.
 3. Tick the characters, places and parts of the world the new book needs. Each starts where the last book left it.
-4. Keep the **Plot threads still open** and **Twists not yet revealed** ticked, unless the new book leaves them alone. Unanswered questions are what a sequel most easily drops.
+4. Keep the **Threads still open** and **Twists not yet revealed** ticked, unless the new book leaves them alone. Unanswered questions are what a sequel most easily drops.
 
 Genre, tone, point of view and byline carry over too.
 

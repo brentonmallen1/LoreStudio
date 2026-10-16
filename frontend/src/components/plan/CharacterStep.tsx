@@ -12,6 +12,7 @@ import {
   type PlanStep,
 } from "../../lib/planning/methods";
 import { humanize } from "../../lib/labels";
+import Term from "../common/Term";
 import PlanGuidance from "./PlanGuidance";
 import { useAutosaveField } from "./useAutosaveField";
 import styles from "./Plan.module.css";
@@ -111,7 +112,7 @@ function CharacterField({
   return (
     <div className={styles.charField}>
       <label className={styles.fieldLabel} htmlFor={id}>
-        {meta.label}
+        {meta.term ? <Term id={meta.term}>{meta.label}</Term> : meta.label}
       </label>
       <textarea
         id={id}

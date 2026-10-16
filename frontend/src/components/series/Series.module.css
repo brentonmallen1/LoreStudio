@@ -177,27 +177,9 @@
   cursor: default;
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .textBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  min-height: 1.6rem;
-  padding: 0.2rem 0.55rem;
-  /* Ghost tier (DESIGN.md §5): no border at rest, the hover ground under the pointer. */
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-muted);
-  text-decoration: none;
-  font: inherit;
-  font-size: var(--text-xs);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.textBtn:hover:not(:disabled) {
-  background: var(--color-hover);
-  color: var(--color-text);
+  composes: btn-secondary from global;
 }
 
 .textBtn:disabled {
@@ -538,7 +520,8 @@ a.inBook:hover {
 }
 
 .fieldBlock:hover .classBtn,
-.classBtn:focus-visible {
+.classBtn:focus-visible,
+.fieldBlock:focus-within .classBtn {
   opacity: 1;
 }
 
@@ -576,4 +559,11 @@ a.inBook:hover {
 .eyeEvidence {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .classBtn {
+    opacity: 1;
+  }
 }

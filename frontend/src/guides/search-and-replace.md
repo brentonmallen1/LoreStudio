@@ -28,7 +28,7 @@ Type `@` and a name to mention a character, or `[[` to mention a place. A list o
 
 ## Fix a mention that names nobody
 
-A mention that matches no one in the Lorebook is underlined in the warning colour. Point at it to fix it:
+A mention that matches no one in the Lorebook is underlined in the warning color. Point at it to fix it:
 
 - **Same as…**: pick who or where it means. The words become one of their other names; the prose is not changed.
 - **Add as a character** or **Add to Places**: create a new entry under those words.

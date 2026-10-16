@@ -381,7 +381,8 @@
   background: var(--color-surface-2);
 }
 
-.goalItem:hover .goalActions {
+.goalItem:hover .goalActions,
+.goalItem:focus-within .goalActions {
   opacity: 1;
 }
 
@@ -405,7 +406,8 @@
   transition: opacity var(--transition);
 }
 
-.goalItem:hover .goalDragHandle {
+.goalItem:hover .goalDragHandle,
+.goalItem:focus-within .goalDragHandle {
   opacity: 1;
 }
 
@@ -544,4 +546,15 @@
 .goalAddBtn:disabled {
   opacity: 0.4;
   cursor: default;
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .goalDragHandle {
+    opacity: 1;
+  }
+
+  .goalActions {
+    opacity: 1;
+  }
 }

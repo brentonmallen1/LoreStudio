@@ -9,6 +9,8 @@ import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import { elementForRow, useSeriesStore } from "../../stores/seriesStore";
 import PageHeader from "../layout/PageHeader";
 import styles from "./CompendiumIndex.module.css";
+import EmptyState from "../common/EmptyState";
+import { EMPTY } from "../../lib/emptyStates";
 
 const ICONS: Record<IndexKind, typeof File> = {
   note: FileText,
@@ -60,11 +62,15 @@ export default function CompendiumIndex({ storyId }: { storyId: string }) {
       <PageHeader
         title="Compendium"
         summary={rows ? `${rows.length} things that inform the story, newest first` : "Gathering…"}
-        primary={{
-          label: "Add research",
-          icon: Plus,
-          to: `${sectionPath(storyId, "compendium", "research")}?new=1`,
-        }}
+        primary={
+          rows?.length === 0
+            ? undefined
+            : {
+                label: "Add research",
+                icon: Plus,
+                to: `${sectionPath(storyId, "compendium", "research")}?new=1`,
+              }
+        }
         aside={
           <label className={styles.search}>
             <Search size={13} aria-hidden />
@@ -103,13 +109,17 @@ export default function CompendiumIndex({ storyId }: { storyId: string }) {
       />
       <div className={styles.scroll}>
         <div className={styles.column}>
-          {rows && shown.length === 0 && (
-            <p className={styles.empty}>
-              {rows.length === 0
-                ? "Nothing here yet. Research notes, links, documents, images and diagrams all gather here."
-                : "Nothing matches."}
-            </p>
+          {rows && rows.length === 0 && (
+            <EmptyState
+              copy={EMPTY.compendium}
+              action={{
+                label: "Add research",
+                icon: Plus,
+                to: `${sectionPath(storyId, "compendium", "research")}?new=1`,
+              }}
+            />
           )}
+          {rows && rows.length > 0 && shown.length === 0 && <p className={styles.empty}>Nothing matches.</p>}
           <ul className={styles.list}>
             {shown.map((r) => {
               const Icon = ICONS[r.kind];

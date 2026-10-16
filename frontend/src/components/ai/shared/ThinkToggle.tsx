@@ -5,7 +5,7 @@ import styles from "./ChatInput.module.css";
 /**
  * Think first, beside the composer of every conversation: whether the next reply reasons
  * before answering. It starts from the conversation's default (its feature, under Settings ›
- * Model parameters) and the author's choice stays with the conversation, in every window.
+ * Advanced) and the author's choice stays with the conversation, in every window.
  */
 export default function ThinkToggle({ sessionId }: { sessionId: string }) {
   const { on, byDefault, fallback, set } = useSessionThinking(sessionId);

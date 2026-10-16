@@ -20,7 +20,7 @@ const ATTRIBUTE_TYPES = [
   {
     value: "quirks",
     label: "Quirks & mannerisms",
-    description: "Speech patterns, habits, and distinctive behaviours",
+    description: "Speech patterns, habits, and distinctive behaviors",
   },
   {
     value: "appearance",
@@ -82,7 +82,7 @@ export default function AttributeGeneratorDialog({ character, onClose }: Props) 
         <div className={styles.field}>
           <label className={styles.label}>What to generate</label>
           <p className={styles.hint}>
-            AI will analyse {character.name}'s existing profile and suggest new{" "}
+            AI will analyze {character.name}'s existing profile and suggest new{" "}
             {ATTRIBUTE_TYPES.find((t) => t.value === type)?.label.toLowerCase()} grounded in what's already
             established.
           </p>

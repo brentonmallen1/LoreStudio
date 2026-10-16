@@ -40,7 +40,7 @@ export default function WhatIfMode({ session }: Props) {
           <p className={styles.emptyTitle}>What If?</p>
           <p className={styles.emptyHint}>
             {storyId
-              ? "Explore how a single change could ripple through your characters, plot threads, and themes."
+              ? "Explore how a single change could ripple through your characters, threads, and themes."
               : "Add a story to context before exploring what-if scenarios."}
           </p>
           {storyId && (

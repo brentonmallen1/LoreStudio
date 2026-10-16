@@ -1,28 +1,22 @@
 import { useState } from "react";
 import { X } from "lucide-react";
+import {
+  RELATIONSHIP_PURPOSES,
+  purposeHint,
+  purposeLabel,
+} from "../../../lib/characters/relationshipPurposes";
 import styles from "./NarrativePurposeTags.module.css";
-
-const PRESET_PURPOSES = [
-  "conflict-driver",
-  "ally",
-  "foil",
-  "growth-catalyst",
-  "emotional-anchor",
-  "twist-setup",
-  "comic-relief",
-  "exposition-vehicle",
-  "obstacle",
-  "mirror",
-  "wisdom-source",
-  "past-connection",
-  "structure-provider",
-];
 
 interface Props {
   value: string[];
   onChange: (next: string[]) => void;
 }
 
+/**
+ * What a relationship is for (doc 30 D6): the chosen purposes as chips in plain words, and a
+ * menu where each one says what it means, on screen. The meaning of each chosen one sits under
+ * the chips, so it is never only in a hover.
+ */
 export default function NarrativePurposeTags({ value, onChange }: Props) {
   const [custom, setCustom] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -38,16 +32,16 @@ export default function NarrativePurposeTags({ value, onChange }: Props) {
     onChange(value.filter((t) => t !== tag));
   }
 
-  const available = PRESET_PURPOSES.filter((p) => !value.includes(p));
+  const available = RELATIONSHIP_PURPOSES.filter((p) => !value.includes(p.value));
 
   return (
     <div className={styles.root}>
       <div className={styles.chips}>
         {value.map((tag) => (
           <span key={tag} className={styles.chip}>
-            {tag}
+            {purposeLabel(tag)}
             <button
-              aria-label={`Remove ${tag}`}
+              aria-label={`Remove ${purposeLabel(tag)}`}
               className={styles.chipRemove}
               onClick={() => remove(tag)}
               type="button"
@@ -63,8 +57,14 @@ export default function NarrativePurposeTags({ value, onChange }: Props) {
           {showDropdown && (
             <div className={styles.dropdown}>
               {available.map((p) => (
-                <button key={p} className={styles.dropdownItem} type="button" onClick={() => add(p)}>
-                  {p}
+                <button
+                  key={p.value}
+                  className={styles.dropdownItem}
+                  type="button"
+                  onClick={() => add(p.value)}
+                >
+                  <span className={styles.itemLabel}>{p.label}</span>
+                  <span className={styles.itemHint}>{p.hint}</span>
                 </button>
               ))}
               <div className={styles.customRow}>
@@ -89,6 +89,17 @@ export default function NarrativePurposeTags({ value, onChange }: Props) {
           )}
         </div>
       </div>
+      {value.some((t) => purposeHint(t)) && (
+        <ul className={styles.meanings}>
+          {value
+            .filter((t) => purposeHint(t))
+            .map((t) => (
+              <li key={t}>
+                <strong>{purposeLabel(t)}</strong>: {purposeHint(t)}
+              </li>
+            ))}
+        </ul>
+      )}
     </div>
   );
 }

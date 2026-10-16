@@ -98,6 +98,15 @@
   cursor: default;
 }
 
+/* What the page is for (doc 30 D2): the first line under the title, in plain words. */
+.purpose {
+  margin: 0.4rem 0 0;
+  max-width: 46rem;
+  font-size: var(--text-base);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
 .summary {
   margin-top: 0.35rem;
   font-size: 0.82rem;

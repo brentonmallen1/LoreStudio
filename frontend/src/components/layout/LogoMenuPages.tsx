@@ -15,6 +15,7 @@ import { guideStatus } from "../../lib/firstStory/progress";
 import { useStoryStore } from "../../stores/storyStore";
 import { openBesideTheProse } from "../../lib/panel/openBeside";
 import { canOpenBeside } from "../../lib/panel/pages";
+import { useHoverTip } from "../common/useHoverTip";
 import styles from "./LogoMenu.module.css";
 
 /** The menu's groups, each a run of domains from `lib/routes.ts`, in the table's order. */
@@ -56,6 +57,9 @@ export default function LogoMenuPages({
   const aiAvailable = useAIAvailable();
   const activeNode = useStoryStore((s) => s.activeNode);
   const routes = routesFor(mode).filter((r) => !r.ai || aiAvailable);
+  // The tip stands beside its column: right of the menu for a page, right of the flyout for a
+  // section, so it never covers the rows under it or the flyout.
+  const tip = useHoverTip({ beside: "[data-fan], [role=dialog]" });
   const isHere = (r: StoryRoute) =>
     r.path === "" ? /^\/stories\/[^/]+\/?$/.test(pathname) : pathname.startsWith(storyPath(storyId, r));
   const openScene = activeNode?.story_id === storyId ? activeNode.title : undefined;
@@ -82,6 +86,9 @@ export default function LogoMenuPages({
     const panel = row?.closest<HTMLElement>("[role=dialog]");
     if (!row || !panel) return;
     const r = row.getBoundingClientRect();
+    // The flyout takes the right of the menu, where the page's tip would stand: the tip goes and
+    // the page's line heads the flyout instead.
+    tip.hide();
     setFan({ id, top: r.top - 6, left: panel.getBoundingClientRect().right + 4 });
   }
   function later(fn: () => void, ms: number) {
@@ -135,6 +142,9 @@ export default function LogoMenuPages({
               const fanned = fan?.id === r.id;
               const current = here ? sections.find((sec) => sec.path !== "" && sectionOn(r, sec)) : undefined;
               const status = r.id === "first-story" ? guideStatus(storyId) : null;
+              // The First story guide says what it is under its name (A2); every other page says
+              // it in a tooltip, on hover and on focus (doc 30 D2b), and to a screen reader.
+              const purposeShown = r.id === "first-story";
               return (
                 <div
                   key={r.id}
@@ -152,6 +162,8 @@ export default function LogoMenuPages({
                     onClick={done}
                     className={`${styles.row} ${here ? styles.rowOn : ""}`}
                     aria-current={here ? "page" : undefined}
+                    aria-describedby={r.purpose ? `purpose-${r.id}` : undefined}
+                    {...tip.bind(purposeShown ? undefined : r.purpose)}
                     onKeyDown={(e) => {
                       if (e.key === "ArrowRight" && sections.length) {
                         e.preventDefault();
@@ -161,10 +173,17 @@ export default function LogoMenuPages({
                     }}
                   >
                     <Icon size={16} className={styles.rowIcon} aria-hidden />
-                    {r.purpose ? (
+                    {r.purpose && !purposeShown && (
+                      <span id={`purpose-${r.id}`} hidden>
+                        {r.purpose}
+                      </span>
+                    )}
+                    {r.purpose && purposeShown ? (
                       <span className={styles.rowText}>
                         <span className={styles.rowLabel}>{r.label}</span>
-                        <span className={styles.purpose}>{r.purpose}</span>
+                        <span className={styles.purpose} id={`purpose-${r.id}`}>
+                          {r.purpose}
+                        </span>
                       </span>
                     ) : (
                       <span className={styles.rowLabel}>{r.label}</span>
@@ -227,7 +246,10 @@ export default function LogoMenuPages({
           data-fan
           className={styles.fan}
           style={{
-            top: Math.max(8, Math.min(fan.top, window.innerHeight - fanSections.length * 34 - 24)),
+            top: Math.max(
+              8,
+              Math.min(fan.top, window.innerHeight - fanSections.length * 34 - (fanRoute.purpose ? 72 : 24)),
+            ),
             left: fan.left,
           }}
           role="group"
@@ -236,6 +258,11 @@ export default function LogoMenuPages({
           onMouseLeave={() => later(hide, CLOSE_MS)}
           onKeyDown={onFanKey}
         >
+          {fanRoute.purpose && (
+            <p className={styles.fanPurpose} aria-hidden>
+              {fanRoute.purpose}
+            </p>
+          )}
           {fanSections.map((sec) => {
             const on = isHere(fanRoute) && sectionOn(fanRoute, sec);
             return (
@@ -245,13 +272,21 @@ export default function LogoMenuPages({
                 onClick={done}
                 className={`${styles.fanItem} ${on ? styles.rowOn : ""}`}
                 aria-current={on ? "page" : undefined}
+                aria-describedby={sec.purpose ? `purpose-${fanRoute.id}-${sec.id}` : undefined}
+                {...tip.bind(sec.purpose)}
               >
                 {sec.label}
+                {sec.purpose && (
+                  <span id={`purpose-${fanRoute.id}-${sec.id}`} hidden>
+                    {sec.purpose}
+                  </span>
+                )}
               </Link>
             );
           })}
         </div>
       )}
+      {tip.node}
     </nav>
   );
 }

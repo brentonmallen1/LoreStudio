@@ -30,7 +30,7 @@ FeatureClass = Literal["reflect", "analyse", "option", "persona", "draft", "summ
 GROUP_LABELS: dict[str, str] = {
     "talk": "Talk",
     "cast": "Ask the cast",
-    "analyse": "Analyse",
+    "analyse": "Analyze",
     "explore": "Explore",
     "prepare": "Prepare",
     "system": "Background",
@@ -38,11 +38,11 @@ GROUP_LABELS: dict[str, str] = {
 
 CLASS_LABELS: dict[str, str] = {
     "reflect": "Reflects",
-    "analyse": "Analyses",
+    "analyse": "Analyzes",
     "option": "Offers options",
     "persona": "Speaks in character",
     "draft": "Drafts (not manuscript)",
-    "summarise": "Summarises",
+    "summarise": "Summarizes",
 }
 
 CLASS_DESCRIPTIONS: dict[str, str] = {
@@ -109,7 +109,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         classification="reflect",
         description="Think through the scene you are in: questions, angles, what is missing.",
         context=(
-            "Scene title, synopsis and purpose",
+            "Scene title, synopsis and why it's here",
             "Characters and threads in the scene, with how their body and mind show",
             "Adjacent scenes",
         ),
@@ -290,7 +290,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="analyse",
         classification="reflect",
         description="Questions whose answers would firm up the parts of the story you have not decided.",
-        context=("Story identity", "Character profiles", "Plot threads"),
+        context=("Story identity", "Character profiles", "Threads"),
     ),
     AIFeature(
         id="economy-analysis",
@@ -316,15 +316,15 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="analyse",
         classification="analyse",
         description="Whether the six essential story questions can be answered from what exists.",
-        context=("Story intent and premise", "Character goals", "Plot threads", "Structure"),
+        context=("Story intent and premise", "Character goals", "Threads", "Structure"),
         budget=BUDGET_LARGE,
     ),
     AIFeature(
         id="extract-outline",
-        label="Outline Extraction",
+        label="Beat Board from Prose",
         group="analyse",
         classification="analyse",
-        description="Turns written scenes into a structured outline you can correct.",
+        description="Turns written scenes into a beat board you can correct.",
         context=("Scene prose", "Story title and genre"),
         budget=BUDGET_LARGE,
         thinks=False,
@@ -335,7 +335,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="analyse",
         classification="analyse",
         description="Reads the prose against the intent and arc milestones you recorded.",
-        context=("Scene prose", "Scene purpose and intent", "Arc milestones", "Narrative goals"),
+        context=("Scene prose", "Why the scene is here, and intent", "Arc milestones", "Narrative goals"),
         budget=BUDGET_LARGE,
     ),
     AIFeature(
@@ -367,11 +367,11 @@ AI_FEATURES: tuple[AIFeature, ...] = (
     ),
     AIFeature(
         id="outline-alignment",
-        label="Outline Alignment",
+        label="Beat Board Alignment",
         group="analyse",
         classification="analyse",
-        description="Where the manuscript has drifted from the outline.",
-        context=("Outline items", "Scene synopses", "Story structure"),
+        description="Where the manuscript has drifted from a beat board.",
+        context=("Beats on the board", "Scene synopses", "Story structure"),
         budget=BUDGET_LARGE,
     ),
     AIFeature(
@@ -397,7 +397,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="analyse",
         classification="analyse",
         description="Logical gaps, dropped questions and inconsistencies.",
-        context=("Scene prose", "Story structure", "Plot threads", "Twists", "Character motivations"),
+        context=("Scene prose", "Story structure", "Threads", "Twists", "Character motivations"),
         budget=BUDGET_LARGE,
     ),
     AIFeature(
@@ -451,7 +451,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="analyse",
         classification="summarise",
         description="Summarises one act, chapter or section on its own terms.",
-        context=("Prose within the section", "Section purpose"),
+        context=("Prose within the section", "Why the section is here"),
         budget=BUDGET_LARGE,
     ),
     AIFeature(
@@ -477,7 +477,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         label="Thread Analysis",
         group="analyse",
         classification="analyse",
-        description="How a plot thread progresses, and where it goes quiet.",
+        description="How a thread progresses, and where it goes quiet.",
         context=(
             "Thread description",
             "Where it opens and closes",
@@ -513,7 +513,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         context=(
             "The truth and the misdirection",
             "Clues and the reveal",
-            "Plot threads",
+            "Threads",
             "Characters",
             "Scene synopses",
         ),
@@ -534,7 +534,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="explore",
         classification="option",
         description="Short labelled directions the scene could take.",
-        context=("Scene synopsis and purpose", "Plot threads", "Character arcs", "Adjacent scenes"),
+        context=("Scene synopsis and why it's here", "Threads", "Character arcs", "Adjacent scenes"),
         thinks=True,
     ),
     AIFeature(
@@ -543,7 +543,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="explore",
         classification="option",
         description="Consequences of an alternate choice — never the alternate scene.",
-        context=("Story structure", "Plot threads", "Character motivations", "Lorebook"),
+        context=("Story structure", "Threads", "Character motivations", "Lorebook"),
         budget=BUDGET_LARGE,
         thinks=True,
     ),
@@ -553,7 +553,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="explore",
         classification="option",
         description="Questions and a few one-line beat options for a scene you are about to write.",
-        context=("Scene title, synopsis and purpose", "Adjacent scenes", "Characters", "Active threads"),
+        context=("Scene title, synopsis and why it's here", "Adjacent scenes", "Characters", "Active threads"),
         thinks=True,
     ),
     AIFeature(
@@ -562,7 +562,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="explore",
         classification="option",
         description="Short sensory cues per sense to write from — not description to paste.",
-        context=("Scene setting and purpose", "Story tone"),
+        context=("Scene setting and why it's here", "Story tone"),
         budget=BUDGET_SMALL,
     ),
     AIFeature(
@@ -622,7 +622,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
     ),
     AIFeature(
         id="codex-suggest",
-        label="Codex Suggestions",
+        label="Who's Here and What's Established",
         group="prepare",
         classification="analyse",
         description=(
@@ -720,7 +720,7 @@ def feature_budget(feature_id: str) -> int:
     return feature.budget if feature else BUDGET_MEDIUM
 
 
-#: Settings › Model parameters: when Gemma reasons before answering.
+#: Settings › Advanced: when Gemma reasons before answering.
 ThinkingMode = Literal["off", "helps", "always"]
 THINKING_MODES: tuple[ThinkingMode, ...] = ("off", "helps", "always")
 

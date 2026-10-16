@@ -191,7 +191,8 @@
 }
 
 .tab:hover .tabClose,
-.tabActive .tabClose {
+.tabActive .tabClose,
+.tab:focus-within .tabClose {
   opacity: 1;
 }
 
@@ -659,4 +660,11 @@
   border-radius: var(--radius-sm);
   background: var(--color-bg);
   color: var(--color-text);
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .tabClose {
+    opacity: 1;
+  }
 }

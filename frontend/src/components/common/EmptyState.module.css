@@ -1,0 +1,126 @@
+/* An empty page (doc 30 D3): a tone box with what it is, why it helps, how to start, an example
+   and the guide, in that order. One tone box; the example is the paper inside it. */
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 34rem;
+  margin: 1.5rem auto;
+  padding: 1.4rem 1.5rem;
+  border-radius: var(--radius-xl);
+  background: var(--color-tone);
+  color: var(--color-text);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  text-align: left;
+}
+
+.empty[data-size="small"] {
+  gap: 0.5rem;
+  margin: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-lg);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-editor);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.empty[data-size="small"] .title {
+  font-size: var(--text-md);
+}
+
+.what,
+.why {
+  margin: 0;
+}
+
+.why {
+  color: var(--color-text-muted);
+}
+
+.start {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+/* The primary tier (DESIGN.md): forest, paper text, 32px. */
+.primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2.133rem;
+  padding: 0 0.95rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.primary:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.primary:focus-visible,
+.guide:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.quicker {
+  color: var(--color-text-muted);
+}
+
+.quicker code {
+  padding: 0 0.3rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+.example {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.example strong {
+  font-weight: 600;
+}
+
+.exampleLabel {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-text-subtle);
+}
+
+.guide {
+  align-self: flex-start;
+  font-weight: 600;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.guide:hover {
+  text-decoration: underline;
+}

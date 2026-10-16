@@ -87,6 +87,14 @@ components:
     rounded: "{rounded.md}"
     padding: "0 14px"
     height: "32px"
+  button-secondary:
+    backgroundColor: "{colors.vellum}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.md}"
+    padding: "0 10px"
+    height: "28px"
+  button-secondary-hover:
+    backgroundColor: "{colors.vellum-deep}"
   button-ghost:
     backgroundColor: "transparent"
     textColor: "{colors.ink-muted}"
@@ -147,7 +155,8 @@ screenshot that shows every feature at once.
 - Entities carry a palette slot (`--cat-1` to `--cat-8`), scenes a status colour and shape.
 - One ground under the chrome and the prose alike, the side panel a faint tone box; shadows
   only for things lifted off the desk.
-- What you can press gets a ground under the pointer; what you read never does.
+- What you can press looks pressable at rest, and gets a deeper ground under the pointer;
+  what you read never has a ground.
 
 ## 2. Colors: The Parchment Palette
 
@@ -280,7 +289,7 @@ own. If a piece of chrome seems to need a background or a border to hold togethe
 too much in it.
 
 **The Press Rule.** Everything pressable gets a ground when the pointer is on it (the hover
-ground, `--color-hover`), and nothing else does. Fields are the only things with an
+ground, `--color-hover`, or for a secondary button the deep vellum), and nothing else does. Fields are the only things with an
 outline. Something you only read has no ground, no outline and no accent colour, ever: a
 status is a shape and a word, a figure is a number and its label.
 
@@ -291,15 +300,32 @@ One look per tier, everywhere:
 - **Primary:** forest fill, paper text. One per view at most ("Continue writing").
 - **Assistant:** violet fill, `--color-ai-fg` text, Orbit (runs an action) or Feather
   (opens a chat) icon plus a text label. Studio only.
-- **Ghost:** the quiet tier, and the default. No fill and no border at rest, ink-muted
-  text or icon; the hover ground and ink under the pointer; deep vellum while pressed or
-  open. The header's controls, the strip's, ⋯ menus, a menu's rows and a link-like word all
-  use it.
-- **Link in running text:** forest, semibold, no underline until hovered.
+- **Secondary:** the tier for a text action inside content (a row, a card, a band, a panel, a
+  dialog, an empty state): the vellum ground (`--color-button`) at rest, ink text, 28px tall,
+  6px radius, and the deep vellum (`--color-button-hover`) under the pointer. One class,
+  `.btn-secondary` (`src/index.css`); a module takes it with
+  `composes: btn-secondary from global;` and keeps only its layout. An Assistant action
+  there is the same button with `data-ai`: violet text, its own violet tint under the pointer.
+  A box whose own ground is the vellum sets `--color-button` to the paper for what sits in it.
+  Beside a primary in a dialog's footer it takes the primary's height.
+- **Link in running text:** forest, semibold, no underline until hovered. Also for a word
+  that goes somewhere from inside a line or beside chips ("Change method", "+ Add character").
+- **Ghost:** no fill and no border at rest, ink-muted icon or text; the hover ground and ink
+  under the pointer; deep vellum while pressed or open. Only for the chrome's icon buttons
+  (the header, the strip, the rail, a ⋯ trigger) and for the rows inside a menu.
 - **Shape:** gently rounded (6px; 8px for a menu row); 32px tall in headers, 28px in rows.
 - **Focus:** 2px `--color-focus` outline, 2px offset, on every control (fields too).
 - **Target:** at least 24px; a small dot gets a 24px hit area round it. An icon-only
   button has an `aria-label` (`iconButtonNames.test.ts`).
+
+### Named Rules
+**The Pressable Rule.** Anything a writer can press looks pressable at rest. Inside content a
+text action is a secondary button, or, inside running text, a link; a word with no ground and
+no accent is something to read, never something to press. Ghost is kept for the chrome's icon
+buttons and a menu's rows. Violet actions are the Assistant tier or a violet secondary
+(`data-ai`), the same way everywhere. `themes/pressable.test.ts` fails on a module that
+composes the secondary button and then takes its ground away, outlines it, or quiets it with
+opacity.
 
 ### Chips
 - **Style:** vellum pill, ink-muted text, count in a lighter weight.
@@ -328,12 +354,15 @@ One look per tier, everywhere:
 - **Header:** floating, the trail of where you are on the left, and on the right only jobs,
   undo and redo, the scratch pad, focus and "Search or jump", all ghost icons.
 - **Story strip** (left): the transit line. Chapters are stations with progress rings,
-  scenes are stops shaped by status, and the colour-by key shows only while you hover.
-  The colour-by picker sits at the top, so the line runs the strip's full height. Two
-  states: the line, or the outline, whose scene rows carry the same dots and whose folded
-  chapters show their scenes as coloured bars.
+  scenes are stops shaped by status, and the colour-by key shows while you hover a stop,
+  while the picker is open, or when **Key** is on (doc 30 D8). The colour-by picker and Key
+  sit at the top, so the line runs the strip's full height. Two states: narrow, the line,
+  or wide, whose scene rows carry the same dots and whose folded chapters show their
+  scenes as coloured bars. In the Findings mode a stop is the worst finding's shape.
 - **Side panel** (right): a tone box of tabs for This scene, open entities and tools;
   the rail beside it launches them, with the Assistant's Feather and the one collapse.
+  The rail stays icons; each names itself on hover and keyboard focus, and a one-time
+  tour labels them all (doc 30 D8).
 - **Sub header** (top of the page): the scene's icon, title, status and threads, and ⋯.
   Floating, like the header; in focus mode it is quiet (subtle text) until hovered.
 - **Status corner** (bottom right of the page): a save light (green saved, yellow
@@ -353,13 +382,16 @@ filled marker. Colour by who is on the page, threads, status, beat or findings.
   never.
 - **Do** let the chrome and the prose share one ground, with the side panel a faint tone
   box beside them.
-- **Do** give everything pressable a hover ground, and nothing else.
+- **Do** make everything pressable look pressable at rest (a secondary button in content, a
+  link in running text), give it a deeper ground under the pointer, and give nothing else one.
 - **Do** give every colour one job (forest is the author, violet the Assistant, teal local
   analysis), and pair status colour with shape.
 - **Do** set prose in Merriweather at 640px max, and every control in DM Sans.
 - **Do** write labels in sentence case, plain and specific ("What needs your eye").
 - **Do** define any new token in all seven palettes, light and dark, and add it to the
   contrast test when it carries meaning.
+- **Do** show a row's quiet actions on keyboard focus (`:focus-within`) and always on touch
+  (`@media (hover: none)`) wherever they wait for hover; `themes/revealOnHover.test.ts` holds it.
 
 ### Don't:
 - **Don't** build a generic SaaS dashboard: no hero-metric tiles, no identical card grids,

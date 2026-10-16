@@ -6,6 +6,7 @@ from typing import Any
 
 from ...schemas.findings import Finding, FindingAnchor, FindingKind, Severity, Source
 from .fingerprint import fingerprint
+from .why import explain
 
 #: Every severity word a check or a model uses, onto three.
 _SEVERITY: dict[str, Severity] = {
@@ -42,6 +43,9 @@ def make(
     """``key`` is what the fingerprint hashes when the text varies but the finding does
     not (a count that changes as the author writes)."""
     anchor = anchor or FindingAnchor()
+    # Why it can matter and what to try, from the one table (doc 30 D5), unless the caller says.
+    for key_, value in explain(check).items():
+        fields.setdefault(key_, value)
     return Finding(
         id=fingerprint(check, anchor, key if key is not None else text),
         check=check,

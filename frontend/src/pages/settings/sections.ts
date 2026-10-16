@@ -9,6 +9,7 @@ import {
   Palette,
   ShieldCheck,
   Sliders,
+  ToggleRight,
   Type,
   User,
   type LucideIcon,
@@ -29,15 +30,22 @@ const BOTH: UIMode[] = ["writer", "studio"];
 
 /**
  * One list feeds the Settings side nav, the palette ("Settings › …") and deep links
- * (`/settings#appearance`). Sections render in this order (refactor doc 04 §4).
+ * (`/settings#mode`). Sections render in this order (refactor doc 04 §4).
  */
 export const SETTINGS_SECTIONS: SettingsSection[] = [
+  {
+    id: "mode",
+    label: "Mode",
+    icon: ToggleRight,
+    modes: BOTH,
+    keywords: ["writer", "studio", "assistant", "ai", "just me", "welcome"],
+  },
   {
     id: "appearance",
     label: "Appearance",
     icon: Palette,
     modes: BOTH,
-    keywords: ["theme", "mode", "dark", "writer", "studio"],
+    keywords: ["theme", "dark", "light", "color mode", "palette"],
   },
   {
     id: "typography",
@@ -56,13 +64,6 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { id: "shortcuts", label: "Shortcuts", icon: Keyboard, modes: BOTH, keywords: ["keyboard", "keys"] },
   { id: "ai", label: "AI / LLM", icon: Cpu, modes: ["studio"], keywords: ["ollama", "model", "assistant"] },
   {
-    id: "model-parameters",
-    label: "Model parameters",
-    icon: Sliders,
-    modes: ["studio"],
-    keywords: ["temperature", "thinking", "top_p"],
-  },
-  {
     id: "ai-prompts",
     label: "AI prompts",
     icon: Cpu,
@@ -78,11 +79,28 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     keywords: ["embeddings", "index", "knowledge graph", "retrieval", "semantic"],
   },
   {
+    id: "model-parameters",
+    label: "Advanced",
+    icon: Sliders,
+    modes: ["studio"],
+    keywords: [
+      "model parameters",
+      "temperature",
+      "thinking",
+      "top_p",
+      "top-k",
+      "image token budget",
+      "context window",
+      "jobs wait",
+      "parallel",
+    ],
+  },
+  {
     id: "backups",
-    label: "Backups",
+    label: "Versions and backups",
     icon: Archive,
     modes: BOTH,
-    keywords: ["snapshots", "database", "restore"],
+    keywords: ["backups", "versions", "snapshots", "auto backups", "database", "restore"],
   },
   {
     id: "automatic",

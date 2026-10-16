@@ -123,6 +123,14 @@ const PAIRS: [string, string, number, string][] = [
   ["--color-text-muted", "--color-surface-3", 4.5, "muted text on hover"],
   ["--color-text-muted", "--color-surface-raised", 4.5, "muted text on raised cards"],
   ["--color-text-subtle", "--color-surface-3", 3, "subtle text on hover"],
+  // The secondary button (DESIGN.md §5): ink on the vellum at rest and the deep vellum under the
+  // pointer, muted when disabled; an Assistant one is violet on the vellum and on its own tint;
+  // on a vellum box it rests on the paper (the TEXT pairs above hold that).
+  ["--color-text", "--color-surface-2", 4.5, "secondary button text at rest"],
+  ["--color-text", "--color-surface-3", 4.5, "secondary button text under the pointer"],
+  ["--color-text-muted", "--color-surface-2", 4.5, "a disabled secondary button"],
+  ["--color-ai", "--color-surface-2", 4.5, "an Assistant secondary button at rest"],
+  ["--color-ai", "tint:--color-surface-2", 4.5, "an Assistant secondary button under the pointer"],
   // Text on filled buttons and badges, at rest and under the pointer.
   ...FILLS.flatMap((f): [string, string, number, string][] => [
     [`--color-${f}-fg`, `--color-${f}`, 4.5, `text on ${f} buttons`],
@@ -234,6 +242,19 @@ describe("theme contrast (WCAG)", () => {
           const ratio = contrast(a, b);
           if (ratio < min)
             failures.push(`${what}: ${fg} ${a} on ${bg} ${b} = ${ratio.toFixed(2)} (< ${min})`);
+        }
+        expect(failures).toEqual([]);
+      });
+      // Dialogue colored by speaker (SceneEditor.module.css): ink on a 10% tint of the speaker's
+      // slot on the page. The words keep near the reading floor, never under 9:1, so a coloured
+      // line reads as the prose round it does. Its slot-coloured line runs along the tint's
+      // lower edge, against the page, where the slot pairs above hold it at 3:1.
+      it(`${file} ${block.selector.includes(".dark") ? "dark" : "light"} keeps dialogue colored by speaker readable`, () => {
+        const failures: string[] = [];
+        for (let n = 1; n <= 8; n++) {
+          const ground = tint(tokens[`--cat-${n}`], tokens["--color-surface"], 0.1);
+          const ratio = contrast(tokens["--color-text"], ground);
+          if (ratio < 9) failures.push(`slot ${n}: ink on ${ground} = ${ratio.toFixed(2)} (< 9)`);
         }
         expect(failures).toEqual([]);
       });

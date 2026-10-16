@@ -30,6 +30,10 @@ export interface Finding {
    * evidence explains rather than quotes. */
   passages?: string[];
   suggestion: string;
+  /** Why it can matter, and what to try (doc 30 D5): every check that runs without the model
+   *  has both; the Assistant's findings explain themselves. */
+  why?: string;
+  what_to_try?: string;
   where: string;
   anchor: FindingAnchor;
   action: FindingAction;

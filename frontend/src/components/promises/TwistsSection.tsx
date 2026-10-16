@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { BookOpen, Eye, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Eye, Trash2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import { usePromises } from "../../lib/promises/usePromises";
@@ -16,7 +16,7 @@ import ConfirmDelete from "../lorebook/ConfirmDelete";
 import EntitySheet, { Badge, SheetCard } from "../lorebook/EntitySheet";
 import LorebookList from "../lorebook/LorebookList";
 import { useLoreSelection } from "../lorebook/useLoreSelection";
-import { TYPES, cluesLine, statusLabel, typeLabel } from "../../lib/twists/labels";
+import { TYPES, cluesLine, statusHint, statusLabel, typeLabel } from "../../lib/twists/labels";
 import { slotVar } from "../../lib/colorSlots";
 import { sectionPath } from "../../lib/routes";
 import styles from "../lorebook/Lorebook.module.css";
@@ -30,7 +30,6 @@ import { fairPlay, misdirectionLine } from "../../lib/twists/fairPlay";
 export default function TwistsSection() {
   const { structure, activeTemplate } = useStoryStore();
   const openEntity = usePanelStore((s) => s.openEntity);
-  const navigate = useNavigate();
   const [twists, setTwists] = useState<Twist[]>([]);
   const [loaded, setLoaded] = useState(false);
   const { storyId, selectedId, select } = useLoreSelection(
@@ -134,7 +133,7 @@ export default function TwistsSection() {
                 <Badge title={TYPES.find((t) => t.value === twist.twist_type)?.hint}>
                   {typeLabel(twist.twist_type)}
                 </Badge>
-                <Badge>{statusLabel(twist.status)}</Badge>
+                <Badge title={statusHint(twist.status)}>{statusLabel(twist.status)}</Badge>
               </>
             }
             presence={
@@ -143,10 +142,7 @@ export default function TwistsSection() {
                 : `${twistAcrossLine(across[twist.id]) ?? "Not revealed yet"} · ${cluesLine(twist)}`
             }
             onOpenBeside={() => openEntity("twist", twist.id, twist.name)}
-            more={[
-              { label: "How twists work", icon: BookOpen, onSelect: () => navigate("/guides/promises") },
-              { label: "Delete twist", icon: Trash2, danger: true, onSelect: () => setDeleting(twist) },
-            ]}
+            more={[{ label: "Delete twist", icon: Trash2, danger: true, onSelect: () => setDeleting(twist) }]}
             side={
               <>
                 <HealthCard anchor="twist_id" id={twist.id} storyId={storyId} />

@@ -252,38 +252,18 @@
   font-family: inherit;
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .deleteConfirmNo {
-  padding: 0.35rem 0.7rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  border-radius: var(--radius-sm);
-  border: none;
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  font-family: inherit;
+  composes: btn-secondary from global;
 }
 
-.deleteConfirmNo:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
-}
-
+/* A secondary button (DESIGN.md §5), sized as the primary beside it. */
 .cancelBtn {
+  composes: btn-secondary from global;
   font-size: 0.82rem;
   padding: 0.35rem 0.8rem;
-  font-family: inherit;
-  background: transparent;
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-  color: var(--color-text-muted);
   margin-left: auto;
-}
-
-.cancelBtn:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
+  height: auto;
 }
 
 .saveBtn {

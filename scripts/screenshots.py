@@ -27,12 +27,12 @@ PASSWORD = "screenshots-only"
 VIEWPORT = {"width": 1440, "height": 900}
 
 
-def call(path: str, token: str | None = None, body: dict | None = None):
+def call(path: str, token: str | None = None, body: dict | None = None, method: str | None = None):
     req = urllib.request.Request(
         f"http://127.0.0.1:{API}/api{path}",
         data=json.dumps(body).encode() if body is not None else None,
         headers={"Content-Type": "application/json", **({"Authorization": f"Bearer {token}"} if token else {})},
-        method="POST" if body is not None else "GET",
+        method=method or ("POST" if body is not None else "GET"),
     )
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.load(r)
@@ -172,6 +172,9 @@ def main() -> None:
     try:
         start(data, procs)
         token = call("/auth/login", body={"username": "admin", "password": PASSWORD})["access_token"]
+        # A fresh install's admin is a new account: answer the welcome (doc 30 D4) as Studio.
+        ui = {"mode": "studio", "welcome": "done", "start_here": "done"}
+        call("/auth/me", token, {"settings": {"ui": ui}}, method="PATCH")
         shoot(token, pages(token))
         optimise()
     finally:

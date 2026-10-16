@@ -135,7 +135,15 @@
   color: var(--color-text);
 }
 
+/* Add, while the page beside the list shows its empty state and its own forest button: the
+   ghost tier (DESIGN.md), no fill at rest. */
+/* A text action in content: a secondary button (DESIGN.md §5). */
+.listAddGhost {
+  composes: btn-secondary from global;
+}
+
 .listAdd:focus-visible,
+.listAddGhost:focus-visible,
 .listAddQuiet:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
@@ -842,7 +850,8 @@ button.cardRow:hover {
 }
 
 .rows .rowEdit:hover .iconBtn,
-.rows .iconBtn:focus-visible {
+.rows .iconBtn:focus-visible,
+.rows .rowEdit:focus-within .iconBtn {
   opacity: 1;
 }
 
@@ -900,25 +909,10 @@ button.cardRow:hover {
   outline: 2px solid var(--color-focus);
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .quietBtn {
+  composes: btn-secondary from global;
   align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  height: 1.867rem;
-  padding: 0 0.6rem;
-  border: none;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: 0.76rem;
-  cursor: pointer;
-}
-
-.quietBtn:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
 }
 
 .subHeading {
@@ -1085,6 +1079,7 @@ button.cardRow:hover {
   color: var(--color-accent);
   font: inherit;
   font-size: 0.74rem;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -1185,4 +1180,20 @@ button.cardRow:hover {
 .sheetDotDiamond {
   border-radius: 2px;
   transform: rotate(45deg) scale(0.85);
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .rows .iconBtn {
+    opacity: 1;
+  }
+
+  /* In the row's flow, not over the words, since it is always there. */
+  .milestone:not([data-linked]) .quietSelect {
+    position: static;
+    max-width: 100%;
+    opacity: 1;
+    pointer-events: auto;
+    box-shadow: none;
+  }
 }

@@ -69,12 +69,7 @@ export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Are the 6 essential story questions answerable?",
     fullDescription:
       "Checks whether the six essential story questions (goal, motivation, conflict, stakes, change, resolution) are clearly answerable for the protagonist.",
-    contextSources: [
-      "Story intent & premise",
-      "Character goals & motivation",
-      "Plot threads",
-      "Story structure",
-    ],
+    contextSources: ["Story intent & premise", "Character goals & motivation", "Threads", "Story structure"],
     backendFeatureId: "essential-questions",
   },
   "pacing-analysis": {
@@ -104,7 +99,7 @@ export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Recurring themes, motifs, and their development",
     fullDescription:
       "Identifies recurring themes and motifs in the prose and assesses how they develop across the story arc.",
-    contextSources: ["Scene prose text", "Story intent & premise", "Plot threads"],
+    contextSources: ["Scene prose text", "Story intent & premise", "Threads"],
     backendFeatureId: "theme-tracker",
   },
   "plot-holes": {
@@ -114,7 +109,7 @@ export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Logical gaps, unanswered questions, inconsistencies",
     fullDescription:
       "Detects logical gaps, unresolved story questions, and cause-and-effect inconsistencies in the narrative.",
-    contextSources: ["Scene prose text", "Story structure", "Plot threads", "Character motivations"],
+    contextSources: ["Scene prose text", "Story structure", "Threads", "Character motivations"],
     backendFeatureId: "plot-holes",
   },
   "first-pass": {
@@ -126,7 +121,7 @@ export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
       "Compares the written scenes against your stated narrative intent, scene purposes, and character arc milestones to surface gaps between plan and execution.",
     contextSources: [
       "Scene prose text",
-      "Scene purpose & intent",
+      "Why each scene is here & intent",
       "Character arc milestones",
       "Narrative goals",
     ],
@@ -149,12 +144,7 @@ export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Dimensionality, contradictions, relationship complexity",
     fullDescription:
       "Assesses each character's dimensionality, internal contradictions, relationship complexity, and whether their role in the story is being used appropriately.",
-    contextSources: [
-      "Character profiles",
-      "Scene prose text",
-      "Relationship graph",
-      "Plot thread involvement",
-    ],
+    contextSources: ["Character profiles", "Scene prose text", "Relationship graph", "Thread involvement"],
     backendFeatureId: "character-dimensionality",
   },
   "arc-analysis": {
@@ -174,7 +164,7 @@ export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Fresh-eyes read: priorities, intent gaps, marginal notes",
     fullDescription:
       "A developmental read of the manuscript against the intent you recorded: what to fix first, where the prose and the plan disagree, voice notes, and margin comments. Comments only: it never rewrites.",
-    contextSources: ["Scene prose text", "Scene purpose & intent", "Story identity"],
+    contextSources: ["Scene prose text", "Why each scene is here & intent", "Story identity"],
     backendFeatureId: "editorial-pass",
   },
 };

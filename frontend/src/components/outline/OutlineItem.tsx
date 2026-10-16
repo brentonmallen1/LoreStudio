@@ -168,6 +168,7 @@ export default function OutlineItem({
         onDrop={handleDrop}
         onDragEnd={handleDragEnd}
         className={rowClass}
+        data-beat-row
         style={{ paddingLeft: `${depth * 1.25}rem` }}
         onFocus={() => setFocused(true)}
         onBlur={(e) => {
@@ -181,7 +182,12 @@ export default function OutlineItem({
 
         {/* Collapse toggle */}
         {hasChildren ? (
-          <button className={styles.collapseToggle} onClick={toggleCollapse} tabIndex={-1}>
+          <button
+            className={styles.collapseToggle}
+            onClick={toggleCollapse}
+            aria-label={collapsed ? "Unfold" : "Fold"}
+            aria-expanded={!collapsed}
+          >
             {collapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}
           </button>
         ) : (
@@ -194,7 +200,6 @@ export default function OutlineItem({
           onClick={cycleBeatType}
           title={item.beat_type ? item.beat_type : "No type. Click to set"}
           aria-label={item.beat_type ? `Beat type: ${item.beat_type}. Change it` : "Set the beat type"}
-          tabIndex={-1}
         />
 
         {/* Content */}
@@ -207,7 +212,14 @@ export default function OutlineItem({
             onChange={(e) => onUpdate(item.id, { text: e.target.value })}
             onKeyDown={(e) => {
               const input = e.target as HTMLInputElement;
-              if (e.key === "Enter") {
+              if (e.key === "Escape") {
+                // Tab indents here, so Escape is the way from the words to the row's buttons.
+                e.preventDefault();
+                input
+                  .closest("[data-beat-row]")
+                  ?.querySelector<HTMLButtonElement>("[data-beat-actions] button")
+                  ?.focus();
+              } else if (e.key === "Enter") {
                 e.preventDefault();
                 onAddSibling(item.id);
               } else if (e.key === "Tab" && !e.shiftKey) {
@@ -234,7 +246,7 @@ export default function OutlineItem({
                 }
               }
             }}
-            placeholder="Outline beat…"
+            placeholder="A beat…"
           />
           {item.scene_id && !showScenePicker && (
             <div
@@ -251,7 +263,6 @@ export default function OutlineItem({
                   e.stopPropagation();
                   onUpdate(item.id, { scene_id: null, scene_title: null });
                 }}
-                tabIndex={-1}
               >
                 <X size={10} />
               </button>
@@ -297,14 +308,13 @@ export default function OutlineItem({
         </div>
 
         {/* Action buttons */}
-        <div className={styles.actions}>
+        <div className={styles.actions} data-beat-actions>
           {onMakeScene && !item.scene_id && item.text.trim() && (
             <button
               className={styles.actionBtn}
               onClick={() => onMakeScene(item)}
               title="Make this beat a scene"
               aria-label="Make this beat a scene"
-              tabIndex={-1}
             >
               <FilePlus2 size={13} />
             </button>
@@ -314,7 +324,6 @@ export default function OutlineItem({
               className={`${styles.actionBtn} ${item.scene_id ? styles.actionBtnActive : ""}`}
               onClick={() => setShowScenePicker((v) => !v)}
               title={item.scene_id ? `Linked: ${item.scene_title}` : "Link to scene"}
-              tabIndex={-1}
               aria-label={item.scene_id ? `Linked: ${item.scene_title}` : "Link to scene"}
             >
               <Link size={13} />
@@ -324,7 +333,6 @@ export default function OutlineItem({
             className={`${styles.actionBtn} ${showNotes ? styles.actionBtnActive : ""}`}
             onClick={() => setShowNotes((v) => !v)}
             title="Toggle notes"
-            tabIndex={-1}
             aria-label="Toggle notes"
           >
             <FileText size={13} />
@@ -333,7 +341,6 @@ export default function OutlineItem({
             className={styles.actionBtn}
             onClick={() => onAddChild(item.id)}
             title="Add child"
-            tabIndex={-1}
             aria-label="Add child"
           >
             <Plus size={13} />
@@ -342,7 +349,6 @@ export default function OutlineItem({
             className={`${styles.actionBtn} ${styles.danger}`}
             onClick={() => onDelete(item.id)}
             title="Delete"
-            tabIndex={-1}
             aria-label="Delete"
           >
             <Trash2 size={13} />
@@ -356,7 +362,6 @@ export default function OutlineItem({
             className={styles.selectBox}
             checked={isSelected}
             onChange={() => onToggleSelect(item.id)}
-            tabIndex={-1}
           />
         </label>
       </div>

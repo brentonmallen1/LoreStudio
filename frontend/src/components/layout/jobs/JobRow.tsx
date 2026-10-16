@@ -1,7 +1,7 @@
 import { Check, Circle, Minus, X } from "lucide-react";
 import type { AIJob } from "../../../api/jobs";
 import { clockTime } from "../../chronicle/timelineFormat";
-import { isUnseen, jobDetailsPath, jobLine, jobOpen } from "../../../lib/jobs/jobs";
+import { isUnseen, jobDetailsPath, jobLine, jobName, jobOpen } from "../../../lib/jobs/jobs";
 import { navigateTo } from "../../../lib/navigation";
 import { useJobsStore } from "../../../stores/jobsStore";
 import styles from "./Jobs.module.css";
@@ -16,10 +16,44 @@ export function JobMark({ status, ai }: { status: string; ai: boolean }) {
   return <Minus size={13} className={styles.markStopped} aria-hidden />;
 }
 
+/**
+ * What the marks mean, in the list itself (doc 30 D8): the header's ring and the rows' marks
+ * were colours and shapes with no words. The ring here stands still.
+ */
+export function JobsKey({ ai }: { ai: boolean }) {
+  return (
+    <div className={styles.key} role="group" aria-label="Key">
+      <span className={styles.keyItem}>
+        <span className={`${styles.ring} ${styles.ringLocal} ${styles.ringStill}`} aria-hidden />
+        Running on this computer
+      </span>
+      {ai && (
+        <span className={styles.keyItem}>
+          <span className={`${styles.ring} ${styles.ringAi} ${styles.ringStill}`} aria-hidden />
+          Running with the Assistant
+        </span>
+      )}
+      <span className={styles.keyItem}>
+        <JobMark status="queued" ai={false} /> Waiting
+      </span>
+      <span className={styles.keyItem}>
+        <JobMark status="done" ai={false} /> Finished
+      </span>
+      <span className={styles.keyItem}>
+        <JobMark status="error" ai={false} /> Failed (a red dot on Jobs)
+      </span>
+      <span className={styles.keyItem}>
+        <JobMark status="cancelled" ai={false} /> Stopped
+      </span>
+    </div>
+  );
+}
+
 /** The label, and the book when the label does not already say it. */
 function title(job: AIJob): string {
   const book = job.story_title;
-  return book && !job.label.includes(book) ? `${job.label} · ${book}` : job.label;
+  const name = jobName(job);
+  return book && !name.includes(book) ? `${name} · ${book}` : name;
 }
 
 /**

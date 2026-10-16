@@ -105,16 +105,16 @@ export default function SceneGlance({
       </header>
 
       {(node.entry_state || node.exit_state) && (
-        <dl className={styles.turn} aria-label="The turn">
+        <dl className={styles.turn} aria-label="How it starts and ends">
           {node.entry_state && (
             <>
-              <dt>From</dt>
+              <dt>Starts</dt>
               <dd>{node.entry_state}</dd>
             </>
           )}
           {node.exit_state && (
             <>
-              <dt>To</dt>
+              <dt>Ends</dt>
               <dd>{node.exit_state}</dd>
             </>
           )}

@@ -255,7 +255,8 @@
   transition: opacity var(--transition);
 }
 
-.nodeLine:hover .actions {
+.nodeLine:hover .actions,
+.nodeLine:focus-within .actions {
   opacity: 1;
 }
 
@@ -319,22 +320,15 @@
   padding-top: 0.5rem;
 }
 
+/* A secondary button (DESIGN.md §5), sized as the primary beside it. */
 .backBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
+  composes: btn-secondary from global;
   padding: 0.45rem 0.875rem;
-  border-radius: var(--radius);
   font-size: 0.8rem;
-  font-weight: 500;
-  font-family: inherit;
-  background: transparent;
-  border: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  cursor: pointer;
   transition:
     background var(--transition),
     color var(--transition);
+  height: auto;
 }
 
 .footerEnd {
@@ -343,13 +337,7 @@
 }
 
 .backBtn:disabled {
-  opacity: 0.5;
   cursor: default;
-}
-
-.backBtn:hover:not(:disabled) {
-  background: var(--color-surface-2);
-  color: var(--color-text);
 }
 
 .nextBtn {
@@ -375,4 +363,11 @@
 .nextBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .actions {
+    opacity: 1;
+  }
 }

@@ -7,6 +7,7 @@ import {
   formatDelta,
   groupSnapshots,
   orderByAge,
+  savedBy,
   versionsSubtitle,
 } from "./versionsModel";
 
@@ -72,10 +73,10 @@ describe("deltaDetailEntries", () => {
 
 describe("versionsSubtitle", () => {
   it("counts snapshots and mentions auto backups only when present", () => {
-    expect(versionsSubtitle([])).toBe("0 snapshots");
-    expect(versionsSubtitle([snap({ id: "a" })])).toBe("1 snapshot");
+    expect(versionsSubtitle([])).toBe("None saved yet");
+    expect(versionsSubtitle([snap({ id: "a" })])).toBe("1 saved by you");
     expect(versionsSubtitle([snap({ id: "a" }), snap({ id: "b", trigger: "auto" })])).toBe(
-      "1 snapshot · 1 auto backup",
+      "1 saved by you · 1 saved automatically",
     );
   });
 });
@@ -92,7 +93,7 @@ describe("orderByAge", () => {
 describe("filenameFromDisposition", () => {
   it("reads the quoted filename or falls back", () => {
     expect(filenameFromDisposition('attachment; filename="tale.lorestudio.zip"')).toBe("tale.lorestudio.zip");
-    expect(filenameFromDisposition(null)).toBe("snapshot.lorestudio.zip");
+    expect(filenameFromDisposition(null)).toBe("version.lorestudio.zip");
   });
 });
 
@@ -114,5 +115,12 @@ describe("groupSnapshots", () => {
     expect(groupSnapshots([snap({ id: "m1" })])).toEqual([
       { anchor: expect.objectContaining({ id: "m1" }), autoBackups: [] },
     ]);
+  });
+});
+
+describe("who saved a version (doc 30 D8)", () => {
+  it("says it in words, not a Manual or Auto badge", () => {
+    expect(savedBy({ trigger: "manual" })).toBe("Saved by you");
+    expect(savedBy({ trigger: "auto" })).toBe("Saved automatically");
   });
 });

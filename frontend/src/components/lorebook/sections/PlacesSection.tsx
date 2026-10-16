@@ -22,6 +22,8 @@ import LorebookList from "../LorebookList";
 import { placeRows } from "../../../lib/lorebook/rows";
 import { useLoreSelection } from "../useLoreSelection";
 import styles from "../Lorebook.module.css";
+import EmptyState from "../../common/EmptyState";
+import { EMPTY } from "../../../lib/emptyStates";
 
 /** Everything inside a place, at any depth: deleting it takes them too. */
 function descendants(id: string, locations: Location[]): Location[] {
@@ -94,6 +96,7 @@ export default function PlacesSection() {
           if (l) openEntity("location", l.id, l.name);
         }}
         onAdd={() => add(null)}
+        pageEmpty={!place}
         seriesKinds={["location"]}
         onFromSeries={(id) => select(id)}
         empty={
@@ -202,7 +205,7 @@ export default function PlacesSection() {
               <div className={styles.banner} role="status">
                 <span className={styles.bannerText}>
                   Found in your prose{scenes.length ? `, in ${scenes[0].title}` : ""}. Describing it keeps it;
-                  it also waits in <Link to={`/stories/${storyId}/proposals?kind=place`}>Proposals</Link>.
+                  it also waits in <Link to={`/stories/${storyId}/discoveries?kind=place`}>Discoveries</Link>.
                 </span>
                 <button
                   type="button"
@@ -230,10 +233,10 @@ export default function PlacesSection() {
           </EntitySheet>
         ) : (
           locations.length === 0 && (
-            <div className={styles.emptySheet}>
-              <MapPin size={22} aria-hidden />
-              <p>Add the first place: the island, the house, the room.</p>
-            </div>
+            <EmptyState
+              copy={EMPTY.places}
+              action={{ label: "Add a place", icon: Plus, onClick: () => add(null) }}
+            />
           )
         )}
       </div>

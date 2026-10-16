@@ -10,6 +10,7 @@ import ConfirmDelete from "../lorebook/ConfirmDelete";
 import { KNOWLEDGE_TYPE_META, emptyDraft, isIrony, type KnowledgeDraft } from "../../lib/twists/knowledge";
 import KnowledgeEventForm from "./KnowledgeEventForm";
 import styles from "./ReaderKnowledgeTimeline.module.css";
+import Term from "../common/Term";
 
 interface Props {
   storyId: string;
@@ -218,7 +219,7 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
               className={styles.scanBtn}
               onClick={handleScan}
               disabled={scanning}
-              title="The Assistant reads the scenes for reveals, misdirections and clues; what it finds waits in Proposals"
+              title="The Assistant reads the scenes for reveals, misdirections and clues; what it finds waits in Discoveries"
             >
               <Orbit size={12} className={scanning ? styles.scanSpin : undefined} />
               {scanning ? "Reading…" : "Find what the reader learns"}
@@ -242,7 +243,7 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
           ) : (
             <>
               {scanNote} {scanNote === 1 ? "event waits" : "events wait"} for a yes in{" "}
-              <Link to={`/stories/${storyId}/proposals?kind=fact`}>Proposals</Link>.
+              <Link to={`/stories/${storyId}/discoveries?kind=fact`}>Discoveries</Link>.
             </>
           )}
         </p>
@@ -250,7 +251,8 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
 
       {ironyOnly && (
         <p className={styles.ironyHint}>
-          The moments where the reader knows something the characters don&apos;t. That gap is dramatic irony.
+          The moments where the reader knows something the characters don&apos;t. That gap is{" "}
+          <Term id="dramatic-irony">dramatic irony</Term>.
         </p>
       )}
 

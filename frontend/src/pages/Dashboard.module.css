@@ -297,16 +297,9 @@
   font-family: inherit;
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .deleteConfirmNo {
-  padding: 0.22rem 0.5rem;
-  font-size: var(--text-xs);
-  font-weight: 500;
-  border-radius: var(--radius-sm);
-  border: none;
-  background: var(--color-surface-2);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  font-family: inherit;
+  composes: btn-secondary from global;
 }
 
 /* ── Empty state ── */
@@ -473,29 +466,15 @@
   background: var(--color-accent);
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .continueLink {
+  composes: btn-secondary from global;
   position: absolute;
   right: 0.9rem;
   bottom: 0.85rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.25rem 0.55rem;
-  border: none;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: var(--text-xs);
-  font-weight: 500;
-  cursor: pointer;
 }
 
 /* Inside a card already on the hover ground, so it steps once deeper. */
-.continueLink:hover {
-  background: var(--color-surface-3);
-  color: var(--color-text);
-}
 
 /* ── Series (series doc): groups between the grids, books in order ── */
 .segments {
@@ -531,21 +510,12 @@
   color: var(--color-text-muted);
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .sequelLink {
+  composes: btn-secondary from global;
   position: absolute;
   left: 0.9rem;
   bottom: 0.85rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.25rem 0.4rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: var(--text-xs);
-  cursor: pointer;
   opacity: 0;
   transition: opacity var(--transition);
 }
@@ -555,7 +525,13 @@
   opacity: 1;
 }
 
-.sequelLink:hover {
-  color: var(--color-accent);
-  background: var(--color-surface-2);
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .deleteBtn {
+    opacity: 1;
+  }
+
+  .sequelLink {
+    opacity: 1;
+  }
 }

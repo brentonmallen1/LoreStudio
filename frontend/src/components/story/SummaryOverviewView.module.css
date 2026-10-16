@@ -214,44 +214,22 @@
   gap: 0.5rem;
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .generateBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: var(--text-xs);
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--radius);
-  border: none;
-  background: none;
-  color: var(--color-ai);
-  cursor: pointer;
+  composes: btn-secondary from global;
   transition: background 0.1s;
 }
 
-.generateBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-ai) 10%, transparent);
-}
-
 .generateBtn:disabled {
-  opacity: 0.4;
   cursor: default;
 }
 
+/* A secondary button (DESIGN.md §5), sized as the primary beside it. */
 .cancelBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
+  composes: btn-secondary from global;
   font-size: var(--text-xs);
   padding: 0.2rem 0.55rem;
-  border-radius: var(--radius);
-  border: none;
-  background: none;
-  color: var(--color-danger);
-  cursor: pointer;
-}
-
-.cancelBtn:hover {
-  background: var(--color-hover);
+  height: auto;
 }
 
 /* ── Empty state ── */

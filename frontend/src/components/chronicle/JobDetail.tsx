@@ -12,6 +12,7 @@ import {
   clockTime,
   isActiveJob,
   jobDuration,
+  jobName,
   jobOutcome,
   jobParams,
   noCallsNote,
@@ -70,7 +71,7 @@ export default function JobDetail({ jobId }: { jobId: string }) {
 
   return (
     <div className={styles.detailBody}>
-      <h2 className={styles.detailTitle}>{job.label}</h2>
+      <h2 className={styles.detailTitle}>{jobName(job)}</h2>
       <p className={styles.detailStatus}>
         <JobIcon job={job} />
         <span>{JOB_STATUS_TEXT[job.status] ?? job.status}</span>

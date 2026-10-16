@@ -1,7 +1,7 @@
 import { THINKING_MODES, type ThinkingMode } from "../../lib/ai/thinking";
 import styles from "../Settings.module.css";
 
-/** Settings › Model parameters: when Gemma reasons before answering (off, where it helps, always). */
+/** Settings › Advanced: when Gemma reasons before answering (off, where it helps, always). */
 export default function ThinkingField({
   value,
   onChange,

@@ -81,7 +81,7 @@ export const SHORTCUTS = {
     // Beside ⌘. (the side panel): the strip on the left, the panel on the right. Not ⌘,
     // alone: every browser keeps that for its own settings.
     combo: "mod+alt+,",
-    label: "Collapse or expand the story strip",
+    label: "Widen or narrow the strip",
     group: "Navigation",
     scope: "global",
     modes: BOTH,

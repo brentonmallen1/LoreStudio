@@ -151,21 +151,25 @@
   padding: 0.7rem 0;
 }
 
-.dot {
+/* Severity as a shape as well as a colour (doc 30 D5): a triangle, a square, a ring. */
+.mark {
   flex-shrink: 0;
-  width: 0.6rem;
-  height: 0.6rem;
-  margin-top: 0.38rem;
-  border-radius: 50%;
-  background: var(--color-text-subtle);
+  margin-top: 0.3rem;
+  fill: var(--color-text-subtle);
 }
 
-.dot[data-severity="high"] {
-  background: var(--color-danger);
+.mark[data-severity="high"] {
+  fill: var(--color-danger);
 }
 
-.dot[data-severity="mid"] {
-  background: var(--color-warning);
+.mark[data-severity="mid"] {
+  fill: var(--color-warning);
+}
+
+.mark[data-severity="low"] {
+  fill: none;
+  stroke: var(--color-text-subtle);
+  stroke-width: 1.6;
 }
 
 .body {
@@ -262,33 +266,10 @@
   background: var(--color-ai-subtle);
 }
 
+/* A row's own actions are secondary buttons (DESIGN.md §5): pressable at rest. */
 .verb {
+  composes: btn-secondary from global;
   flex-shrink: 0;
-  height: 1.867rem;
-  padding: 0 0.7rem;
-  border: none;
-  border-radius: var(--radius);
-  /* The ghost tier: the row's own action, quiet until pointed at (DESIGN.md). */
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: 0.78rem;
-  font-weight: 500;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.verb:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
-}
-
-.verb[data-ai] {
-  color: var(--color-ai);
-}
-
-.verb[data-ai]:hover {
-  background: var(--color-ai-subtle);
 }
 
 .verb:focus-visible,
@@ -692,22 +673,8 @@ button.runItem:focus-visible {
 }
 
 .no {
+  composes: btn-secondary from global;
   flex-shrink: 0;
-  height: 1.867rem;
-  padding: 0 0.55rem;
-  border: none;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: 0.78rem;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.no:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
 }
 
 .yes:focus-visible,
@@ -717,10 +684,13 @@ button.runItem:focus-visible {
   outline-offset: 2px;
 }
 
-.yes:disabled,
+.yes:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
 .no:disabled,
 .verb:disabled {
-  opacity: 0.55;
   cursor: progress;
 }
 
@@ -752,4 +722,80 @@ button.runItem:focus-visible {
   .no {
     margin-left: calc(14px + 0.75rem);
   }
+}
+
+/* Why it can matter and what to try (doc 30 D5): under the finding when its row is opened,
+   two short columns, then the row's own actions in plain sight. */
+.row[data-open] .text {
+  font-weight: 600;
+}
+
+.why {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.45rem;
+}
+
+.whyColumns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+}
+
+.whyColumn {
+  flex: 1 1 15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.whyLabel {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-text-subtle);
+}
+
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* The key (doc 30 D5): severity's shapes and who said so, on the page in a tone box. */
+.key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1.1rem;
+  margin: 0 0 1.25rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-tone);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.keyItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.keyItem .mark {
+  margin-top: 0;
+}
+
+/* Stronger than the column's "every row from one place" rule: the key always names them. */
+.key .keyItem .source {
+  display: inline-block;
+  margin-top: 0;
+}
+
+.keyGap {
+  width: 0.25rem;
 }

@@ -83,20 +83,9 @@
   white-space: pre-wrap;
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .retryBtn {
-  display: block;
+  composes: btn-secondary from global;
   width: 100%;
-  padding: 0.4rem 0.75rem;
-  border: none;
-  background: none;
-  color: var(--color-ai);
-  font-size: 0.75rem;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: left;
   transition: background var(--transition);
-}
-
-.retryBtn:hover {
-  background: var(--color-surface-2);
 }

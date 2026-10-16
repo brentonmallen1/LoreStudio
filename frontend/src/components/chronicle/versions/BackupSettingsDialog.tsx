@@ -61,12 +61,18 @@ export default function BackupSettingsDialog({
   onChange: (patch: Patch) => void;
 }) {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Backup settings" icon={<Settings size={16} />} size="md">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Automatic versions"
+      icon={<Settings size={16} />}
+      size="md"
+    >
       <div className={styles.settingsPanel}>
         <div className={styles.settingsRow}>
           <IncludeToggle
             checked={settings.auto_enabled}
-            label="Enable automatic backups"
+            label="Save versions automatically"
             onChange={(v) => onChange({ auto_enabled: v })}
           />
         </div>
@@ -74,7 +80,7 @@ export default function BackupSettingsDialog({
         {settings.auto_enabled && (
           <>
             <div className={styles.settingsRow}>
-              <span className={styles.settingsFieldLabel}>Backup frequency</span>
+              <span className={styles.settingsFieldLabel}>How often</span>
               <select
                 className={styles.settingsSelect}
                 value={settings.interval_minutes}
@@ -89,7 +95,7 @@ export default function BackupSettingsDialog({
             </div>
 
             <div className={styles.settingsRow}>
-              <span className={styles.settingsFieldLabel}>Keep at most (auto backups)</span>
+              <span className={styles.settingsFieldLabel}>Keep at most</span>
               <NullableSelect
                 value={settings.max_count}
                 options={MAX_COUNT_OPTIONS}
@@ -98,7 +104,7 @@ export default function BackupSettingsDialog({
             </div>
 
             <div className={styles.settingsRow}>
-              <span className={styles.settingsFieldLabel}>Delete backups older than</span>
+              <span className={styles.settingsFieldLabel}>Delete automatic versions older than</span>
               <NullableSelect
                 value={settings.max_age_days}
                 options={MAX_AGE_OPTIONS}
@@ -109,7 +115,7 @@ export default function BackupSettingsDialog({
         )}
 
         <div className={styles.settingsDivider} />
-        <p className={styles.settingsSectionLabel}>What to include in backups</p>
+        <p className={styles.settingsSectionLabel}>What to include in each version</p>
 
         <div className={styles.settingsRow}>
           <IncludeToggle

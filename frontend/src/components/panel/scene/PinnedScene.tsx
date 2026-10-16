@@ -59,7 +59,7 @@ export default function PinnedScene({ id }: { id: string }) {
           {node.synopsis && <p className={styles.pinnedText}>{node.synopsis}</p>}
           {node.purpose && (
             <div className={styles.fact}>
-              <span className={styles.factLabel}>Purpose</span>
+              <span className={styles.factLabel}>Why it's here</span>
               <p>{node.purpose}</p>
             </div>
           )}

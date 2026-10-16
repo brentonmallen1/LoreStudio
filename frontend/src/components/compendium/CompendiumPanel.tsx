@@ -11,6 +11,8 @@ import PageHeader from "../layout/PageHeader";
 import { sectionPath } from "../../lib/routes";
 import styles from "./CompendiumPanel.module.css";
 import { onSharedDelete } from "../../lib/series/shared";
+import EmptyState from "../common/EmptyState";
+import { EMPTY } from "../../lib/emptyStates";
 
 interface Props {
   storyId: string;
@@ -20,7 +22,7 @@ type FilterType = "all" | "note" | "url" | "document";
 
 const FILTER_TABS: { id: FilterType; label: string; icon: React.ElementType }[] = [
   { id: "all", label: "All", icon: BookOpen },
-  { id: "note", label: "Notes", icon: FileText },
+  { id: "note", label: "Research notes", icon: FileText },
   { id: "url", label: "Links", icon: Link },
   { id: "document", label: "Documents", icon: File },
 ];
@@ -147,8 +149,12 @@ export default function CompendiumPanel({ storyId }: Props) {
     <div className={styles.page}>
       <PageHeader
         title="Research"
-        summary={`${entries.length} ${entries.length === 1 ? "entry" : "entries"} · notes, links and documents that inform the story`}
-        primary={{ label: "Add entry", icon: Plus, onClick: () => setCreating(true) }}
+        summary={`${entries.length} ${entries.length === 1 ? "piece" : "pieces"} of research · research notes, links and documents that inform the story`}
+        primary={
+          entries.length === 0 && !search && filter === "all"
+            ? undefined
+            : { label: "Add research", icon: Plus, onClick: () => setCreating(true) }
+        }
         aside={
           <div className={styles.searchWrap}>
             <Search size={13} className={styles.searchIcon} aria-hidden />
@@ -174,17 +180,16 @@ export default function CompendiumPanel({ storyId }: Props) {
         ))}
       />
       <div className={styles.inner}>
-        {displayed.length === 0 ? (
+        {displayed.length === 0 && !search && filter === "all" ? (
+          <EmptyState
+            copy={EMPTY.compendium}
+            action={{ label: "Add research", icon: Plus, onClick: () => setCreating(true) }}
+          />
+        ) : displayed.length === 0 ? (
           <div className={styles.empty}>
             <BookOpen size={36} className={styles.emptyIcon} />
-            <div className={styles.emptyTitle}>
-              {search || filter !== "all" ? "No entries match" : "No entries yet"}
-            </div>
-            <p className={styles.emptyText}>
-              {search || filter !== "all"
-                ? "Try a different filter or search term."
-                : "Add research notes, URL bookmarks, or uploaded documents to build your Compendium."}
-            </p>
+            <div className={styles.emptyTitle}>No research matches</div>
+            <p className={styles.emptyText}>Try a different filter or search term.</p>
           </div>
         ) : (
           <ul className={styles.list}>

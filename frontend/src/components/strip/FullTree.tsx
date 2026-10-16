@@ -170,8 +170,8 @@ export default function FullTree({ storyId }: { storyId: string | undefined }) {
               setAddingLevel(null);
               setNewTitle("");
             }}
-            title="Add to the outline"
-            aria-label="Add to the outline"
+            title="Add a part or a scene"
+            aria-label="Add a part or a scene"
             aria-expanded={showAddMenu}
           >
             <Plus size={14} />
@@ -238,7 +238,7 @@ export default function FullTree({ storyId }: { storyId: string | undefined }) {
           </div>
         )}
         {structure.length === 0 && addingLevel === null && (
-          <p className={tree.emptyHint}>Nothing here yet. Start writing opens a first outline.</p>
+          <p className={tree.emptyHint}>Nothing here yet. Start writing adds a first scene.</p>
         )}
         {shown.length === 0 && structure.length > 0 && <p className={tree.emptyHint}>Nothing matches.</p>}
         {shown.map((node) => (

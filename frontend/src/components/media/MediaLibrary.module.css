@@ -301,21 +301,12 @@
   cursor: pointer;
 }
 
+/* A secondary button (DESIGN.md §5), sized as the primary beside it. */
 .cancelBtn {
-  display: flex;
-  align-items: center;
+  composes: btn-secondary from global;
   padding: 3px 5px;
   font-size: var(--text-xs);
-  background: none;
-  border: none;
-  border-radius: 4px;
-  color: var(--color-text-subtle);
-  cursor: pointer;
-}
-
-.cancelBtn:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
+  height: auto;
 }
 
 .danger {

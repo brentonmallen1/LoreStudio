@@ -60,7 +60,8 @@
   cursor: grab;
 }
 
-.row:hover .dragGrip {
+.row:hover .dragGrip,
+.row:focus-within .dragGrip {
   display: flex;
 }
 
@@ -213,7 +214,8 @@
 }
 
 .row:hover .actions,
-.rowFocused .actions {
+.rowFocused .actions,
+.row:focus-within .actions {
   opacity: 1;
   pointer-events: auto;
 }
@@ -327,4 +329,16 @@
   color: var(--color-text);
   cursor: pointer;
   width: 100%;
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .dragGrip {
+    display: flex;
+  }
+
+  .actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }

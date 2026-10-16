@@ -8,7 +8,7 @@ A question on page one promises an answer; a strange detail promises it matters.
 
 Logo menu › **Promises** › **The tapestry** draws every thread, twist and setup in reading order: a row for each, a column for each scene. Click a mark to open the scene, or a name to open its sheet.
 
-**Needs your eye**, below it, lists what may want a look, such as a thread that goes quiet. If it is deliberate, choose **It's intended** from the row's ⋯ menu.
+**Needs your eye**, below it, lists what may want a look, such as a thread that goes quiet. If it is deliberate, choose **It's on purpose**: under the row's **Why?**, or in its ⋯ menu.
 
 ## Threads: questions the story keeps open
 
@@ -69,7 +69,7 @@ Each character's sheet, each relationship and each scene's **Promises** page sho
 
 ## In the scene
 
-The **Scene sheet**'s **Promises** page shows what this scene does to each thread, the twists here, what is open coming in and what the reader knows by the end. Attach a thread there. While you write, **This scene** in the side panel sums it up in a line.
+The **Scene sheet**'s **Promises** page shows what this scene does to each thread, the twists here, what is open as it starts and what the reader knows by the end. Attach a thread there. While you write, **This scene** in the side panel sums it up in a line.
 
 <!-- studio -->
 

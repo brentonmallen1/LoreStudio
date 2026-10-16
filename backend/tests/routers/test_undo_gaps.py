@@ -244,12 +244,12 @@ def test_outlines_undo(client):
     items = [client.post(f"/api/outlines/{o['id']}/items", json={"text": t}, headers=H).json() for t in "AB"]
     ids = [i["id"] for i in items]
     client.post(f"/api/outlines/{o['id']}/reorder", json={"parent_id": None, "item_ids": ids[::-1]}, headers=H)
-    assert _undo(client, sid) == "Reorder outline"
+    assert _undo(client, sid) == "Reorder beat board"
     assert [i["id"] for i in client.get(f"/api/outlines/{o['id']}").json()["items"]] == ids
     client.patch(f"/api/outlines/{o['id']}", json={"name": "Draft"}, headers=H)
-    assert _undo(client, sid) == "Edit name on outline “Plan”"
+    assert _undo(client, sid) == "Edit name on beat board “Plan”"
     client.delete(f"/api/outlines/{o['id']}", headers=H)
-    assert _undo(client, sid) == "Delete outline “Plan”"
+    assert _undo(client, sid) == "Delete beat board “Plan”"
     assert len(client.get(f"/api/outlines/{o['id']}").json()["items"]) == 2
 
 
@@ -259,7 +259,7 @@ def test_outline_from_a_beat_sheet_is_one_undo(client):
         "/api/beat-sheets", json={"name": "Three acts", "beats": [{"id": "b1", "name": "Hook", "position_pct": 0}]}
     ).json()
     o = client.post(f"/api/stories/{sid}/outlines/inject", json={"beat_sheet_id": sheet["id"]}, headers=H).json()
-    assert _undo(client, sid) == "Add outline “Three acts”"
+    assert _undo(client, sid) == "Add beat board “Three acts”"
     assert client.get(f"/api/outlines/{o['id']}").status_code == 404
     _redo(client, sid)
     assert [i["text"] for i in client.get(f"/api/outlines/{o['id']}").json()["items"]] == ["Hook"]

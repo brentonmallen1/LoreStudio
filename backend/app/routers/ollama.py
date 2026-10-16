@@ -20,13 +20,16 @@ def _user_ollama_config(user: User) -> tuple[str, str]:
 
 
 @router.get("/ollama/status")
-async def ollama_status(current_user: User = Depends(get_current_user)):
+async def ollama_status(quick: bool = False, current_user: User = Depends(get_current_user)):
     """Test connectivity to Ollama using the user's configured URL and model.
 
     Checks three things in sequence:
       1. Ollama is reachable
       2. The configured model is listed in /api/tags
       3. A minimal 1-token request to the model succeeds
+
+    `quick` stops after the second (doc 30 D4): the "Set up the Assistant" card asks often and
+    must not load a model into memory to find out whether one is there.
     """
     url, model = _user_ollama_config(current_user)
     connected = await ollama_provider.is_available(base_url=url)
@@ -36,7 +39,9 @@ async def ollama_status(current_user: User = Depends(get_current_user)):
 
     if connected:
         model_in_list = await ollama_provider.model_exists(model, base_url=url)
-        if model_in_list:
+        if model_in_list and quick:
+            model_responsive = True
+        elif model_in_list:
             model_responsive, err = await ollama_provider.ping_model(model, base_url=url)
             if not model_responsive:
                 error = err

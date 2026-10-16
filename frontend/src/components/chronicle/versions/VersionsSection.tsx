@@ -4,7 +4,7 @@
  * backup settings (in a modal behind the toolbar's gear button).
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { History, Loader2, Plus, Settings, Upload } from "lucide-react";
+import { Loader2, Plus, Settings, Upload } from "lucide-react";
 import { api } from "../../../api/client";
 import { toast } from "../../../stores/toastStore";
 import Modal from "../../common/Modal";
@@ -16,6 +16,8 @@ import SnapshotGraph from "./SnapshotGraph";
 import SnapshotList from "./SnapshotList";
 import { ComparePicker, CreateSnapshotDialog, RestoreDialog } from "./VersionDialogs";
 import { filenameFromDisposition, orderByAge, versionsSubtitle } from "./versionsModel";
+import EmptyState from "../../common/EmptyState";
+import { EMPTY } from "../../../lib/emptyStates";
 import styles from "./Versions.module.css";
 
 type ViewMode = "list" | "graph";
@@ -83,11 +85,11 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
 
   async function handleCreate(name: string) {
     setCreating(true);
-    await attempt("Creating the snapshot", async () => {
+    await attempt("Saving the version", async () => {
       const snap = await api.createSnapshot(storyId, name || undefined);
       setSnapshots((prev) => [snap, ...prev]);
       closeDialog();
-      toast.success("Snapshot created");
+      toast.success("Version saved");
     });
     setCreating(false);
   }
@@ -96,17 +98,17 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
     closeDialog();
     await attempt("Restoring", async () => {
       await api.restoreSnapshot(storyId, snapshot.id, safetyBackup);
-      toast.success("Story restored to this snapshot");
+      toast.success("Story restored to this version");
       void load();
     });
   }
 
   async function handleDelete(snapshot: StorySnapshot) {
     closeDialog();
-    await attempt("Deleting the snapshot", async () => {
+    await attempt("Deleting the version", async () => {
       await api.deleteSnapshot(storyId, snapshot.id);
       setSnapshots((prev) => prev.filter((s) => s.id !== snapshot.id));
-      toast.success("Snapshot deleted");
+      toast.success("Version deleted");
     });
   }
 
@@ -146,7 +148,7 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
 
   async function handleSettingsChange(patch: Partial<BackupSettings>) {
     if (!settings) return;
-    await attempt("Saving the backup settings", async () => {
+    await attempt("Saving the settings", async () => {
       setSettings(await api.updateBackupSettings(storyId, patch));
     });
   }
@@ -188,6 +190,7 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
     onExport: handleExport,
   };
 
+  const noneSaved = !snapshots.some((x) => x.trigger === "manual");
   return (
     <div className={styles.page}>
       <PageHeader
@@ -199,11 +202,15 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
         ]}
         view={viewMode}
         onView={(id) => setViewMode(id as ViewMode)}
-        primary={{ label: "Create snapshot", icon: Plus, onClick: () => setDialog({ type: "create" }) }}
+        primary={
+          noneSaved
+            ? undefined
+            : { label: "Save a version", icon: Plus, onClick: () => setDialog({ type: "create" }) }
+        }
         more={[
           { label: "Import from a file…", icon: Upload, onSelect: () => importRef.current?.click() },
           {
-            label: "Backup settings…",
+            label: "Automatic versions…",
             icon: Settings,
             onSelect: () => setSettingsOpen(true),
             disabled: !settings,
@@ -222,8 +229,8 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
       {pendingImportFile && (
         <div className={styles.importConfirm}>
           <span className={styles.importConfirmText}>
-            Import <strong>{pendingImportFile.name}</strong>? The current story state will be saved as a
-            backup first.
+            Import <strong>{pendingImportFile.name}</strong>? The story as it is now is saved as a version
+            first.
           </span>
           <div className={styles.importConfirmActions}>
             <button className={styles.importConfirmYes} onClick={doImport}>
@@ -245,19 +252,14 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
         />
       )}
 
-      {snapshots.length === 0 ? (
-        <div className={styles.empty}>
-          <History size={32} className={styles.emptyIcon} />
-          <p className={styles.emptyTitle}>No snapshots yet</p>
-          <p className={styles.emptyHint}>
-            Create a manual snapshot to start tracking your story's history. Auto backups will appear here
-            once they run.
-          </p>
-          <button className={styles.createBtn} onClick={() => setDialog({ type: "create" })}>
-            <Plus size={14} /> Create first snapshot
-          </button>
-        </div>
-      ) : viewMode === "list" ? (
+      {/* None saved by hand yet (doc 30 D3): what a version is, above the ones LoreStudio saved. */}
+      {noneSaved && (
+        <EmptyState
+          copy={EMPTY.versions}
+          action={{ label: "Save a version now", icon: Plus, onClick: () => setDialog({ type: "create" }) }}
+        />
+      )}
+      {snapshots.length === 0 ? null : viewMode === "list" ? (
         <SnapshotList snapshots={snapshots} {...actions} />
       ) : (
         // The graph has no room for the list's inline confirm, so it asks in a dialog.
@@ -290,7 +292,7 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
         <Modal
           isOpen
           onClose={closeDialog}
-          title="Delete this snapshot?"
+          title="Delete this version?"
           size="sm"
           footer={
             <>
@@ -304,7 +306,7 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
           }
         >
           <p className={styles.dialogBody}>
-            {dialog.snapshot.name ? `“${dialog.snapshot.name}”` : "This snapshot"} goes for good; the story as
+            {dialog.snapshot.name ? `“${dialog.snapshot.name}”` : "This version"} goes for good; the story as
             it is now is not touched.
           </p>
         </Modal>

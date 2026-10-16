@@ -8,6 +8,7 @@ from ..auth.utils import hash_password
 from ..database import get_db
 from ..models.user import User
 from ..schemas.user import UserCreate, UserOut
+from ..services.first_run import new_account_settings
 
 router = APIRouter()
 
@@ -27,6 +28,7 @@ def create_user(body: UserCreate, db: Session = Depends(get_db), _: User = Depen
         password_hash=hash_password(body.password),
         display_name=body.display_name,
         is_admin=body.is_admin,
+        settings=new_account_settings(),
     )
     db.add(user)
     db.commit()

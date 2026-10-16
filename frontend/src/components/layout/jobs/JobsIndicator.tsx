@@ -11,7 +11,7 @@ import { useAIStore } from "../../../stores/aiStore";
 import { jobsFirstLook, lookSoon, useJobsStore } from "../../../stores/jobsStore";
 import { useLLMStore } from "../../../stores/llmStore";
 import { usePanelStore } from "../../../stores/panelStore";
-import JobRow, { JobMark } from "./JobRow";
+import JobRow, { JobMark, JobsKey } from "./JobRow";
 import styles from "./Jobs.module.css";
 
 /** Replies streaming from this window, counted at once while the server's list catches up.
@@ -162,6 +162,8 @@ export default function JobsIndicator() {
             )}
           </div>
 
+          <JobsKey ai={aiAvailable} />
+
           {empty && (
             <p className={styles.empty}>Nothing is running. What finishes in the next day is listed here.</p>
           )}
@@ -249,6 +251,16 @@ export default function JobsIndicator() {
             <input type="checkbox" checked={inTitle} onChange={(e) => setInTitle(e.target.checked)} />
             Show the count in the browser tab&rsquo;s title
           </label>
+          <button
+            type="button"
+            className={`${styles.link} ${styles.guideLink}`}
+            onClick={() => {
+              close();
+              navigateTo("/guides/jobs");
+            }}
+          >
+            How jobs work
+          </button>
         </div>
       )}
     </div>

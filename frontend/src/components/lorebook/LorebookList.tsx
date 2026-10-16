@@ -26,6 +26,7 @@ export default function LorebookList({
   seriesKinds,
   onFromSeries,
   onOpenBeside,
+  pageEmpty = false,
 }: {
   title: string;
   items: ListItem[];
@@ -43,6 +44,10 @@ export default function LorebookList({
   onFromSeries?: (refId: string) => void;
   /** ⌘-click (or a middle click) on an entry: open it as a tab beside the page, leaving this one. */
   onOpenBeside?: (id: string) => void;
+  /** The page beside the list is showing its empty state (doc 30 D3), with its own words and
+   *  its own forest button: the list says nothing and its Add steps down to the ghost tier, so
+   *  the view keeps one primary button and one voice. */
+  pageEmpty?: boolean;
 }) {
   const [q, setQ] = useState("");
   const [folded, setFolded] = useState<Set<string>>(new Set());
@@ -79,6 +84,7 @@ export default function LorebookList({
   }
 
   const entries = items.filter((i) => !i.heading).length;
+  const quiet = pageEmpty && entries === 0;
   return (
     <div className={styles.list}>
       <div className={styles.listHeader}>
@@ -92,7 +98,7 @@ export default function LorebookList({
           </button>
         )}
         {onAdd && (
-          <button type="button" className={styles.listAdd} onClick={onAdd}>
+          <button type="button" className={quiet ? styles.listAddGhost : styles.listAdd} onClick={onAdd}>
             <Plus size={12} aria-hidden />
             {addLabel}
           </button>
@@ -110,7 +116,7 @@ export default function LorebookList({
         </label>
       )}
       <div ref={listRef} className={styles.listRows} role="listbox" aria-label={title} onKeyDown={onKeyDown}>
-        {entries === 0 && empty}
+        {entries === 0 && !quiet && empty}
         {visible.map((item) =>
           item.heading ? (
             <div key={item.id} className={styles.listHeading}>

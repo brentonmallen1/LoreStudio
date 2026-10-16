@@ -37,7 +37,7 @@ def _verify_story(story_id: str, db: Session, user: User) -> Story:
 def _verify_thread(thread_id: str, db: Session, user: User) -> PlotThread:
     thread = db.get(PlotThread, thread_id)
     if not thread:
-        raise HTTPException(status_code=404, detail="Plot thread not found")
+        raise HTTPException(status_code=404, detail="Thread not found")
     _verify_story(thread.story_id, db, user)
     return thread
 

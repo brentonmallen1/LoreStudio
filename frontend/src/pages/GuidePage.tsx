@@ -11,17 +11,24 @@ import PracticeSandbox from "../components/typing/PracticeSandbox";
 import TutorialAgain from "../components/typing/TutorialAgain";
 import SamplesLoader from "../components/samples/SamplesLoader";
 import PageContents from "../components/guides/PageContents";
+import GlossaryList from "../components/guides/GlossaryList";
 import { headingId, textOf } from "../lib/guides/headings";
 import styles from "./GuidePage.module.css";
 
 /** `<!-- name -->` on a line of its own; split keeps the name. */
-const INSERT = /^<!-- (helpers|practice|tutorial|samples) -->$/m;
+const INSERT = /^<!-- (helpers|practice|tutorial|samples|terms:[a-z]+) -->$/m;
 const INSERTS: Record<string, () => ReactNode> = {
   helpers: () => <TypingGuide />,
   practice: () => <PracticeSandbox />,
   tutorial: () => <TutorialAgain />,
   samples: () => <SamplesLoader />,
 };
+
+/** A marker's piece: a fixed one above, or a glossary group (`terms:planning`, doc 30 D1). */
+function insert(name: string): ReactNode {
+  if (name.startsWith("terms:")) return <GlossaryList group={name.slice(6)} />;
+  return INSERTS[name]?.();
+}
 
 function Markdown({ text }: { text: string }) {
   const navigate = useNavigate();
@@ -98,7 +105,7 @@ export default function GuidePage() {
             {forMode(guide.body, mode)
               .split(INSERT)
               .map((part, i) =>
-                i % 2 ? <Fragment key={i}>{INSERTS[part]?.()}</Fragment> : <Markdown key={i} text={part} />,
+                i % 2 ? <Fragment key={i}>{insert(part)}</Fragment> : <Markdown key={i} text={part} />,
               )}
           </>
         ) : (

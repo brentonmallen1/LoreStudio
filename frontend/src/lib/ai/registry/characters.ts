@@ -109,7 +109,7 @@ export const CHARACTERS_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "A running account of what this character has been through",
     fullDescription:
-      "Summarises the character's path through the scenes they appear in, with their arc milestones. Used as interview context, so accuracy matters more than colour.",
+      "Summarizes the character's path through the scenes they appear in, with their arc milestones. Used as interview context, so accuracy matters more than color.",
     contextSources: ["Scenes the character appears in", "Arc milestones", "Interview history"],
     backendFeatureId: "character-journey",
   },

@@ -83,7 +83,7 @@ describe("jobs", () => {
     expect(jobLine(job({ status: "cancelled", progress: 3, total: 5 }), T0)).toBe("Stopped after 3 of 5");
     expect(jobLine(job({ status: "cancelled", progress: 0, total: 1 }), T0)).toBe("Stopped");
     expect(jobLine(job({ status: "done", result: { summarized_count: 4 } }), T0)).toBe(
-      "Summarised 4 scenes.",
+      "Summarized 4 scenes.",
     );
   });
 
@@ -109,7 +109,7 @@ describe("jobs", () => {
   });
 
   it("opens a job where its result is", () => {
-    expect(jobOpen(job({ status: "done", kind: "codex-suggest" }))?.to).toBe("/stories/s1/proposals");
+    expect(jobOpen(job({ status: "done", kind: "codex-suggest" }))?.to).toBe("/stories/s1/discoveries");
     expect(jobOpen(job({ status: "error", kind: "codex-suggest" }))).toBeNull();
     expect(jobOpen(job({ status: "done", kind: "unknown" }))).toBeNull();
     expect(jobOpen(job({ status: "done", kind: "editorial-pass", result: { report_id: "r1" } }))?.to).toBe(

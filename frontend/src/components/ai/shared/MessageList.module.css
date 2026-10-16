@@ -289,3 +289,10 @@
   color: var(--color-text);
   background: var(--color-bg);
 }
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .actions {
+    opacity: 1;
+  }
+}

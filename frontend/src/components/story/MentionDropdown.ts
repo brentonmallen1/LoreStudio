@@ -70,6 +70,11 @@ export function setMentionEntries(entries: Entry[]) {
   _lexicon = makeLexicon(entries);
 }
 
+/** A character's palette slot (doc 11 P2), if they have one: dialogue colored by speaker. */
+export function characterSlot(name: string): number | undefined {
+  return _slots.get(`character:${name}`);
+}
+
 /** The lexicon the decorations read, for anything else that has to agree with them. */
 export function mentionLexicon(): Lexicon {
   return _lexicon;

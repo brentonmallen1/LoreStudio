@@ -170,8 +170,8 @@ export default function ScenePromises({
 
       <div className={styles.side}>
         {open.length > 0 && (
-          <section aria-label="Open coming in" className={styles.block}>
-            <h3 className={styles.heading}>Open coming in</h3>
+          <section aria-label="Open as it starts" className={styles.block}>
+            <h3 className={styles.heading}>Open as it starts</h3>
             {open.map(({ thread, line }) => (
               <div
                 key={thread.id}

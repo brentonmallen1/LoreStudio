@@ -29,6 +29,7 @@ from ..models.twist import Twist, TwistClue
 from ..models.user import User
 from ..models.world_system import WorldSystem
 from . import sample_titles, seed_series
+from .first_run import new_account_settings
 from .seed_chronicle import seed_lighthouse_answer, seed_lighthouse_chronicle
 from .seed_jobs import seed_lighthouse_jobs
 from .seed_numbers import seed_lighthouse_numbers
@@ -496,6 +497,8 @@ def seed_admin():
                 password_hash=hash_password(settings.admin_password),
                 display_name="Admin",
                 is_admin=True,
+                # A fresh install's first account is asked like any other (doc 30 D4).
+                settings=new_account_settings(),
             )
             db.add(admin)
             db.commit()
@@ -1466,7 +1469,7 @@ def seed_demo_story(user_id: str | None = None):  # noqa: PLR0915
                 '<p>"Found what was missing." Eleanor met the old woman\'s eyes. "You knew. Didn\'t you."</p>'
                 "<p>It wasn't a question. Margaret didn't treat it like one.</p>"
                 '<p>"I knew your father," she said slowly. "Knew him for thirty years. Knew when something was eating at him. Knew when he stopped sleeping. Knew when he started burning things in the fire pit behind [[The Lighthouse]] at three in the morning." She paused. "Didn\'t know what. Didn\'t ask."</p>'
-                '<p>"Why not?"</p>'
+                '<p>"Why not?"&lt;Eleanor Vance&gt;</p>'
                 '<p>"Because I was seventy years old and he was my neighbor and whatever he was carrying, he\'d earned the right to carry it himself." Margaret\'s voice was matter-of-fact, unsentimental. "Some things aren\'t mine to know. That was one of them."</p>'
                 "<p>Eleanor thought about that. About the luxury of not asking. About the cost of it.</p>"
                 '<p>"There\'s more," she said. "Isn\'t there. Things you noticed but didn\'t put together."</p>'
@@ -1476,7 +1479,7 @@ def seed_demo_story(user_id: str | None = None):  # noqa: PLR0915
                 '<p>"Who would I tell? @Tom was the keeper. If the lamp was out, he\'d have had a reason. That\'s what I told myself." Margaret stood, gathering her empty jar and her coat. "I\'ve told myself a lot of things over the years. Gets easier with practice."</p>'
                 "<p>At the door, she paused.</p>"
                 '<p>"Your father was a good man, Eleanor. Whatever else he was, he was that too. Don\'t let the one thing make you forget all the others."&lt;Margaret Holt&gt;</p>'
-                '<p>"I\'m trying not to."</p>'
+                '<p>"I\'m trying not to."&lt;Eleanor Vance&gt;</p>'
                 '<p>"Good." Margaret stepped out into the pale afternoon light. "That\'s all any of us can do. Try not to."</p>'
             ),
             word_count=542,

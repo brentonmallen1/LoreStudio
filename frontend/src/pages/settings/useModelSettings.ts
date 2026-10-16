@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../../api/client";
 import type { ImageTokenBudget, LLMSettings } from "../../types";
+import { useAssistantSetup } from "../../stores/assistantSetupStore";
 
 export type ConnStatus =
   | null
@@ -83,6 +84,8 @@ export function useModelSettings() {
         });
         heldConnection.current = now;
         setServerDefaults({ url: updated.effective_ollama_url, model: updated.effective_ollama_model });
+        // A new address or model: the setup gate asks again (doc 30 D4).
+        void useAssistantSetup.getState().recheck();
         setOllamaSaveState("saved");
         setTimeout(() => setOllamaSaveState("idle"), 2000);
       } catch {
@@ -124,6 +127,7 @@ export function useModelSettings() {
     setConnStatus("loading");
     try {
       setConnStatus(await api.ollamaStatus());
+      void useAssistantSetup.getState().recheck();
     } catch {
       setConnStatus({
         connected: false,

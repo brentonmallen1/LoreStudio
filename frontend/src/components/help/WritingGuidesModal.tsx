@@ -16,7 +16,7 @@ interface Props {
 
 const TABS: { id: WritingGuideTab; label: string; icon: React.ReactNode }[] = [
   { id: "dialogue", label: "Dialogue", icon: <Quote size={13} /> },
-  { id: "mice", label: "MICE Quotient", icon: <BookOpen size={13} /> },
+  { id: "mice", label: "Kinds of thread", icon: <BookOpen size={13} /> },
   { id: "essential", label: "6 Essential Questions", icon: <BookMarked size={13} /> },
 ];
 

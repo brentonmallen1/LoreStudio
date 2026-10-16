@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Eye, EyeOff, Pencil, SpellCheck, Trash2, User, Users } from "lucide-react";
+import { Eye, EyeOff, Pencil, Plus, SpellCheck, Trash2, User, Users } from "lucide-react";
 import { api } from "../../../api/client";
 import { CHARACTER_QUESTIONS, KINDS } from "../../../lib/lorebook/kinds";
 import { presenceLine, scenesWith } from "../../../lib/lorebook/presence";
@@ -34,9 +34,14 @@ import { useLoreSelection } from "../useLoreSelection";
 import ArcLine from "../character/ArcLine";
 import { ArcMilestones, DiscoveryNotes, InterviewPrompts, Traits } from "../character/CharacterParts";
 import ThreeQuestions from "../character/ThreeQuestions";
+import CraftLenses from "../character/CraftLenses";
 import WhoAreTheyView from "../character/WhoAreTheyView";
 import styles from "../Lorebook.module.css";
 import TropesHere from "../../tropes/TropesHere";
+import Term from "../../common/Term";
+import EmptyState from "../../common/EmptyState";
+import { EMPTY } from "../../../lib/emptyStates";
+import { roleTerm } from "../../../lib/glossary/roles";
 
 const VIEWS = [
   { id: "overview", label: "Overview" },
@@ -46,8 +51,11 @@ const VIEWS = [
   { id: "relationships", label: "Relationships" },
 ];
 
-/** Overview's fields after the three questions (doc 20 P5). */
-const OVERVIEW_REST = KINDS.character.fields.filter((f) => !CHARACTER_QUESTIONS.includes(f.key));
+/** Overview's fields after the three questions (doc 20 P5); what they're for sits with the
+ *  Craft lenses (doc 30 D6). */
+const OVERVIEW_REST = KINDS.character.fields.filter(
+  (f) => !CHARACTER_QUESTIONS.includes(f.key) && f.key !== "narrative_intent",
+);
 
 const label = (v: string) => v.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -101,17 +109,14 @@ export default function CharactersSection() {
 
   const badges = character && (
     <>
-      {character.role && <Badge>{label(character.role)}</Badge>}
-      {character.character_type && <Badge title="Character type">{label(character.character_type)}</Badge>}
+      {character.role && (
+        <Badge>
+          <Term id={roleTerm(character.role)}>{label(character.role)}</Term>
+        </Badge>
+      )}
       {character.gender && <Badge title="Gender">{character.gender}</Badge>}
       {character.pronouns && <Badge>{character.pronouns}</Badge>}
       {character.age && <Badge title="Age">{character.age}</Badge>}
-      {character.jungian_archetype && (
-        <Badge title="Jungian archetype">{label(character.jungian_archetype)}</Badge>
-      )}
-      {character.narrative_archetype && (
-        <Badge title="Narrative archetype">{label(character.narrative_archetype)}</Badge>
-      )}
     </>
   );
 
@@ -135,6 +140,7 @@ export default function CharactersSection() {
         seriesKinds={["character"]}
         onFromSeries={(id) => select(id)}
         empty={<p className={styles.listEmpty}>No characters yet. Who is this story about?</p>}
+        pageEmpty={!character}
         footer={
           characters.length > 1 && (
             <div className={styles.listFooter}>
@@ -183,8 +189,8 @@ export default function CharactersSection() {
                 ? [
                     {
                       label: character.narrative_intent_hidden
-                        ? "Show narrative intent in interviews"
-                        : "Hide narrative intent from interviews",
+                        ? "Show what they're for in interviews"
+                        : "Hide what they're for from interviews",
                       icon: character.narrative_intent_hidden ? Eye : EyeOff,
                       ai: true,
                       onSelect: () =>
@@ -269,6 +275,7 @@ export default function CharactersSection() {
                   values={character as unknown as Record<string, unknown>}
                   save={(key, value) => save({ [key]: value } as Partial<Character>)}
                 />
+                <CraftLenses character={character} save={save} />
                 <DiscoveryNotes character={character} onSaved={upsertCharacter} />
                 <Traits character={character} onSaved={upsertCharacter} />
                 <AssetPicker storyId={storyId} objectType="character" objectId={character.id} />
@@ -286,6 +293,11 @@ export default function CharactersSection() {
             )}
             {view === "relationships" && <RelationshipsTab characterId={character.id} storyId={storyId} />}
           </EntitySheet>
+        ) : characters.length === 0 ? (
+          <EmptyState
+            copy={EMPTY.characters}
+            action={{ label: "Add a character", icon: Plus, onClick: () => setCreating(true) }}
+          />
         ) : (
           <div className={styles.landing}>
             <div className={styles.landingHeader}>

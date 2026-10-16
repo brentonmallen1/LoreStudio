@@ -261,3 +261,35 @@
 .contained {
   container-type: inline-size;
 }
+
+/* What each kind of link means, on the page (doc 30 D6), not only in a hover. */
+.linkKinds {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.3rem 1.25rem;
+  margin: 0 0 1rem;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.linkKind {
+  color: var(--color-text-muted);
+}
+
+.linkKind dt {
+  display: inline;
+  margin-right: 0.35rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.linkKind dd {
+  display: inline;
+  margin: 0;
+}
+
+.formHint {
+  margin: 0.5rem 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}

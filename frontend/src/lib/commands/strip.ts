@@ -14,8 +14,22 @@ const inStory = () => !!useStoryStore.getState().activeStory;
 
 commandRegistry.register({
   id: "strip-cycle-width",
-  label: "Collapse or expand the story strip",
-  keywords: ["tree", "outline", "chapters", "scenes", "strip", "sidebar", "structure", "widen", "narrow"],
+  label: "Widen or narrow the strip",
+  keywords: [
+    "tree",
+    "outline",
+    "line",
+    "collapse",
+    "expand",
+    "story strip",
+    "chapters",
+    "scenes",
+    "strip",
+    "sidebar",
+    "structure",
+    "widen",
+    "narrow",
+  ],
   icon: PanelLeft,
   group: "View",
   shortcut: formatCombo(SHORTCUTS.cycleStrip.combo),
@@ -29,7 +43,7 @@ commandRegistry.register({
 for (const mode of COLOUR_MODES) {
   commandRegistry.register({
     id: `strip-colour-${mode.id}`,
-    label: `Colour the strip by ${mode.short}`,
+    label: `Color the strip by ${mode.short}`,
     description: mode.label,
     keywords: ["strip", "colour", "color", "tree", mode.id, mode.short.toLowerCase()],
     icon: Palette,

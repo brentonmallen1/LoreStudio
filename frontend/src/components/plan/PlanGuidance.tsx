@@ -120,7 +120,7 @@ export default function PlanGuidance({ storyId, layer, content, characterId, ste
         />
       ) : (
         !loading && (
-          <button className={styles.retryBtn} onClick={() => void fetchGuidance()}>
+          <button className={styles.retryBtn} data-ai onClick={() => void fetchGuidance()}>
             Ask again
           </button>
         )

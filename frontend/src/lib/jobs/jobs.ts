@@ -1,5 +1,7 @@
 import type { AIJob } from "../../api/jobs";
 import { jobOutcome } from "../../components/chronicle/timelineFormat";
+
+export { jobName } from "../../components/chronicle/timelineFormat";
 import { serverTime } from "../serverDate";
 import { sectionPath } from "../routes";
 
@@ -46,7 +48,7 @@ export function jobOpen(job: AIJob): { to: string; label: string } | null {
   if (!id || job.status !== "done") return null;
   switch (job.kind) {
     case "codex-suggest":
-      return { to: `/stories/${id}/proposals`, label: "Review the proposals" };
+      return { to: `/stories/${id}/discoveries`, label: "Review the discoveries" };
     case "codex-sync":
       return { to: sectionPath(id, "lorebook", "connections"), label: "Open the graph" };
     case "numbers-backfill":

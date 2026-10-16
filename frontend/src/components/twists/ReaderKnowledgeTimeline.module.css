@@ -205,7 +205,8 @@
   transition: opacity 0.1s;
 }
 
-.groupHeader:hover .groupAddBtn {
+.groupHeader:hover .groupAddBtn,
+.groupHeader:focus-within .groupAddBtn {
   opacity: 1;
 }
 
@@ -342,7 +343,8 @@
   transition: opacity 0.1s;
 }
 
-.eventCardHeader:hover .deleteBtn {
+.eventCardHeader:hover .deleteBtn,
+.eventCardHeader:focus-within .deleteBtn {
   opacity: 1;
 }
 
@@ -491,20 +493,12 @@
   gap: 8px;
 }
 
+/* A secondary button (DESIGN.md §5), sized as the primary beside it. */
 .cancelBtn {
+  composes: btn-secondary from global;
   padding: 5px 12px;
-  border-radius: 5px;
-  border: none;
-  background: transparent;
-  color: var(--color-text-muted);
   font-size: 0.8rem;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.cancelBtn:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
+  height: auto;
 }
 
 .saveBtn {
@@ -580,4 +574,15 @@
   background: var(--color-surface-3);
   color: var(--color-text);
   font-weight: 600;
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .groupAddBtn {
+    opacity: 1;
+  }
+
+  .deleteBtn {
+    opacity: 1;
+  }
 }

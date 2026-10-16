@@ -13,6 +13,8 @@ export interface IndexItem {
   count?: number;
   /** Start a new group under this item's divider. */
   gap?: boolean;
+  /** What the section is for (doc 30 D2): its tooltip, with its name for the folded index. */
+  purpose?: string;
 }
 
 /**
@@ -42,7 +44,7 @@ export default function BrowserShell({
                 to={item.to}
                 end={item.end}
                 className={({ isActive }) => `${styles.item} ${isActive ? styles.itemOn : ""}`}
-                title={item.label}
+                title={item.purpose ? `${item.label}: ${item.purpose}` : item.label}
               >
                 <Icon size={15} aria-hidden />
                 <span className={styles.label}>{item.label}</span>

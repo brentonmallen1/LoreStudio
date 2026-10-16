@@ -52,6 +52,11 @@
      measured the step toward surface-3 and found no room), so a label never changes colour
      to stay legible. On the page ground, a plane and a tone box alike. ── */
   --color-hover: var(--color-surface-2);
+  /* ── The secondary button's ground (DESIGN.md §5): the vellum at rest, deep vellum under
+     the pointer. Every text token, and violet on its own tint, holds AA on both
+     (contrast.test.ts). ── */
+  --color-button: var(--color-surface-2);
+  --color-button-hover: var(--color-surface-3);
   /* ── The ground (doc 24, D18 "flat"): one surface under the page, the chrome and the
      prose alike, so the header, the strip and the rail float on the page rather than frame
      it. The side panel is a tone box on it. To go back to paper planes on a parchment

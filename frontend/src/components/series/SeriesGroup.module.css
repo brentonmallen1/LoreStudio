@@ -67,24 +67,9 @@
   color: var(--color-text-muted);
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .newBook {
+  composes: btn-secondary from global;
   margin-left: auto;
   flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  min-height: 1.6rem;
-  padding: 0.2rem 0.6rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: var(--text-xs);
-  cursor: pointer;
-}
-
-.newBook:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
 }

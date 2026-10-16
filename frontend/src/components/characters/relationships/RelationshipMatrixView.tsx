@@ -5,6 +5,7 @@ import {
   relationshipPurposeColor as purposeColor,
   relationshipTypeColor as typeColor,
 } from "../../../lib/relationships/colors";
+import { purposeLabel } from "../../../lib/characters/relationshipPurposes";
 import styles from "./RelationshipMatrixView.module.css";
 
 type CellMode = "type" | "purpose" | "trust" | "power" | "affection" | "strength";
@@ -47,6 +48,21 @@ interface Props {
   onEditRelationship: (rel: CharacterRelationship) => void;
   onCreateRelationship: (fromId: string, toId: string) => void;
   showHidden: boolean;
+}
+
+/** A cell that acts: reachable with Tab, Enter or Space to act, and named (doc 30 D8). */
+function asButton(label: string, act: () => void) {
+  return {
+    role: "button",
+    tabIndex: 0,
+    "aria-label": label,
+    onKeyDown: (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        act();
+      }
+    },
+  };
 }
 
 export default function RelationshipMatrixView({
@@ -106,10 +122,15 @@ export default function RelationshipMatrixView({
         <div className={styles.cellInner}>
           <div className={styles.purposePips}>
             {purposes.slice(0, 3).map((p) => (
-              <span key={p} className={styles.purposePip} style={{ background: purposeColor(p) }} title={p} />
+              <span
+                key={p}
+                className={styles.purposePip}
+                style={{ background: purposeColor(p) }}
+                title={purposeLabel(p)}
+              />
             ))}
           </div>
-          <span className={styles.cellLabel}>{purposes[0]}</span>
+          <span className={styles.cellLabel}>{purposeLabel(purposes[0])}</span>
           {purposes.length > 1 && <span className={styles.cellMuted}>+{purposes.length - 1}</span>}
         </div>
       );
@@ -206,6 +227,10 @@ export default function RelationshipMatrixView({
                         className={styles.filledCell}
                         title={`${rel.relationship_type}${rel.visibility === "hidden" ? " (hidden)" : ""}. Click to edit`}
                         onClick={() => onEditRelationship(rel)}
+                        {...asButton(
+                          `Edit ${rowChar.name} and ${colChar.name}: ${rel.relationship_type}`,
+                          () => onEditRelationship(rel),
+                        )}
                       >
                         {renderCell(rel)}
                       </td>
@@ -217,6 +242,9 @@ export default function RelationshipMatrixView({
                       className={styles.emptyCell}
                       title="Click to add relationship"
                       onClick={() => onCreateRelationship(rowChar.id, colChar.id)}
+                      {...asButton(`Add a relationship: ${rowChar.name} and ${colChar.name}`, () =>
+                        onCreateRelationship(rowChar.id, colChar.id),
+                      )}
                     >
                       <span className={styles.addHint}>+</span>
                     </td>

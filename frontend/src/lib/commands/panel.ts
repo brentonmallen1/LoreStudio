@@ -3,7 +3,7 @@
  * prose (doc 24 D2), show or hide the panel, close the tab you are on. Kept apart from
  * index.ts, which is at its size budget.
  */
-import { BookOpen, GitBranch, MapPin, MessageSquare, PanelRight, Users, X } from "lucide-react";
+import { BookOpen, GitBranch, HelpCircle, MapPin, MessageSquare, PanelRight, Users, X } from "lucide-react";
 import { commandRegistry } from "./registry";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
@@ -13,6 +13,7 @@ import { STORY_ROUTES } from "../routes";
 import { getAIAvailable, getMode } from "../mode";
 import { canOpenBeside } from "../panel/pages";
 import { openBesideTheProse } from "../panel/openBeside";
+import { RAIL_TOUR_EVENT } from "../panel/railWords";
 
 const inStory = () => !!useStoryStore.getState().activeStory;
 
@@ -74,6 +75,19 @@ commandRegistry.register({
   shortcut: formatCombo(SHORTCUTS.togglePanel.combo),
   when: inStory,
   action: () => usePanelStore.getState().toggle(),
+});
+
+// The rail's one-time tour, again (doc 30 D8).
+commandRegistry.register({
+  id: "panel-rail-tour",
+  label: "Show what the side panel's buttons do",
+  keywords: ["rail", "icons", "buttons", "labels", "tour", "side panel", "what is this", "help"],
+  icon: HelpCircle,
+  group: "View",
+  when: inStory,
+  action: () => {
+    window.dispatchEvent(new Event(RAIL_TOUR_EVENT));
+  },
 });
 
 commandRegistry.register({

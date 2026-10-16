@@ -3,6 +3,7 @@ import { Plus, Trash2, X, GripVertical, Check } from "lucide-react";
 import { api } from "../../api/client";
 import type { Beat, BeatSheet } from "../../types";
 import styles from "./BeatSheetManagerDialog.module.css";
+import Term from "../common/Term";
 
 interface Props {
   onClose: () => void;
@@ -201,7 +202,8 @@ export default function BeatSheetManagerDialog({ onClose, onSheetsChanged }: Pro
         ) : (
           <div className={styles.listView}>
             <p className={styles.hint}>
-              Create your own beat sheet frameworks with custom beats at specific story positions.
+              Make your own <Term id="beat-sheet">beat sheet</Term>: a list of beats, each placed where it
+              lands in the story.
             </p>
             {sheets.length === 0 ? (
               <div className={styles.empty}>No custom beat sheets yet</div>

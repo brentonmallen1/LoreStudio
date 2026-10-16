@@ -3,6 +3,7 @@ import { Modal } from "../common";
 import CollapsibleSection from "../common/CollapsibleSection";
 import { useAIAvailable } from "../../lib/mode";
 import styles from "./EssentialQuestionsGuide.module.css";
+import Term from "../common/Term";
 
 interface Props {
   onClose: () => void;
@@ -53,8 +54,7 @@ const QUESTIONS = [
     tagline: "Conflict creates story",
     meaning:
       "The opposing force: a character, a system, an internal flaw, a circumstance. Without meaningful opposition, the protagonist simply gets what they want, and there's no story.",
-    inLoreStudio:
-      "Story central conflict, antagonist characters, plot threads, and try/fail cycles in scenes.",
+    inLoreStudio: "Story central conflict, antagonist characters, threads, and try/fail cycles in scenes.",
     hint: "The best obstacles are specific and personal. A villain who specifically threatens what the protagonist most values is far more effective than a generic threat.",
   },
   {
@@ -144,9 +144,9 @@ export function EssentialQuestionsContent() {
         <CollapsibleSection title="How these questions relate to MICE">
           <div className={styles.sectionContent}>
             <p>
-              The 6 Essential Questions and the MICE Quotient work at different levels. MICE describes the{" "}
-              <em>shape</em> of story threads: what opens and closes them. The 6 Questions describe the{" "}
-              <em>engine</em>: what makes the protagonist's journey meaningful.
+              The 6 Essential Questions and the <Term id="mice">MICE</Term> Quotient work at different levels.
+              MICE describes the <em>shape</em> of story threads: what opens and closes them. The 6 Questions
+              describe the <em>engine</em>: what makes the protagonist's journey meaningful.
             </p>
             <p>
               A Character MICE thread typically maps directly to questions 3 and 6: Why do they want to

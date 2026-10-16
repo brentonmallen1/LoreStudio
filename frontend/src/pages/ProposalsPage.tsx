@@ -15,6 +15,8 @@ import { useOpenProposals, useProposalsStore } from "../stores/proposalsStore";
 import { useStoryStore } from "../stores/storyStore";
 import type { Proposal, ProposalKind } from "../types/proposals";
 import styles from "../components/findings/Findings.module.css";
+import EmptyState from "../components/common/EmptyState";
+import { EMPTY } from "../lib/emptyStates";
 
 const KINDS: { id: ProposalKind; label: string; heading: string }[] = [
   { id: "person", label: "People", heading: "Someone new" },
@@ -36,8 +38,14 @@ const MADE: Record<string, { route: string; section: string; words: string }> = 
   culture: { route: "lorebook", section: "cultures", words: "in the Lorebook" },
 };
 
+/** What the page is for (doc 30 D2a), in place of its purpose line: what turns up here. */
+const INTRO =
+  "Things discovered in your writing that LoreStudio won't decide without you: new names, lines with no speaker, and what an import couldn't place. Say yes and it's added; say no and it won't ask again.";
+const INTRO_STUDIO =
+  "Things discovered in your writing that LoreStudio won't decide without you: new names, lines with no speaker, what an import couldn't place, and what the Assistant suggests. Say yes and it's added; say no and it won't ask again.";
+
 /**
- * Proposals (doc 12 P5): everything the app noticed and the author has not decided, in one
+ * Discoveries, once Proposals (doc 12 P5, doc 30 D2a): everything the app noticed and the author has not decided, in one
  * inbox: names and places in the prose, the Codex's suggestions, suggested relationships,
  * dialogue with no speaker. Each has a yes that writes it into the Lorebook (undoably) and
  * a no that keeps it from asking again. Replaces Discoveries and the Codex review queue.
@@ -97,7 +105,8 @@ export default function ProposalsPage({ storyId }: { storyId: string }) {
   return (
     <div className={styles.page}>
       <PageHeader
-        title="Proposals"
+        title="Discoveries"
+        intro={aiAvailable ? INTRO_STUDIO : INTRO}
         summary={
           data
             ? [
@@ -141,22 +150,25 @@ export default function ProposalsPage({ storyId }: { storyId: string }) {
             </p>
           )}
           {data && groups.length === 0 && (
-            <div className={styles.empty}>
-              <p className={styles.emptyTitle}>Nothing waiting.</p>
-              <p className={styles.emptyText}>
-                When the prose names someone or somewhere the Lorebook does not have, or a line of dialogue
-                has no speaker{aiAvailable ? ", or the Assistant suggests something" : ""}, it waits here for
-                a yes or a no.
-              </p>
-              <button
-                type="button"
-                className={styles.verb}
-                disabled={looking}
-                onClick={() => void lookAgain(aiAvailable)}
-              >
-                Look through the prose now
-              </button>
-            </div>
+            <EmptyState
+              copy={
+                aiAvailable
+                  ? {
+                      ...EMPTY.discoveries,
+                      what: EMPTY.discoveries.what.replace(
+                        "has no speaker,",
+                        "has no speaker, or the Assistant suggests something,",
+                      ),
+                    }
+                  : EMPTY.discoveries
+              }
+              action={{
+                label: "Look through the prose now",
+                icon: RefreshCw,
+                disabled: looking,
+                onClick: () => void lookAgain(aiAvailable),
+              }}
+            />
           )}
           {groups.map((g) =>
             g.id === "imported" ? (

@@ -10,6 +10,7 @@ import ExtractOutlinePanel from "./ExtractOutlinePanel";
 import OutlineAlignmentPanel from "./OutlineAlignmentPanel";
 import { sceneLeaves } from "../../lib/planning/methods";
 import { addPlannedScene } from "../../lib/planning/plannedScene";
+import BeatBoardsEmpty from "./BeatBoardsEmpty";
 import styles from "./OutlineManager.module.css";
 import AIOnly from "../ai/AIOnly";
 
@@ -465,7 +466,8 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
             </div>
             <p className={styles.emptyTitle}>No beats yet</p>
             <p className={styles.emptyDesc}>
-              Add beats to build your outline. Drag to reorder, drag to center to nest.
+              Add beats to build your beat board. Drag to reorder, drag to center to nest. In a beat, Tab
+              indents it and Esc reaches its buttons.
             </p>
             <button
               className={styles.addBeatBtnPrimary}
@@ -592,7 +594,7 @@ export default function OutlineManager({ storyId }: Props) {
   }, [storyId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleCreateOutline() {
-    const outline = await api.createOutline(storyId, "Outline");
+    const outline = await api.createOutline(storyId, "Beat board");
     setOutlines((prev) => [...prev, outline]);
     setActiveTab(outline.id);
   }
@@ -682,8 +684,8 @@ export default function OutlineManager({ storyId }: Props) {
                         e.stopPropagation();
                         setPendingDeleteOutlineId(outline.id);
                       }}
-                      title="Delete outline"
-                      aria-label="Delete outline"
+                      title="Delete beat board"
+                      aria-label="Delete beat board"
                     >
                       <X size={11} />
                     </button>
@@ -697,8 +699,8 @@ export default function OutlineManager({ storyId }: Props) {
           <button
             className={styles.addTabBtn}
             onClick={handleCreateOutline}
-            title="New blank outline"
-            aria-label="New blank outline"
+            title="New beat board"
+            aria-label="New beat board"
           >
             <Plus size={14} />
           </button>
@@ -710,7 +712,7 @@ export default function OutlineManager({ storyId }: Props) {
             <button
               className={styles.extractBtn}
               onClick={() => setShowExtractPanel(true)}
-              title="AI: Extract outline from manuscript prose"
+              title="Make a beat board from the prose you have written"
             >
               <Orbit size={13} />
               Extract
@@ -725,22 +727,7 @@ export default function OutlineManager({ storyId }: Props) {
       ) : activeOutline ? (
         <OutlinePanel key={activeOutline.id} outline={activeOutline} storyId={storyId} />
       ) : (
-        <div className={styles.managerInner}>
-          <div className={styles.empty}>
-            <div className={styles.emptyIcon}>
-              <BookOpen size={36} />
-            </div>
-            <p className={styles.emptyTitle}>No beat boards yet</p>
-            <p className={styles.emptyDesc}>
-              A beat board is a loose outline: jot beats, nest and reorder them, and turn any beat into a
-              scene when it's ready. Start blank, or inject a beat sheet from Story Identity.
-            </p>
-            <button className={styles.addBeatBtnPrimary} onClick={handleCreateOutline}>
-              <Plus size={14} />
-              New beat board
-            </button>
-          </div>
-        </div>
+        <BeatBoardsEmpty onCreate={handleCreateOutline} />
       )}
 
       {showExtractPanel && (

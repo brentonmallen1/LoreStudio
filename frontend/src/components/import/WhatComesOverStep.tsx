@@ -132,8 +132,8 @@ export default function WhatComesOverStep({
           </h3>
           {g.target === "later" && (
             <p className={styles.quiet}>
-              These wait in Proposals › Imported, where you can make each one a character, a place, a note or
-              anything else, keep it in the Compendium, or let it go.
+              These wait in Discoveries › Imported, where you can make each one a character, a place, a note
+              or anything else, keep it in the Compendium, or let it go.
             </p>
           )}
           <ul className={styles.rows}>

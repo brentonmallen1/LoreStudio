@@ -72,7 +72,7 @@ export function ThreadsStep({ storyId, threads, reload }: Props) {
         </button>
       </form>
       <Link to={`/stories/${storyId}/promises/threads`} className={styles.quietLink}>
-        Each thread's sheet: its scenes, try/fail cycles and the map of every thread
+        Each thread's sheet: its scenes, its tries and failures, and the map of every thread
       </Link>
     </div>
   );

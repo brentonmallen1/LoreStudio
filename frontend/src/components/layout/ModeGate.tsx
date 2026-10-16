@@ -20,7 +20,7 @@ export default function ModeGate({ route, children }: { route: StoryRoute; child
           {mode === "writer" ? (
             <>
               Writer mode keeps the manuscript tools and hides AI features. Switch modes in{" "}
-              <Link to="/settings#appearance">Settings › Appearance</Link>.
+              <Link to="/settings#mode">Settings › Mode</Link>.
             </>
           ) : (
             <>
@@ -37,7 +37,7 @@ export default function ModeGate({ route, children }: { route: StoryRoute; child
       <p className={styles.title}>{route.label} is part of Studio mode.</p>
       <p className={styles.text}>
         Writer mode keeps the manuscript tools and hides AI features. Switch modes in{" "}
-        <Link to="/settings#appearance">Settings › Appearance</Link>.
+        <Link to="/settings#mode">Settings › Mode</Link>.
       </p>
     </div>
   );

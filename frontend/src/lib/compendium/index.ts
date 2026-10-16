@@ -16,7 +16,7 @@ export interface IndexRow {
 }
 
 export const KIND_LABELS: Record<IndexKind, string> = {
-  note: "Notes",
+  note: "Research notes",
   url: "Links",
   document: "Documents",
   image: "Images",

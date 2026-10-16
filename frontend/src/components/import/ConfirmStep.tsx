@@ -90,7 +90,7 @@ export default function ConfirmStep({
 
       {ncTally && (
         <div className={styles.extractionSummary} data-plain>
-          <span className={styles.extractionLabel}>From the codex:</span>
+          <span className={styles.extractionLabel}>From Novelcrafter's codex:</span>
           <div className={styles.extractionCounts}>
             {(
               [
@@ -107,7 +107,7 @@ export default function ConfirmStep({
               ) : null,
             )}
             {ncTally.later > 0 && (
-              <span className={styles.extractionCount}>{ncTally.later} wait in Proposals</span>
+              <span className={styles.extractionCount}>{ncTally.later} wait in Discoveries</span>
             )}
           </div>
         </div>

@@ -2,6 +2,7 @@ import { BookOpen, MapPin, HelpCircle, User, Zap } from "lucide-react";
 import { Modal } from "../common";
 import CollapsibleSection from "../common/CollapsibleSection";
 import styles from "./MICEGuide.module.css";
+import Term from "../common/Term";
 
 interface Props {
   onClose: () => void;
@@ -10,7 +11,8 @@ interface Props {
 const MICE_TYPES = [
   {
     key: "milieu",
-    label: "Milieu",
+    label: "A place",
+    mice: "Milieu",
     icon: <MapPin size={14} />,
     tagline: "A stranger enters a strange land",
     opens: "Character enters an unfamiliar place or situation",
@@ -20,17 +22,19 @@ const MICE_TYPES = [
   },
   {
     key: "idea",
-    label: "Idea",
+    label: "A question",
+    mice: "Idea",
     icon: <HelpCircle size={14} />,
     tagline: "A question demands an answer",
     opens: "A question is raised: who did it? what is happening? what does this mean?",
     closes: "The question is answered",
     examples: ["Mystery", "Thriller", "Puzzle stories", "Whodunits"],
-    note: "Every unanswered question is a promise to the reader. Answer them.",
+    note: "Every question you raise is a promise to the reader, and they will wait for its answer.",
   },
   {
     key: "character",
-    label: "Character",
+    label: "A change",
+    mice: "Character",
     icon: <User size={14} />,
     tagline: "Someone wants to change",
     opens: "Character is dissatisfied with themselves, their role, or their identity",
@@ -40,7 +44,8 @@ const MICE_TYPES = [
   },
   {
     key: "event",
-    label: "Event",
+    label: "A disruption",
+    mice: "Event",
     icon: <Zap size={14} />,
     tagline: "The world is out of balance",
     opens: "The status quo is disrupted: a disaster, an invasion, a revelation",
@@ -55,10 +60,14 @@ export function MICEContent() {
     <>
       <div className={styles.intro}>
         <p>
-          The <strong>MICE Quotient</strong> is a framework for understanding what kind of story you're
-          telling, and when it's over. Every story thread belongs to one of four types. Tagging your threads
-          helps you ensure every question you open gets answered, and that nested threads close in the right
-          order.
+          Every thread in a story is one of four kinds of promise: <strong>a place</strong> to explore,{" "}
+          <strong>a question</strong> to answer, <strong>a change</strong> in someone, or{" "}
+          <strong>a disruption</strong> to set right. Knowing a thread's kind tells you what opens it and what
+          closes it, so you can see when it's over, and whether every question you raised gets its answer.
+        </p>
+        <p>
+          Writers also call this the <Term id="mice">MICE</Term> quotient, after the four kinds' initials:
+          Milieu, Idea, Character and Event.
         </p>
         <p className={styles.credit}>
           Developed by Orson Scott Card, popularized for short fiction by Mary Robinette Kowal.
@@ -71,6 +80,7 @@ export function MICEContent() {
             <div className={styles.typeHeader}>
               <span className={styles.typeIcon}>{t.icon}</span>
               <span className={styles.typeLabel}>{t.label}</span>
+              <span className={styles.typeAlso}>{t.mice}</span>
             </div>
             <p className={styles.typeTagline}>"{t.tagline}"</p>
             <div className={styles.typeDetail}>
@@ -96,20 +106,20 @@ export function MICEContent() {
       </div>
 
       <div className={styles.sections}>
-        <CollapsibleSection title="Nesting rules (LIFO)" defaultOpen>
+        <CollapsibleSection title="Which thread closes first" defaultOpen>
           <div className={styles.sectionContent}>
             <p>
-              When you open multiple MICE threads in a story, they must close in{" "}
-              <strong>reverse order</strong>: last opened, first closed. This is sometimes called the "LIFO"
-              rule (Last In, First Out).
+              When several threads are open at once, an ending usually feels right when they close in the{" "}
+              <strong>opposite order</strong> to the one they opened in: the last one opened closes first, the
+              way you close a set of brackets.
             </p>
             <p>
-              Readers hold open threads in their heads like a mental stack. Crossing threads (where an inner
-              thread outlasts an outer one) creates a feeling of structural instability, even if readers can't
-              name why.
+              Readers carry open threads like a pile of things to come back to. When an inner thread outlasts
+              the one around it, the threads cross, and an ending can feel unsteady even when readers can't
+              say why. Sometimes that's what you want.
             </p>
             <div className={styles.nestingDiagram}>
-              <div className={styles.diagramLabel}>Correct nesting:</div>
+              <div className={styles.diagramLabel}>Nested: the inner one closes first</div>
               <div className={styles.diagramTrack}>
                 <div className={`${styles.diagramBar} ${styles.barA}`}>
                   <span>Thread A (opens first)</span>
@@ -122,21 +132,20 @@ export function MICEContent() {
                 </div>
               </div>
               <div className={styles.diagramLabel} style={{ marginTop: "0.75rem" }}>
-                Broken nesting:
+                Crossed: the inner one outlasts the outer
               </div>
               <div className={styles.diagramTrack}>
                 <div className={`${styles.diagramBar} ${styles.barA}`}>
-                  <span>Thread A ←——————————————→</span>
+                  <span>Thread A</span>
                 </div>
                 <div className={`${styles.diagramBarBroken} ${styles.barB}`}>
-                  <span>Thread B ←————————————————————→ ✗ closes after A</span>
+                  <span>Thread B, which closes after A</span>
                 </div>
               </div>
             </div>
             <p className={styles.tip}>
-              <strong>Tip:</strong> Short stories usually have 1-2 threads. Each additional thread requires
-              more word count to open and close cleanly. This is why flash fiction almost always has a single
-              MICE element.
+              <strong>Tip:</strong> Short stories usually have one or two threads. Each thread you add takes
+              more words to open and close well, which is why flash fiction almost always has just one.
             </p>
           </div>
         </CollapsibleSection>
@@ -144,15 +153,15 @@ export function MICEContent() {
         <CollapsibleSection title="Short fiction economy">
           <div className={styles.sectionContent}>
             <p>
-              Short fiction is ruthless about scope. Every element must earn its place; there is no room for
-              setup that doesn't pay off within the word budget.
+              Short fiction is strict about scope. Each element earns its place or goes; there's little room
+              for a setup that doesn't pay off within the length.
             </p>
             <table className={styles.economyTable}>
               <thead>
                 <tr>
                   <th>Form</th>
                   <th>Word count</th>
-                  <th>Typical MICE Threads</th>
+                  <th>Typical threads</th>
                   <th>Subplots</th>
                 </tr>
               </thead>
@@ -184,8 +193,8 @@ export function MICEContent() {
               </tbody>
             </table>
             <p className={styles.tip}>
-              <strong>Scene economy test:</strong> For each scene, ask "which MICE thread does this serve?" If
-              a scene doesn't advance at least one open thread, it's a candidate for cutting.
+              <strong>A test for each scene:</strong> ask which thread it serves. A scene that moves no open
+              thread forward is one to look at again.
             </p>
           </div>
         </CollapsibleSection>
@@ -193,8 +202,8 @@ export function MICEContent() {
         <CollapsibleSection title="Try/Fail Cycles">
           <div className={styles.sectionContent}>
             <p>
-              Before a protagonist resolves a MICE thread, they should try and fail at least once, often two
-              or three times. Each failure raises the stakes and earns the eventual resolution.
+              Before a thread closes, the people in it usually <Term id="try-fail">try and fail</Term> at
+              least once, often two or three times. Each failure raises the stakes and earns the ending.
             </p>
             <div className={styles.outcomesGrid}>
               <div className={styles.outcomeCard}>
@@ -235,7 +244,7 @@ export default function MICEGuide({ onClose }: Props) {
     <Modal
       isOpen
       onClose={onClose}
-      title="The MICE Quotient"
+      title="Kinds of thread"
       icon={<BookOpen size={15} />}
       size="lg"
       footer={

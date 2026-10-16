@@ -1,5 +1,6 @@
 import { colourFor, stopShape, type Stop } from "../../lib/strip/stripModel";
 import type { TreeMarks } from "../../lib/strip/treeMarks";
+import SeverityMark from "../findings/SeverityMark";
 import styles from "./Strip.module.css";
 
 /** A scene's mark: its state as a shape (planned dashed, draft hollow, revised filled, final
@@ -7,6 +8,13 @@ import styles from "./Strip.module.css";
 export function StopMark({ stop, marks }: { stop: Stop; marks: TreeMarks }) {
   const shape = stopShape(stop.status);
   const swatch = colourFor(marks.mode, stop, marks.ctx)[0];
+  if (marks.mode === "findings" && swatch?.severity)
+    // Findings as shapes (doc 30 D8), as the Findings page draws them.
+    return (
+      <span className={styles.markSlot} aria-hidden title={swatch.label}>
+        <SeverityMark severity={swatch.severity} label={false} size={11} className={styles.sevMark} />
+      </span>
+    );
   return (
     <span className={styles.markSlot} aria-hidden title={swatch?.label}>
       <span

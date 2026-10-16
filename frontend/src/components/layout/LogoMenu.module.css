@@ -272,6 +272,16 @@
   box-shadow: var(--shadow-lg);
 }
 
+/* The page's own line at the head of its flyout (doc 30 D2b): its tip would stand where the
+   flyout opens, so the flyout carries it. */
+.fanPurpose {
+  max-width: 15rem;
+  margin: 0.15rem 0.65rem 0.35rem;
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+
 .fanItem {
   display: flex;
   align-items: center;
@@ -435,4 +445,11 @@
 /* The First story guide's "3 of 7" keeps its width beside a purpose line that wraps. */
 .rowText + .hint {
   flex-shrink: 0;
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .besideBtn {
+    opacity: 1;
+  }
 }

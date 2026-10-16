@@ -1,5 +1,5 @@
 /**
- * How the Codex graph reads on screen.
+ * How the Connections map reads on screen.
  *
  * Node kinds and edge kinds are stored as short machine words — "present_in", "advances".
  * The author never sees those: this is the one place they become English, so the graph,
@@ -9,13 +9,13 @@
 export const NODE_LABELS: Record<string, string> = {
   character: "Character",
   scene: "Scene",
-  location: "Location",
-  thread: "Plot thread",
+  location: "Place",
+  thread: "Thread",
   twist: "Twist",
   trope: "Trope",
   fact: "Fact",
   culture: "Culture",
-  system: "World system",
+  system: "System",
 };
 
 /** Deliberately not the AI purple: these are the story's own things, not the model's. */

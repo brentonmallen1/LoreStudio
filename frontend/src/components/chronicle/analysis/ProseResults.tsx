@@ -5,6 +5,7 @@ import type {
   EditorialConsistencyResponse,
 } from "../../../types";
 import styles from "./Analysis.module.css";
+import Term from "../../common/Term";
 
 /** Local runs read back in the Chronicle: the prose check, the editorial check, the Lorebook scan. */
 
@@ -78,7 +79,9 @@ export function ProseResultDisplay({ result }: { result: ProseNLPResponse }) {
             )}
             {scene.said_bookisms && scene.said_bookisms.bookism_count > 0 && (
               <div className={styles.checkGroup}>
-                <span className={styles.checkLabel}>Said-Bookisms ({scene.said_bookisms.bookism_count})</span>
+                <span className={styles.checkLabel}>
+                  <Term id="said-bookism">Said-bookisms</Term> ({scene.said_bookisms.bookism_count})
+                </span>
                 {scene.said_bookisms.findings.slice(0, 3).map((f, i) => (
                   <div key={i} className={styles.finding}>
                     <SeverityIcon severity={f.severity} />

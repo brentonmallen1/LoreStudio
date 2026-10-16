@@ -9,6 +9,7 @@ import type {
 import { api } from "../../../api/client";
 import { STRENGTH_DIMS } from "./StrengthSliders";
 import styles from "./RelationshipSuggestionsModal.module.css";
+import { purposeLabel } from "../../../lib/characters/relationshipPurposes";
 import { useAIAvailable } from "../../../lib/mode";
 
 // Which AI-suggested fields to accept when updating an existing relationship
@@ -369,7 +370,7 @@ export default function RelationshipSuggestionsModal({
                     {(row.editPurpose.length > 0 || (ex?.narrative_purpose?.length ?? 0) > 0) && (
                       <div className={styles.fieldBlock}>
                         <div className={styles.fieldBlockHeader}>
-                          <label className={styles.fieldLabel}>Narrative purpose</label>
+                          <label className={styles.fieldLabel}>What it's for</label>
                           {ex && (
                             <label className={styles.acceptToggle}>
                               <input
@@ -386,7 +387,7 @@ export default function RelationshipSuggestionsModal({
                             <span className={styles.currentLabel}>Current:</span>
                             {ex.narrative_purpose.map((p) => (
                               <span key={p} className={styles.purposeChip}>
-                                {p}
+                                {purposeLabel(p)}
                               </span>
                             ))}
                           </div>
@@ -397,7 +398,7 @@ export default function RelationshipSuggestionsModal({
                           {ex && <span className={styles.suggestedLabel}>AI suggests:</span>}
                           {row.editPurpose.map((p) => (
                             <span key={p} className={styles.purposeChipAi}>
-                              {p}
+                              {purposeLabel(p)}
                             </span>
                           ))}
                         </div>

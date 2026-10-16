@@ -369,19 +369,10 @@
   padding-top: 0.5rem;
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .resetBtn {
-  font-size: 0.78rem;
-  color: var(--color-text-subtle);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  font-family: inherit;
+  composes: btn-secondary from global;
   transition: color var(--transition);
-}
-
-.resetBtn:hover {
-  color: var(--color-text-muted);
 }
 
 /* Destructive, deliberate: deleting stored prompts cannot be undone. */
@@ -735,4 +726,79 @@
   font-size: 0.8rem;
   line-height: 1.5;
   color: var(--color-text-muted);
+}
+
+/* Settings › Mode (doc 30 D4): the welcome's two answers, the chosen one on the tone ground. */
+.modeChoices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.modeChoice {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+}
+
+.modeChoice:hover {
+  background: var(--color-hover);
+}
+
+.modeChoice[data-on] {
+  background: var(--color-tone);
+}
+
+.modeChoice input {
+  margin-top: 0.2rem;
+  accent-color: var(--color-accent);
+}
+
+.modeChoiceText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: var(--text-base);
+}
+
+.modeChoiceLabel {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Settings › Advanced: folded until asked for. */
+.fold {
+  display: flex;
+  flex-direction: column;
+}
+
+.foldSummary {
+  align-self: flex-start;
+  padding: 0.3rem 0.6rem;
+  margin-left: -0.6rem;
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.foldSummary:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.foldSummary:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.foldBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.75rem;
 }

@@ -1,45 +1,8 @@
-import {
-  ArrowLeftRight,
-  BarChart3,
-  Book,
-  BookOpen,
-  BookOpenCheck,
-  BookOpenText,
-  CalendarDays,
-  Clock,
-  Diamond,
-  FileInput,
-  FileText,
-  Fingerprint,
-  Footprints,
-  GitBranch,
-  ScanEye,
-  Landmark,
-  BookCopy,
-  Library,
-  Link2,
-  Spline,
-  Waypoints,
-  History,
-  Images,
-  LayoutGrid,
-  ListTree,
-  MapIcon,
-  MapPin,
-  MessageSquareMore,
-  NotebookPen,
-  NotebookText,
-  Network,
-  PenLine,
-  Send,
-  StickyNote,
-  Inbox,
-  Undo2,
-  Users,
-  Zap,
-  type LucideIcon,
-} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { UIMode } from "./mode";
+import { WRITE_ROUTES } from "./routeTable/manuscript";
+import { CANON_ROUTES } from "./routeTable/canon";
+import { REVIEW_ROUTES } from "./routeTable/review";
 
 /** The five information domains from CLAUDE.md, plus Home and System. */
 export type Domain = "home" | "manuscript" | "lorebook" | "compendium" | "codex" | "chronicle" | "system";
@@ -61,6 +24,10 @@ export interface RouteSection {
   ai?: boolean;
   /** The URL parameter of an entry under the section (`/lorebook/characters/:entryId`). */
   detailParam?: string;
+  /** What the section is for, in a line (doc 30 D2): under its title, and its logo-menu tooltip. */
+  purpose?: string;
+  /** The guide its header's "How this page works" opens (an id in `guides/index.ts`). */
+  guide?: string;
 }
 
 export interface StoryRoute {
@@ -75,401 +42,18 @@ export interface StoryRoute {
   /** Set when the page is entirely an AI feature (never shown in Writer mode). */
   ai?: boolean;
   sections?: RouteSection[];
-  /** What the page is for, in a line: shown under its name in the logo menu (A2, doc 30 C2). */
+  /** What the page is for, in a line (A2, doc 30 D2): under its title, and its logo-menu
+   *  tooltip. `lib/pageAbout.test.ts` fails on a page or section without one. */
   purpose?: string;
+  /** The guide its header's "How this page works" opens (an id in `guides/index.ts`). */
+  guide?: string;
 }
-
-const BOTH: UIMode[] = ["writer", "studio"];
-const STUDIO: UIMode[] = ["studio"];
 
 /**
  * One list feeds the sidebar, the palette's navigation commands and the palette coverage test
  * (refactor doc 04 §2, decision D11). Add a page here first; the test fails until it has a command.
  */
-export const STORY_ROUTES: StoryRoute[] = [
-  {
-    id: "overview",
-    path: "",
-    label: "Overview",
-    icon: Book,
-    domain: "home",
-    modes: BOTH,
-    keywords: ["home", "dashboard", "summary"],
-  },
-  {
-    id: "write",
-    path: "/write",
-    label: "Write",
-    icon: PenLine,
-    domain: "manuscript",
-    modes: BOTH,
-    keywords: ["editor", "scene", "manuscript", "prose"],
-  },
-  // The acts, chapters and scenes to add, rename and reorder: the strip, opened out on Write.
-  { id: "outline", path: "/outline", label: "Outline", icon: ListTree, domain: "manuscript", modes: BOTH },
-  {
-    id: "plan",
-    path: "/plan",
-    label: "Plan",
-    icon: MapIcon,
-    domain: "manuscript",
-    modes: BOTH,
-    keywords: ["beats", "snowflake", "synopsis", "logline", "method", "scene list", "beat board"],
-  },
-  {
-    // The book as cards on a board (doc 24 D12): a page of its own, no longer a view of Write.
-    id: "storyboard",
-    path: "/storyboard",
-    label: "Storyboard",
-    icon: LayoutGrid,
-    domain: "manuscript",
-    modes: BOTH,
-    keywords: ["board", "cards", "index cards", "corkboard", "canvas", "scene cards", "view"],
-  },
-  {
-    // Every scene's summary down one page, written or drafted by the Assistant (doc 24 D12).
-    id: "summaries",
-    path: "/summaries",
-    label: "Summaries",
-    icon: FileText,
-    domain: "manuscript",
-    modes: BOTH,
-    keywords: ["scene summaries", "synopsis", "recap", "what happens", "view"],
-  },
-  {
-    // The book read straight through, and exported from there (doc 24 D12).
-    id: "manuscript",
-    path: "/manuscript",
-    label: "Manuscript",
-    icon: BookOpenText,
-    domain: "manuscript",
-    modes: BOTH,
-    keywords: ["read through", "read it through", "whole book", "full text", "export", "print", "view"],
-  },
-  {
-    // Loose writing, a heading for each day; words made into notes and characters (doc 15 N3).
-    id: "freewrite",
-    path: "/freewrite",
-    label: "Freewrite",
-    icon: NotebookPen,
-    domain: "manuscript",
-    modes: BOTH,
-    keywords: ["ideas", "brain dump", "stream of consciousness", "journal", "loose", "capture"],
-  },
-  {
-    // Seven short steps for a new writer, from New story, the logo menu or the palette (doc 18
-    // C10). Always in the logo menu, finished or not (A2).
-    id: "first-story",
-    path: "/first-story",
-    label: "First story guide",
-    purpose: "Seven guided steps from an idea to a first scene",
-    icon: Footprints,
-    domain: "home",
-    modes: BOTH,
-    keywords: [
-      "my first story",
-      "walkthrough",
-      "tutorial",
-      "first steps",
-      "new writer",
-      "guide me",
-      "onboarding",
-      "start here",
-    ],
-  },
-  {
-    id: "lorebook",
-    path: "/lorebook",
-    label: "Lorebook",
-    icon: BookOpen,
-    domain: "lorebook",
-    modes: BOTH,
-    keywords: ["canon", "lore", "world", "bible", "story bible"],
-    sections: [
-      {
-        id: "identity",
-        path: "",
-        label: "Story Identity",
-        icon: Fingerprint,
-        keywords: ["logline", "premise", "goals", "themes", "identity", "intent", "tropes"],
-      },
-      {
-        id: "characters",
-        path: "/characters",
-        label: "Characters",
-        icon: Users,
-        keywords: ["cast", "people", "personae", "persona", "relationships", "who"],
-        detailParam: "entryId",
-      },
-      {
-        id: "places",
-        path: "/places",
-        label: "Places",
-        icon: MapPin,
-        keywords: ["locations", "settings", "setting", "world building", "worldbuilding", "where"],
-        detailParam: "entryId",
-      },
-      {
-        id: "systems",
-        path: "/systems",
-        label: "Systems",
-        icon: Zap,
-        detailParam: "entryId",
-        keywords: ["magic", "technology", "rules", "world building", "worldbuilding"],
-      },
-      {
-        id: "cultures",
-        path: "/cultures",
-        label: "Cultures",
-        icon: Landmark,
-        detailParam: "entryId",
-        keywords: ["peoples", "customs", "religion", "world building", "worldbuilding"],
-      },
-      {
-        id: "history",
-        path: "/history",
-        label: "History",
-        icon: Clock,
-        detailParam: "entryId",
-        keywords: ["timeline", "eras", "events", "world building", "worldbuilding"],
-      },
-      {
-        id: "calendars",
-        path: "/calendars",
-        label: "Calendars",
-        icon: CalendarDays,
-        detailParam: "entryId",
-        keywords: ["dates", "months", "seasons", "world building", "worldbuilding"],
-      },
-      {
-        id: "travel",
-        path: "/travel",
-        label: "Travel",
-        icon: ArrowLeftRight,
-        detailParam: "entryId",
-        keywords: ["distances", "routes", "journeys", "world building", "worldbuilding"],
-      },
-      {
-        // The Codex graph (doc 12 P5): what the story's things are to each other. Building it
-        // uses no AI, so both modes have it (doc 13 D2).
-        id: "connections",
-        path: "/connections",
-        label: "Connections",
-        icon: Network,
-        keywords: ["codex", "knowledge graph", "graph", "network", "relationships map"],
-      },
-      {
-        // What this book shares with the other books of its series (series doc).
-        id: "series",
-        path: "/series",
-        label: "Series",
-        icon: BookCopy,
-        keywords: ["series", "sequel", "trilogy", "canon", "shared", "other books", "carry over"],
-      },
-    ],
-  },
-  {
-    // The promises a story makes and pays off (doc 18 C3): threads, twists, setups and what
-    // the reader knows, out of the Lorebook into a group of their own.
-    id: "promises",
-    path: "/promises",
-    label: "Promises",
-    icon: Waypoints,
-    domain: "lorebook",
-    modes: BOTH,
-    keywords: ["promises", "payoffs", "plot", "suspense", "mystery", "structure"],
-    sections: [
-      {
-        id: "tapestry",
-        path: "",
-        label: "The tapestry",
-        icon: Spline,
-        keywords: ["promises", "every thread", "thread map", "reading order", "weave", "overview of threads"],
-      },
-      {
-        id: "threads",
-        path: "/threads",
-        label: "Threads",
-        icon: GitBranch,
-        detailParam: "entryId",
-        keywords: ["plot threads", "mice", "arcs", "plot", "subplot", "questions", "try fail"],
-      },
-      {
-        id: "twists",
-        path: "/twists",
-        label: "Twists",
-        icon: Diamond,
-        detailParam: "entryId",
-        keywords: ["reveal", "clues", "surprise", "red herring", "misdirection", "mystery"],
-      },
-      {
-        id: "setups",
-        path: "/setups",
-        label: "Setups and payoffs",
-        icon: Link2,
-        keywords: ["scene links", "foreshadowing", "callback", "chekhov", "echo", "parallel", "bookends"],
-      },
-      {
-        id: "reader",
-        path: "/reader",
-        label: "What the reader knows",
-        icon: BookOpenCheck,
-        keywords: ["reader knowledge", "dramatic irony", "suspense", "who knows what"],
-      },
-    ],
-  },
-  {
-    id: "compendium",
-    path: "/compendium",
-    label: "Compendium",
-    icon: NotebookText,
-    domain: "compendium",
-    modes: BOTH,
-    keywords: ["research", "references", "notes"],
-    sections: [
-      {
-        // Everything in the Compendium in one list (doc 13 P5).
-        id: "everything",
-        path: "",
-        label: "Everything",
-        icon: Library,
-        keywords: ["index", "all", "search compendium"],
-      },
-      {
-        id: "research",
-        path: "/research",
-        label: "Research",
-        icon: NotebookText,
-        detailParam: "entryId",
-        keywords: ["notes", "links", "documents", "references", "sources"],
-      },
-      {
-        // Notes, questions, to-dos and ideas, wherever they are tied (doc 15 N2).
-        id: "notes",
-        path: "/notes",
-        label: "Notes",
-        icon: StickyNote,
-        keywords: ["to-do", "todo", "questions", "open questions", "ideas", "margin notes", "comments"],
-      },
-      {
-        id: "images",
-        path: "/images",
-        label: "Images",
-        icon: Images,
-        detailParam: "entryId",
-        keywords: ["media", "pictures", "assets", "attachments", "portraits"],
-      },
-      {
-        id: "diagrams",
-        path: "/diagrams",
-        label: "Diagrams",
-        icon: Network,
-        detailParam: "entryId",
-        keywords: ["media", "mindmap", "flowchart", "charts"],
-      },
-    ],
-  },
-  {
-    // Doc 12 P5: what the app noticed and the author has not decided, in one inbox.
-    id: "proposals",
-    path: "/proposals",
-    label: "Proposals",
-    icon: Inbox,
-    domain: "lorebook",
-    modes: BOTH,
-    keywords: [
-      "discoveries",
-      "nlp discoveries",
-      "codex review",
-      "review queue",
-      "suggestions",
-      "new names",
-      "stubs",
-      "found in your prose",
-      "unattributed dialogue",
-    ],
-  },
-  {
-    id: "findings",
-    path: "/findings",
-    label: "Findings",
-    icon: ScanEye,
-    domain: "system",
-    modes: BOTH,
-    // Story Health was this page's name until doc 12 P4; people will still look for it.
-    keywords: ["story health", "what needs my eye", "issues", "problems", "report", "analysis", "checks"],
-  },
-  {
-    // What Story Health measured, back on a page of its own (doc 13 P3, D5).
-    id: "numbers",
-    path: "/numbers",
-    label: "Numbers",
-    icon: BarChart3,
-    domain: "system",
-    modes: BOTH,
-    keywords: [
-      "stats",
-      "statistics",
-      "metrics",
-      "pacing",
-      "screen time",
-      "dialogue",
-      "word count",
-      "progress",
-    ],
-  },
-  {
-    id: "chronicle",
-    path: "/chronicle",
-    label: "Chronicle",
-    icon: Clock,
-    domain: "chronicle",
-    modes: BOTH,
-    keywords: ["history", "log", "ai log"],
-    sections: [
-      {
-        id: "activity",
-        path: "",
-        label: "Activity",
-        icon: Clock,
-        keywords: ["jobs", "calls", "analyses", "runs", "what happened"],
-      },
-      {
-        id: "conversations",
-        path: "/conversations",
-        label: "Conversations",
-        icon: MessageSquareMore,
-        ai: true,
-        keywords: ["chats", "sessions", "interviews", "transcripts"],
-      },
-      {
-        id: "changes",
-        path: "/changes",
-        label: "Changes",
-        icon: Undo2,
-        keywords: ["edits", "undo", "change log"],
-      },
-      {
-        id: "versions",
-        path: "/versions",
-        label: "Versions",
-        icon: History,
-        keywords: ["snapshots", "backups", "restore", "backup", "version history"],
-      },
-      // What each import brought and where it went (doc 28).
-      { id: "imports", path: "/imports", label: "Imports", icon: FileInput, detailParam: "recordId" },
-    ],
-  },
-  {
-    id: "publish",
-    path: "/publish",
-    label: "Publish",
-    icon: Send,
-    domain: "system",
-    modes: STUDIO,
-    keywords: ["export", "query letter", "synopsis", "share"],
-  },
-];
+export const STORY_ROUTES: StoryRoute[] = [...WRITE_ROUTES, ...CANON_ROUTES, ...REVIEW_ROUTES];
 
 /**
  * Addresses that moved, old prefix to new, under `/stories/:storyId`. The rest of the address
@@ -477,6 +61,7 @@ export const STORY_ROUTES: StoryRoute[] = [
  */
 export const STORY_REDIRECTS: Record<string, string> = {
   "/lorebook/threads": "/promises/threads",
+  "/proposals": "/discoveries",
   "/lorebook/twists": "/promises/twists",
 };
 
@@ -485,7 +70,7 @@ export const DOMAIN_LABELS: Record<Domain, string> = {
   manuscript: "Manuscript",
   lorebook: "Lorebook",
   compendium: "Compendium",
-  codex: "Codex",
+  codex: "Connections",
   chronicle: "Chronicle",
   system: "Story",
 };
@@ -517,6 +102,11 @@ export function sectionPath(storyId: string, routeId: string, sectionId: string,
 /** A section's own modes and AI flag, falling back to its page's. */
 export function sectionModes(route: StoryRoute, section: RouteSection): { modes: UIMode[]; ai: boolean } {
   return { modes: section.modes ?? route.modes, ai: Boolean(section.ai ?? route.ai) };
+}
+
+/** What a page or section is for, and its guide: the section's own, else its page's. */
+export function pageAbout(route: StoryRoute, section?: RouteSection): { purpose?: string; guide?: string } {
+  return { purpose: section?.purpose ?? route.purpose, guide: section?.guide ?? route.guide };
 }
 
 /** Pages and their sections in one list, for the palette, the logo menu and the tests. */

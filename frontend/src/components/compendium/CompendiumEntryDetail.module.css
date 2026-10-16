@@ -89,16 +89,9 @@
   font-family: inherit;
 }
 
+/* A text action in content: a secondary button (DESIGN.md §5). */
 .deleteConfirmNo {
-  padding: 0.22rem 0.5rem;
-  font-size: var(--text-xs);
-  font-weight: 500;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  font-family: inherit;
+  composes: btn-secondary from global;
 }
 
 .header {

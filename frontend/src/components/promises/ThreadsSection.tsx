@@ -27,9 +27,10 @@ import LorebookList from "../lorebook/LorebookList";
 import { useLoreSelection } from "../lorebook/useLoreSelection";
 import styles from "../lorebook/Lorebook.module.css";
 import p from "./Promises.module.css";
+import Term from "../common/Term";
 
 /**
- * Plot threads, under Promises (doc 18 C3). With none open, the map of every thread across
+ * Threads, under Promises (doc 18 C3). With none open, the map of every thread across
  * the book; open one and it is the same sheet as everything else, with its MICE shape and its
  * scenes, each saying what it does to the thread (doc 18 C1: opening, closing and the tries
  * along the way are roles on those scenes, and the status follows from them); beside it, what
@@ -84,7 +85,7 @@ export default function ThreadsSection() {
   return (
     <div className={styles.section}>
       <LorebookList
-        title="Plot threads"
+        title="Threads"
         items={threads.map((t) => ({
           id: t.id,
           name: t.name,
@@ -138,8 +139,7 @@ export default function ThreadsSection() {
             scenes={scenes}
             onOpenBeside={() => openEntity("thread", thread.id, thread.name)}
             more={[
-              { label: "How threads work", icon: BookOpen, onSelect: () => navigate("/guides/promises") },
-              { label: "What is a MICE thread?", icon: BookOpen, onSelect: () => setGuide(true) },
+              { label: "Kinds of thread, explained", icon: BookOpen, onSelect: () => setGuide(true) },
               { label: "Delete thread", icon: Trash2, danger: true, onSelect: () => setDeleting(thread) },
             ]}
             side={
@@ -163,7 +163,9 @@ export default function ThreadsSection() {
                       </button>
                     ))}
                   </div>
-                  <p className={p.smallPrint}>Mary Robinette Kowal’s MICE: milieu, idea, character, event.</p>
+                  <p className={p.smallPrint}>
+                    Mary Robinette Kowal’s <Term id="mice">MICE</Term>: milieu, idea, character, event.
+                  </p>
                 </SheetCard>
                 <SheetCard title="Where it stands">
                   <p className={p.cardText}>{statusLine(thread, sceneTitle)}</p>

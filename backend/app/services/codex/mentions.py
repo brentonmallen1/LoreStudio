@@ -33,7 +33,7 @@ _LABELS = {
     "significance": "Significance",
     "history": "History",
     "synopsis": "Synopsis",
-    "purpose": "Purpose",
+    "purpose": "Why it's here",
     "status": "Status",
     "mice_type": "MICE kind",
     "the_truth": "The truth",

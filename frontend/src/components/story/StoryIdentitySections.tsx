@@ -10,6 +10,7 @@ import { GoalsPanel, ThemeInput } from "./StoryIdentityLists";
 import StorySummaryPanel from "./StorySummaryPanel";
 import { IDENTITY_SECTIONS, type SectionId } from "./identitySections";
 import styles from "./StoryIdentityPanel.module.css";
+import Term from "../common/Term";
 
 // Story identity's groups (A4), each under an h2 the section rail and "Jump to" point at.
 // The panel keeps the fields and saves them; each group draws its part.
@@ -66,7 +67,9 @@ export function Foundation({ storyId, fields, update, collapsed, toggle }: Ident
         badge={foundationFields > 0 ? <CompletionDots filled={foundationFields} total={2} /> : undefined}
       >
         <div>
-          <p className={styles.subFieldLabel}>Logline</p>
+          <p className={styles.subFieldLabel}>
+            <Term id="logline">Logline</Term>
+          </p>
           <p className={styles.fieldHint}>
             One sentence: who wants what, against what obstacle, with what at stake.
           </p>
@@ -95,12 +98,15 @@ export function Foundation({ storyId, fields, update, collapsed, toggle }: Ident
           />
         </div>
         <div>
-          <p className={styles.subFieldLabel}>Premise</p>
+          <p className={styles.subFieldLabel}>
+            <Term id="premise">Premise</Term>
+          </p>
           <p className={styles.fieldHint}>
             Expanded setup: the situation, the characters, and what's at stake.
           </p>
           <p className={styles.fieldPattern}>
-            In [setting], [protagonist with flaw] faces [problem] when [inciting incident]…
+            In [setting], [protagonist with flaw] faces [problem] when [
+            <Term id="inciting-incident">inciting incident</Term>]…
           </p>
           <textarea
             value={fields.premise}
@@ -219,7 +225,9 @@ export function Form({
           </select>
         </div>
         <div>
-          <p className={styles.subFieldLabel}>Beat sheet</p>
+          <p className={styles.subFieldLabel}>
+            <Term id="beat-sheet">Beat sheet</Term>
+          </p>
           <p className={styles.fieldHint}>
             Optional story structure framework. Helps track where key beats fall relative to your word count.
           </p>

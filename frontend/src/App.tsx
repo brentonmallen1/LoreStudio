@@ -34,6 +34,7 @@ import Toaster from "./components/common/Toaster";
 import ScratchPadDrawer from "./components/common/ScratchPadDrawer";
 import GlobalLayout from "./components/layout/GlobalLayout";
 import PanelWindowPage from "./pages/PanelWindowPage";
+import FirstRunHost from "./components/firstRun/FirstRunHost";
 
 /** Hands the router's navigate to non-React code (palette commands). */
 function NavigatorBridge() {
@@ -175,6 +176,7 @@ export default function App() {
       {/* Outside the routes: under Settings or a guide the page is inert, and a toast with
           an action (Open, Undo, Details) has to stay clickable above the overlay. */}
       <Toaster />
+      <FirstRunHost />
     </BrowserRouter>
   );
 }

@@ -89,8 +89,8 @@ export default function CommandPalette() {
     });
     commandRegistry.update({
       id: "create-compendium-entry",
-      label: "New Compendium entry",
-      keywords: ["new", "create", "add", "compendium", "research", "note"],
+      label: "Add research",
+      keywords: ["new", "create", "add", "compendium", "compendium entry", "entry", "research", "note"],
       icon: Scroll,
       group: "Create",
       when: hasStory,
@@ -101,8 +101,8 @@ export default function CommandPalette() {
     });
     commandRegistry.update({
       id: "create-thread",
-      label: "New plot thread",
-      keywords: ["new", "create", "add", "thread", "plot", "subplot"],
+      label: "New thread",
+      keywords: ["new", "create", "add", "thread", "plot", "plot thread", "subplot"],
       icon: GitBranch,
       group: "Create",
       when: hasStory,

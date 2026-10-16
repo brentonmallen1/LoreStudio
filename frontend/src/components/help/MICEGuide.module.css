@@ -76,6 +76,13 @@
   color: var(--color-text);
 }
 
+/* MICE's name for the kind, the also-called (doc 30 D6). */
+.typeAlso {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}
+
 .milieu .typeLabel {
   color: var(--mice-milieu);
 }

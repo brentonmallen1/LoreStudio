@@ -20,6 +20,8 @@ import NoteComposer from "./NoteComposer";
 import NoteItem from "./NoteItem";
 import { useStoryNotes } from "./useStoryNotes";
 import styles from "./Notes.module.css";
+import EmptyState from "../common/EmptyState";
+import { EMPTY } from "../../lib/emptyStates";
 
 const KINDS: NoteKind[] = ["note", "question", "todo", "idea"];
 const PLURAL: Record<NoteKind, string> = {
@@ -166,9 +168,7 @@ export default function NotesBoard({ compact = false }: { compact?: boolean }) {
       )}
 
       {notes.notes === null ? null : all.length === 0 ? (
-        <p className={styles.empty}>
-          No notes yet. Select words in a scene to leave one beside them, or write one here and tie it later.
-        </p>
+        <EmptyState copy={EMPTY.notes} size={compact ? "small" : "page"} />
       ) : groups.length === 0 ? (
         <p className={styles.empty}>
           Nothing {status === "done" ? "resolved" : "open"}

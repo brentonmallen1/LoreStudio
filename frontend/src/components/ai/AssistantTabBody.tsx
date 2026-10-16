@@ -8,6 +8,8 @@ import { useStoryFormat } from "../../lib/storyFormat";
 import SessionList from "./SessionList";
 import { sessionLabel } from "../../lib/ai/sessionLabel";
 import SessionView from "./SessionView";
+import SetupAssistantCard from "./setup/SetupAssistantCard";
+import { useAssistantReady } from "../../lib/ai/assistantReady";
 import styles from "./AIPanel.module.css";
 
 type MenuStep = { kind: "types" } | { kind: "pick-character"; forType: string };
@@ -67,6 +69,10 @@ export default function AssistantTabBody() {
   const format = useStoryFormat();
   const allTypes = sessionTypesFor(format);
   const activeSession = sessions.find((s) => s.id === activeSessionId);
+  const { ready } = useAssistantReady();
+
+  // No model yet (doc 30 D4): how to set one up, where the conversations would be.
+  if (!ready) return <SetupAssistantCard compact />;
 
   return (
     <>

@@ -29,6 +29,7 @@ import DeleteSeriesDialog from "../components/series/DeleteSeriesDialog";
 import { seriesPath } from "../lib/series/sections";
 import ImportWizard from "../components/import/ImportWizard";
 import StoryListRow from "../components/story/StoryListRow";
+import StartHere from "../components/firstRun/StartHere";
 import list from "../components/story/StoryList.module.css";
 import type { Story } from "../types";
 import { formatLabel, formatOf, isScript } from "../lib/storyFormat";
@@ -274,6 +275,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        <StartHere stories={stories} />
+
         {stories.length === 0 && seriesList.length === 0 ? (
           <div className={styles.empty}>
             <div className={styles.emptyBody}>
@@ -284,7 +287,7 @@ export default function DashboardPage() {
               </p>
               <ul className={styles.emptyFeatures} aria-label="Key features">
                 <li>Build a lorebook of characters, settings, and relationships</li>
-                <li>Map plot threads, arcs, and structure across any narrative form</li>
+                <li>Map threads, arcs, and structure across any narrative form</li>
                 <li>Interview characters and analyze story health with AI assistance</li>
               </ul>
               <div className={styles.emptyCtas}>

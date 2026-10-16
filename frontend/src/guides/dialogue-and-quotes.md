@@ -27,6 +27,18 @@ In Studio mode, **Suggest speakers** asks the Assistant who says each untagged l
 
 To see it in the prose, turn on the scene's ⋯ menu › **Type and width** › **Highlight dialogue**. Lines with no speaker, and tags that name nobody, show in amber; point at a tag to fix it.
 
+## Color the lines by speaker
+
+Turn on **Color dialogue by speaker** in the scene's ⋯ menu, in **Settings › Writing**, or from the palette ({{key:palette}}). Each line someone says then sits on a soft tint of that character's color, the one on their tab and their dot on the strip, with a line of the color under it. The words stay the color of the prose, so they read as easily as the rest.
+
+It follows a line's tag, or the speaker LoreStudio worked out from the prose once the scene is saved. A line with no speaker, and a character with no color yet, stay as they are. Nothing in the text changes: it is only how the page looks to you.
+
+## Hide the tags while you write
+
+Turn on **Hide speaker tags** in the same places to keep the `<Name>` after each line out of sight. Put the cursor anywhere in a line, or on its tag, and the tag shows again so you can read or change it; move away and it hides. Point at a line to see who says it. A tag that names nobody always shows, so you can fix it.
+
+The tags are still in the text: copying a line copies its tag, and search still finds them.
+
 ## Make the quotes match
 
 Mixed straight and curly quotes are a common copy-edit note. On the Scene sheet's **Findings** page, **Quote style** counts both and makes them all one kind, telling you first how many will change. Speaker tags are never touched.

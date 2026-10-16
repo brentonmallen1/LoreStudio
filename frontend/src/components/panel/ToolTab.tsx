@@ -9,6 +9,9 @@ import DialogueTool from "./dialogue/DialogueTool";
 import NovelScene from "./scene/NovelScene";
 import { entityColor } from "./entityColor";
 import styles from "./Panel.module.css";
+import EmptyState from "../common/EmptyState";
+import { EMPTY } from "../../lib/emptyStates";
+import { sectionPath } from "../../lib/routes";
 
 /**
  * What a tool on the rail shows (doc 11, doc 24 D11): the Lorebook lists, the planning scratch
@@ -24,7 +27,7 @@ export default function ToolTab({ tool }: { tool: ToolId }) {
 }
 
 function EntityList({ tool }: { tool: "characters" | "places" | "threads" }) {
-  const { activeNode, structure, sceneCast, characters, locations, threads } = useStoryStore();
+  const { activeStory, activeNode, structure, sceneCast, characters, locations, threads } = useStoryStore();
   const { openEntity, setHighlight, tabs } = usePanelStore();
   const openIds = new Set(tabs.filter((t) => t.kind === "entity").map((t) => t.id));
   const kind = tool === "characters" ? "character" : tool === "places" ? "location" : "thread";
@@ -39,9 +42,33 @@ function EntityList({ tool }: { tool: "characters" | "places" | "threads" }) {
     <section className={styles.section}>
       <h4 className={styles.heading}>{TOOL_LABELS[tool]}</h4>
       {rows.length === 0 ? (
-        <p className={styles.empty}>Nothing here yet.</p>
+        <EmptyState
+          copy={EMPTY[tool]}
+          size="small"
+          action={
+            activeStory
+              ? {
+                  label:
+                    tool === "characters"
+                      ? "Open Characters"
+                      : tool === "places"
+                        ? "Open Places"
+                        : "Open Threads",
+                  to:
+                    tool === "threads"
+                      ? sectionPath(activeStory.id, "promises", "threads")
+                      : sectionPath(activeStory.id, "lorebook", tool),
+                }
+              : undefined
+          }
+        />
       ) : (
         <div className={styles.list}>
+          {/* What the dots are, on the page (doc 30 D8). */}
+          <p className={styles.listKey}>
+            Each dot is its color in the strip and on its tab. Point at one, or reach it with Tab, to mark its
+            scenes in the strip.
+          </p>
           {rows.map((row) => {
             const onPage = entityPresence(
               kind,
@@ -64,8 +91,14 @@ function EntityList({ tool }: { tool: "characters" | "places" | "threads" }) {
                 }}
                 onMouseEnter={() => setHighlight({ kind, id: row.id, name: row.title })}
                 onMouseLeave={() => setHighlight(null)}
+                onFocus={() => setHighlight({ kind, id: row.id, name: row.title })}
+                onBlur={() => setHighlight(null)}
               >
-                <span className={styles.tabDot} style={{ background: entityColor(kind, row.id) }} />
+                <span
+                  className={styles.tabDot}
+                  style={{ background: entityColor(kind, row.id) }}
+                  aria-hidden
+                />
                 <span className={styles.rowText}>
                   <span className={styles.rowTitle} title={row.title}>
                     {row.title}

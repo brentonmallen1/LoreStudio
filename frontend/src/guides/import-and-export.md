@@ -29,7 +29,7 @@ In Novelcrafter, export the whole story (the **full** export, a `.zip`) and drop
 
 - **The manuscript** comes in through **Review structure** as any draft does: acts, chapters, and a scene at each `* * *`. Novelcrafter's "Chapter 1: Scene 1:" numbering is taken off the titles. If it reads like a script (scene headings, character cues), **What comes over** offers to import it as a screenplay.
 - **What comes over** lists every codex entry, snippet and conversation, where each will go, and a menu to send it somewhere else. Characters, places and subplots (as threads) come over with their other names, images and links. An entry such as _Richard (Physical)_ folds into Richard's appearance; one tagged _Trope_ becomes a trope in play, and one tagged _Theme_ a theme. Snippets become notes; one called _Logline_ becomes the logline, if you have none.
-- **Decide later** is for anything with no clear home, such as lore. It waits in **Proposals** › **Imported**, where you make each one a character, a place, a note or anything else, keep it in the Compendium, or let it go. **Keep the rest in the Compendium** settles the lot at once, and one undo puts it back.
+- **Decide later** is for anything with no clear home, such as lore. It waits in **Discoveries** › **Imported**, where you make each one a character, a place, a note or anything else, keep it in the Compendium, or let it go. **Keep the rest in the Compendium** settles the lot at once, and one undo puts it back.
 - **No place in LoreStudio** names what the file holds that LoreStudio has nowhere for, such as tags on characters. It is kept in the import's record. **Not in the file** lists what Novelcrafter keeps but leaves out of its export, such as scene summaries and POV: copy those across by hand.
 
 <!-- studio -->
@@ -71,4 +71,4 @@ A screenplay exports as a script, not as prose. **Publish** shows its pages as t
 
 Options: a title page (its credit, "based on" line, contact block, draft and date are kept with the story), scene numbers in both margins for a shooting script, bold scene headings, and (CONT'D) on a cue when the same character speaks again after action. The preview follows the options, so the pages you see are the pages that export.
 
-> **Tip:** To move a whole story, notes and Lorebook included, to another copy of LoreStudio, download a snapshot from Chronicle › **Versions**, then choose **Import from a file…** there on the other copy. See [Snapshots, backups and undo](/guides/snapshots-and-backups).
+> **Tip:** To move a whole story, notes and Lorebook included, to another copy of LoreStudio, download a version from Chronicle › **Versions**, then choose **Import from a file…** there on the other copy. See [Versions, backups and undo](/guides/snapshots-and-backups).

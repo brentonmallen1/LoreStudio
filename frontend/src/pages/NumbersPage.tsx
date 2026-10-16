@@ -207,7 +207,7 @@ export default function NumbersPage({ storyId }: { storyId: string }) {
             />
           </label>
           <p>
-            A snapshot of the story, kept in Chronicle › Versions, with its numbers. Compare lists it by name.
+            A version of the story, kept in Chronicle › Versions, with its numbers. Compare lists it by name.
           </p>
         </form>
       </Modal>

@@ -1,0 +1,112 @@
+/* Start here (doc 30 D4): one tone box at the head of the Dashboard, the first lesson marked
+   with a forest disc, one forest button and a ghost to put it away. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 36rem;
+  margin-bottom: 1.75rem;
+  padding: 1.25rem 1.4rem;
+  border-radius: var(--radius-xl);
+  background: var(--color-tone);
+  color: var(--color-text);
+  font-size: var(--text-base);
+  line-height: 1.5;
+}
+
+.kicker {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-text-subtle);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-editor);
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+.text {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.topics {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0.15rem 0 0.25rem;
+  padding: 0;
+  list-style: none;
+  color: var(--color-text-muted);
+}
+
+.topic {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.topic[data-first] {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.47rem;
+  height: 1.47rem;
+  font-size: var(--text-xs);
+}
+
+.topic[data-first] .number {
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+}
+
+.more {
+  color: var(--color-text-subtle);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* The primary tier (DESIGN.md). */
+.primary {
+  height: 2.133rem;
+  padding: 0 0.95rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary:hover {
+  background: var(--color-accent-hover);
+}
+
+/* The ghost tier. */
+/* A secondary button (DESIGN.md §5), sized as the primary beside it. */
+.ghost {
+  composes: btn-secondary from global;
+  height: 2.133rem;
+  padding: 0 0.8rem;
+}
+
+.primary:focus-visible,
+.ghost:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}

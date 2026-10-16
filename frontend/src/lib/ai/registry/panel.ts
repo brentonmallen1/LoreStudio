@@ -35,10 +35,10 @@ export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
       "A collaborator focused on the current scene. Answers questions, surfaces connections, and helps you think through the scene without writing it for you.",
     contextSources: [
       "Story metadata",
-      "Scene title, synopsis & purpose",
-      "Entry/exit state",
+      "Scene title, synopsis & why it's here",
+      "How it starts and ends",
       "Characters in scene",
-      "Plot threads in scene",
+      "Threads in scene",
       "Settings mentioned",
       "Adjacent scenes",
     ],
@@ -55,7 +55,7 @@ export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
       "Full story structure",
       "All scene synopses",
       "Character profiles",
-      "Plot threads",
+      "Threads",
       "Lorebook entries",
     ],
     backendFeatureId: "scene-chat",
@@ -87,7 +87,7 @@ export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Explore alternate plot directions and consequences",
     fullDescription:
       "Helps you explore 'what if X happened instead?' scenarios, tracing the downstream effects through your story's existing threads and characters.",
-    contextSources: ["Story structure", "Plot threads", "Character motivations", "Lorebook"],
+    contextSources: ["Story structure", "Threads", "Character motivations", "Lorebook"],
     backendFeatureId: "whatif",
   },
   "session-discovery-questions": {
@@ -97,7 +97,7 @@ export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Generate questions to deepen your story understanding",
     fullDescription:
       "Generates targeted questions designed to surface gaps in your story's logic, motivation, and world: things an author should know but may not have articulated yet.",
-    contextSources: ["Story intent & premise", "Character profiles", "Plot threads", "Lorebook"],
+    contextSources: ["Story intent & premise", "Character profiles", "Threads", "Lorebook"],
     backendFeatureId: "discovery-questions",
   },
   "session-show-dont-tell": {
@@ -152,7 +152,7 @@ export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Analyze scene mood, setting, and sensory tone",
     fullDescription:
       "Examines the atmospheric qualities of a scene (lighting, sensory details, mood, and emotional tone) and offers suggestions for deepening the atmosphere.",
-    contextSources: ["Scene prose text", "Scene purpose & setting", "Story tone"],
+    contextSources: ["Scene prose text", "Why the scene is here & its setting", "Story tone"],
     backendFeatureId: "scene-atmosphere",
   },
   "interview-summary": {
@@ -161,7 +161,7 @@ export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Condense an interview into what it revealed",
     fullDescription:
-      "Summarises a character interview: new backstory, motivations uncovered, and contradictions with the profile. Compression only: nothing invented.",
+      "Summarizes a character interview: new backstory, motivations uncovered, and contradictions with the profile. Compression only: nothing invented.",
     contextSources: ["The interview transcript"],
     backendFeatureId: "interview-summary",
   },

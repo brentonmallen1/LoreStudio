@@ -1,12 +1,11 @@
-import { Download, GitCompare, RotateCcw, Trash2 } from "lucide-react";
 import type { StorySnapshot } from "../../../types";
 import { relativeTime } from "../../../utils/relativeTime";
 import DeltaSummaryLine from "./DeltaSummaryLine";
-import type { SnapshotActions } from "./SnapshotCard";
-import { formatAbsoluteDate } from "./versionsModel";
+import { VersionActions, type SnapshotActions } from "./SnapshotCard";
+import { formatAbsoluteDate, savedBy } from "./versionsModel";
 import styles from "./Versions.module.css";
 
-/** The graph view: every snapshot on one line, named ones as filled dots. */
+/** The graph view: every version on one line, the ones you saved as filled dots. */
 export default function SnapshotGraph({
   snapshots,
   onRestore,
@@ -16,16 +15,28 @@ export default function SnapshotGraph({
 }: Omit<SnapshotActions, "onRename"> & { snapshots: StorySnapshot[] }) {
   return (
     <div className={styles.graphList}>
+      {/* What the dots mean, on the page (doc 30 D8). */}
+      <div className={styles.graphKey} role="group" aria-label="Key">
+        <span className={styles.graphKeyItem}>
+          <span className={`${styles.graphDot} ${styles.graphDotNamed}`} aria-hidden />
+          Saved by you
+        </span>
+        <span className={styles.graphKeyItem}>
+          <span className={`${styles.graphDot} ${styles.graphDotAuto}`} aria-hidden />
+          Saved automatically
+        </span>
+      </div>
       {snapshots.map((snap, idx) => {
         const isNamed = !!snap.name;
+        const byYou = snap.trigger === "manual";
         const isLast = idx === snapshots.length - 1;
         return (
           <div key={snap.id} className={styles.graphRow}>
             <div className={styles.graphLine}>
-              <div className={`${styles.graphDot} ${isNamed ? styles.graphDotNamed : styles.graphDotAuto}`} />
+              <div className={`${styles.graphDot} ${byYou ? styles.graphDotNamed : styles.graphDotAuto}`} />
               {!isLast && (
                 <div
-                  className={`${styles.graphConnector} ${isNamed ? styles.graphConnectorThick : styles.graphConnectorThin}`}
+                  className={`${styles.graphConnector} ${byYou ? styles.graphConnectorThick : styles.graphConnectorThin}`}
                 />
               )}
             </div>
@@ -34,11 +45,7 @@ export default function SnapshotGraph({
                 <span className={`${styles.snapName} ${isNamed ? styles.snapNameNamed : ""}`}>
                   {snap.name ?? relativeTime(snap.created_at)}
                 </span>
-                <span
-                  className={`${styles.triggerBadge} ${snap.trigger === "manual" ? styles.triggerManual : styles.triggerAuto}`}
-                >
-                  {snap.trigger === "manual" ? "Manual" : "Auto"}
-                </span>
+                <span className={styles.savedBy}>{savedBy(snap)}</span>
               </div>
               {!isNamed && (
                 <span className={styles.snapTimestamp}>{formatAbsoluteDate(snap.created_at)}</span>
@@ -48,40 +55,14 @@ export default function SnapshotGraph({
                   <DeltaSummaryLine d={snap.delta_summary} />
                 </div>
               )}
-              <div className={styles.snapActions}>
-                <button
-                  className={styles.snapBtn}
-                  onClick={() => onExport(snap)}
-                  title="Download"
-                  aria-label="Download"
-                >
-                  <Download size={11} />
-                </button>
-                <button
-                  className={styles.snapBtn}
-                  onClick={() => onCompare(snap)}
-                  title="Compare"
-                  aria-label="Compare"
-                >
-                  <GitCompare size={11} />
-                </button>
-                <button
-                  className={styles.snapBtn}
-                  onClick={() => onRestore(snap)}
-                  title="Restore"
-                  aria-label="Restore"
-                >
-                  <RotateCcw size={11} />
-                </button>
-                <button
-                  className={`${styles.snapBtn} ${styles.snapBtnDanger}`}
-                  onClick={() => onDelete(snap)}
-                  title="Delete"
-                  aria-label="Delete"
-                >
-                  <Trash2 size={11} />
-                </button>
-              </div>
+              <VersionActions
+                snapshot={snap}
+                onRestore={onRestore}
+                onCompare={onCompare}
+                onExport={onExport}
+                onDelete={() => onDelete(snap)}
+                menuAlign="start"
+              />
             </div>
           </div>
         );

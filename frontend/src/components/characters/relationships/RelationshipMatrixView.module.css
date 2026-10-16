@@ -120,7 +120,14 @@
   background: var(--color-hover);
 }
 
-.emptyCell:hover .addHint {
+.emptyCell:focus-visible,
+.filledCell:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.emptyCell:hover .addHint,
+.emptyCell:focus-within .addHint {
   opacity: 1;
 }
 
@@ -262,4 +269,11 @@
   font-size: 0.82rem;
   padding: 2rem;
   text-align: center;
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .addHint {
+    opacity: 1;
+  }
 }

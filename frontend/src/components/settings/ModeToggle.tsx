@@ -2,20 +2,21 @@ import { useState } from "react";
 import { setMode, useMode, type UIMode } from "../../lib/mode";
 import styles from "../../pages/Settings.module.css";
 
+/** The same two answers the welcome asks (doc 30 D4), in the same words. */
 const OPTIONS: { value: UIMode; label: string; hint: string }[] = [
   {
     value: "writer",
-    label: "Writer",
-    hint: "Manuscript, structure, notes, dialogue tools, checks, export and backups. No AI features are shown.",
+    label: "Just me and my writing",
+    hint: "Writer mode. No AI anywhere. The checks, counts and organizing still work, all on this computer.",
   },
   {
     value: "studio",
-    label: "Studio",
-    hint: "Everything, including the AI assistant, analyses and worldbuilding depth.",
+    label: "With an Assistant to ask",
+    hint: "Studio mode. An AI you run yourself can answer questions about your story and read drafts. It never writes your prose. Needs a one-time setup.",
   },
 ];
 
-/** Writer / Studio mode (per account). */
+/** Settings › Mode: Writer or Studio, per account (doc 30 D4 moved it out of Appearance). */
 export default function ModeToggle() {
   const mode = useMode();
   const [saving, setSaving] = useState(false);
@@ -31,31 +32,23 @@ export default function ModeToggle() {
   }
 
   return (
-    <div className={styles.settingGroup}>
-      <p className={styles.settingGroupLabel}>Mode</p>
-      <div className={styles.fieldRow} role="radiogroup" aria-label="Interface mode">
-        {OPTIONS.map((o) => (
-          <label
-            key={o.value}
-            className={styles.label}
-            style={{ display: "flex", gap: "0.5rem", alignItems: "flex-start" }}
-          >
-            <input
-              type="radio"
-              name="ui-mode"
-              value={o.value}
-              checked={mode === o.value}
-              disabled={saving}
-              onChange={() => choose(o.value)}
-            />
-            <span>
-              <strong>{o.label}</strong>
-              <br />
-              <span className={styles.paramHint}>{o.hint}</span>
-            </span>
-          </label>
-        ))}
-      </div>
+    <div className={styles.modeChoices} role="radiogroup" aria-label="Do you want the Assistant?">
+      {OPTIONS.map((o) => (
+        <label key={o.value} className={styles.modeChoice} data-on={mode === o.value || undefined}>
+          <input
+            type="radio"
+            name="ui-mode"
+            value={o.value}
+            checked={mode === o.value}
+            disabled={saving}
+            onChange={() => choose(o.value)}
+          />
+          <span className={styles.modeChoiceText}>
+            <span className={styles.modeChoiceLabel}>{o.label}</span>
+            <span className={styles.paramHint}>{o.hint}</span>
+          </span>
+        </label>
+      ))}
     </div>
   );
 }

@@ -100,8 +100,8 @@ export default function CompendiumCreateDialog({ storyId, editing, onClose, onCr
     !loading && (tab === "note" ? !!title.trim() : tab === "url" ? !!url.trim() : !!selectedAssetId);
 
   const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-    { id: "note", label: "Note", icon: FileText },
-    { id: "url", label: "URL", icon: Link },
+    { id: "note", label: "Research note", icon: FileText },
+    { id: "url", label: "Link", icon: Link },
     { id: "document", label: "Document", icon: File },
   ];
 
@@ -109,7 +109,7 @@ export default function CompendiumCreateDialog({ storyId, editing, onClose, onCr
     <Modal
       isOpen
       onClose={onClose}
-      title={isEditing ? "Edit entry" : "Add to Compendium"}
+      title={isEditing ? "Edit research" : "Add research"}
       size="md"
       footer={
         <div className={styles.footer}>
@@ -143,7 +143,7 @@ export default function CompendiumCreateDialog({ storyId, editing, onClose, onCr
         {/* URL input shown first for URL tab */}
         {tab === "url" && !isEditing && (
           <div className={styles.field}>
-            <label className={styles.label}>URL *</label>
+            <label className={styles.label}>Link *</label>
             <input
               className={styles.input}
               type="url"
@@ -220,10 +220,10 @@ export default function CompendiumCreateDialog({ storyId, editing, onClose, onCr
           </div>
         )}
 
-        {/* URL edit field (when editing existing URL) */}
+        {/* The link, when editing one */}
         {tab === "url" && isEditing && (
           <div className={styles.field}>
-            <label className={styles.label}>URL</label>
+            <label className={styles.label}>Link</label>
             <input className={styles.input} type="url" value={url} onChange={(e) => setUrl(e.target.value)} />
           </div>
         )}
@@ -253,10 +253,10 @@ export default function CompendiumCreateDialog({ storyId, editing, onClose, onCr
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Notes</label>
+          <label className={styles.label}>Why it matters</label>
           <textarea
             className={`${styles.input} ${styles.textareaSm}`}
-            placeholder="Why is this relevant to your story?"
+            placeholder="What it tells you about your story"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={2}

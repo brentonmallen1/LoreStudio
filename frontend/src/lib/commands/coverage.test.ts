@@ -69,6 +69,7 @@ describe("command palette coverage", () => {
     ["story health", "nav-findings"],
     ["discoveries", "nav-proposals"],
     ["codex review", "nav-proposals"],
+    ["proposals", "nav-proposals"],
   ])("finds %s", (query, id) => {
     useStoryStore.setState({ activeStory: { id: "s1" } as Story });
     const nav = commandRegistry
@@ -128,6 +129,16 @@ describe("command palette coverage", () => {
   it("offers no Assistant tool outside a story", () => {
     window.location.pathname = "/";
     expect(commandRegistry.search("coach").filter((a) => a.group === "AI")).toEqual([]);
+  });
+
+  it("turns the prose's dialogue choices on and off, as Settings › Writing and the editor's ⋯ do", () => {
+    for (const id of [
+      "prose-speaker-colors-on",
+      "prose-speaker-colors-off",
+      "prose-hide-speaker-tags",
+      "prose-show-speaker-tags",
+    ])
+      expect(ids).toContain(id);
   });
 
   it("route and section ids are unique", () => {

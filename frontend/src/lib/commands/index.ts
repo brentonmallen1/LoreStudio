@@ -34,6 +34,7 @@ import "./sessions";
 import "./appearance";
 import "./series";
 import "./jobs";
+import "./prose";
 import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
 import { toolsApi } from "../../api/tools";
 import { STORY_ROUTES, sectionModes, sectionPath, storyPath } from "../routes";
@@ -415,8 +416,21 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "editor-mice-guide",
-  label: "MICE Quotient guide",
-  keywords: ["mice", "milieu", "idea", "character", "event", "guide", "quotient", "threads"],
+  label: "Kinds of thread guide (MICE)",
+  keywords: [
+    "mice",
+    "milieu",
+    "idea",
+    "character",
+    "event",
+    "guide",
+    "quotient",
+    "threads",
+    "place",
+    "question",
+    "change",
+    "disruption",
+  ],
   icon: BookOpen,
   group: "Editor",
   when: () => !!useStoryStore.getState().activeNode,

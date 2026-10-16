@@ -53,8 +53,8 @@ export default function ColourModePicker({ mode, onChange, open, setOpen, line, 
         className={`${styles.modeBtn} ${wide ? styles.modeBtnWide : ""} ${open ? styles.modeBtnOn : ""}`}
         onClick={() => setOpen(!open)}
         aria-expanded={open}
-        aria-label={`Colour the stops by: ${current.label}`}
-        title={`Colour the stops by: ${current.label}`}
+        aria-label={`Color the stops by: ${current.label}`}
+        title={`Color the stops by: ${current.label}`}
       >
         <span className={styles.modeSwatches}>
           {swatchesOf(mode).map((c, i) => (
@@ -70,9 +70,9 @@ export default function ColourModePicker({ mode, onChange, open, setOpen, line, 
         <div
           className={`${styles.menu} ${wide ? styles.menuBelow : ""}`}
           role="menu"
-          aria-label="Colour the stops by"
+          aria-label="Color the stops by"
         >
-          <div className={styles.menuHeader}>Colour the stops by</div>
+          <div className={styles.menuHeader}>Color the stops by</div>
           {COLOUR_MODES.map((m) => (
             <button
               key={m.id}

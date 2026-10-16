@@ -49,14 +49,17 @@ export function deltaDetailEntries(d: SnapshotDeltaSummary): [string, string][] 
   );
 }
 
-/** "3 snapshots · 1 auto backup" — the auto part only when there are any. */
+/** "3 saved by you · 1 saved automatically": the automatic part only when there are any. */
 export function versionsSubtitle(snapshots: StorySnapshot[]): string {
-  const snapshotCount = snapshots.filter((s) => s.trigger === "manual").length;
-  const backupCount = snapshots.filter((s) => s.trigger === "auto").length;
-  return (
-    `${snapshotCount} snapshot${snapshotCount !== 1 ? "s" : ""}` +
-    (backupCount > 0 ? ` · ${backupCount} auto backup${backupCount !== 1 ? "s" : ""}` : "")
-  );
+  const byYou = snapshots.filter((s) => s.trigger === "manual").length;
+  const auto = snapshots.filter((s) => s.trigger === "auto").length;
+  if (byYou + auto === 0) return "None saved yet";
+  return `${byYou} saved by you` + (auto > 0 ? ` · ${auto} saved automatically` : "");
+}
+
+/** Who saved a version, in words (doc 30 D8: not a Manual or Auto badge). */
+export function savedBy(snapshot: Pick<StorySnapshot, "trigger">): string {
+  return snapshot.trigger === "manual" ? "Saved by you" : "Saved automatically";
 }
 
 /** The two snapshots of a comparison, older first. */
@@ -67,7 +70,7 @@ export function orderByAge(a: StorySnapshot, b: StorySnapshot): [StorySnapshot, 
 /** The filename a `Content-Disposition` header names, or the default download name. */
 export function filenameFromDisposition(header: string | null): string {
   const match = (header ?? "").match(/filename="([^"]+)"/);
-  return match ? match[1] : "snapshot.lorestudio.zip";
+  return match ? match[1] : "version.lorestudio.zip";
 }
 
 export interface SnapshotGroup {
@@ -119,10 +122,10 @@ export const INTERVAL_OPTIONS = [
 ];
 
 export const MAX_COUNT_OPTIONS = [
-  { value: 48, label: "48 backups" },
-  { value: 96, label: "96 backups" },
-  { value: 200, label: "200 backups" },
-  { value: 500, label: "500 backups" },
+  { value: 48, label: "48 versions" },
+  { value: 96, label: "96 versions" },
+  { value: 200, label: "200 versions" },
+  { value: 500, label: "500 versions" },
   { value: null, label: "Unlimited" },
 ];
 

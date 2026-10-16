@@ -159,13 +159,14 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
         <div className={styles.actions}>
           <AIOnly>
             {kept.answer && keptIdeas.length > 0 ? (
-              <button className={styles.discoverBtn} onClick={() => setReviewing(true)}>
+              <button className={styles.discoverBtn} data-ai onClick={() => setReviewing(true)}>
                 <Orbit size={13} />
                 Review {keptIdeas.length} {keptIdeas.length === 1 ? "idea" : "ideas"}
               </button>
             ) : (
               <button
                 className={styles.discoverBtn}
+                data-ai
                 onClick={handleDiscoverProfile}
                 disabled={discovering}
                 title="Use AI to suggest relationships based on character profiles"

@@ -44,7 +44,7 @@ export default function ContextOptionsPanel({ options, onChange, onClose }: Prop
         onChange={() => toggle("include_characters")}
       />
       <ToggleRow
-        label="Plot threads"
+        label="Threads"
         hint="Active threads touching this scene"
         checked={opts.include_threads}
         onChange={() => toggle("include_threads")}

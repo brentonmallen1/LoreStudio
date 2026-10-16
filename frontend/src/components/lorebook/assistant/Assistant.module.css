@@ -36,9 +36,7 @@
 
 .trigger:focus-visible,
 .menuItem:focus-visible,
-.chip:focus-visible,
-.talk:focus-visible,
-.quiet:focus-visible {
+.chip:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
@@ -231,41 +229,17 @@
   gap: 0.35rem;
 }
 
-.talk,
-.quiet {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  height: 1.867rem;
-  padding: 0 0.65rem;
-  border: none;
-  border-radius: var(--radius);
-  font: inherit;
-  font-size: var(--text-base);
-  cursor: pointer;
+/* Secondary buttons (DESIGN.md §5): pressable at rest, the Feather in violet. */
+.talk {
+  composes: btn-secondary from global;
 }
 
-.talk {
-  background: var(--color-surface);
-  color: var(--color-text);
+.quiet {
+  composes: btn-secondary from global;
 }
 
 .talk svg {
   color: var(--color-ai);
-}
-
-.talk:hover {
-  background: var(--color-hover);
-}
-
-.quiet {
-  background: transparent;
-  color: var(--color-text-muted);
-}
-
-.quiet:hover:not(:disabled) {
-  background: var(--color-hover);
-  color: var(--color-text);
 }
 
 .quiet:disabled {

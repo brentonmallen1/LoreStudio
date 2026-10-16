@@ -4,6 +4,8 @@ import {
   BookMarked,
   ClipboardList,
   Cpu,
+  EyeOff,
+  Highlighter,
   ImageIcon,
   Info,
   Layers,
@@ -24,6 +26,7 @@ import { useStoryFormat } from "../../lib/storyFormat";
 import { sceneSheetPath } from "../../lib/scene/glance";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
+import { useProseViewStore } from "../../stores/proseViewStore";
 import type { WritingGuideTab } from "../help/WritingGuidesModal";
 import AIFeatureInfoModal from "../ai/AIFeatureInfoModal";
 import FontSettings from "../story/FontSettings";
@@ -60,6 +63,7 @@ export default function EditorMoreMenu(p: Props) {
   const format = useStoryFormat();
   const script = format !== "prose";
   const { elementGuides, setElementGuides } = useUIStore();
+  const { speakerColors, setSpeakerColors, hideSpeakerTags, setHideSpeakerTags } = useProseViewStore();
   const wrap = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const ai = useAIAvailable();
@@ -172,13 +176,33 @@ export default function EditorMoreMenu(p: Props) {
             // A setting under Show changes the page in place, and the menu stays open to see it.
             onSelect={() => p.onNotesView(p.notesView === "cards" ? "dots" : "cards")}
           />
+          {!script && (
+            <Item
+              label="Color dialogue by speaker"
+              icon={Highlighter}
+              checked={speakerColors}
+              hint={speakerColors ? "On" : "Off"}
+              title="Each line on a soft tint of its speaker's color, with a line under it"
+              onSelect={() => setSpeakerColors(!speakerColors)}
+            />
+          )}
+          {!script && (
+            <Item
+              label="Hide speaker tags"
+              icon={EyeOff}
+              checked={hideSpeakerTags}
+              hint={hideSpeakerTags ? "On" : "Off"}
+              title="The <Name> after a line shows only while the cursor is in that line; point at the line to see who says it"
+              onSelect={() => setHideSpeakerTags(!hideSpeakerTags)}
+            />
+          )}
           {script && (
             <Item
               label="Element guides"
               icon={Palette}
               checked={elementGuides}
               hint={elementGuides ? "On" : "Off"}
-              title="Each element's words in a colour of their own, its name beside the line you are writing, and a hint on an empty line"
+              title="Each element's words in a color of their own, its name beside the line you are writing, and a hint on an empty line"
               onSelect={() => setElementGuides(!elementGuides)}
             />
           )}
