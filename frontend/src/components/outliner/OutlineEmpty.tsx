@@ -55,8 +55,9 @@ function FirstLine({ storyId, onStarted }: { storyId: string; onStarted: (sceneI
         id = (await structureApi.start(storyId)).start_node_id;
         await reload();
       }
-      await save(id, { title: title.trim() });
+      // Started first, so the list that replaces this has the next line ready to type.
       onStarted(id);
+      await save(id, { title: title.trim() });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "The Outline could not be started.");
       setBusy(false);

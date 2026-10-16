@@ -60,44 +60,13 @@
   color: var(--color-bg);
 }
 
-/* ── Buttons: the secondary tier in content (a text action on vellum) and the ghost ── */
-
-.secondary,
-.ghost {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  height: 1.867rem;
-  padding: 0 0.7rem;
-  border: none;
-  border-radius: var(--radius);
-  font: inherit;
-  font-size: var(--text-sm);
-  text-decoration: none;
-  cursor: pointer;
-}
+/* ── Text actions in content: the secondary button (DESIGN.md, the Pressable Rule) ── */
 
 .secondary {
-  background: var(--color-surface-2);
-  color: var(--color-text);
-}
-
-.secondary:hover {
-  background: var(--color-surface-3);
-}
-
-.ghost {
-  background: transparent;
-  color: var(--color-text-muted);
-}
-
-.ghost:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
+  composes: btn-secondary from global;
 }
 
 .secondary:focus-visible,
-.ghost:focus-visible,
 .chip:focus-visible,
 .fold:focus-visible,
 .more:focus-visible,
@@ -382,15 +351,6 @@
   gap: 0.4rem;
 }
 
-/* The unfolded scene is the tone; its secondary button sits on the paper. */
-.row[data-open] .secondary {
-  background: var(--color-surface);
-}
-
-.row[data-open] .secondary:hover {
-  background: var(--color-surface-3);
-}
-
 .notice {
   min-height: 1.2rem;
   margin: 0.4rem 0 0;
@@ -516,24 +476,8 @@
 }
 
 .addCard {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
+  composes: btn-secondary from global;
   align-self: flex-start;
-  height: 1.733rem;
-  padding: 0 0.5rem;
-  border: none;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: var(--text-sm);
-  cursor: pointer;
-}
-
-.addCard:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
 }
 
 .addCardInput,
@@ -637,15 +581,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-}
-
-/* On the tone box the secondary button sits on the paper. */
-.emptyBox .secondary {
-  background: var(--color-surface);
-}
-
-.emptyBox .secondary:hover {
-  background: var(--color-surface-3);
 }
 
 .emptyExample {

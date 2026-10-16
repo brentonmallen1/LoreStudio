@@ -78,7 +78,7 @@ function OutlineFull({ storyId }: { storyId: string }) {
       <TimelineView storyId={storyId} />
     </Suspense>
   ) : (
-    <OutlineList storyId={storyId} startAfter={started} />
+    <OutlineList key={started ?? "list"} storyId={storyId} startAfter={started} />
   );
 
   return (

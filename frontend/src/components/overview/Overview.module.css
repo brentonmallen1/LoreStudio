@@ -216,23 +216,11 @@
 
 /* The lead is already the vellum, so the hover ground steps once deeper. */
 
-/* The next step's second way (doc 29 D8): a text action that is visibly a button. The lead
-   is already the vellum, so its ground is the paper, a step deeper under the pointer. */
+/* The next step's second way (doc 29 D8): the secondary button, on the paper the lead sets. */
 .secondary {
-  display: inline-flex;
-  align-items: center;
+  composes: btn-secondary from global;
   height: 2.267rem;
   padding: 0 0.9rem;
-  border-radius: var(--radius);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  text-decoration: none;
-}
-
-.secondary:hover {
-  background: var(--color-surface-3);
 }
 
 .secondary:focus-visible,

@@ -162,7 +162,7 @@ function SceneDetails({ storyId, nodeId }: { storyId: string; nodeId: string }) 
         <Link to={`/stories/${storyId}/write/${node.id}`} className={styles.secondary}>
           <PenLine size={13} aria-hidden /> Write this scene
         </Link>
-        <Link to={sceneSheetPath(storyId, node.id)} className={styles.ghost}>
+        <Link to={sceneSheetPath(storyId, node.id)} className={styles.secondary}>
           Scene sheet
         </Link>
       </div>
