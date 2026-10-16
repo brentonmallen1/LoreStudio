@@ -87,8 +87,8 @@ export default function StoryStrip() {
           <button
             className={styles.iconBtn}
             onClick={cycle}
-            aria-label="Expand the story strip"
-            title={`Expand (${formatCombo(SHORTCUTS.cycleStrip.combo)})`}
+            aria-label="Widen the strip"
+            title={`Widen the strip, to name every part (${formatCombo(SHORTCUTS.cycleStrip.combo)})`}
           >
             <ChevronsRight size={16} />
           </button>
@@ -99,8 +99,8 @@ export default function StoryStrip() {
           <button
             className={styles.iconBtn}
             onClick={() => setStripWidth("strip")}
-            aria-label="Collapse to the line"
-            title={`Collapse to the line (${formatCombo(SHORTCUTS.cycleStrip.combo)})`}
+            aria-label="Narrow the strip"
+            title={`Narrow the strip, to a stop for each scene (${formatCombo(SHORTCUTS.cycleStrip.combo)})`}
           >
             <ChevronsLeft size={16} />
           </button>

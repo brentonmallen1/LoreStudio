@@ -18,7 +18,7 @@ export const COLOUR_MODES = [
   { id: "none", label: "Nothing, just position", short: "Plain", sub: "Behind you solid, ahead hollow" },
   { id: "cast", label: "Who's on the page", short: "Who", sub: "The character each scene is mostly about" },
   { id: "pov", label: "Whose eyes", short: "POV", sub: "The point-of-view character, planned scenes too" },
-  { id: "threads", label: "Plot threads", short: "Threads", sub: "Every thread the scene carries" },
+  { id: "threads", label: "Threads", short: "Threads", sub: "Every thread the scene carries" },
   { id: "status", label: "Draft status", short: "Status", sub: "Planned, draft, revised, final" },
   { id: "beat", label: "Story beat", short: "Beats", sub: "The beat sheet beat it carries" },
   { id: "findings", label: "Findings", short: "Findings", sub: "What needs your eye, worst first" },
@@ -335,7 +335,7 @@ export function stripPx(width: StripWidth, expandedPx: number): number {
   return width === "strip" ? COLLAPSED_PX : clampStripPx(expandedPx);
 }
 
-/** Collapse to the line, or expand to the outline. */
+/** Narrow the strip, or widen it. */
 export function toggleStrip(width: StripWidth): StripWidth {
   return width === "strip" ? "scenes" : "strip";
 }

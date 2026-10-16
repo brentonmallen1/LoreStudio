@@ -13,10 +13,10 @@ const ENTITY_LABEL: Record<string, string> = {
   structure_node: "Structure",
   character: "Character",
   character_relationship: "Relationship",
-  outline_item: "Outline",
-  outline: "Outline",
+  outline_item: "Beat board",
+  outline: "Beat board",
   story: "Story",
-  location: "Location",
+  location: "Place",
   note: "Note",
   todo: "To-do",
   culture: "Culture",
@@ -27,8 +27,8 @@ const ENTITY_LABEL: Record<string, string> = {
   compendium_entry: "Compendium",
   compendium_attachment: "Compendium",
   twist: "Twist",
-  plot_thread: "Plot thread",
-  plot_thread_appearance: "Plot thread",
+  plot_thread: "Thread",
+  plot_thread_appearance: "Thread",
 };
 
 interface Batch {
@@ -156,14 +156,14 @@ export default function ChangesView({ storyId }: { storyId: string }) {
           <button
             className={styles.btn}
             onClick={() => run("undo")}
-            title="Undo the latest change from any tab"
+            title="Undo the latest change, even one made in another window"
           >
             <Undo2 size={13} /> Undo latest
           </button>
           <button
             className={styles.btn}
             onClick={() => run("redo")}
-            title="Redo the latest undo from any tab"
+            title="Redo the latest undo, even one made in another window"
           >
             <Redo2 size={13} /> Redo
           </button>
@@ -189,7 +189,11 @@ export default function ChangesView({ storyId }: { storyId: string }) {
               {b.kind === "content" && <span className={styles.count}> · typing, undone in the scene</span>}
             </span>
             <span className={styles.meta}>
-              {b.client_id && b.client_id === myClient ? "this tab" : b.client_id ? "another tab" : ""}
+              {b.client_id && b.client_id === myClient
+                ? "in this window"
+                : b.client_id
+                  ? "in another window"
+                  : ""}
               {b.created_at ? ` · ${formatRelative(b.created_at)}` : ""}
             </span>
             {canUndo(b) ? (

@@ -200,7 +200,7 @@ function Footer({
           Settings
         </Link>
         <span className={styles.spacer} />
-        <span className={styles.seg} role="group" aria-label="Colour mode">
+        <span className={styles.seg} role="group" aria-label="Color mode">
           {COLOUR_MODES.map(({ value, label, Icon }) => (
             <button
               key={value}

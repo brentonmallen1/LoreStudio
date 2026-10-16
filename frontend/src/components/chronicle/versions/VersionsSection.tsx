@@ -85,11 +85,11 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
 
   async function handleCreate(name: string) {
     setCreating(true);
-    await attempt("Creating the snapshot", async () => {
+    await attempt("Saving the version", async () => {
       const snap = await api.createSnapshot(storyId, name || undefined);
       setSnapshots((prev) => [snap, ...prev]);
       closeDialog();
-      toast.success("Snapshot created");
+      toast.success("Version saved");
     });
     setCreating(false);
   }
@@ -98,17 +98,17 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
     closeDialog();
     await attempt("Restoring", async () => {
       await api.restoreSnapshot(storyId, snapshot.id, safetyBackup);
-      toast.success("Story restored to this snapshot");
+      toast.success("Story restored to this version");
       void load();
     });
   }
 
   async function handleDelete(snapshot: StorySnapshot) {
     closeDialog();
-    await attempt("Deleting the snapshot", async () => {
+    await attempt("Deleting the version", async () => {
       await api.deleteSnapshot(storyId, snapshot.id);
       setSnapshots((prev) => prev.filter((s) => s.id !== snapshot.id));
-      toast.success("Snapshot deleted");
+      toast.success("Version deleted");
     });
   }
 
@@ -148,7 +148,7 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
 
   async function handleSettingsChange(patch: Partial<BackupSettings>) {
     if (!settings) return;
-    await attempt("Saving the backup settings", async () => {
+    await attempt("Saving the settings", async () => {
       setSettings(await api.updateBackupSettings(storyId, patch));
     });
   }
@@ -205,12 +205,12 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
         primary={
           noneSaved
             ? undefined
-            : { label: "Create snapshot", icon: Plus, onClick: () => setDialog({ type: "create" }) }
+            : { label: "Save a version", icon: Plus, onClick: () => setDialog({ type: "create" }) }
         }
         more={[
           { label: "Import from a file…", icon: Upload, onSelect: () => importRef.current?.click() },
           {
-            label: "Backup settings…",
+            label: "Automatic versions…",
             icon: Settings,
             onSelect: () => setSettingsOpen(true),
             disabled: !settings,
@@ -229,8 +229,8 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
       {pendingImportFile && (
         <div className={styles.importConfirm}>
           <span className={styles.importConfirmText}>
-            Import <strong>{pendingImportFile.name}</strong>? The current story state will be saved as a
-            backup first.
+            Import <strong>{pendingImportFile.name}</strong>? The story as it is now is saved as a version
+            first.
           </span>
           <div className={styles.importConfirmActions}>
             <button className={styles.importConfirmYes} onClick={doImport}>
@@ -292,7 +292,7 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
         <Modal
           isOpen
           onClose={closeDialog}
-          title="Delete this snapshot?"
+          title="Delete this version?"
           size="sm"
           footer={
             <>
@@ -306,7 +306,7 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
           }
         >
           <p className={styles.dialogBody}>
-            {dialog.snapshot.name ? `“${dialog.snapshot.name}”` : "This snapshot"} goes for good; the story as
+            {dialog.snapshot.name ? `“${dialog.snapshot.name}”` : "This version"} goes for good; the story as
             it is now is not touched.
           </p>
         </Modal>

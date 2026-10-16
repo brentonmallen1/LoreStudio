@@ -25,19 +25,21 @@ export default function BackupDefaultsCard() {
 
   return (
     <div className={styles.card}>
+      <h3 className={styles.settingGroupLabel}>Versions of each story</h3>
       <p className={styles.sectionHint}>
-        Default settings applied to new stories. Override per-story on the Versions page.
+        A version is a saved copy of one story, kept in its Chronicle › Versions. These are the settings a new
+        story starts with; a story changes its own under Versions › ⋯ › Automatic versions.
       </p>
       {backupDefaults ? (
         <div className={styles.backupForm}>
           <label className={styles.toggleRow}>
             <div className={styles.toggleLabel}>
-              <span className={styles.label}>Enable automatic backups by default</span>
+              <span className={styles.label}>Save versions automatically</span>
             </div>
             <label className={styles.toggle}>
               <input
                 type="checkbox"
-                aria-label="Enable automatic backups by default"
+                aria-label="Save versions automatically"
                 checked={backupDefaults.auto_enabled}
                 onChange={(e) => handleBackupDefaultsChange({ auto_enabled: e.target.checked })}
               />
@@ -45,9 +47,9 @@ export default function BackupDefaultsCard() {
             </label>
           </label>
           <div className={styles.fieldRow}>
-            <label className={styles.label}>Backup frequency</label>
+            <label className={styles.label}>How often</label>
             <select
-              aria-label="Backup frequency"
+              aria-label="How often"
               className={styles.select}
               value={backupDefaults.interval_minutes}
               onChange={(e) => handleBackupDefaultsChange({ interval_minutes: Number(e.target.value) })}
@@ -61,7 +63,7 @@ export default function BackupDefaultsCard() {
             </select>
           </div>
           <div className={styles.fieldRow}>
-            <label className={styles.label}>Keep at most (auto backups)</label>
+            <label className={styles.label}>Keep at most</label>
             <select
               aria-label="Keep at most"
               className={styles.select}
@@ -72,17 +74,17 @@ export default function BackupDefaultsCard() {
                 })
               }
             >
-              <option value={48}>48 backups</option>
-              <option value={96}>96 backups</option>
-              <option value={200}>200 backups</option>
-              <option value={500}>500 backups</option>
+              <option value={48}>48 versions</option>
+              <option value={96}>96 versions</option>
+              <option value={200}>200 versions</option>
+              <option value={500}>500 versions</option>
               <option value="">Unlimited</option>
             </select>
           </div>
           <div className={styles.fieldRow}>
-            <label className={styles.label}>Delete backups older than</label>
+            <label className={styles.label}>Delete automatic versions older than</label>
             <select
-              aria-label="Delete backups older than"
+              aria-label="Delete automatic versions older than"
               className={styles.select}
               value={backupDefaults.max_age_days ?? ""}
               onChange={(e) =>

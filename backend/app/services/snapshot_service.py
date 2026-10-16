@@ -784,7 +784,7 @@ def restore_snapshot(
 
     if create_safety_backup:
         settings = _get_or_create_settings(story_id, db)
-        create_snapshot(story_id, db, trigger="auto", name="Pre-restore backup", settings=settings, force=True)
+        create_snapshot(story_id, db, trigger="auto", name="Before restoring", settings=settings, force=True)
 
     state = resolve_snapshot_data(snapshot, db)
     _delete_story_content(story_id, db, state)

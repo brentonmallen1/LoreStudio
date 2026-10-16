@@ -181,8 +181,8 @@ function AssetCard({
           <button
             onClick={() => navigator.clipboard.writeText(fileUrl)}
             className={styles.actionBtn}
-            title="Copy URL"
-            aria-label="Copy URL"
+            title="Copy link"
+            aria-label="Copy link"
           >
             <Copy size={12} />
           </button>

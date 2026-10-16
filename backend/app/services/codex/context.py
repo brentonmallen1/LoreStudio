@@ -416,10 +416,10 @@ def _blocks_for(packet: dict) -> list[Block]:
         blocks += [
             Block("scene.metadata", f"Scene: {scene.get('title', '')}", True, _tokens(scene.get("title"))),
             Block("scene.synopsis", "Scene synopsis", bool(scene.get("synopsis")), _tokens(scene.get("synopsis"))),
-            Block("scene.purpose", "Scene purpose", bool(scene.get("purpose")), _tokens(scene.get("purpose"))),
+            Block("scene.purpose", "Why the scene is here", bool(scene.get("purpose")), _tokens(scene.get("purpose"))),
             Block(
                 "scene.entry_exit",
-                "Entry/exit state",
+                "How it starts and ends",
                 bool(scene.get("entry_state") or scene.get("exit_state")),
                 _tokens(scene.get("entry_state")) + _tokens(scene.get("exit_state")),
             ),

@@ -42,7 +42,7 @@ export default function Rotation({
     <section className={styles.section} aria-labelledby="numbers-pov">
       <SectionHeading section="pov" title="Whose eyes" />
       <p className={styles.lede}>
-        Each scene in the colour of the character it is seen through: the scene&rsquo;s own point of view, or
+        Each scene in the color of the character it is seen through: the scene&rsquo;s own point of view, or
         the book&rsquo;s when it has none. Planned scenes count. Open a square for its scene.
       </p>
       <div className={styles.score} style={{ "--cols": scenes.length } as React.CSSProperties}>

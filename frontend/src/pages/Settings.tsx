@@ -165,6 +165,10 @@ export default function SettingsPage() {
               </section>
               <section className={styles.section} id="codex">
                 <h2 className={styles.sectionLabel}>Codex</h2>
+                <p className={styles.sectionHint}>
+                  The Codex is the Assistant's index of your stories: the Connections map, and every passage
+                  ready to be found by meaning.
+                </p>
                 <CodexSection />
               </section>
               <AdvancedSection model={model} />
@@ -172,7 +176,7 @@ export default function SettingsPage() {
           )}
 
           <section className={styles.section} id="backups">
-            <h2 className={styles.sectionLabel}>Backups</h2>
+            <h2 className={styles.sectionLabel}>Versions and backups</h2>
             <BackupDefaultsCard />
             <DatabaseBackupCard isAdmin={!!user?.is_admin} />
           </section>

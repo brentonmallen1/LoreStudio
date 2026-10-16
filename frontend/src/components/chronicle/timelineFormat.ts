@@ -47,14 +47,32 @@ export function clockTime(iso: string): string {
 
 // ── Activity rows ──────────────────────────────────────────────────────
 
+/** Names for the checks made on this machine, which are not Assistant features. */
+const LOCAL_LABELS: Record<string, string> = {
+  "prose-analysis": "Prose check",
+  "editorial-consistency": "Tense and point of view",
+  "entity-suggestions": "Name scan",
+  "scene-summary-batch": "Scene summaries",
+};
+
+/** What to call a check or an Assistant feature: its own name, never its id. */
+export function featureLabel(id: string): string {
+  return LOCAL_LABELS[id] ?? aiFeatureLabel(id);
+}
+
+/** Older rows carry no feature: name them by what kind of row they are. */
+const EVENT_LABELS: Record<string, string> = {
+  analysis_run: "A check",
+  editorial_pass: "Editorial pass",
+};
+
 /** The feature's name from the backend table; older rows fall back to the event type. */
 export function logTitle(log: ActivityLog): string {
   const feature = log.metadata_?.feature as string | undefined;
-  if (feature) return aiFeatureLabel(feature);
-  return log.event_type
-    .replace(/^ai_/, "")
-    .replace(/_/g, " ")
-    .replace(/^\w/, (c) => c.toUpperCase());
+  if (feature) return featureLabel(feature);
+  if (EVENT_LABELS[log.event_type]) return EVENT_LABELS[log.event_type];
+  if (log.event_type.startsWith("ai_")) return aiFeatureLabel(log.event_type.slice(3).replace(/_/g, "-"));
+  return "Something LoreStudio did";
 }
 
 /**
@@ -88,9 +106,16 @@ export function callProblem(log: ActivityLog): string | null {
   const status = log.metadata_?.status as string | undefined;
   if (!status || status === "ok") return null;
   return (
-    { error: "Failed", cancelled: "Stopped", "schema-fallback": "Fell back", "invalid-json": "Bad JSON" }[
-      status
-    ] ?? status
+    (
+      {
+        error: "Failed",
+        cancelled: "Stopped",
+        // The model would not keep to the answer's form, so it answered without one.
+        "schema-fallback": "Loose answer",
+        "invalid-json": "Unreadable answer",
+        "schema-invalid": "Answer didn't fit",
+      } as Record<string, string>
+    )[status] ?? "Something went wrong"
   );
 }
 
@@ -114,6 +139,40 @@ export const JOB_STATUS_TEXT: Record<string, string> = {
   cancelled: "Stopped",
 };
 
+/**
+ * Every kind of job, by name. A job carries the label it was queued with ("Pacing check",
+ * "Measuring the book"); this names one whose label is missing, and the older jobs whose label
+ * said "Codex", a word the writer no longer meets outside Settings (doc 30 D7).
+ */
+export const JOB_KIND_LABELS: Record<string, string> = {
+  "local-checks": "Checking the prose",
+  "codex-sync": "Building Connections",
+  "codex-suggest": "Who's here and what's established",
+  "codex-index": "Indexing for the Assistant",
+  check: "A check",
+  "numbers-reading": "Measuring the book",
+  "numbers-backfill": "Measuring earlier versions",
+  "scene-summaries": "Scene summaries",
+  "editorial-pass": "Editorial pass",
+  "import-enrich": "Reading an import",
+  "auto-db-backup": "Backing up everything",
+  "auto-update-check": "Checking for a new LoreStudio",
+  "auto-prune-undo": "Trimming the undo history",
+  "auto-prune-payloads": "Deleting old AI call records",
+  "auto-prune-jobs": "Forgetting old automatic jobs",
+};
+
+/** What to call a job: its label, or its kind's name, never a raw key. */
+export function jobName(job: Pick<AIJob, "kind" | "label">): string {
+  const label = (job.label ?? "").trim();
+  const kind = JOB_KIND_LABELS[job.kind];
+  if (/^Codex\b/.test(label) && kind) {
+    const rest = label.split(": ").slice(1).join(": ");
+    return rest ? `${kind}: ${rest}` : kind;
+  }
+  return label || kind || "Background work";
+}
+
 export function isActiveJob(job: AIJob): boolean {
   return job.status === "queued" || job.status === "running";
 }
@@ -136,8 +195,8 @@ function plural(count: number, one: string, many = `${one}s`): string {
 const GRAPH_WORDS: Record<string, string> = {
   character: "characters",
   scene: "scenes",
-  location: "locations",
-  thread: "plot threads",
+  location: "places",
+  thread: "threads",
   twist: "twists",
   fact: "facts",
   rel: "relationships",
@@ -166,7 +225,7 @@ export function jobOutcome(job: AIJob): { sentence: string; details: [string, st
       const done = n(r, "summarized_count");
       const skipped = n(r, "skipped_count");
       const failed = n(r, "failed_count");
-      const parts = [`Summarised ${plural(done, "scene")}`];
+      const parts = [`Summarized ${plural(done, "scene")}`];
       if (skipped) parts.push(`${skipped} skipped (empty or already current)`);
       if (failed) parts.push(`${failed} failed`);
       return { sentence: `${parts.join("; ")}.`, details: [] };

@@ -7,7 +7,7 @@ import styles from "./Versions.module.css";
 function SnapshotGroupSection({ group, ...actions }: SnapshotActions & { group: SnapshotGroup }) {
   return (
     <div className={styles.snapshotGroup}>
-      {/* Auto backups first — they're newer than the anchor */}
+      {/* Automatic versions first: they are newer than the one you saved */}
       {group.autoBackups.length > 0 && (
         <div className={styles.autoBackupList}>
           {group.autoBackups.map((snap) => (
@@ -16,20 +16,20 @@ function SnapshotGroupSection({ group, ...actions }: SnapshotActions & { group: 
         </div>
       )}
 
-      {/* Anchor snapshot — older, sits below its backups */}
+      {/* The version you saved: older, below the automatic ones */}
       {group.anchor ? (
         <SnapshotCard snapshot={group.anchor} {...actions} />
       ) : (
         <div className={styles.ungroupedHeader}>
           <Circle size={10} className={styles.snapIconAuto} />
-          <span className={styles.ungroupedLabel}>Before first snapshot</span>
+          <span className={styles.ungroupedLabel}>Saved automatically</span>
         </div>
       )}
     </div>
   );
 }
 
-/** The list view: manual snapshots newest first, each with its auto backups above it. */
+/** The list view: versions you saved newest first, each with the automatic ones above it. */
 export default function SnapshotList({
   snapshots,
   ...actions

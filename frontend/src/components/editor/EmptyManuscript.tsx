@@ -23,10 +23,10 @@ export default function EmptyManuscript() {
   if (structure.length > 0) {
     return (
       <div className={styles.empty}>
-        <p className={styles.text}>Pick a scene in the story strip to begin writing.</p>
+        <p className={styles.text}>Pick a scene in the strip to begin writing.</p>
         {stripWidth !== "scenes" && (
           <button className={styles.secondary} onClick={() => setStripWidth("scenes")}>
-            Show the full tree
+            Widen the strip
           </button>
         )}
       </div>

@@ -186,7 +186,7 @@ def queue_sync(story_id: str, db: Session = Depends(get_db), user: User = Depend
         kind="codex-sync",
         user_id=user.id,
         story_id=story_id,
-        label=f"Codex sync: {story.title}",
+        label=f"Building Connections: {story.title}",
     )
     return {"job_id": job.id}
 
@@ -316,7 +316,7 @@ def queue_index(story_id: str, db: Session = Depends(get_db), user: User = Depen
         kind="codex-index",
         user_id=user.id,
         story_id=story_id,
-        label=f"Codex index: {story.title}",
+        label=f"Indexing for the Assistant: {story.title}",
         params={"embed_model": embed_model_for(user)},
     )
     return {"job_id": job.id}

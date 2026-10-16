@@ -34,11 +34,11 @@ export default function DatabaseBackupCard({ isAdmin }: Props) {
 
   return (
     <div className={styles.card}>
-      <h3 className={styles.settingGroupLabel}>Database backup</h3>
+      <h3 className={styles.settingGroupLabel}>Backups of everything</h3>
       <p className={styles.sectionHint}>
-        A copy of the whole database, independent of story snapshots, on the schedule set under{" "}
-        <a href="#automatic">Automatic work</a>. Restore by replacing the database file (see
-        docs/upgrading.md).
+        A backup is a copy of all of LoreStudio, every story and setting, made on the schedule set under{" "}
+        <a href="#automatic">Automatic work</a>. Story versions are kept apart from it. Restore by replacing
+        the database file (see docs/upgrading.md).
       </p>
       {status ? (
         <div className={styles.backupForm}>

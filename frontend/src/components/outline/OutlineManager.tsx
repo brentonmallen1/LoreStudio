@@ -466,7 +466,7 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
             </div>
             <p className={styles.emptyTitle}>No beats yet</p>
             <p className={styles.emptyDesc}>
-              Add beats to build your outline. Drag to reorder, drag to center to nest.
+              Add beats to build your beat board. Drag to reorder, drag to center to nest.
             </p>
             <button
               className={styles.addBeatBtnPrimary}
@@ -593,7 +593,7 @@ export default function OutlineManager({ storyId }: Props) {
   }, [storyId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleCreateOutline() {
-    const outline = await api.createOutline(storyId, "Outline");
+    const outline = await api.createOutline(storyId, "Beat board");
     setOutlines((prev) => [...prev, outline]);
     setActiveTab(outline.id);
   }
@@ -683,8 +683,8 @@ export default function OutlineManager({ storyId }: Props) {
                         e.stopPropagation();
                         setPendingDeleteOutlineId(outline.id);
                       }}
-                      title="Delete outline"
-                      aria-label="Delete outline"
+                      title="Delete beat board"
+                      aria-label="Delete beat board"
                     >
                       <X size={11} />
                     </button>
@@ -698,8 +698,8 @@ export default function OutlineManager({ storyId }: Props) {
           <button
             className={styles.addTabBtn}
             onClick={handleCreateOutline}
-            title="New blank outline"
-            aria-label="New blank outline"
+            title="New beat board"
+            aria-label="New beat board"
           >
             <Plus size={14} />
           </button>
@@ -711,7 +711,7 @@ export default function OutlineManager({ storyId }: Props) {
             <button
               className={styles.extractBtn}
               onClick={() => setShowExtractPanel(true)}
-              title="AI: Extract outline from manuscript prose"
+              title="Make a beat board from the prose you have written"
             >
               <Orbit size={13} />
               Extract

@@ -4,11 +4,11 @@ import type { AIFeatureInfo } from "./types";
 export const STORY_FEATURES: Record<string, AIFeatureInfo> = {
   "codex-suggestions": {
     id: "codex-suggestions",
-    label: "Codex Suggestions",
+    label: "Who's Here and What's Established",
     type: "ai",
     shortDescription: "Propose who was in a scene and what it establishes, quoting the line",
     fullDescription:
-      "The Codex works out who is in a scene from point of view, dialogue tags and names in the prose. " +
+      "Connections works out who is in a scene from point of view, dialogue tags and names in the prose. " +
       'Good writing defeats all three: you write "the keeper", not "Elena". This reads your scenes and ' +
       "proposes what those signals missed, and what each scene establishes as true, quoting the words it " +
       "read that from. It never proposes what should happen next and never invents a character. Nothing " +
@@ -40,8 +40,8 @@ export const STORY_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Trace downstream effects when this twist resolves",
     fullDescription:
-      "Identifies which plot threads, character arcs, and scenes need revisiting once this twist resolves, plus any loose ends the reveal creates.",
-    contextSources: ["Twist name and description", "All plot threads", "Character arcs", "Scene synopses"],
+      "Identifies which threads, character arcs, and scenes need revisiting once this twist resolves, plus any loose ends the reveal creates.",
+    contextSources: ["Twist name and description", "All threads", "Character arcs", "Scene synopses"],
     backendFeatureId: "twist-impact",
   },
   "reader-knowledge-scan": {
@@ -65,7 +65,7 @@ export const STORY_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Review thread progression, key moments, and narrative quality",
     fullDescription:
-      "Reviews a plot thread's progression through the story, assessing try/fail cycles, key turning points, opening/closing balance, and overall narrative quality.",
+      "Reviews a thread's progression through the story, assessing try/fail cycles, key turning points, opening/closing balance, and overall narrative quality.",
     contextSources: [
       "Thread name, type, and description",
       "Scenes tagged to this thread",

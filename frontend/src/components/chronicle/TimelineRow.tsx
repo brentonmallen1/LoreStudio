@@ -18,6 +18,7 @@ import {
   formatDuration,
   isActiveJob,
   jobDuration,
+  jobName,
   jobOutcome,
   logTitle,
   plainText,
@@ -80,7 +81,7 @@ interface Props {
 /** One row of Chronicle › Activity: a call, a log line, or a job with its calls folded in. */
 export default function TimelineRow({ entry, selected, onSelect, onStar, onStop }: Props) {
   const { job, log } = entry;
-  const title = job ? job.label : logTitle(log);
+  const title = job ? jobName(job) : logTitle(log);
   return (
     <div
       role="button"
@@ -132,7 +133,7 @@ export default function TimelineRow({ entry, selected, onSelect, onStar, onStop 
               onStop(job);
             }}
             title={job.status === "running" ? "Stop after the current step" : "Cancel"}
-            aria-label={`Stop ${job.label}`}
+            aria-label={`Stop ${jobName(job)}`}
           >
             <Square size={12} />
           </button>

@@ -7,7 +7,7 @@ import DeltaSummaryLine from "./DeltaSummaryLine";
 import { formatAbsoluteDate } from "./versionsModel";
 import styles from "./Versions.module.css";
 
-/** Confirm a restore, with the option to back up the current state first. */
+/** Confirm a restore, with the option to save the story as it is now first. */
 export function RestoreDialog({
   snapshot,
   onConfirm,
@@ -45,7 +45,7 @@ export function RestoreDialog({
       )}
       <label className={styles.dialogCheckbox}>
         <input type="checkbox" checked={safetyBackup} onChange={(e) => setSafetyBackup(e.target.checked)} />
-        <span>Create a backup of current state first</span>
+        <span>Save the story as it is now as a version first</span>
       </label>
     </Modal>
   );
@@ -67,7 +67,7 @@ export function CreateSnapshotDialog({
       isOpen
       onClose={onCancel}
       size="sm"
-      title="Create snapshot"
+      title="Save a version"
       footer={
         <>
           <button className={styles.dialogCancel} onClick={onCancel}>
@@ -75,7 +75,7 @@ export function CreateSnapshotDialog({
           </button>
           <button className={styles.dialogConfirm} onClick={() => onConfirm(name)} disabled={loading}>
             {loading ? <Loader2 size={13} className={styles.spinning} /> : null}
-            Create snapshot
+            Save version
           </button>
         </>
       }
@@ -84,7 +84,7 @@ export function CreateSnapshotDialog({
       <input
         className={styles.dialogInput}
         placeholder="Name (optional), e.g. Before Act 2 restructure"
-        aria-label="Snapshot name"
+        aria-label="Version name"
         value={name}
         onChange={(e) => setName(e.target.value)}
         onKeyDown={(e) => {
@@ -96,7 +96,7 @@ export function CreateSnapshotDialog({
   );
 }
 
-/** Pick the second snapshot of a comparison: a banner below the list and a picker over the page. */
+/** Pick the second version of a comparison: a banner below the list and a picker over the page. */
 export function ComparePicker({
   snapshot,
   snapshots,

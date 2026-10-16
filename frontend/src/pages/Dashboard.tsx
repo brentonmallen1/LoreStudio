@@ -287,7 +287,7 @@ export default function DashboardPage() {
               </p>
               <ul className={styles.emptyFeatures} aria-label="Key features">
                 <li>Build a lorebook of characters, settings, and relationships</li>
-                <li>Map plot threads, arcs, and structure across any narrative form</li>
+                <li>Map threads, arcs, and structure across any narrative form</li>
                 <li>Interview characters and analyze story health with AI assistance</li>
               </ul>
               <div className={styles.emptyCtas}>

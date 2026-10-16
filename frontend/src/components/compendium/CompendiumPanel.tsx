@@ -22,7 +22,7 @@ type FilterType = "all" | "note" | "url" | "document";
 
 const FILTER_TABS: { id: FilterType; label: string; icon: React.ElementType }[] = [
   { id: "all", label: "All", icon: BookOpen },
-  { id: "note", label: "Notes", icon: FileText },
+  { id: "note", label: "Research notes", icon: FileText },
   { id: "url", label: "Links", icon: Link },
   { id: "document", label: "Documents", icon: File },
 ];
@@ -149,11 +149,11 @@ export default function CompendiumPanel({ storyId }: Props) {
     <div className={styles.page}>
       <PageHeader
         title="Research"
-        summary={`${entries.length} ${entries.length === 1 ? "entry" : "entries"} · notes, links and documents that inform the story`}
+        summary={`${entries.length} ${entries.length === 1 ? "piece" : "pieces"} of research · research notes, links and documents that inform the story`}
         primary={
           entries.length === 0 && !search && filter === "all"
             ? undefined
-            : { label: "Add entry", icon: Plus, onClick: () => setCreating(true) }
+            : { label: "Add research", icon: Plus, onClick: () => setCreating(true) }
         }
         aside={
           <div className={styles.searchWrap}>
@@ -188,7 +188,7 @@ export default function CompendiumPanel({ storyId }: Props) {
         ) : displayed.length === 0 ? (
           <div className={styles.empty}>
             <BookOpen size={36} className={styles.emptyIcon} />
-            <div className={styles.emptyTitle}>No entries match</div>
+            <div className={styles.emptyTitle}>No research matches</div>
             <p className={styles.emptyText}>Try a different filter or search term.</p>
           </div>
         ) : (

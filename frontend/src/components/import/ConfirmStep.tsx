@@ -90,7 +90,7 @@ export default function ConfirmStep({
 
       {ncTally && (
         <div className={styles.extractionSummary} data-plain>
-          <span className={styles.extractionLabel}>From the codex:</span>
+          <span className={styles.extractionLabel}>From Novelcrafter's codex:</span>
           <div className={styles.extractionCounts}>
             {(
               [

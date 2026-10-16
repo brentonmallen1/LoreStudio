@@ -43,7 +43,7 @@ def _verify_story(story_id: str, db: Session, user: User) -> Story:
 def _verify_outline(outline_id: str, db: Session, user: User) -> Outline:
     outline = db.get(Outline, outline_id)
     if not outline:
-        raise HTTPException(status_code=404, detail="Outline not found")
+        raise HTTPException(status_code=404, detail="Beat board not found")
     _verify_story(outline.story_id, db, user)
     return outline
 
@@ -51,7 +51,7 @@ def _verify_outline(outline_id: str, db: Session, user: User) -> Outline:
 def _verify_item(item_id: str, db: Session, user: User) -> OutlineItem:
     item = db.get(OutlineItem, item_id)
     if not item:
-        raise HTTPException(status_code=404, detail="Outline item not found")
+        raise HTTPException(status_code=404, detail="Beat not found")
     _verify_outline(item.outline_id, db, user)
     return item
 
@@ -81,7 +81,7 @@ def _record_create(db: Session, outline: Outline, user: User, client_id: str | N
         action="create",
         before=None,
         after=change_log.capture_outline(outline, db),
-        label=f"Add outline “{outline.name}”",
+        label=f"Add beat board “{outline.name}”",
         actor_id=user.id,
         client_id=client_id,
     )
@@ -207,7 +207,7 @@ def update_outline(
         data,
         entity_type="outline",
         story_id=outline.story_id,
-        label=f"Edit {{fields}} on outline “{outline.name}”",
+        label=f"Edit {{fields}} on beat board “{outline.name}”",
         actor_id=current_user.id,
         client_id=client_id,
     )
@@ -234,7 +234,7 @@ def delete_outline(
         action="delete",
         before=change_log.capture_outline(outline, db),
         after=None,
-        label=f"Delete outline “{outline.name}”",
+        label=f"Delete beat board “{outline.name}”",
         actor_id=current_user.id,
         client_id=client_id,
     )
@@ -305,7 +305,7 @@ def create_outline_item(
         action="create",
         before=None,
         after={"outline_items": [change_log._row(item)]},
-        label=f"Add outline item “{(item.text or '')[:40]}”",
+        label=f"Add beat “{(item.text or '')[:40]}”",
         actor_id=current_user.id,
         client_id=client_id,
     )
@@ -344,7 +344,7 @@ def update_outline_item(
             action="update",
             before=before,
             after=after,
-            label=f"Edit outline item “{(item.text or '')[:40]}”",
+            label=f"Edit beat “{(item.text or '')[:40]}”",
             actor_id=current_user.id,
             client_id=client_id,
         )
@@ -379,7 +379,7 @@ def delete_outline_item(
         action="delete",
         before={"outline_items": [change_log._row(i) for i in subtree]},
         after=None,
-        label=f"Delete outline item “{(item.text or '')[:40]}”",
+        label=f"Delete beat “{(item.text or '')[:40]}”",
         actor_id=current_user.id,
         client_id=client_id,
     )
@@ -413,7 +413,7 @@ def reorder_outline(
             action="reorder",
             before=before,
             after=after,
-            label="Reorder outline",
+            label="Reorder beat board",
             actor_id=current_user.id,
             client_id=client_id,
         )
@@ -454,7 +454,7 @@ def bulk_reorder_outline(
             action="reorder",
             before=before,
             after=after,
-            label="Reorder outline",
+            label="Reorder beat board",
             actor_id=current_user.id,
             client_id=client_id,
         )
@@ -567,7 +567,7 @@ async def analyze_outline_alignment(
         .all()
     )
     if not items:
-        raise HTTPException(status_code=422, detail="Outline has no items to compare against.")
+        raise HTTPException(status_code=422, detail="This beat board has no beats to compare against.")
 
     def item_line(item: OutlineItem) -> str:
         indent = "  " * item.level

@@ -1,5 +1,7 @@
 import type { AIJob } from "../../api/jobs";
 import { jobOutcome } from "../../components/chronicle/timelineFormat";
+
+export { jobName } from "../../components/chronicle/timelineFormat";
 import { serverTime } from "../serverDate";
 import { sectionPath } from "../routes";
 

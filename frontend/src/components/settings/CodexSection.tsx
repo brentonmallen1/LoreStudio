@@ -5,7 +5,7 @@ import { codexApi, type CodexIndexStats, type CodexSettings } from "../../api/co
 import type { AIJob } from "../../api/jobs";
 import { useJobs, useOnJobFinished } from "../../hooks/useJobs";
 import { plainError } from "../../lib/jobs/jobs";
-import { clockTime } from "../chronicle/timelineFormat";
+import { clockTime, jobName } from "../chronicle/timelineFormat";
 import { useStoryStore } from "../../stores/storyStore";
 import styles from "./CodexSection.module.css";
 
@@ -140,9 +140,9 @@ export default function CodexSection() {
           </datalist>
         </div>
         <p className={styles.hint}>
-          Turns your prose into vectors so the Codex can find passages by meaning rather than by keyword. It
-          runs on your Ollama, like everything else. Changing the model does not re-embed anything on its own:
-          vectors remember which model made them, and the next index run replaces the ones that no longer
+          Turns your prose into vectors so the Assistant can find passages by meaning rather than by keyword.
+          It runs on your Ollama, like everything else. Changing the model does not re-embed anything on its
+          own: vectors remember which model made them, and the next index run replaces the ones that no longer
           match.
         </p>
         <div className={styles.groundTruth}>
@@ -221,7 +221,7 @@ export default function CodexSection() {
           </button>
           {running.length > 0 && (
             <span className={styles.running}>
-              <Loader2 size={12} className={styles.spin} /> {running[0].label}: {running[0].progress}/
+              <Loader2 size={12} className={styles.spin} /> {jobName(running[0])}: {running[0].progress}/
               {running[0].total || "?"}
             </span>
           )}

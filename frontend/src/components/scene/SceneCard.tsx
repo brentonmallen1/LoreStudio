@@ -20,7 +20,7 @@ type Field = "synopsis" | "entry_state" | "exit_state";
 
 /**
  * The Scene sheet's index card (doc 24 D19, canvas 8d): the third of the page that stays in
- * view. What happens and the turn, in the author's words and editable here; who, where, which
+ * view. What happens and how it starts and ends, in the author's words and editable here; who, where, which
  * beat and when, read at a glance (a click opens the page that edits them); Write; and the
  * scenes either side.
  */
@@ -67,14 +67,14 @@ export default function SceneCard({
       <div className={styles.turn}>
         <SheetField
           key={`${node.id}:entry`}
-          label="Coming in"
+          label="Starts"
           initial={node.entry_state ?? ""}
           placeholder={`Who is ${povName ?? "your point-of-view character"} before this scene begins?`}
           save={save("entry_state")}
         />
         <SheetField
           key={`${node.id}:exit`}
-          label="Going out"
+          label="Ends"
           initial={node.exit_state ?? ""}
           placeholder="How has the character or situation changed by the end?"
           save={save("exit_state")}

@@ -22,7 +22,7 @@ export function readingName(r: Pick<ReadingSummary, "label" | "trigger">): strin
     case "restore":
       return "After a restore";
     default:
-      return "An earlier backup";
+      return "An earlier version";
   }
 }
 

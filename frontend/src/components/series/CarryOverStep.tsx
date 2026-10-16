@@ -13,7 +13,7 @@ import styles from "./CarryOverStep.module.css";
 
 /** A promise group's heading: only what is still open is offered. */
 const PROMISE_GROUPS: Record<string, string> = {
-  thread: "Plot threads still open",
+  thread: "Threads still open",
   twist: "Twists not yet revealed",
 };
 export default function CarryOverStep({

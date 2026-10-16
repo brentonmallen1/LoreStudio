@@ -62,7 +62,7 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
   const started = useRef(false);
   const editedTexts = edits.at === answerAt ? edits.texts : {};
   const selected = picked?.at === answerAt ? picked.set : new Set(items.map((_, i) => i));
-  const suggestedName = named?.at === answerAt ? named.name : (data?.suggested_name ?? "Extracted outline");
+  const suggestedName = named?.at === answerAt ? named.name : (data?.suggested_name ?? "From the prose");
   const setSelected = (next: Set<number>) => setPicked({ at: answerAt, set: next });
   const setSuggestedName = (name: string) => setNamed({ at: answerAt, name });
 
@@ -141,7 +141,7 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <Orbit size={14} className={styles.headerIcon} />
-            <span className={styles.title}>Extract Outline from Prose</span>
+            <span className={styles.title}>Beat Board from Prose</span>
           </div>
           <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
             <X size={15} />
@@ -176,7 +176,7 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
             <>
               <KeptAnswerBar
                 answer={kept.answer}
-                heading="Outline from the prose"
+                heading="Beat board from the prose"
                 context={{ storyId }}
                 onAskAgain={() => void extract()}
                 asking={loading}
@@ -184,7 +184,7 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
               />
               <div className={styles.subheader}>
                 <div className={styles.nameRow}>
-                  <span className={styles.nameLabel}>Outline name</span>
+                  <span className={styles.nameLabel}>Beat board name</span>
                   <input
                     className={styles.nameInput}
                     value={suggestedName}
@@ -259,7 +259,7 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
                   <Loader2 size={13} className={styles.spinnerSm} /> Creating…
                 </>
               ) : (
-                `Create Outline (${selected.size})`
+                `Create beat board (${selected.size})`
               )}
             </button>
             <button className={styles.cancelBtn} onClick={onClose}>

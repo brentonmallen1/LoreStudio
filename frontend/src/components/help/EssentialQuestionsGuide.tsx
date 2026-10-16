@@ -54,8 +54,7 @@ const QUESTIONS = [
     tagline: "Conflict creates story",
     meaning:
       "The opposing force: a character, a system, an internal flaw, a circumstance. Without meaningful opposition, the protagonist simply gets what they want, and there's no story.",
-    inLoreStudio:
-      "Story central conflict, antagonist characters, plot threads, and try/fail cycles in scenes.",
+    inLoreStudio: "Story central conflict, antagonist characters, threads, and try/fail cycles in scenes.",
     hint: "The best obstacles are specific and personal. A villain who specifically threatens what the protagonist most values is far more effective than a generic threat.",
   },
   {

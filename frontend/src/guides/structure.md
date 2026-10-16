@@ -14,7 +14,7 @@ Tick **Start with an outline** to begin with the template's parts already in pla
 
 ## The Outline
 
-The **Outline** is where you add, rename and reorder your acts, chapters and scenes. Open it from logo menu › **Outline**, or press {{key:cycleStrip}} on the writing page. It is the story strip down the left, opened out into the full list; press {{key:cycleStrip}} again to fold it back to a line.
+The **Outline** is where you add, rename and reorder your acts, chapters and scenes. Logo menu › **Outline** widens the strip down the left of the writing page so it names every part; {{key:cycleStrip}} widens it too, and narrows it again to a stop for each scene.
 
 - Click a row, or press **Enter** on it, to open it.
 - The **+** at the top adds an act, or a part at any level. The **+** on a row adds a part inside it.
@@ -29,7 +29,7 @@ Every change can be undone with {{key:undo}}.
 
 ## Acts
 
-Folded to a line, the strip marks each act with its numeral (**I**, **II**, **III**) and each chapter with its number, counted through the whole book. The Outline shows the same numbers beside each act and chapter. Hover over a numeral to see the act's title and how long it is; click it to open the act's page.
+Narrowed, the strip marks each act with its numeral (**I**, **II**, **III**) and each chapter with its number, counted through the whole book. The Outline shows the same numbers beside each act and chapter. Hover over a numeral to see the act's title and how long it is; click it to open the act's page.
 
 ## Prose outside a scene
 
@@ -44,11 +44,11 @@ Open an act or a chapter, or any part with parts inside it, to see its page. It 
 Open the scene's **Scene sheet**: choose **Scene sheet** in the side panel's **This scene**, or **Open the scene sheet** in the scene's ⋯ menu.
 
 - **What happens**: the scene in a sentence or two.
-- **Coming in** and **Going out**: where your character or the situation stands before the scene and after it. A scene where nothing changes is worth a second look.
-- **Purpose** (under **The plan**): why the scene exists. It is the most useful field when you revise.
+- **Starts** and **Ends**: where your character or the situation stands as the scene starts and as it ends. A scene where nothing changes is worth a second look.
+- **Why it's here** (under **The plan**): what the scene does that nothing else does. It is the most useful field when you revise.
 - **Key events**: the moments that must land.
 - **Who**, **Where**, **Beat** and **When**: click them to change who is in the scene, where and when it happens, and which beat of the plan it serves.
 
 ## Scene status
 
-Every scene is **Planned**, **Draft**, **Revised** or **Final**. Change it from the status beside the scene's title. A planned scene shows in italics in the outline, and becomes a draft as soon as you write in it. When you export, you can include only the scenes at a given status.
+Every scene is **Planned**, **Draft**, **Revised** or **Final**. Change it from the status beside the scene's title. A planned scene shows in italics in the strip, and becomes a draft as soon as you write in it. When you export, you can include only the scenes at a given status.

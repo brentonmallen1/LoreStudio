@@ -8,7 +8,7 @@ Logo menu › **Chronicle**. Its sections are in the logo menu beside it and in 
 
 ## Activity
 
-**Activity** is the story's timeline, grouped by day, newest first: every check and analysis that ran, and every job, such as a backup of the story. A job is one row, however many steps it took. Open a row to see what it did and what it was asked.
+**Activity** is the story's timeline, grouped by day, newest first: every check and analysis that ran, and every job, such as a version saved automatically. A job is one row, however many steps it took. Open a row to see what it did and what it was asked.
 
 - **Everything**, **Running and queued**, **Problems** (what failed or was stopped), **Analyses** and **Starred** narrow the list. Under **Analyses**, pick one check to see only its runs.
 - Star a row to keep it under **Starred**.
@@ -40,7 +40,7 @@ In _The Last Lighthouse_, rename Thomas Vance on his sheet and the rename is the
 
 ## Versions
 
-**Versions** holds snapshots of the whole story: save one, compare it with now, restore it or download it. See [Snapshots, backups and undo](/guides/snapshots-and-backups).
+**Versions** holds saved copies of the whole story: save one, compare it with now, restore it or download it. See [Versions, backups and undo](/guides/snapshots-and-backups).
 
 ## Imports
 

@@ -69,7 +69,7 @@ Each character's sheet, each relationship and each scene's **Promises** page sho
 
 ## In the scene
 
-The **Scene sheet**'s **Promises** page shows what this scene does to each thread, the twists here, what is open coming in and what the reader knows by the end. Attach a thread there. While you write, **This scene** in the side panel sums it up in a line.
+The **Scene sheet**'s **Promises** page shows what this scene does to each thread, the twists here, what is open as it starts and what the reader knows by the end. Attach a thread there. While you write, **This scene** in the side panel sums it up in a line.
 
 <!-- studio -->
 

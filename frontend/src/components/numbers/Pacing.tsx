@@ -57,8 +57,8 @@ export default function Pacing({
       <SectionHeading section="pacing" title="Pacing" />
       <p className={styles.lede}>
         {script
-          ? "Each column is a scene, as tall as its length in eighths of a page and coloured by its state. The line across is the median length: half the written scenes are longer, half shorter."
-          : "Each column is a scene, as tall as its words and coloured by its state. The line across is the median length: half the written scenes are longer, half shorter."}
+          ? "Each column is a scene, as tall as its length in eighths of a page and colored by its state. The line across is the median length: half the written scenes are longer, half shorter."
+          : "Each column is a scene, as tall as its words and colored by its state. The line across is the median length: half the written scenes are longer, half shorter."}
         {long && " The dashed line is three pages, long for a scene on screen."}
         {beats.length > 0 && " The dots above are the beat sheet's beats where it expects them."}
       </p>

@@ -116,7 +116,12 @@ export default function CodexGraphView({ graph, selectedId, onSelect, emptyActio
       </div>
 
       <div className={styles.canvas}>
-        <svg className={styles.svg} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label="Codex graph">
+        <svg
+          className={styles.svg}
+          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+          role="img"
+          aria-label="Connections map"
+        >
           {view.edges.map((edge) => {
             const a = view.positions.get(edge.src_id);
             const b = view.positions.get(edge.dst_id);

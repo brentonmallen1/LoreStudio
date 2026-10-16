@@ -87,7 +87,7 @@ export default function PrivacySection() {
       </button>
       {purged !== null && (
         <p className={styles.sectionHint}>
-          Deleted {purged} stored {purged === 1 ? "payload" : "payloads"}.
+          Deleted the prompts and responses of {purged} {purged === 1 ? "call" : "calls"}.
         </p>
       )}
     </div>

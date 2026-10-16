@@ -146,7 +146,7 @@ export const KINDS: Record<LoreKind, KindSpec> = {
       {
         key: "speech_patterns",
         label: "Speech patterns",
-        hint: "How they talk: rhythm, favourite words, what they never say…",
+        hint: "How they talk: rhythm, favorite words, what they never say…",
       },
       { key: "arc_notes", label: "Arc notes", hint: "Where they start, where they end…", term: "arc" },
       {
@@ -194,8 +194,8 @@ export const KINDS: Record<LoreKind, KindSpec> = {
     ],
   },
   thread: {
-    label: "Plot thread",
-    plural: "Plot threads",
+    label: "Thread",
+    plural: "Threads",
     fields: [
       {
         key: "description",

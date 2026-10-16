@@ -30,7 +30,7 @@ import p from "./Promises.module.css";
 import Term from "../common/Term";
 
 /**
- * Plot threads, under Promises (doc 18 C3). With none open, the map of every thread across
+ * Threads, under Promises (doc 18 C3). With none open, the map of every thread across
  * the book; open one and it is the same sheet as everything else, with its MICE shape and its
  * scenes, each saying what it does to the thread (doc 18 C1: opening, closing and the tries
  * along the way are roles on those scenes, and the status follows from them); beside it, what
@@ -85,7 +85,7 @@ export default function ThreadsSection() {
   return (
     <div className={styles.section}>
       <LorebookList
-        title="Plot threads"
+        title="Threads"
         items={threads.map((t) => ({
           id: t.id,
           name: t.name,

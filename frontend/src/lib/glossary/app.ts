@@ -7,13 +7,27 @@ export const PARTS = [
     id: "chronicle",
     term: "Chronicle",
     definition:
-      "The story's history: snapshots, every change you made (with undo) and what ran in the background.",
+      "The story's history: its saved versions, every change you made (with undo) and what ran in the background.",
   },
   {
     id: "compendium",
     term: "Compendium",
     definition:
-      "Your research and reference: documents, links, notes, images and diagrams. It informs the story without being part of it.",
+      "Your research and reference: research notes, links, documents, images and diagrams. It informs the story without being part of it.",
+  },
+  {
+    id: "research",
+    term: "Research",
+    definition:
+      "What you read or found for the story, kept in the Compendium: a **Research note** in your own words, a **Link** or a **Document**, each with **Why it matters** to your story.",
+    alsoCalled: ["compendium entry"],
+  },
+  {
+    id: "connections",
+    term: "Connections",
+    definition:
+      "A map of how your story's people, places, scenes and threads link up, drawn from what you have written: logo menu › Lorebook › **Connections**.",
+    alsoCalled: ["graph", "map"],
   },
   {
     id: "findings",
@@ -71,7 +85,7 @@ export const PARTS = [
     id: "codex",
     term: "Codex",
     definition:
-      "What the AI knows about your story: how its people and places connect, and an index of the prose it can search. Studio mode only.",
+      "The Assistant's index of your stories, named in Settings › **Codex**: the Connections map and every passage it can find by meaning. Studio mode only.",
     studio: true,
   },
 ] as const satisfies readonly GlossaryEntry[];
@@ -93,7 +107,8 @@ export const WRITING = [
     id: "note",
     term: "Note",
     definition:
-      "Something to come back to: a note, a question, a to-do or an idea. It can sit in the margin beside the words it is about.",
+      "Something to come back to: a note, a question, a to-do or an idea. It can sit in the margin beside the words it is about. A character's own are its **Notes and questions**; research goes in the Compendium.",
+    alsoCalled: ["margin note"],
   },
   {
     id: "outline",
@@ -106,6 +121,15 @@ export const WRITING = [
     term: "Scene sheet",
     definition:
       "Every field of one scene on a page: what happens, why, who, where, when, and its promises, notes and findings.",
+  },
+  {
+    id: "why-its-here",
+    term: "Why it's here",
+    definition:
+      "What a scene, a chapter or an act does for the story that nothing else does. It is the most useful field when you revise.",
+    example:
+      "Knock at the Door is where Eleanor first meets the Visitor, and lets her in against her better judgment.",
+    alsoCalled: ["purpose"],
   },
   {
     id: "scratch-pad",
@@ -131,9 +155,19 @@ export const WRITING = [
   },
   {
     id: "story-strip",
-    term: "Story strip",
+    term: "The strip",
     definition:
-      "The book's acts, chapters and scenes down the left of the page, as a line or the full Outline.",
+      "The book's acts, chapters and scenes down the left of the page. Narrow, it is a line with a stop for each scene; widen it with {{key:cycleStrip}} to name every part.",
+    alsoCalled: ["story strip", "the line", "the tree"],
+  },
+  {
+    id: "starts-and-ends",
+    term: "Starts and Ends",
+    definition:
+      "Where a scene's character or situation stands as the scene starts, and as it ends. A scene where nothing changes is worth a second look.",
+    example:
+      "Knock at the Door starts with Eleanor alone, set on not opening the door; it ends with the Visitor inside, drinking her tea.",
+    alsoCalled: ["coming in", "going out", "the turn"],
   },
   {
     id: "this-scene",
@@ -182,13 +216,15 @@ export const SAFE = [
     id: "version",
     term: "Version",
     definition:
-      "A saved copy of the whole story at one moment, to come back to: restore it, compare it or download it. Find them in Chronicle › **Versions**. LoreStudio also saves them by itself as you work; the page's ⋯ › **Backup settings…** sets how often.",
-    alsoCalled: ["snapshot"],
+      "A saved copy of one story at one moment, to come back to: restore it, compare it or download it. Find them in Chronicle › **Versions**, each **Saved by you** or **Saved automatically**; the page's ⋯ › **Automatic versions…** sets how often LoreStudio saves one by itself.",
+    alsoCalled: ["snapshot", "auto backup"],
   },
   {
     id: "backup",
     term: "Backup",
-    definition: "A copy of everything in LoreStudio, all stories included.",
+    definition:
+      "A copy of all of LoreStudio, every story and setting, made on a schedule. Settings › **Versions and backups** shows the latest.",
+    alsoCalled: ["database backup"],
   },
   {
     id: "undo",

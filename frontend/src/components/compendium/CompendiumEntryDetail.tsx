@@ -70,7 +70,8 @@ export default function CompendiumEntryDetail({ entry, onBack, onEdit, onDelete,
                 className={styles.iconBtn}
                 onClick={handleRefreshUrl}
                 disabled={refreshing}
-                title="Refresh URL metadata"
+                title="Fetch the title and description again"
+                aria-label="Fetch the title and description again"
               >
                 {refreshing ? <Loader2 size={14} className={styles.spin} /> : <RefreshCw size={14} />}
               </button>
@@ -164,7 +165,7 @@ export default function CompendiumEntryDetail({ entry, onBack, onEdit, onDelete,
         {/* Author notes */}
         {entry.notes && (
           <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Notes</h3>
+            <h3 className={styles.sectionTitle}>Why it matters</h3>
             <p className={styles.sectionText}>{entry.notes}</p>
           </div>
         )}

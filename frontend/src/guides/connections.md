@@ -12,8 +12,8 @@ Nothing on the map is invented. Every dot stands for something in your story, an
 
 Each dot is one thing, colored by kind:
 
-- **Character**, **Location** (your places) and **Scene**.
-- **Plot thread**, **Twist** and **Trope**.
+- **Character**, **Place** and **Scene**.
+- **Thread**, **Twist** and **Trope**.
 - **Fact**: something the reader learns, from **What the reader knows** and your twists' reveals.
 
 ## What the lines are
@@ -38,13 +38,13 @@ The map is built when you ask, not as you type. After you write or change your s
 
 <!-- studio -->
 
-## In Studio: the Codex
+## In Studio: what the Assistant adds
 
-The graph is part of the **Codex**, what the Assistant knows about your story. Studio adds two things to the map:
+The map is part of what the Assistant knows about your story. Studio adds two things to it:
 
 - **Dashed lines** are links the Assistant suggested and you have not answered yet, such as someone it reads as present in a scene. They wait in **Discoveries** for your yes or no.
 - A dot's panel also says how many of its passages are indexed for the Assistant to search, and how many calls to the Assistant were about it.
 
-Settings › **Codex** builds the graph and the search index for any story, and sets the model the index uses.
+Settings › **Codex**, the Assistant's index of your stories, builds the map and the search index for any story, and sets the model the index uses.
 
 <!-- /studio -->

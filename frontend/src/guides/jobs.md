@@ -59,8 +59,8 @@ Replies show in **Jobs** while they are written, and **Stop** ends one. Writer m
 
 Some jobs LoreStudio does by itself:
 
-- **Story auto-backups** and **Numbers readings** while a story is open.
-- **Database backup**, a copy of everything.
+- **Story versions** and **Numbers readings** while a story is open.
+- **Backups of everything**, a copy of all of LoreStudio.
 - Trimming the **Undo history** and old **Automatic job records**.
 - **Check for updates**, off unless you switch it on.
 

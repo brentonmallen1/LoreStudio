@@ -29,7 +29,7 @@ On a beat sheet, **Plan a scene for this beat** places the scene beside its neig
 ## The plan where you write
 
 - **An empty scene** shows its plan above the page. Your first words tuck it away.
-- **The Scene sheet** opens on **The plan**: the scene's purpose and key events, with the story around it.
+- **The Scene sheet** opens on **The plan**: why the scene is here and its key events, with the story around it.
 - **Pointing at a character's @mention** shows their goal and conflict.
 - **The Overview** shows the next step of your method.
 
@@ -37,5 +37,5 @@ On a beat sheet, **Plan a scene for this beat** places the scene beside its neig
 
 The Plan page has two more views:
 
-- **Beat boards**: loose outlines for brainstorming. Turn any beat into a planned scene with **Make this beat a scene**.
+- **Beat boards**: loose lists of beats for brainstorming. Turn any beat into a planned scene with **Make this beat a scene**.
 - **Timeline**: the scenes in the order they happen, against the order the reader meets them.

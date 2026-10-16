@@ -105,7 +105,7 @@ export default function FontSettings() {
         <span>
           Element guides in a script
           <span className={styles.toggleHint}>
-            Each element&rsquo;s words in a colour of their own, its name beside the line you are writing, and
+            Each element&rsquo;s words in a color of their own, its name beside the line you are writing, and
             a hint on an empty line
           </span>
         </span>

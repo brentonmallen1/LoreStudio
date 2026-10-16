@@ -16,7 +16,7 @@ export const KIND_COLOR: Record<EntityKind, string> = {
 export const KIND_LABEL: Record<EntityKind, string> = {
   character: "Character",
   location: "Place",
-  thread: "Plot thread",
+  thread: "Thread",
   twist: "Twist",
   compendium: "Compendium",
 };

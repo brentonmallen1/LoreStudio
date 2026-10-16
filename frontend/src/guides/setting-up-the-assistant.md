@@ -16,7 +16,7 @@ LoreStudio is built around **Gemma 4**, a model Ollama can download for you.
 2. Open a terminal and run `ollama pull gemma4`. It is a large download, so give it time; you only do it once.
 3. Leave Ollama running whenever you want the Assistant.
 
-> **Tip:** The Codex, the index the Assistant searches your prose with, uses a second, small model: `ollama pull nomic-embed-text`. Settings › **Codex** › **Embedding model** names it.
+> **Tip:** The index the Assistant searches your prose with uses a second, small model: `ollama pull nomic-embed-text`. Settings › **Codex** › **Embedding model** names it.
 
 ## Tell LoreStudio where it is
 

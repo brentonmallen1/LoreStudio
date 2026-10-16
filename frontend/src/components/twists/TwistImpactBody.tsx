@@ -34,11 +34,7 @@ export default function TwistImpactBody({ data }: { data: AnyRecord }) {
 
       {/* Affected threads */}
       {affectedThreads.length > 0 && (
-        <ImpactSection
-          icon={<GitBranch size={12} />}
-          title="Affected plot threads"
-          color="var(--color-accent)"
-        >
+        <ImpactSection icon={<GitBranch size={12} />} title="Affected threads" color="var(--color-accent)">
           {affectedThreads.map((t, i) => (
             <div key={i} className={styles.impactRow}>
               <span className={styles.impactName}>{str(t.thread_name)}</span>

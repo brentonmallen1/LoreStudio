@@ -237,16 +237,16 @@ function DotPicker({
         type="button"
         className={`${styles.sheetDot} ${styles.sheetDotBtn} ${diamond ? styles.sheetDotDiamond : ""}`}
         style={dot ? { background: dot, borderColor: dot } : undefined}
-        aria-label={`${name}'s colour`}
+        aria-label={`${name}'s color`}
         aria-expanded={open}
-        title="Colour"
+        title="Color"
         onClick={() => setOpen((v) => !v)}
       />
       {open && (
         <div className={styles.dotPopover}>
           <SlotPicker
             size="sm"
-            label={`${name}'s colour`}
+            label={`${name}'s color`}
             value={slot.value}
             onChange={(v) => {
               slot.onChange(v);

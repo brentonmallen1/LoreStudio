@@ -8,12 +8,12 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "AI-guided scene planning before you write",
     fullDescription:
-      "Helps you plan a scene before writing it, proposing purpose, character goals, entry/exit states, and key beats based on your story context.",
+      "Helps you plan a scene before writing it, proposing why it's here, character goals, how it starts and ends, and key beats based on your story context.",
     contextSources: [
       "Scene title & synopsis",
       "Adjacent scenes",
       "Characters in scene",
-      "Active plot threads",
+      "Active threads",
       "Story structure",
     ],
     backendFeatureId: "scene-plan",
@@ -26,9 +26,9 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
     fullDescription:
       "A brainstorming partner that suggests narrative directions, complications, and next moves based on where the scene currently stands, without writing the prose for you.",
     contextSources: [
-      "Scene synopsis & purpose",
+      "Scene synopsis & why it's here",
       "Current scene prose",
-      "Plot threads",
+      "Threads",
       "Character arcs",
       "Adjacent scenes",
     ],
@@ -47,11 +47,11 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "extract-outline": {
     id: "extract-outline",
-    label: "Extract Outline from Prose",
+    label: "Beat Board from Prose",
     type: "ai",
-    shortDescription: "Generate a structured outline from written scenes",
+    shortDescription: "A beat board of what your written scenes do",
     fullDescription:
-      "Analyzes the written prose to extract a structured outline (scene titles, synopses, and key events), helping authors who drafted first and want to build structure after.",
+      "Analyzes the written prose to make a beat board (scene titles, synopses, and key events), helping authors who drafted first and want to build structure after.",
     contextSources: ["Scene prose text (all scenes)", "Story title & genre"],
     backendFeatureId: "extract-outline",
   },
@@ -62,7 +62,7 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Guidance for the current Snowflake Method step",
     fullDescription:
       "Provides contextual guidance and questions for whichever step of the Snowflake Method you're currently working on.",
-    contextSources: ["Current Snowflake step", "Existing outline content", "Story premise"],
+    contextSources: ["Current Snowflake step", "Existing beat boards", "Story premise"],
     backendFeatureId: "snowflake-guidance",
   },
   "story-summary": {
@@ -115,12 +115,12 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "outline-alignment": {
     id: "outline-alignment",
-    label: "Outline Alignment",
+    label: "Beat Board Alignment",
     type: "ai",
-    shortDescription: "Where the manuscript has drifted from the outline",
+    shortDescription: "Where the manuscript has drifted from a beat board",
     fullDescription:
-      "Compares outline items against what the scenes actually do, and reports drift in both directions: outline items with no scene, scenes with no outline item.",
-    contextSources: ["Outline items", "Scene synopses", "Story structure"],
+      "Compares a beat board's beats against what the scenes actually do, and reports drift in both directions: beats with no scene, scenes with no beat.",
+    contextSources: ["Beats on the board", "Scene synopses", "Story structure"],
     backendFeatureId: "outline-alignment",
   },
   "image-analysis": {

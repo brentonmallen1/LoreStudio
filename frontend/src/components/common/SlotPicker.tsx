@@ -10,7 +10,7 @@ interface Props {
 }
 
 /** Eight swatches from the theme's palette slots; the chosen one shows a tick (doc 11 P2). */
-export default function SlotPicker({ value, onChange, label = "Colour", size = "md" }: Props) {
+export default function SlotPicker({ value, onChange, label = "Color", size = "md" }: Props) {
   return (
     <div className={`${styles.row} ${size === "sm" ? styles.sm : ""}`} role="radiogroup" aria-label={label}>
       {Array.from({ length: SLOT_COUNT }, (_, i) => i + 1).map((slot) => (

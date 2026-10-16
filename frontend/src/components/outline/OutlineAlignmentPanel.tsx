@@ -117,7 +117,7 @@ export default function OutlineAlignmentPanel({ outlineId, onClose }: Props) {
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <Orbit size={13} className={styles.headerIcon} />
-          <span className={styles.title}>Outline Alignment</span>
+          <span className={styles.title}>Beat Board Alignment</span>
         </div>
         <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
           <X size={14} />
@@ -143,7 +143,7 @@ export default function OutlineAlignmentPanel({ outlineId, onClose }: Props) {
           <div className={styles.results}>
             <KeptAnswerBar
               answer={kept.answer}
-              heading="Outline alignment"
+              heading="Beat board alignment"
               context={{ storyId }}
               onAskAgain={() => void analyze()}
               asking={loading}

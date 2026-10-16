@@ -262,7 +262,7 @@ const GUIDE_LIST: Guide[] = [
   },
   {
     id: "snapshots-and-backups",
-    title: "Snapshots, backups and undo",
+    title: "Versions, backups and undo",
     body: snapshots,
     modes: BOTH,
     keywords: ["versions", "restore", "undo", "history", "backup", "database", "redo", "draft"],

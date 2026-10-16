@@ -51,7 +51,7 @@ def _verify_snapshot_access(snapshot_id: str, story_id: str, db: Session) -> Sto
         .first()
     )
     if not snap:
-        raise HTTPException(status_code=404, detail="Snapshot not found")
+        raise HTTPException(status_code=404, detail="Version not found")
     return snap
 
 
@@ -201,7 +201,7 @@ def create_manual_snapshot(
     # A manual snapshot is always written, even when nothing changed since the anchor.
     snap = create_snapshot(story_id, db, trigger="manual", name=body.name, force=True)
     if snap is None:
-        raise HTTPException(status_code=500, detail="Snapshot was not created")
+        raise HTTPException(status_code=500, detail="The version was not saved")
     # A version carries the Numbers as they stood (doc 19), measured as a quiet job.
     if automatic.reading_on(db, "with_versions"):
         numbers_history.queue_reading(
@@ -270,7 +270,7 @@ def check_auto_backup(
     if snap is None:
         release_auto_backup(db, settings, now, previous)
         return {"created": False, "reason": "no_changes"}
-    automatic.record_run(db, "story-backups", f"Backed up {story.title}")
+    automatic.record_run(db, "story-backups", f"Saved a version of {story.title}")
     return {"created": True, "snapshot": SnapshotOut.from_orm_snap(snap)}
 
 
@@ -399,7 +399,7 @@ async def import_into_story(
 
     if create_safety_backup:
         settings = _get_or_create_settings(story_id, db)
-        create_snapshot(story_id, db, trigger="auto", name="Pre-import backup", settings=settings, force=True)
+        create_snapshot(story_id, db, trigger="auto", name="Before importing a file", settings=settings, force=True)
 
     from ..services.snapshot_service import _delete_story_content, _insert_story_content
 

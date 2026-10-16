@@ -103,13 +103,13 @@ def _readings_cadence(o: dict) -> str:
 TASKS: tuple[Task, ...] = (
     Task(
         id="story-backups",
-        label="Story auto-backups",
+        label="Story versions",
         description="Saves a version of the story you have open, if it changed, and thins the older "
-        "auto-backups to the story's limits. Versions you name are never thinned.",
+        "versions it saved to the story's limits. Versions you save yourself are never thinned.",
         when="visit",
         cadence=lambda o: (
-            "While a story is open, at its backup interval: every 30 minutes unless "
-            "you changed it under Backups or in the story's Versions"
+            "While a story is open, every 30 minutes unless you changed it under "
+            "Versions and backups or in the story's Versions"
         ),
         link="backups",
     ),
@@ -130,8 +130,8 @@ TASKS: tuple[Task, ...] = (
     ),
     Task(
         id="db-backup",
-        label="Database backup",
-        description="Copies the whole database, every story and setting, to the backups folder, "
+        label="Backups of everything",
+        description="Copies all of LoreStudio, every story and setting, to the backups folder, "
         "apart from story versions. Restore by replacing the database file.",
         when="schedule",
         on=env.db_backup_enabled,
@@ -141,7 +141,7 @@ TASKS: tuple[Task, ...] = (
             Option("keep", "Keep the last", env.db_backup_keep, "backups", 1, 365),
         ),
         job_kind="auto-db-backup",
-        job_label="Backing up the database",
+        job_label="Backing up everything",
         every=lambda o: timedelta(hours=o["every_hours"]),
         link="backups",
     ),

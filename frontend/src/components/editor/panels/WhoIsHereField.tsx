@@ -80,8 +80,8 @@ export default function WhoIsHereField({
           <label className={styles.overviewLabel}>Who is here</label>
         </div>
         <p className={styles.overviewHint}>
-          The Codex has not been built for this story yet. Build it from Settings › Codex and this scene's
-          cast will appear here.
+          Connections has not been built for this story yet. Open Lorebook › Connections and choose Build the
+          graph, and this scene's cast will appear here.
         </p>
       </div>
     );
@@ -125,7 +125,7 @@ export default function WhoIsHereField({
       </div>
       {here.length === 0 ? (
         <p className={styles.overviewHint}>
-          Nobody yet. The Codex reads point of view, dialogue and names in the prose. If you write around
+          Nobody yet. Connections reads point of view, dialogue and names in the prose. If you write around
           names, add people here so their interviews know they were in this scene.
         </p>
       ) : (

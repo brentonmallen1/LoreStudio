@@ -57,7 +57,7 @@ export default function AISwitchCard() {
           <p className={styles.sectionHint}>
             {enabled === false
               ? "AI is off. No AI surface is shown anywhere, and the server refuses AI calls even if one is requested. Your manuscript tools, checks and exports are unaffected."
-              : "When this is off, every AI surface disappears and the server refuses AI calls. Non-AI tools (checks, quote normalisation, NLP analyses, export) keep working."}
+              : "When this is off, every AI surface disappears and the server refuses AI calls. Non-AI tools (checks, quote normalization, NLP analyses, export) keep working."}
             {available ? "" : " Writer mode also hides AI; this switch is separate."}
           </p>
         </div>

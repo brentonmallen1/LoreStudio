@@ -79,7 +79,7 @@ export default function PlanPage({ storyId }: { storyId: string }) {
               </button>
             </>
           ) : view === "boards" ? (
-            "Loose outlines for brainstorming beats. Turn any beat into a scene."
+            "Loose lists of beats for brainstorming. Turn any beat into a scene."
           ) : view === "timeline" ? (
             "The scenes in the order they happen, with their dates and eras, against the order the reader meets them."
           ) : undefined

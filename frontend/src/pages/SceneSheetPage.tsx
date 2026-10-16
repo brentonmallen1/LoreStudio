@@ -49,7 +49,7 @@ function pageOf(hash: string, studio: boolean): Page {
 
 /**
  * `/write/:nodeId/sheet` (doc 24 D19, canvas 8d): every field of one scene. A third of the
- * page is the scene's index card, always in view (what happens, the turn, who, where, beat,
+ * page is the scene's index card, always in view (what happens, how it starts and ends, who, where, beat,
  * when, Write, the scenes either side); two thirds are its pages, as on a character's sheet:
  * The plan, Promises, Notes, Findings, Who, where and when, and in Studio mode the Assistant.
  * The page is in the address (`#promises`), so a line in the This scene tab opens on it.
@@ -145,7 +145,7 @@ export default function SceneSheetPage() {
               <>
                 <SheetField
                   key={`${node.id}:purpose`}
-                  label="Purpose"
+                  label="Why it's here"
                   initial={node.purpose ?? ""}
                   placeholder="Why does this scene exist? What does it do that nothing else does?"
                   save={save("purpose")}

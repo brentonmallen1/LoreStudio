@@ -48,7 +48,7 @@ export async function addPlannedScene(
   const parent = deepest === 0 ? null : parentForLevel(structure, deepest, scenes.at(-1) ?? null);
   if (deepest > 0 && !parent) {
     const above = activeTemplate?.levels[deepest - 1]?.name.toLowerCase() ?? "section";
-    return { hint: `Add a ${above} in the structure tree first; scenes go inside one.` };
+    return { hint: `Add a ${above} in the strip first; scenes go inside one.` };
   }
   const siblings = parent ? (parent.children ?? []) : structure;
   const node = await api.createNode(storyId, {

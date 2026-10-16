@@ -15,18 +15,18 @@ Eleanor Vance and Harrow Island belong in the Lorebook: they exist because you m
 One list of the whole Compendium, newest first: research, images and diagrams together, for when you can't remember where you put something.
 
 - **Search the Compendium…** finds an entry by its words.
-- The chips (**Notes**, **Links**, **Documents**, **Images**, **Diagrams**) narrow it to one kind.
+- The chips (**Research notes**, **Links**, **Documents**, **Images**, **Diagrams**) narrow it to one kind.
 - **Add research** starts a new entry.
 
 ## Research
 
 Your research entries, each one of three kinds:
 
-- **Note**: research in your own words.
-- **URL**: a link to a page. **Auto-fetch title and description** fills those in for you.
+- **Research note**: research in your own words.
+- **Link**: a page on the web. **Auto-fetch title and description** fills those in for you.
 - **Document**: a file, such as a PDF, uploaded in **Images** first and linked here.
 
-**Add entry** makes one. Each has a **Category** and **Tags** to find it by, and **Notes** for why it matters to your story. **Search research…** and the filters along the top narrow the list.
+**Add research** makes one. Each has a **Category** and **Tags** to find it by, and **Why it matters** for what it means to your story. **Search research…** and the filters along the top narrow the list.
 
 ## Notes
 

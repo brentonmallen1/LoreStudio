@@ -24,7 +24,7 @@ export default function StripKey({ mode, line, ctx }: { mode: ColourMode; line: 
       )}
       {colours.length > 0 && (
         <div className={styles.keyRow}>
-          <span className={styles.keyLabel}>Colour</span>
+          <span className={styles.keyLabel}>Color</span>
           {colours.map((c) => (
             <span key={c.label} className={styles.keyItem}>
               <span className={styles.swatch} style={{ background: c.color }} />

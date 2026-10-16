@@ -86,7 +86,16 @@ export const REVIEW_ROUTES: StoryRoute[] = [
         purpose: "Saved copies of the whole story to come back to",
         guide: "snapshots-and-backups",
         icon: History,
-        keywords: ["snapshots", "backups", "restore", "backup", "version history"],
+        keywords: [
+          "snapshots",
+          "snapshot",
+          "auto backups",
+          "backups",
+          "restore",
+          "backup",
+          "version history",
+          "save a version",
+        ],
       },
       // What each import brought and where it went (doc 28).
       {

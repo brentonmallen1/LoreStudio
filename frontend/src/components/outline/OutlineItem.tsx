@@ -234,7 +234,7 @@ export default function OutlineItem({
                 }
               }
             }}
-            placeholder="Outline beat…"
+            placeholder="A beat…"
           />
           {item.scene_id && !showScenePicker && (
             <div

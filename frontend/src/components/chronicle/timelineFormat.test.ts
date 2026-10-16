@@ -1,9 +1,15 @@
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { AIJob } from "../../api/jobs";
 import type { ActivityLog } from "../../types";
 import {
   callLabel,
+  callProblem,
   dayLabel,
+  JOB_KIND_LABELS,
+  jobName,
+  logTitle,
   formatDuration,
   groupByDay,
   jobOutcome,
@@ -89,7 +95,7 @@ describe("what a job did", () => {
     const out = jobOutcome(
       job({ kind: "scene-summaries", result: { summarized_count: 3, skipped_count: 7, failed_count: 0 } }),
     );
-    expect(out.sentence).toBe("Summarised 3 scenes; 7 skipped (empty or already current).");
+    expect(out.sentence).toBe("Summarized 3 scenes; 7 skipped (empty or already current).");
   });
 
   it("the graph, with its counts in words rather than keys", () => {
@@ -138,5 +144,48 @@ describe("what a job did", () => {
       ["Redo summaries that are current", "yes"],
       ["Only these scenes", "2 scenes"],
     ]);
+  });
+});
+
+describe("names, never keys (doc 30 D7)", () => {
+  const log = (over: Partial<ActivityLog>): ActivityLog =>
+    ({ id: "l", event_type: "analysis_run", metadata_: {}, ...over }) as ActivityLog;
+
+  it("say what went wrong with a call in plain words", () => {
+    expect(callProblem(log({ metadata_: { status: "ok" } }))).toBeNull();
+    expect(callProblem(log({ metadata_: { status: "schema-fallback" } }))).toBe("Loose answer");
+    expect(callProblem(log({ metadata_: { status: "invalid-json" } }))).toBe("Unreadable answer");
+    expect(callProblem(log({ metadata_: { status: "something-new" } }))).toBe("Something went wrong");
+  });
+
+  it("name a local check by its own name", () => {
+    expect(logTitle(log({ metadata_: { feature: "prose-analysis" } }))).toBe("Prose check");
+    expect(logTitle(log({ event_type: "analysis_run" }))).toBe("A check");
+    expect(logTitle(log({ event_type: "made_up_event" }))).toBe("Something LoreStudio did");
+  });
+
+  it("keep a job's label, and rename the old Codex ones", () => {
+    expect(jobName(job({ kind: "check", label: "Pacing check" }))).toBe("Pacing check");
+    expect(jobName(job({ kind: "codex-sync", label: "Codex sync: The Last Lighthouse" }))).toBe(
+      "Building Connections: The Last Lighthouse",
+    );
+    expect(jobName(job({ kind: "auto-db-backup", label: "" }))).toBe("Backing up everything");
+    expect(jobName(job({ kind: "not-a-kind", label: "" }))).toBe("Background work");
+  });
+
+  it("names every kind of job the server can queue", () => {
+    const root = join(__dirname, "../../../../backend/app");
+    const kinds = new Set<string>(["numbers-backfill"]);
+    const walk = (dir: string) => {
+      for (const name of readdirSync(dir)) {
+        const path = join(dir, name);
+        if (statSync(path).isDirectory()) walk(path);
+        else if (name.endsWith(".py"))
+          for (const m of readFileSync(path, "utf8").matchAll(/^@handler\("([^"]+)"/gm)) kinds.add(m[1]);
+      }
+    };
+    walk(root);
+    expect(kinds.size).toBeGreaterThan(10);
+    expect([...kinds].filter((k) => !JOB_KIND_LABELS[k])).toEqual([]);
   });
 });

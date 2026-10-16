@@ -26,7 +26,7 @@ const BLURBS: Record<ChronicleView, string> = {
   conversations:
     "Your chats with the AI: scene assistants, character interviews and group panels. Open one to read it back, or resume it.",
   changes:
-    "Every change to this story's data, newest first. Undo here reverses the latest change from any tab; the header buttons reverse only this tab's changes.",
+    "Every change to this story, newest first. Undo any of them here, as long as nothing later depends on it.",
 };
 
 const WRITER_ACTIVITY_BLURB = "Analyses and checks run on this story. Open a row for the detail.";

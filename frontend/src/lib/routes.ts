@@ -70,7 +70,7 @@ export const DOMAIN_LABELS: Record<Domain, string> = {
   manuscript: "Manuscript",
   lorebook: "Lorebook",
   compendium: "Compendium",
-  codex: "Codex",
+  codex: "Connections",
   chronicle: "Chronicle",
   system: "Story",
 };

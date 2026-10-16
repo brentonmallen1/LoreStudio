@@ -178,7 +178,7 @@ export default function EditorMoreMenu(p: Props) {
               icon={Palette}
               checked={elementGuides}
               hint={elementGuides ? "On" : "Off"}
-              title="Each element's words in a colour of their own, its name beside the line you are writing, and a hint on an empty line"
+              title="Each element's words in a color of their own, its name beside the line you are writing, and a hint on an empty line"
               onSelect={() => setElementGuides(!elementGuides)}
             />
           )}

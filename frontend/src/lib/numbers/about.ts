@@ -87,7 +87,7 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
 
   pacing: {
     measures: [
-      "One column for each scene in reading order, numbered by chapter along the top. Its height is the scene's word count, on a scale from 0 to a round number just above the longest scene; its colour is the scene's state. The line across is the median length: half the written scenes are longer and half shorter. It is a length, not a position, so it can line up with any scene, the last included.",
+      "One column for each scene in reading order, numbered by chapter along the top. Its height is the scene's word count, on a scale from 0 to a round number just above the longest scene; its color is the scene's state. The line across is the median length: half the written scenes are longer and half shorter. It is a length, not a position, so it can line up with any scene, the last included.",
       "In a script a column's height is the scene's length in eighths of a page, its lines laid end to end as a script breakdown counts them, on a scale of whole pages, and a dashed line marks three pages: long for a scene on screen, not wrong.",
       "With a beat sheet chosen for the story, the row of dots above sits where the sheet places each beat, as a share of the book's words. A filled dot has a scene assigned to that beat; a hollow one has none.",
     ],
@@ -107,7 +107,7 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
 
   threads: {
     measures: [
-      "A lane for each plot thread, with a mark for each scene the thread is linked to and a line from its first scene to its last. Lanes are ordered by where each thread first appears.",
+      "A lane for each thread, with a mark for each scene the thread is linked to and a line from its first scene to its last. Lanes are ordered by where each thread first appears.",
       "Each mark's shape is what that scene does to the thread, as set on the thread: opens it, moves it on, turns or complicates it, a try that fails, a try that succeeds, closes it. They are the tapestry's marks, and the legend names the ones in use.",
       "The word on the right is the thread's status (planned, open, resolved, set aside). It follows from the scenes that open and close it, and is not read from the prose.",
     ],
@@ -127,7 +127,7 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
   cast: {
     measures: [
       "A row for each character who appears, with a square for every scene they are in. A character is in a scene when it is seen through them, when the prose names them (by name, by what they are known as, or in a speaker tag on their line), or when the scene has them placed in it by hand. Marked absent by hand, they are out even if named.",
-      "A cell is filled in the character's colour where the scene is seen through them, in a lighter step of it where they are only on the page, and left empty where they are not in it. The page shows the six characters in the most scenes; Open the full grid shows every character, with each scene named. Rows are ordered by how many scenes each character is in. “Quiet lately” marks a character who was on the page earlier and is in none of the last three scenes that have words. “Arc 2/5” counts their arc milestones checked off.",
+      "A cell is filled in the character's color where the scene is seen through them, in a lighter step of it where they are only on the page, and left empty where they are not in it. The page shows the six characters in the most scenes; Open the full grid shows every character, with each scene named. Rows are ordered by how many scenes each character is in. “Quiet lately” marks a character who was on the page earlier and is in none of the last three scenes that have words. “Arc 2/5” counts their arc milestones checked off.",
       "Characters in no scene yet are listed underneath.",
       "In a script each name has its screen time: the pages of the scenes they are in, added up. It is an estimate that counts them there for the whole of each scene, so a character who only passes through, or who enters late, comes out higher than their time on screen.",
     ],
@@ -139,13 +139,13 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
       "“Quiet lately” is a fixed count of three written scenes, whatever the character's part in the book. It says only that they have not been on the page recently.",
     ],
     compared: [
-      "A cell gained since then has a dot; a cell lost is a faint outline in the character's colour. Each count says its change. Only scenes that existed then can gain or lose someone: a scene new since then is marked in Pacing.",
+      "A cell gained since then has a dot; a cell lost is a faint outline in the character's color. Each count says its change. Only scenes that existed then can gain or lose someone: a scene new since then is marked in Pacing.",
     ],
   },
 
   pov: {
     measures: [
-      "Drawn only when the book has two or more point-of-view characters. One strip, a square for each scene in the colour of the character it is seen through: the scene's own point of view, or the book's when the scene has none. A grey square has no point of view set. Planned scenes count, since a viewpoint is often chosen before a scene is written.",
+      "Drawn only when the book has two or more point-of-view characters. One strip, a square for each scene in the color of the character it is seen through: the scene's own point of view, or the book's when the scene has none. A grey square has no point of view set. Planned scenes count, since a viewpoint is often chosen before a scene is written.",
       "The book's usual turn is the average number of scenes it takes for the same eyes to come round again. “Away a while” marks a viewpoint whose last scene is at least three scenes back and more than twice that turn.",
     ],
     why: [
@@ -156,7 +156,7 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
       "“Away a while” is measured against this book's own rhythm, not a standard, so the same gap can be marked in one book and not in another. Choose a square to open its scene.",
     ],
     compared: [
-      "A scene whose point of view changed has a thin band under it in the colour of whose eyes it was seen through then. Each viewpoint's count says what it was.",
+      "A scene whose point of view changed has a thin band under it in the color of whose eyes it was seen through then. Each viewpoint's count says what it was.",
     ],
   },
 

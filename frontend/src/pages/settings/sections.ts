@@ -97,10 +97,10 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   },
   {
     id: "backups",
-    label: "Backups",
+    label: "Versions and backups",
     icon: Archive,
     modes: BOTH,
-    keywords: ["snapshots", "database", "restore"],
+    keywords: ["backups", "versions", "snapshots", "auto backups", "database", "restore"],
   },
   {
     id: "automatic",

@@ -100,7 +100,7 @@ export default function SnapshotCard({
             {snapshot.trigger === "manual" ? "Manual" : "Auto"}
           </span>
           {snapshot.summary && (
-            <span className={styles.snapWordCount} title="Word count at this snapshot">
+            <span className={styles.snapWordCount} title="Words in this version">
               {snapshot.summary.word_count.toLocaleString()} words
             </span>
           )}
@@ -108,16 +108,16 @@ export default function SnapshotCard({
             <button
               className={styles.snapBtn}
               onClick={() => onExport(snapshot)}
-              title="Download snapshot"
-              aria-label="Download snapshot"
+              title="Download this version"
+              aria-label="Download this version"
             >
               <Download size={12} />
             </button>
             <button
               className={styles.snapBtn}
               onClick={() => onCompare(snapshot)}
-              title="Compare with another snapshot"
-              aria-label="Compare with another snapshot"
+              title="Compare with another version"
+              aria-label="Compare with another version"
             >
               <GitCompare size={12} />
             </button>
@@ -148,8 +148,8 @@ export default function SnapshotCard({
               <button
                 className={`${styles.snapBtn} ${styles.snapBtnDanger}`}
                 onClick={() => setPendingDelete(true)}
-                title="Delete snapshot"
-                aria-label="Delete snapshot"
+                title="Delete this version"
+                aria-label="Delete this version"
               >
                 <Trash2 size={12} />
               </button>

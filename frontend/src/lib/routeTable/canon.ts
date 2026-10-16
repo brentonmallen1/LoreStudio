@@ -253,11 +253,21 @@ export const CANON_ROUTES: StoryRoute[] = [
         id: "research",
         path: "/research",
         label: "Research",
-        purpose: "Notes, links and files you're reading for this story",
+        purpose: "Research notes, links and documents you're reading for this story",
         guide: "compendium",
         icon: NotebookText,
         detailParam: "entryId",
-        keywords: ["notes", "links", "documents", "references", "sources"],
+        keywords: [
+          "notes",
+          "research notes",
+          "links",
+          "url",
+          "documents",
+          "references",
+          "sources",
+          "entry",
+          "entries",
+        ],
       },
       {
         // Notes, questions, to-dos and ideas, wherever they are tied (doc 15 N2).
