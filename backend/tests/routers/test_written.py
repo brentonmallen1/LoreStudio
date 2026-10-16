@@ -3,7 +3,7 @@
 
 import uuid
 
-from app.models import ActivityLog, Location, User
+from app.models import ActivityLog, Location, StructureNode, User
 from tests.fixtures.findings_story import build_findings_story
 
 LONG = "".join(f"<p>{'The sea was grey and the lamp turned all night long. ' * 25}</p>" for _ in range(10))
@@ -139,3 +139,39 @@ def test_a_name_found_as_a_person_and_a_place_is_counted_as_each(client, db_sess
     found = {(n["name"], n["kind"]): n["times"] for n in _written(client, story)["new_names"]}
     # "Marlowe’s" is in Places, so the scan's "Marlowe" is not someone new.
     assert found == {("Delia", "person"): 2, ("Delia", "place"): 2}
+
+
+def test_a_part_holding_many_scenes_is_offered_chapters_until_not_now(client, db_session, test_user):
+    from app.models.structure import StoryStructureTemplate
+    from app.services.seed import STRUCTURE_TEMPLATES
+
+    for t in STRUCTURE_TEMPLATES:
+        db_session.add(StoryStructureTemplate(**t, is_system=True))
+    story, nodes = build_findings_story(db_session, test_user)
+    held = nodes["Chapter 3"]
+    for i in range(8):
+        db_session.add(
+            StructureNode(story_id=story.id, parent_id=held.id, level=1, level_type="scene", title=f"S{i}", position=i)
+        )
+    db_session.commit()
+    [offer] = _written(client, story)["chapters_offers"]
+    assert (offer["part_id"], offer["scenes"], offer["level"], offer["many_scenes"]) == (held.id, 8, "section", 8)
+    client.post(f"/api/stories/{story.id}/written/not-now", json={"key": f"chapters:{held.id}"})
+    assert _written(client, story)["chapters_offers"] == []
+
+
+def test_a_scene_made_with_words_counts_them(client, db_session, test_user):
+    story, nodes = build_findings_story(db_session, test_user)
+    r = client.post(
+        f"/api/stories/{story.id}/structure",
+        json={
+            "parent_id": nodes["Chapter 3"].id,
+            "level": 1,
+            "level_type": "scene",
+            "title": "From Freewrite",
+            "content": "<p>The logbook lay open at the missing week.</p>",
+            "status": "draft",
+        },
+    )
+    assert r.status_code == 201, r.text
+    assert r.json()["word_count"] == 8

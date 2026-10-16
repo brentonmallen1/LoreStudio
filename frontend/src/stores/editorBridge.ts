@@ -36,6 +36,9 @@ interface EditorBridge {
   /** Speak the line's speech at the same time as the one before it, or not (doc 25, P8). */
   scriptDual: (() => "on" | "off" | "none") | null;
   setScriptDual: (fn: (() => "on" | "off" | "none") | null) => void;
+  /** Split the open prose scene at the cursor, or join it with the next one (doc 29 D6). */
+  organize: { split: () => void; merge: () => void } | null;
+  setOrganize: (organize: { split: () => void; merge: () => void } | null) => void;
 }
 
 export const useEditorBridge = create<EditorBridge>((set) => ({
@@ -51,4 +54,6 @@ export const useEditorBridge = create<EditorBridge>((set) => ({
   setScriptElement: (fn) => set({ scriptElement: fn }),
   scriptDual: null,
   setScriptDual: (fn) => set({ scriptDual: fn }),
+  organize: null,
+  setOrganize: (organize) => set({ organize }),
 }));

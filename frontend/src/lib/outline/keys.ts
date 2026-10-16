@@ -7,7 +7,8 @@
  * - → at the end of a title goes on to what happens, ← at its start comes back;
  * - Backspace in an empty new line takes it away;
  * - Esc leaves the text for the row, so Tab reaches the row's buttons.
- * On a row: Enter or F2 edits it, ↑ ↓ move, → unfolds and ← folds.
+ * On a row: Enter or F2 edits it, ↑ ↓ move, → unfolds and ← folds; Shift+↑ ↓ choose scenes to
+ * wrap in a chapter (doc 29 D6), and Esc lets them go.
  */
 
 export type Field = "title" | "synopsis";
@@ -38,17 +39,23 @@ export type KeyAction =
   | "remove-empty"
   | "edit"
   | "fold"
-  | "unfold";
+  | "unfold"
+  | "choose-up"
+  | "choose-down"
+  | "let-go";
 
 export function outlineKey(press: KeyPress): KeyAction | null {
   if (press.mod || press.composing) return null;
   const { key, shift, at } = press;
+  if (at === "row" && shift && key === "ArrowUp") return "choose-up";
+  if (at === "row" && shift && key === "ArrowDown") return "choose-down";
   if (key === "ArrowUp") return "up";
   if (key === "ArrowDown") return "down";
   if (at === "row") {
     if (key === "Enter" || key === "F2") return "edit";
     if (key === "ArrowRight") return "unfold";
     if (key === "ArrowLeft") return "fold";
+    if (key === "Escape") return "let-go";
     return null;
   }
   if (key === "Enter" && !shift) return "add-next";

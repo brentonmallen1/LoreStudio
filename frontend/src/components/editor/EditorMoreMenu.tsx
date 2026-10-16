@@ -10,9 +10,11 @@ import {
   Info,
   Layers,
   Link,
+  Merge,
   MoreHorizontal,
   Palette,
   Quote,
+  Scissors,
   StickyNote,
   Tag,
   Type,
@@ -27,6 +29,7 @@ import { sceneSheetPath } from "../../lib/scene/glance";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import { useProseViewStore } from "../../stores/proseViewStore";
+import { useEditorBridge } from "../../stores/editorBridge";
 import type { WritingGuideTab } from "../help/WritingGuidesModal";
 import AIFeatureInfoModal from "../ai/AIFeatureInfoModal";
 import FontSettings from "../story/FontSettings";
@@ -64,6 +67,7 @@ export default function EditorMoreMenu(p: Props) {
   const script = format !== "prose";
   const { elementGuides, setElementGuides } = useUIStore();
   const { speakerColors, setSpeakerColors, hideSpeakerTags, setHideSpeakerTags } = useProseViewStore();
+  const organize = useEditorBridge((s) => s.organize);
   const wrap = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const ai = useAIAvailable();
@@ -162,6 +166,22 @@ export default function EditorMoreMenu(p: Props) {
             title="Find names not yet linked"
             onSelect={then(p.onOpenAutoLink)}
           />
+          {organize && (
+            <Item
+              label="Split the scene here…"
+              icon={Scissors}
+              title="The words after the cursor become the next scene"
+              onSelect={then(organize.split)}
+            />
+          )}
+          {organize && (
+            <Item
+              label="Join with the next scene"
+              icon={Merge}
+              title="The next scene's words follow this one's, after a scene break"
+              onSelect={then(organize.merge)}
+            />
+          )}
           <div className={styles.label}>Show</div>
           <Item
             label="Notes in the margin"

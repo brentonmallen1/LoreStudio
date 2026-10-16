@@ -4,7 +4,10 @@ import { ChevronDown, ChevronRight, GripVertical, PenLine } from "lucide-react";
 import { sceneSheetPath } from "../../lib/scene/glance";
 import { sceneStatus, statusWords } from "../../lib/outline/status";
 import { FROM_FIRST_LINE, sceneLine } from "../../lib/outline/summary";
-import { DRAFT_ID, partSummary, type Row, type Shape } from "../../lib/outline/tree";
+import { DRAFT_ID, partSummary, placeOf, type Row, type Shape } from "../../lib/outline/tree";
+import { organizeApi } from "../../api/organize";
+import { reloadStructure } from "../../lib/story/loadStory";
+import { toast } from "../../stores/toastStore";
 import { findNode } from "../layout/structureTreeMeta";
 import { useStoryStore } from "../../stores/storyStore";
 import Term from "../common/Term";
@@ -31,6 +34,10 @@ export interface RowProps {
   onDrop: (e: DragEvent, row: Row) => void;
   /** The list's one tip: a row reached by the keyboard shows its whole line when cut short. */
   tip: ReturnType<typeof useHoverTip>;
+  /** Chosen to wrap in a chapter (doc 29 D6): Shift+click chooses, a plain click lets go. */
+  chosen: boolean;
+  onChoose: (id: string) => void;
+  onLetGo: () => void;
 }
 
 /**
@@ -77,7 +84,7 @@ export default function OutlineRow(props: RowProps) {
       aria-level={depth + 1}
       aria-selected={props.stop}
       aria-expanded={unfoldable ? expanded : undefined}
-      aria-label={node.title || titleHint}
+      aria-label={`${node.title || titleHint}${props.chosen ? ", chosen" : ""}`}
       tabIndex={props.stop ? 0 : -1}
       data-outline-row={node.id}
       data-depth={Math.min(depth, 2)}
@@ -86,6 +93,13 @@ export default function OutlineRow(props: RowProps) {
       data-drop={props.dropZone}
       className={styles.row}
       style={{ "--depth": depth } as React.CSSProperties}
+      data-chosen={props.chosen || undefined}
+      onMouseDown={(e) => {
+        if (!e.shiftKey) return props.onLetGo();
+        if (!scene || draft) return;
+        e.preventDefault();
+        props.onChoose(node.id);
+      }}
       onDragOver={(e) => props.onDragOver(e, row)}
       onDrop={(e) => props.onDrop(e, row)}
       {...clipTipHandlers(
@@ -246,7 +260,41 @@ function SceneDetails({ storyId, nodeId, whole }: { storyId: string; nodeId: str
         <Link to={sceneSheetPath(storyId, node.id)} className={styles.secondary}>
           Scene sheet
         </Link>
+        <JoinNext nodeId={node.id} />
       </div>
     </div>
+  );
+}
+
+/**
+ * Join an unfolded scene with the next one in its part (doc 29 D6): the next scene's words follow
+ * this one's after a scene break, as one change ⌘Z takes back. Offered only where there is one.
+ */
+function JoinNext({ nodeId }: { nodeId: string }) {
+  const next = useStoryStore((s) => {
+    const at = placeOf(s.structure, nodeId);
+    const after = at?.siblings[at.index + 1];
+    return after && !after.children?.length ? after : null;
+  });
+  const [busy, setBusy] = useState(false);
+  if (!next) return null;
+  async function join() {
+    setBusy(true);
+    try {
+      const joined = await organizeApi.mergeNext(nodeId);
+      const store = useStoryStore.getState();
+      if (store.activeNode && [nodeId, next?.id].includes(store.activeNode.id)) store.setActiveNode(joined);
+      await reloadStructure();
+      toast.info(`“${next?.title || "The next scene"}” is part of this scene now, after a scene break.`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "The scenes were not joined. Try again in a moment.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <button type="button" className={styles.secondary} disabled={busy} onClick={() => void join()}>
+      Join with “{next.title || "the next scene"}”
+    </button>
   );
 }

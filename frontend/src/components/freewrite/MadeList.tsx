@@ -7,6 +7,15 @@ import NoteItem from "../notes/NoteItem";
 import { useStoryNotes } from "../notes/useStoryNotes";
 import styles from "./Freewrite.module.css";
 
+/** What the words became, said with where they went (doc 29 D9). */
+const MADE_KIND: Record<string, string> = {
+  character: "Character",
+  place: "Place",
+  scene: "Planned scene",
+  draft: "Scene, first draft",
+  idea: "Idea, not placed yet",
+};
+
 const FIELD_LABEL: Record<string, string> = {
   logline: "The logline",
   premise: "The premise",
@@ -15,7 +24,9 @@ const FIELD_LABEL: Record<string, string> = {
 
 /**
  * What the Freewrite page has made so far (doc 15 N3), in the order it appears: notes with
- * their tick box, answer and "Tie to…", and links to the characters, places and scenes.
+ * their tick box, answer and "Tie to…", and links to the characters, places and scenes, each
+ * saying where the words went: a planned scene, a scene's first draft, or an idea in the
+ * Outline's tray (doc 29 D9).
  */
 export default function MadeList({ storyId, refs }: { storyId: string; refs: string[] }) {
   const notes = useStoryNotes(storyId);
@@ -37,8 +48,8 @@ export default function MadeList({ storyId, refs }: { storyId: string; refs: str
   if (refs.length === 0)
     return (
       <p className={styles.madeEmpty}>
-        Nothing made yet. Select a sentence and make it a note, a question, a character or a place; it stays
-        on the page, dotted.
+        Nothing made yet. Select a sentence and make it a note, a question, a character, a place or a scene;
+        it stays on the page, dotted, and is listed here with where it went.
       </p>
     );
   return (
@@ -52,26 +63,37 @@ export default function MadeList({ storyId, refs }: { storyId: string; refs: str
           const note = notes.notes?.find((n) => n.id === id);
           return note ? <NoteItem key={ref} note={note} notes={notes} /> : <Gone key={ref} what="A note" />;
         }
+        if (kind === "idea")
+          return (
+            <li key={ref} className={styles.madeRow}>
+              <span className={styles.madeKind}>{MADE_KIND.idea}</span>
+              <button
+                type="button"
+                className={styles.madeLink}
+                onClick={() => navigate(`/stories/${storyId}/outline`)}
+              >
+                In the Outline's tray
+              </button>
+            </li>
+          );
+        const scene = kind === "scene" || kind === "draft";
         const target =
           kind === "character"
             ? characters.find((c) => c.id === id)
             : kind === "place"
               ? locations.find((l) => l.id === id)
-              : kind === "scene"
+              : scene
                 ? scenes.find((n) => n.id === id)
                 : null;
-        if (kind === "character" || kind === "place" || kind === "scene") {
-          if (!target) return <Gone key={ref} what={`A ${kind}`} />;
+        if (kind === "character" || kind === "place" || scene) {
+          if (!target) return <Gone key={ref} what={scene ? "A scene" : `A ${kind}`} />;
           const name = "name" in target ? target.name : target.title;
-          const to =
-            kind === "scene"
-              ? `/stories/${storyId}/write/${id}`
-              : sectionPath(storyId, "lorebook", kind === "character" ? "characters" : "places", id);
+          const to = scene
+            ? `/stories/${storyId}/write/${id}`
+            : sectionPath(storyId, "lorebook", kind === "character" ? "characters" : "places", id);
           return (
             <li key={ref} className={styles.madeRow}>
-              <span className={styles.madeKind}>
-                {kind === "scene" ? "Scene" : kind === "character" ? "Character" : "Place"}
-              </span>
+              <span className={styles.madeKind}>{MADE_KIND[kind]}</span>
               <button type="button" className={styles.madeLink} onClick={() => navigate(to)}>
                 {name}
               </button>

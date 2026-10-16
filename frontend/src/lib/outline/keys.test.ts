@@ -39,6 +39,13 @@ describe("the Outline's keys", () => {
     expect(outlineKey(press("Tab", { at: "row" }))).toBeNull();
   });
 
+  it("on a row, Shift+↑ ↓ choose scenes to wrap and Esc lets them go; in a line they stay the text's", () => {
+    expect(outlineKey(press("ArrowDown", { at: "row", shift: true }))).toBe("choose-down");
+    expect(outlineKey(press("ArrowUp", { at: "row", shift: true }))).toBe("choose-up");
+    expect(outlineKey(press("Escape", { at: "row" }))).toBe("let-go");
+    expect(outlineKey(press("ArrowDown", { at: "title", shift: true }))).toBe("down");
+  });
+
   it("leaves the app's shortcuts and an input method's keys alone", () => {
     expect(outlineKey(press("Enter", { mod: true }))).toBeNull();
     expect(outlineKey(press("Enter", { composing: true }))).toBeNull();

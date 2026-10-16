@@ -2,7 +2,8 @@ import { Mark, mergeAttributes } from "@tiptap/core";
 
 /**
  * Words on the Freewrite page that became something (doc 15 N3): `ref` says what, as
- * "note:<id>", "character:<id>", "place:<id>", "scene:<id>", "theme:<name>", or the field
+ * "note:<id>", "character:<id>", "place:<id>", "scene:<id>" (a planned scene), "draft:<id>"
+ * (a scene started with these words), "idea:<id>" (the Outline's tray), "theme:<name>", or the field
  * it went into ("logline", "premise", "conflict"). The text stays where it was written.
  */
 export const MadeMark = Mark.create({

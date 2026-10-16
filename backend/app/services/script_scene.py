@@ -120,9 +120,11 @@ def split_scene(
     client_id: str | None,
     batch: str | None = None,
     label: str | None = None,
+    title: str | None = None,
 ) -> StructureNode:
-    """Keep `before` in the scene and make `after` (which opens on its heading) the scene that
-    follows it, as one change ⌘Z takes back whole. Does not commit."""
+    """Keep `before` in the scene and make `after` the scene that follows it in the same part, as
+    one change ⌘Z takes back whole. A script's new scene opens on its heading and is named for
+    its place; a prose scene's is named `title` (doc 29 D6). Does not commit."""
     story = db.get(Story, node.story_id)
     batch = batch or str(uuid.uuid4())
     slug = heading_of(after)
@@ -150,7 +152,7 @@ def split_scene(
         parent_id=node.parent_id,
         level=node.level,
         level_type=node.level_type,
-        title=scene_title(slug),
+        title=(title or "").strip() or scene_title(slug),
         position=node.position + 1,
         status="draft",
         # Both halves still tell the novel's scene, in an adaptation (doc 25, P10).

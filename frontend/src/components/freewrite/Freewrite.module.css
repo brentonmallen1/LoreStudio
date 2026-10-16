@@ -319,3 +319,8 @@
   padding: 0.55rem 0;
   border-bottom: 1px solid var(--color-border-light);
 }
+
+/* The scene chooser's place under the selection (doc 29 D9): the chooser itself is lifted. */
+.chooserAt {
+  z-index: var(--z-popover);
+}

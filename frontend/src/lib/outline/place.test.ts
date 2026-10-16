@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { StoryStructureTemplate, StructureNode } from "../../types";
-import { dropSpot, placeSpots } from "./place";
+import { dropSpot, landingLine, placeSpots } from "./place";
 import { shapeOf } from "./tree";
 
 const n = (id: string, over: Partial<StructureNode> = {}, children: StructureNode[] = []) =>
@@ -61,5 +61,27 @@ describe("where a dropped idea lands", () => {
     expect(dropSpot(tree, acts, "Act 1", "into")).toBeNull();
     expect(dropSpot(tree, acts, "Storm Warning", "above")).toBeNull();
     expect(dropSpot(tree, acts, "missing", "above")).toBeNull();
+  });
+});
+
+describe("where a new scene lands, said before it is made", () => {
+  const spot = {
+    key: "c3:1",
+    parentId: "c3",
+    position: 1,
+    depth: 2,
+    levelType: "scene",
+    group: "Chapter 3",
+    label: "After “The Gap”",
+  };
+  it("names the part and the scene it follows", () => {
+    expect(landingLine(spot)).toBe("New scene in Chapter 3, after “The Gap”");
+    expect(landingLine({ ...spot, label: "At the start" })).toBe("New scene in Chapter 3, at the start");
+  });
+  it("in a shape with no parts, and in an empty story", () => {
+    expect(landingLine({ ...spot, parentId: null, group: "The story" }, "opening")).toBe(
+      "New opening, after “The Gap”",
+    );
+    expect(landingLine(null)).toBe("New scene, the story's first");
   });
 });

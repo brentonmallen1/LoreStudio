@@ -6,7 +6,18 @@ const names = (format: "prose" | "screenplay" | "stage_play", q: string) =>
 
 describe("slash commands (doc 25, P3½)", () => {
   it("offers prose what the editor already does another way", () => {
-    expect(names("prose", "")).toEqual(["dialogue", "character", "note", "todo", "image", "place", "help"]);
+    expect(names("prose", "")).toEqual([
+      "dialogue",
+      "character",
+      "note",
+      "todo",
+      "image",
+      "place",
+      "help",
+      "split",
+    ]);
+    // A script starts a scene at its heading (doc 25); prose splits at the cursor (doc 29 D6).
+    expect(names("screenplay", "split")).toEqual([]);
     expect(slashCommandsFor("prose").find((c) => c.name === "character")!.action).toEqual({
       kind: "type",
       text: "@",

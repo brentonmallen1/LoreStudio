@@ -105,3 +105,10 @@ export function dropSpot(
     label: `${zone === "below" ? "After" : "Before"} “${title(at.node)}”`,
   };
 }
+
+/** "New scene in Chapter 3: Old Records, after “The Gap”", or "…, the story's first". */
+export function landingLine(spot: PlaceSpot | null, word = "scene"): string {
+  if (!spot) return `New ${word}, the story's first`;
+  const where = spot.label.charAt(0).toLowerCase() + spot.label.slice(1);
+  return spot.parentId ? `New ${word} in ${spot.group}, ${where}` : `New ${word}, ${where}`;
+}

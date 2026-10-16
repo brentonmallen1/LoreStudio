@@ -48,6 +48,7 @@ import MentionGutter from "./MentionGutter";
 import EditorTopbar from "./EditorTopbar";
 import DraftBanner from "./DraftBanner";
 import SceneSplitBar from "./script/SceneSplitBar";
+import { useOrganize } from "./organize/useOrganize";
 import { toggleDual } from "./script/dualDialogue";
 import ScriptLineHint from "./script/ScriptLineHint";
 import StatusCorner from "./StatusCorner";
@@ -133,6 +134,8 @@ export default function SceneEditor() {
   });
 
   const mention = useMentionDropdown({ editor, activeStory, characters, setCharacters });
+  // Split at the cursor and join with the next scene, for prose (doc 29 D6); a script splits at its headings.
+  const organizeDialog = useOrganize(editor, autosave.flush, !script);
   const notes = useInlineNotes({ editor, activeNode, setActiveNode, popoverRef: notePopoverRef });
   const { slash } = useSlashCommands({
     editor,
@@ -140,6 +143,7 @@ export default function SceneEditor() {
     openDialoguePicker: mention.openDialoguePicker,
     addNote: (kind) => notes.triggerAdd(kind),
     insertImage: () => setImagePickerOpen(true),
+    splitScene: () => useEditorBridge.getState().organize?.split(),
   });
   useSceneDialogue(editor, activeNode?.id, activeNode?.updated_at);
   const speakerTip = useSpeakerTip(editor);
@@ -452,6 +456,7 @@ export default function SceneEditor() {
         }}
       />
       <SlashPicker slash={slash} />
+      {organizeDialog}
       <MentionDropdown mention={mention} />
 
       {imagePickerOpen && activeStory && (

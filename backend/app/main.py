@@ -52,6 +52,7 @@ from .routers.media import router as media_router
 from .routers.notes import router as notes_router
 from .routers.numbers import router as numbers_router
 from .routers.ollama import router as ollama_router
+from .routers.organize import router as organize_router
 from .routers.panel_interviews import router as panel_interviews_router
 from .routers.plot_threads import router as plot_threads_router
 from .routers.promises import router as promises_router
@@ -217,6 +218,7 @@ app.include_router(freewrite_router, prefix="/api", tags=["freewrite"])
 app.include_router(scratch_pad_router, prefix="/api", tags=["scratch-pad"])
 app.include_router(tray_router, prefix="/api", tags=["outline"])
 app.include_router(written_router, prefix="/api", tags=["outline"])
+app.include_router(organize_router, prefix="/api", tags=["outline"])
 app.include_router(snapshots_router, prefix="/api", tags=["snapshots"])
 app.include_router(import_router, prefix="/api", tags=["import"])
 app.include_router(imports_router, prefix="/api", tags=["import"])

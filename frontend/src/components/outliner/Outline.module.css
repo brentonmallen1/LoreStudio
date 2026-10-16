@@ -203,6 +203,11 @@
   background: var(--color-tone);
 }
 
+/* Chosen to wrap in a chapter: a tint of the author's colour (DESIGN.md: forest is the selected item). */
+.row[data-chosen] {
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-ground));
+}
+
 /* Where a dragged line will land. */
 .row[data-drop="above"] {
   box-shadow: inset 0 2px 0 var(--color-accent);
@@ -422,6 +427,30 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+}
+
+/* The scenes chosen, and Wrap in a chapter: a tone box under the List. */
+.wrapBar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-tone);
+}
+
+.wrapCount {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.wrapWhy {
+  flex: 1 1 16rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .notice {

@@ -96,7 +96,7 @@ export const WRITING = [
     id: "freewrite",
     term: "Freewrite",
     definition:
-      "A page for loose writing, a heading for each day, with no structure to keep to. Turn what you find there into notes or characters.",
+      "A page for loose writing, a heading for each day, with no structure to keep to. Turn what you find there into notes, characters, places, or a scene: planned, started, or an idea for the Outline.",
   },
   {
     id: "mention",

@@ -23,7 +23,7 @@ Studio adds the **Assistant** and the other AI tools. They answer questions and 
 
    New to writing a long story? **First story?**, under the three, offers the **First story guide**: seven short steps from an idea in a sentence to your first scene. It stays in the logo menu with how far you have got, so you can come back to any step. **More options** holds a shape for the story's big parts (**Freeform** is fine), and whether it is part of a series. You can change how you like to work later in **Lorebook › Story identity**.
 
-3. Write. The light at the bottom right turns green a moment after you pause: your words are saved. Type `/` in the text for its commands: `/dialogue` for a line someone says, `/note` and `/todo` for the margin, `/image`, `/character` and `/place` to name someone or somewhere from the Lorebook.
+3. Write. The light at the bottom right turns green a moment after you pause: your words are saved. Type `/` in the text for its commands: `/dialogue` for a line someone says, `/note` and `/todo` for the margin, `/image`, `/character` and `/place` to name someone or somewhere from the Lorebook, and `/split` to start a new scene at the cursor.
 4. Open **This scene** in the side panel to see the scene at a glance. Choose **Scene sheet** there to fill in what happens, who is there and why the scene matters.
 5. Add your next chapter or scene from the strip: press {{key:cycleStrip}} to widen it, then use **+**.
 

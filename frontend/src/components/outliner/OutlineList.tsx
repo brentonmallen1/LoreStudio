@@ -32,6 +32,8 @@ import { useStoryStore } from "../../stores/storyStore";
 import type { StructureNode } from "../../types";
 import { useHoverTip } from "../common/useHoverTip";
 import OutlineRow from "./OutlineRow";
+import { useChosen } from "./useChosen";
+import WrapBar from "./WrapBar";
 import { useOutlineActions } from "./useOutlineActions";
 import { ideaDrag, useTrayContext } from "./useTray";
 import styles from "./Outline.module.css";
@@ -66,6 +68,8 @@ export default function OutlineList({
   const actions = useOutlineActions(storyId);
   const tray = useTrayContext();
   const tip = useHoverTip();
+  // Scenes chosen to wrap in a chapter (doc 29 D6).
+  const chosen = useChosen();
   const [folded, setFolded] = useState(() => loadFolded(storyId));
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   // From the empty Outline: its first line is saved, and the next is ready to type.
@@ -247,6 +251,13 @@ export default function OutlineList({
     const isDraft = id === DRAFT_ID;
     const index = shown.findIndex((r) => r.node.id === id);
     const field: At = at === "row" ? "row" : at;
+    if (action === "choose-up" || action === "choose-down") {
+      const target = shown[index + (action === "choose-up" ? -1 : 1)];
+      if (!target) return;
+      chosen.extend(shown, id, target.node.id);
+      return focusOn(target.node.id, "row");
+    }
+    if (action === "let-go") return chosen.clear();
     if (action === "up" || action === "down") {
       const target = shown[index + (action === "up" ? -1 : 1)];
       if (!target) return;
@@ -430,10 +441,14 @@ export default function OutlineList({
             onDragOver={onDragOver}
             onDrop={onDrop}
             tip={tip}
+            chosen={chosen.has(row.node.id)}
+            onChoose={(id) => chosen.extend(shown, stopId ?? id, id)}
+            onLetGo={chosen.clear}
           />
         ))}
       </div>
       {tip.node}
+      {chosen.ids.length > 0 && <WrapBar storyId={storyId} ids={chosen.ids} onDone={chosen.clear} />}
       <p className={styles.notice} role="status" aria-live="polite">
         {notice}
       </p>
@@ -447,7 +462,8 @@ export default function OutlineList({
         </button>
         <span className={styles.keys}>
           Enter adds the next line · Tab tucks it under the one above · Shift+Tab moves it out · → at the end
-          of a title goes on to what happens · drag ⋮⋮ to reorder
+          of a title goes on to what happens · drag ⋮⋮ to reorder · Shift+click or Shift+↓ chooses scenes to
+          wrap in a chapter
         </span>
       </div>
     </div>

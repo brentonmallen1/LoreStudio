@@ -7,7 +7,8 @@ prose on this computer, with no AI.
   scenes they are in (`scene_cast.on_the_page`: named, seen through, or placed there).
 - **New names:** what Discoveries' local name scan found that the Lorebook lacks, with its yes and
   no, so the writer can answer here or there.
-- **When you're ready to tidy up:** a long scene where the time jumps (`time_jumps`). Each offer
+- **When you're ready to tidy up:** a long scene where the time jumps (`time_jumps`), and a
+  chapter holding `MANY_SCENES` scenes or more, to wrap some in chapters of their own. Each offer
   can be put off with "Not now", kept per story as a `ProposalDecline` under a `tidy:` key.
 """
 
@@ -22,18 +23,23 @@ from sqlalchemy.orm import Session
 from ..models.character import Character
 from ..models.location import Location, ScenePresence
 from ..models.proposal_decline import ProposalDecline
+from ..models.story import Story
 from ..models.structure import StructureNode
-from ..schemas.written import Jump, NamedCount, NewName, SplitOffer, WrittenOut
+from ..schemas.written import ChaptersOffer, Jump, NamedCount, NewName, SplitOffer, WrittenOut
 from . import change_log
 from .codex.presence import known_as, name_patterns
 from .findings.runs import latest_runs
+from .held_prose import template_levels
 from .proposals.sources import scanned_names, scene_titles, stubs
 from .prose_html import paragraphs
 from .prose_syntax import reader_text
 from .scene_cast import on_the_page
 from .structure_order import order_of
+from .structure_scaffold import FLAT
 from .time_jumps import LONG_SCENE_WORDS, is_long, time_jumps
 
+#: A part holding this many scenes or more is offered chapters (a rule of thumb, said where it shows).
+MANY_SCENES = 8
 #: A "Not now" is kept under this prefix, beside the Discoveries' declines.
 TIDY = "tidy:"
 _KEY = re.compile(r"^(split|chapters):[A-Za-z0-9-]+$")
@@ -96,6 +102,27 @@ def split_offer(node: StructureNode) -> SplitOffer | None:
         jumps=[Jump(phrase=j.phrase, passage=j.passage) for j in jumps],
         long_scene_words=LONG_SCENE_WORDS,
     )
+
+
+def chapters_offers(story: Story, db: Session, later: set[str]) -> list[ChaptersOffer]:
+    """Parts at the level above scenes that hold `MANY_SCENES` scenes or more, in a shape that
+    has such a level: "wrap some in chapters of their own"."""
+    levels = template_levels(story, db)
+    if story.structure_template_id in FLAT or len(levels) < 2:
+        return []
+    nodes = db.query(StructureNode).filter(StructureNode.story_id == story.id).all()
+    order = order_of(nodes)
+    held: Counter[str] = Counter(n.parent_id for n in nodes if n.parent_id)
+    holders = {n.parent_id for n in nodes if n.parent_id in held and n.id not in held}
+    parts = sorted((n for n in nodes if n.id in holders), key=lambda n: order.get(n.id, 0))
+    level = (levels[-2].get("name") or "part").lower()
+    return [
+        ChaptersOffer(
+            part_id=n.id, title=n.title or "Untitled", scenes=held[n.id], level=level, many_scenes=MANY_SCENES
+        )
+        for n in parts
+        if held[n.id] >= MANY_SCENES and f"chapters:{n.id}" not in later
+    ]
 
 
 def _counts(texts: dict[str, str], patterns: dict[str, list[re.Pattern[str]]]) -> tuple[Counter, Counter]:
@@ -168,10 +195,12 @@ def written(story_id: str, db: Session) -> WrittenOut:
     later = put_off(story_id, db)
     offers = [o for n in scenes if f"split:{n.id}" not in later and (o := split_offer(n))]
     scan = latest_runs(story_id, db).get("entity-suggestions")
+    story = db.get(Story, story_id)
     return WrittenOut(
         people=sorted(people, key=_most_named),
         places=sorted(places, key=_most_named),
         new_names=sorted(new_names, key=_most_named),
         last_scan=scan.created_at if scan else None,
         split_offers=offers,
+        chapters_offers=chapters_offers(story, db, later) if story else [],
     )

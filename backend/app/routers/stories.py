@@ -40,7 +40,7 @@ from ..services.story_delete import delete_story as delete_story_and_rows
 from ..services.story_format import TEMPLATE_LENGTHS, is_script, story_format
 from ..services.structure_scaffold import scaffold_story
 from ..services.text_utils import for_model, last_paragraphs
-from ..services.word_count import length_status, story_pages, story_target
+from ..services.word_count import count_lines, count_words, length_status, story_pages, story_target
 
 router = APIRouter()
 
@@ -588,6 +588,8 @@ def create_structure_node(
         for sibling in siblings:
             sibling.position += 1
     node = StructureNode(story_id=story_id, **body.model_dump(exclude={"insert"}))
+    # A scene made with words (Freewrite's Start a scene, doc 29 D9) counts them.
+    node.word_count, node.line_count = count_words(node.content), count_lines(story, node.content)
     db.add(node)
     db.flush()
     change_log.record(

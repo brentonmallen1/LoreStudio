@@ -124,6 +124,27 @@ describe("What you've written", () => {
     await waitFor(() => expect(sent.notNow).toEqual(["split:low"]));
   });
 
+  it("offers chapters for a part holding many scenes, with its rule", async () => {
+    const sent = serve();
+    server.use(
+      http.get("/api/stories/s1/written", () =>
+        HttpResponse.json({
+          ...WRITTEN,
+          split_offers: [],
+          chapters_offers: [
+            { part_id: "p1", title: "Section 1", scenes: 9, level: "section", many_scenes: 8 },
+          ],
+        }),
+      ),
+    );
+    draw();
+    expect(await screen.findByText("“Section 1” holds 9 scenes.")).toBeTruthy();
+    expect(screen.getByText("LoreStudio offers this when one section holds 8 scenes or more.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Make sections" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Not now" }));
+    await waitFor(() => expect(sent.notNow).toEqual(["chapters:p1"]));
+  });
+
   it("answers a new name with the Discoveries' no", async () => {
     const sent = serve();
     draw();

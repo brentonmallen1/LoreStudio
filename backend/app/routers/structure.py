@@ -177,10 +177,12 @@ def _unchanged_since(node: StructureNode, expected: datetime | None) -> None:
 
 
 class SplitBody(BaseModel):
-    """The scene's words up to the new heading, and from it on (doc 25, D3)."""
+    """The scene's words up to the cut, and from it on: a script's new heading (doc 25, D3), or
+    the cursor in prose (doc 29 D6), whose new scene is named `title`."""
 
     content: str
     new_content: str
+    title: str | None = None
     expected_updated_at: datetime | None = None
 
 
@@ -192,13 +194,15 @@ def split_node(
     current_user: User = Depends(get_current_user),
     client_id: str | None = Depends(change_log.get_client_id),
 ):
-    """Start a new scene where a script scene's second heading is: the scene keeps what came
-    before it, the new scene after it takes the rest, and ⌘Z puts them back together."""
+    """Start a new scene at a script scene's second heading, or at the cursor in prose: the scene
+    keeps what came before it, the new scene after it takes the rest, and ⌘Z puts them back."""
     node = _verify_node_access(node_id, db, current_user)
     _unchanged_since(node, body.expected_updated_at)
     if not body.new_content.strip():
         raise HTTPException(status_code=400, detail="Nothing to start the new scene with.")
-    new = split_scene(db, node, body.content, body.new_content, actor_id=current_user.id, client_id=client_id)
+    new = split_scene(
+        db, node, body.content, body.new_content, actor_id=current_user.id, client_id=client_id, title=body.title
+    )
     db.commit()
     db.refresh(new)
     sync_scene_dialogue(node, db)
