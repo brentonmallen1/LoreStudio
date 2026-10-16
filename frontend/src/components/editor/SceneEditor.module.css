@@ -1009,8 +1009,8 @@ button.typeBtn[aria-expanded="true"] {
 :global(html[data-dialogue-highlight="off"]) .editorWrap :global(.ProseMirror .dialogue-explicit),
 :global(html[data-dialogue-highlight="off"]) .editorWrap :global(.ProseMirror .dialogue-inferred),
 :global(html[data-dialogue-highlight="off"]) .editorWrap :global(.ProseMirror .dialogue-unattributed) {
-  background: none !important;
-  border-bottom: none !important;
+  background: none;
+  border-bottom: none;
 }
 
 /* Tagged: "dialogue"<Name>, the quoted part */
@@ -1049,6 +1049,55 @@ button.typeBtn[aria-expanded="true"] {
   opacity: 1;
   border-bottom: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
   cursor: pointer;
+}
+
+/* ── Dialogue colored by speaker (stores/proseViewStore) ──
+   A line with a speaker sits on a soft tint of their palette slot, the slot's colour in a
+   line under it: the same colour as their tab and their dot on the strip. The words stay
+   ink: a slot is 3:1 as a mark, not 4.5:1 as text, and ink on its tint holds the reading
+   floor in every palette (themes/contrast.test.ts). A line with no speaker stays as it is. */
+.editorWrap :global(.ProseMirror [data-speaker-slot="1"]) {
+  --speaker-ink: var(--cat-1);
+}
+.editorWrap :global(.ProseMirror [data-speaker-slot="2"]) {
+  --speaker-ink: var(--cat-2);
+}
+.editorWrap :global(.ProseMirror [data-speaker-slot="3"]) {
+  --speaker-ink: var(--cat-3);
+}
+.editorWrap :global(.ProseMirror [data-speaker-slot="4"]) {
+  --speaker-ink: var(--cat-4);
+}
+.editorWrap :global(.ProseMirror [data-speaker-slot="5"]) {
+  --speaker-ink: var(--cat-5);
+}
+.editorWrap :global(.ProseMirror [data-speaker-slot="6"]) {
+  --speaker-ink: var(--cat-6);
+}
+.editorWrap :global(.ProseMirror [data-speaker-slot="7"]) {
+  --speaker-ink: var(--cat-7);
+}
+.editorWrap :global(.ProseMirror [data-speaker-slot="8"]) {
+  --speaker-ink: var(--cat-8);
+}
+
+:global(html[data-speaker-colors="on"]) .editorWrap :global(.ProseMirror [data-speaker-slot]) {
+  background: color-mix(in srgb, var(--speaker-ink) 10%, transparent);
+  box-shadow: inset 0 -2px 0 var(--speaker-ink);
+  border-radius: 2px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Its own line, not the review tint's under it, when both are on (a name in the line keeps its
+   dotted one). */
+:global(html[data-speaker-colors="on"])
+  .editorWrap
+  :global(.ProseMirror .dialogue-explicit[data-speaker-slot]:not([data-mention-type])),
+:global(html[data-speaker-colors="on"])
+  .editorWrap
+  :global(.ProseMirror .dialogue-inferred[data-speaker-slot]:not([data-mention-type])) {
+  border-bottom-color: transparent;
 }
 
 /* The faint rest of a suggestion after the cursor; Tab takes it. */

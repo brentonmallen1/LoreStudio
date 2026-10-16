@@ -8,6 +8,10 @@
  *
  * The pickers (^ for a new line, < after a quote for its speaker) are the mention
  * extension's (MentionDropdown.ts, lib/prose/completion).
+ *
+ * A line with a speaker carries `data-speaker-slot`, their palette slot: with "Color dialogue
+ * by speaker" on (stores/proseViewStore, CSS on `<html>`) it sits on that slot's tint, its
+ * words still ink. Turning it on or off redraws nothing here.
  */
 
 import { Extension } from "@tiptap/core";
@@ -17,7 +21,7 @@ import type { Node as PMNode } from "@tiptap/pm/model";
 import { forEachBlockText } from "../../lib/prose/blockText";
 import { findQuotes, findSpeakerTags, foldName, speakerName } from "../../lib/prose/syntax";
 import type { DialogueBlock } from "../../types";
-import { mentionLexicon } from "./MentionDropdown";
+import { characterSlot, mentionLexicon } from "./MentionDropdown";
 
 // ---------------------------------------------------------------------------
 // Who says what (doc 16, D1)
@@ -43,6 +47,12 @@ export function likelySpeaker(words: string): string | null {
 }
 
 const ATTRIBUTED = new Set(["inferred", "alternating", "manual", "pov_default", "explicit"]);
+
+/** A line's speaker and their palette slot, as attributes (nothing when they have none). */
+function speakerAttrs(name: string | null): Record<string, string> {
+  const slot = name ? characterSlot(name) : undefined;
+  return slot ? { "data-speaker-slot": String(slot) } : {};
+}
 
 function buildDialogueDecos(doc: PMNode): DecorationSet {
   const decos: Decoration[] = [];
@@ -73,6 +83,7 @@ function buildDialogueDecos(doc: PMNode): DecorationSet {
         inline(t.quoteStart, t.quoteEnd, {
           class: "dialogue-explicit",
           "data-dialogue-speaker": who ?? t.speaker,
+          ...speakerAttrs(who),
         }),
         inline(t.tagStart, t.end, {
           class: who ? "dialogue-speaker-tag" : "dialogue-speaker-tag speaker-missing",
@@ -89,7 +100,11 @@ function buildDialogueDecos(doc: PMNode): DecorationSet {
       if (!line) continue;
       decos.push(
         ATTRIBUTED.has(line.attribution_method) && line.speaker_name
-          ? inline(q.start, q.end, { class: "dialogue-inferred", "data-dialogue-speaker": line.speaker_name })
+          ? inline(q.start, q.end, {
+              class: "dialogue-inferred",
+              "data-dialogue-speaker": line.speaker_name,
+              ...speakerAttrs(line.speaker_name),
+            })
           : inline(q.start, q.end, { class: "dialogue-unattributed" }),
       );
     }

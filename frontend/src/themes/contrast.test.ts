@@ -245,6 +245,19 @@ describe("theme contrast (WCAG)", () => {
         }
         expect(failures).toEqual([]);
       });
+      // Dialogue colored by speaker (SceneEditor.module.css): ink on a 10% tint of the speaker's
+      // slot on the page. The words keep near the reading floor, never under 9:1, so a coloured
+      // line reads as the prose round it does. Its slot-coloured line runs along the tint's
+      // lower edge, against the page, where the slot pairs above hold it at 3:1.
+      it(`${file} ${block.selector.includes(".dark") ? "dark" : "light"} keeps dialogue colored by speaker readable`, () => {
+        const failures: string[] = [];
+        for (let n = 1; n <= 8; n++) {
+          const ground = tint(tokens[`--cat-${n}`], tokens["--color-surface"], 0.1);
+          const ratio = contrast(tokens["--color-text"], ground);
+          if (ratio < 9) failures.push(`slot ${n}: ink on ${ground} = ${ratio.toFixed(2)} (< 9)`);
+        }
+        expect(failures).toEqual([]);
+      });
     }
   }
 });

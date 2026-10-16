@@ -131,6 +131,10 @@ describe("command palette coverage", () => {
     expect(commandRegistry.search("coach").filter((a) => a.group === "AI")).toEqual([]);
   });
 
+  it("turns the prose's dialogue choices on and off, as Settings › Writing and the editor's ⋯ do", () => {
+    for (const id of ["prose-speaker-colors-on", "prose-speaker-colors-off"]) expect(ids).toContain(id);
+  });
+
   it("route and section ids are unique", () => {
     expect(new Set(STORY_ROUTES.map((r) => r.id)).size).toBe(STORY_ROUTES.length);
     expect(new Set(SETTINGS_SECTIONS.map((s) => s.id)).size).toBe(SETTINGS_SECTIONS.length);

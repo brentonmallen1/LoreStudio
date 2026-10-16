@@ -4,6 +4,7 @@ import {
   BookMarked,
   ClipboardList,
   Cpu,
+  Highlighter,
   ImageIcon,
   Info,
   Layers,
@@ -24,6 +25,7 @@ import { useStoryFormat } from "../../lib/storyFormat";
 import { sceneSheetPath } from "../../lib/scene/glance";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
+import { useProseViewStore } from "../../stores/proseViewStore";
 import type { WritingGuideTab } from "../help/WritingGuidesModal";
 import AIFeatureInfoModal from "../ai/AIFeatureInfoModal";
 import FontSettings from "../story/FontSettings";
@@ -60,6 +62,7 @@ export default function EditorMoreMenu(p: Props) {
   const format = useStoryFormat();
   const script = format !== "prose";
   const { elementGuides, setElementGuides } = useUIStore();
+  const { speakerColors, setSpeakerColors } = useProseViewStore();
   const wrap = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const ai = useAIAvailable();
@@ -172,6 +175,16 @@ export default function EditorMoreMenu(p: Props) {
             // A setting under Show changes the page in place, and the menu stays open to see it.
             onSelect={() => p.onNotesView(p.notesView === "cards" ? "dots" : "cards")}
           />
+          {!script && (
+            <Item
+              label="Color dialogue by speaker"
+              icon={Highlighter}
+              checked={speakerColors}
+              hint={speakerColors ? "On" : "Off"}
+              title="Each line on a soft tint of its speaker's color, with a line under it"
+              onSelect={() => setSpeakerColors(!speakerColors)}
+            />
+          )}
           {script && (
             <Item
               label="Element guides"
