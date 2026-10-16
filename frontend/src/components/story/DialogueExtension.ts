@@ -9,9 +9,12 @@
  * The pickers (^ for a new line, < after a quote for its speaker) are the mention
  * extension's (MentionDropdown.ts, lib/prose/completion).
  *
- * A line with a speaker carries `data-speaker-slot`, their palette slot: with "Color dialogue
- * by speaker" on (stores/proseViewStore, CSS on `<html>`) it sits on that slot's tint, its
- * words still ink. Turning it on or off redraws nothing here.
+ * Two choices of the writer's (stores/proseViewStore) read these decorations through CSS on
+ * `<html>`, so turning one on or off redraws nothing here:
+ *   - a line with a speaker carries `data-speaker-slot`, their palette slot: with "Color
+ *     dialogue by speaker" on it sits on that slot's tint, its words still ink;
+ *   - with "Hide speaker tags" on, a named tag is hidden unless the caret touches its line,
+ *     which the reveal plugin marks `dialogue-editing` (lib/prose/speakerTags).
  */
 
 import { Extension } from "@tiptap/core";
@@ -20,6 +23,7 @@ import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { Node as PMNode } from "@tiptap/pm/model";
 import { forEachBlockText } from "../../lib/prose/blockText";
 import { findQuotes, findSpeakerTags, foldName, speakerName } from "../../lib/prose/syntax";
+import { revealedLines, type TaggedLine } from "../../lib/prose/speakerTags";
 import type { DialogueBlock } from "../../types";
 import { characterSlot, mentionLexicon } from "./MentionDropdown";
 
@@ -54,8 +58,15 @@ function speakerAttrs(name: string | null): Record<string, string> {
   return slot ? { "data-speaker-slot": String(slot) } : {};
 }
 
-function buildDialogueDecos(doc: PMNode): DecorationSet {
+interface DialogueState {
+  set: DecorationSet;
+  /** Every tagged line, in the document's positions, for the reveal plugin. */
+  lines: TaggedLine[];
+}
+
+function buildDialogueDecos(doc: PMNode): DialogueState {
   const decos: Decoration[] = [];
+  const lines: TaggedLine[] = [];
   const lexicon = mentionLexicon();
   // The server's untagged lines, by their words, in reading order: each quote takes the
   // first unclaimed line that says the same thing. A quote typed since the last save has
@@ -79,10 +90,13 @@ function buildDialogueDecos(doc: PMNode): DecorationSet {
     // mention; one that names nobody is marked, and the hover card can fix it.
     for (const t of findSpeakerTags(text)) {
       const who = speakerName(lexicon, t.speaker);
+      const line = range(t.quoteStart, t.end);
+      lines.push({ line, tag: range(t.tagStart, t.end), named: !!who });
       decos.push(
         inline(t.quoteStart, t.quoteEnd, {
           class: "dialogue-explicit",
           "data-dialogue-speaker": who ?? t.speaker,
+          ...(who ? { "data-speaker-named": "" } : {}),
           ...speakerAttrs(who),
         }),
         inline(t.tagStart, t.end, {
@@ -110,14 +124,14 @@ function buildDialogueDecos(doc: PMNode): DecorationSet {
     }
   });
 
-  return DecorationSet.create(doc, decos);
+  return { set: DecorationSet.create(doc, decos), lines };
 }
 
 // ---------------------------------------------------------------------------
 // Extension
 // ---------------------------------------------------------------------------
 
-const dialogueDecoKey = new PluginKey<DecorationSet>("dialogueDecos");
+const dialogueDecoKey = new PluginKey<DialogueState>("dialogueDecos");
 
 export const DialogueExtension = Extension.create({
   name: "dialogueMarkup",
@@ -133,11 +147,30 @@ export const DialogueExtension = Extension.create({
             if (tr.docChanged || tr.getMeta(FORCE_DIALOGUE_KEY)) {
               return buildDialogueDecos(tr.doc);
             }
-            return old.map(tr.mapping, tr.doc);
+            return old;
           },
         },
         props: {
-          decorations: (state) => dialogueDecoKey.getState(state),
+          decorations: (state) => dialogueDecoKey.getState(state)?.set,
+        },
+      }),
+
+      // Reveal: the line the caret or selection touches is marked, so a hidden tag shows
+      // while it can be edited (lib/prose/speakerTags). A look through the tagged lines,
+      // nothing more; CSS hides the rest only while "Hide speaker tags" is on.
+      new Plugin({
+        props: {
+          decorations: (state) => {
+            const lines = dialogueDecoKey.getState(state)?.lines;
+            if (!lines?.length) return null;
+            const { from, to } = state.selection;
+            const touched = revealedLines(lines, { from, to });
+            if (!touched.length) return null;
+            return DecorationSet.create(
+              state.doc,
+              touched.map((l) => Decoration.inline(l.line.from, l.line.to, { class: "dialogue-editing" })),
+            );
+          },
         },
       }),
     ];

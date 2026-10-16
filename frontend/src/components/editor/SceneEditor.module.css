@@ -1100,6 +1100,18 @@ button.typeBtn[aria-expanded="true"] {
   border-bottom-color: transparent;
 }
 
+/* ── Hidden speaker tags (stores/proseViewStore) ──
+   A named tag is hidden while the caret is elsewhere, the way a mention's @ is, and shows
+   while the caret or a selection touches its line (dialogue-editing, from the reveal plugin
+   in DialogueExtension; lib/prose/speakerTags), so a caret never sits in a tag it cannot see.
+   A tag that names nobody stays: it is a warning. Hovering the line names its speaker
+   (useSpeakerTip). */
+:global(html[data-speaker-tags="hidden"])
+  .editorWrap
+  :global(.ProseMirror .dialogue-speaker-tag:not(.dialogue-editing):not(.speaker-missing)) {
+  font-size: 0;
+}
+
 /* The faint rest of a suggestion after the cursor; Tab takes it. */
 .editorWrap :global(.ProseMirror .mention-ghost) {
   color: var(--color-text-subtle);

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FocusEvent, type MouseEvent, type Rea
 import { createPortal } from "react-dom";
 import styles from "./HoverTip.module.css";
 
-const HOVER_MS = 350;
+export const HOVER_MS = 350;
 const MARGIN = 8;
 const GAP = 6;
 /** The tip's widest (18rem at the 15px root, with room for the interface size). */

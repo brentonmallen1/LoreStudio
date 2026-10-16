@@ -5,7 +5,7 @@ import { getToken } from "../../api/request";
  * The author's choices follow their account (`user.settings.prefs`), so another browser,
  * another device, a new address for the server or cleared site data finds them as they were:
  * the theme and colour mode, the editor's type and line width, the interface size, dialogue
- * highlighting, dialogue colored by speaker, the notes margin, the strip's colours, the typing helpers already used
+ * highlighting, dialogue colored by speaker and hidden speaker tags, the notes margin, the strip's colours, the typing helpers already used
  * (doc 26), the glossary terms already met and the side panel tour once taken (doc 30), so nothing teaches the writer
  * something they know on another device.
  *
@@ -22,6 +22,7 @@ export const ACCOUNT_PREFS = [
   "ls_ui_scale",
   "ls_highlight_dialogue",
   "ls_speaker_colors",
+  "ls_hide_speaker_tags",
   "ls_element_guides",
   "ls_notes_margin",
   "ls_strip_colour",

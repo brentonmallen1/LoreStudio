@@ -30,6 +30,7 @@ import { lessonOf } from "../../lib/typing/lesson";
 import { useInlineNotes } from "./useInlineNotes";
 import { useMentionHoverCard } from "./useMentionHoverCard";
 import { useSceneDialogue } from "./useSceneDialogue";
+import { useSpeakerTip } from "./useSpeakerTip";
 import { usePassageJump } from "./usePassageJump";
 import { editorExtensions } from "./editorExtensions";
 import { blockStartPos, docBlocks, elementAt, setElement } from "./script/ScriptElementExtension";
@@ -141,6 +142,7 @@ export default function SceneEditor() {
     insertImage: () => setImagePickerOpen(true),
   });
   useSceneDialogue(editor, activeNode?.id, activeNode?.updated_at);
+  const speakerTip = useSpeakerTip(editor);
   useTipWatch(editor, format);
   // A tutorial scene's lesson, above its text (doc 26, P6).
   const lesson = lessonOf(activeNode);
@@ -432,6 +434,7 @@ export default function SceneEditor() {
         />
       )}
 
+      {speakerTip}
       <MentionHoverCard
         hover={hover}
         cardRef={hoverCardRef}

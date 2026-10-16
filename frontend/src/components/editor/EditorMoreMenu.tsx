@@ -4,6 +4,7 @@ import {
   BookMarked,
   ClipboardList,
   Cpu,
+  EyeOff,
   Highlighter,
   ImageIcon,
   Info,
@@ -62,7 +63,7 @@ export default function EditorMoreMenu(p: Props) {
   const format = useStoryFormat();
   const script = format !== "prose";
   const { elementGuides, setElementGuides } = useUIStore();
-  const { speakerColors, setSpeakerColors } = useProseViewStore();
+  const { speakerColors, setSpeakerColors, hideSpeakerTags, setHideSpeakerTags } = useProseViewStore();
   const wrap = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const ai = useAIAvailable();
@@ -183,6 +184,16 @@ export default function EditorMoreMenu(p: Props) {
               hint={speakerColors ? "On" : "Off"}
               title="Each line on a soft tint of its speaker's color, with a line under it"
               onSelect={() => setSpeakerColors(!speakerColors)}
+            />
+          )}
+          {!script && (
+            <Item
+              label="Hide speaker tags"
+              icon={EyeOff}
+              checked={hideSpeakerTags}
+              hint={hideSpeakerTags ? "On" : "Off"}
+              title="The <Name> after a line shows only while the cursor is in that line; point at the line to see who says it"
+              onSelect={() => setHideSpeakerTags(!hideSpeakerTags)}
             />
           )}
           {script && (
