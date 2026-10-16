@@ -1,15 +1,16 @@
 import { legendFor, type ColourContext, type ColourMode, type Line } from "../../lib/strip/stripModel";
 import { usePanelStore } from "../../stores/panelStore";
 import { entityColor } from "../panel/entityColor";
+import SeverityMark from "../findings/SeverityMark";
 import styles from "./Strip.module.css";
 
-/** The key to the strip, shown only while the pointer is on it or the picker is open, so it never sits beside the prose. */
+/** The key to the strip, shown while the pointer is on a stop, the picker is open or Key is on, so it never sits beside the prose unasked. */
 export default function StripKey({ mode, line, ctx }: { mode: ColourMode; line: Line; ctx: ColourContext }) {
   const colours = mode === "none" ? [] : legendFor(mode, line.stops, ctx);
   // The dot beside a stop: the scenes the open tab's character, place or thread is in.
   const highlight = usePanelStore((s) => s.highlight);
   return (
-    <div className={styles.key} aria-hidden="true">
+    <div className={styles.key} id="strip-key" role="region" aria-label="Key to the strip">
       {highlight && (
         <div className={styles.keyRow}>
           <span className={styles.keyLabel}>Marked</span>
@@ -24,10 +25,14 @@ export default function StripKey({ mode, line, ctx }: { mode: ColourMode; line: 
       )}
       {colours.length > 0 && (
         <div className={styles.keyRow}>
-          <span className={styles.keyLabel}>Color</span>
+          <span className={styles.keyLabel}>{mode === "findings" ? "Findings" : "Color"}</span>
           {colours.map((c) => (
             <span key={c.label} className={styles.keyItem}>
-              <span className={styles.swatch} style={{ background: c.color }} />
+              {c.severity ? (
+                <SeverityMark severity={c.severity} label={false} size={11} className={styles.sevMark} />
+              ) : (
+                <span className={styles.swatch} style={{ background: c.color }} />
+              )}
               {c.label}
             </span>
           ))}

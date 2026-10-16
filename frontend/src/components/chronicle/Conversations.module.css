@@ -33,7 +33,8 @@
 
 .checkVisible,
 [role="button"]:hover > .check,
-.check:focus-visible {
+.check:focus-visible,
+[role="button"]:focus-within > .check {
   width: 1.2rem;
   opacity: 1;
 }
@@ -224,4 +225,11 @@
   text-align: center;
   font-size: 0.84rem;
   color: var(--color-text-subtle);
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .check {
+    opacity: 1;
+  }
 }

@@ -99,7 +99,8 @@
 
 .row:hover .rowBtn,
 .rowActive .rowBtn,
-.pinned {
+.pinned,
+.row:focus-within .rowBtn {
   opacity: 1;
 }
 
@@ -109,4 +110,11 @@
 
 .pinned {
   color: var(--color-ai);
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .rowBtn {
+    opacity: 1;
+  }
 }

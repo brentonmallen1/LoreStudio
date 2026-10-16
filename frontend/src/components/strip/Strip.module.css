@@ -606,3 +606,45 @@
   font: inherit;
   font-size: 0.78rem;
 }
+
+/* Key: the strip's key on demand (doc 30 D8), a quiet word under the color picker. */
+.keyBtn {
+  min-height: 1.6rem;
+  padding: 0 0.45rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.keyBtn:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.keyBtn[aria-pressed="true"] {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}
+
+.keyBtn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Findings as shapes in a stop's place (doc 30 D8): the shape the Findings page draws. */
+.sevStop {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.733rem;
+  height: 0.733rem;
+}
+
+.sevMark.sevMark {
+  margin-top: 0;
+}

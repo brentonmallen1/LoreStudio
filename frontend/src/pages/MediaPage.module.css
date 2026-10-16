@@ -211,7 +211,8 @@
     background 0.1s;
 }
 
-.diagramCard:hover .diagramDeleteBtn {
+.diagramCard:hover .diagramDeleteBtn,
+.diagramCard:focus-within .diagramDeleteBtn {
   opacity: 1;
 }
 
@@ -266,4 +267,11 @@
 
 .diagramShared:empty {
   display: none;
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .diagramDeleteBtn {
+    opacity: 1;
+  }
 }

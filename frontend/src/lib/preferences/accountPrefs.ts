@@ -6,7 +6,7 @@ import { getToken } from "../../api/request";
  * another device, a new address for the server or cleared site data finds them as they were:
  * the theme and colour mode, the editor's type and line width, the interface size, dialogue
  * highlighting, the notes margin, the strip's colours, the typing helpers already used
- * (doc 26) and the glossary terms already met (doc 30), so nothing teaches the writer
+ * (doc 26), the glossary terms already met and the side panel tour once taken (doc 30), so nothing teaches the writer
  * something they know on another device.
  *
  * The browser keeps a copy under the same names, so the page draws right before the account
@@ -28,6 +28,7 @@ export const ACCOUNT_PREFS = [
   "ls_tips",
   "ls_tips_seen",
   "ls_terms_seen",
+  "ls_rail_tour",
 ] as const;
 
 export type AccountPref = (typeof ACCOUNT_PREFS)[number];

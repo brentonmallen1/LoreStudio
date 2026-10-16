@@ -125,7 +125,8 @@
 }
 
 .row:hover .rowActions,
-.row.active .rowActions {
+.row.active .rowActions,
+.row:focus-within .rowActions {
   opacity: 1;
 }
 
@@ -162,5 +163,12 @@
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .rowActions {
+    opacity: 1;
   }
 }

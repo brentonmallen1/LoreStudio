@@ -89,7 +89,8 @@
 }
 
 .absent:hover .putOn,
-.putOn:focus-visible {
+.putOn:focus-visible,
+.absent:focus-within .putOn {
   opacity: 1;
 }
 
@@ -240,5 +241,12 @@
   .note {
     grid-row: 2;
     grid-column: 1 / -1;
+  }
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .putOn {
+    opacity: 1;
   }
 }

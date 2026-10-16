@@ -446,3 +446,10 @@
 .rowText + .hint {
   flex-shrink: 0;
 }
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .besideBtn {
+    opacity: 1;
+  }
+}

@@ -14,9 +14,9 @@ import TransitStrip from "./TransitStrip";
 import styles from "./Strip.module.css";
 
 /**
- * The book down the left edge of every story page (refactor doc 11, phase 3). Collapsed, a
- * transit line of chapters and scenes; expanded, the outline at the width the author dragged
- * it to (doc 14). Either way it says where you are.
+ * The book down the left edge of every story page (refactor doc 11, phase 3). Narrow, a
+ * transit line of chapters and scenes; wide, every part named, at the width the author
+ * dragged it to (doc 14). Either way it says where you are.
  */
 export default function StoryStrip() {
   const { storyId } = useParams<{ storyId: string }>();
@@ -31,6 +31,8 @@ export default function StoryStrip() {
   } = useUIStore();
   const [hovering, setHovering] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  // The key on demand (doc 30 D8): the pointer shows it over a stop; this shows it to anyone.
+  const [keyOn, setKeyOn] = useState(false);
   const [dragPx, setDragPx] = useState<number | null>(null);
 
   const line = useStripLine();
@@ -48,6 +50,26 @@ export default function StoryStrip() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   });
+
+  useEffect(() => {
+    if (!keyOn) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setKeyOn(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [keyOn]);
+
+  const keyButton = (
+    <button
+      type="button"
+      className={styles.keyBtn}
+      onClick={() => setKeyOn((v) => !v)}
+      aria-pressed={keyOn}
+      aria-controls="strip-key"
+      title="What the colors and shapes mean"
+    >
+      Key
+    </button>
+  );
 
   const picker = (
     <ColourModePicker
@@ -93,6 +115,7 @@ export default function StoryStrip() {
             <ChevronsRight size={16} />
           </button>
           {picker}
+          {keyButton}
         </div>
       ) : (
         <div className={styles.head}>
@@ -105,12 +128,13 @@ export default function StoryStrip() {
             <ChevronsLeft size={16} />
           </button>
           {picker}
+          {keyButton}
         </div>
       )}
 
       {/* The key shows while the pointer is over something it explains: a stop or a station
-          on the line, a marked row or a chapter's bars in the outline (data-strip-mark), not
-          the empty strip below them. */}
+          on the line, a marked row or a chapter's bars in the wide strip (data-strip-mark), not
+          the empty strip below them; while the color picker is open; and whenever Key is on. */}
       <div
         className={`${styles.body} ${width === "scenes" ? styles.bodyTree : ""}`}
         onMouseOver={(e) => setHovering(!!(e.target as Element).closest("[data-strip-mark]"))}
@@ -122,7 +146,7 @@ export default function StoryStrip() {
         {width === "scenes" && <FullTree storyId={storyId} />}
       </div>
 
-      {(hovering || pickerOpen) && <StripKey mode={stripColourMode} line={line} ctx={ctx} />}
+      {(hovering || pickerOpen || keyOn) && <StripKey mode={stripColourMode} line={line} ctx={ctx} />}
     </nav>
   );
 }

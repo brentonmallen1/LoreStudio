@@ -559,3 +559,14 @@
   color: var(--color-accent);
   background: var(--color-surface-2);
 }
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .deleteBtn {
+    opacity: 1;
+  }
+
+  .sequelLink {
+    opacity: 1;
+  }
+}

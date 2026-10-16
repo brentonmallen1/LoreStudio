@@ -9,17 +9,22 @@ import styles from "./Findings.module.css";
 export default function SeverityMark({
   severity,
   label = true,
+  size = 12,
+  className,
 }: {
   severity: FindingSeverity;
   label?: boolean;
+  /** The strip draws it a little smaller, in a stop's place (doc 30 D8). */
+  size?: number;
+  className?: string;
 }) {
   const a11y = label ? { role: "img", "aria-label": SEVERITY_WORDS[severity] } : { "aria-hidden": true };
   return (
     <svg
-      className={styles.mark}
+      className={className ? `${styles.mark} ${className}` : styles.mark}
       data-severity={severity}
-      width="12"
-      height="12"
+      width={size}
+      height={size}
       viewBox="0 0 12 12"
       {...a11y}
     >

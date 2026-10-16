@@ -257,6 +257,8 @@ const MAX_PIPS = 4;
 export interface Swatch {
   color: string;
   label: string;
+  /** In the Findings mode: the severity, drawn as its shape (doc 30 D8), never colour alone. */
+  severity?: Finding["severity"];
 }
 
 /** The colours a stop shows in a mode: none, one, or several (a scene carrying several threads). */
@@ -267,7 +269,11 @@ export function colourFor(mode: ColourMode, stop: Stop, ctx: ColourContext): Swa
       .filter((f) => f.anchor.node_id === stop.node.id)
       .sort(bySeverity)
       .slice(0, MAX_PIPS)
-      .map((f) => ({ color: SEVERITY_COLOUR[f.severity], label: SEVERITY_LABELS[f.severity] }));
+      .map((f) => ({
+        color: SEVERITY_COLOUR[f.severity],
+        label: SEVERITY_LABELS[f.severity],
+        severity: f.severity,
+      }));
   }
   if (mode === "pov") {
     // The viewpoint is decided while planning, so a planned scene shows it too.
@@ -299,7 +305,7 @@ export function legendFor(mode: ColourMode, stops: Stop[], ctx: ColourContext): 
     const present = new Set(stops.flatMap((stop) => colourFor(mode, stop, ctx).map((s) => s.label)));
     return (["high", "mid", "low"] as const)
       .filter((sev) => present.has(SEVERITY_LABELS[sev]))
-      .map((sev) => ({ color: SEVERITY_COLOUR[sev], label: SEVERITY_LABELS[sev] }));
+      .map((sev) => ({ color: SEVERITY_COLOUR[sev], label: SEVERITY_LABELS[sev], severity: sev }));
   }
   if (mode === "status") {
     return [
@@ -315,9 +321,9 @@ export function legendFor(mode: ColourMode, stops: Stop[], ctx: ColourContext): 
 }
 
 /**
- * Two states (doc 14 strip): collapsed to the line of dots, or expanded to the outline at
- * the width the author dragged it to. The outline is the one expanded view (doc 24: the
- * chapter rows it once had beside it showed the same book twice).
+ * Two states (doc 14 strip): narrow, a line of dots, or wide, every part named, at the width
+ * the author dragged it to. The wide strip is the one expanded view (doc 24: the chapter rows
+ * it once had beside it showed the same book twice).
  */
 /** The collapsed line, with the strip's 14px gutter from the window's edge (Strip.module.css). */
 export const COLLAPSED_PX = 78;

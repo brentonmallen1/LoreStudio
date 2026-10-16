@@ -50,6 +50,21 @@ interface Props {
   showHidden: boolean;
 }
 
+/** A cell that acts: reachable with Tab, Enter or Space to act, and named (doc 30 D8). */
+function asButton(label: string, act: () => void) {
+  return {
+    role: "button",
+    tabIndex: 0,
+    "aria-label": label,
+    onKeyDown: (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        act();
+      }
+    },
+  };
+}
+
 export default function RelationshipMatrixView({
   characters,
   relationships,
@@ -212,6 +227,10 @@ export default function RelationshipMatrixView({
                         className={styles.filledCell}
                         title={`${rel.relationship_type}${rel.visibility === "hidden" ? " (hidden)" : ""}. Click to edit`}
                         onClick={() => onEditRelationship(rel)}
+                        {...asButton(
+                          `Edit ${rowChar.name} and ${colChar.name}: ${rel.relationship_type}`,
+                          () => onEditRelationship(rel),
+                        )}
                       >
                         {renderCell(rel)}
                       </td>
@@ -223,6 +242,9 @@ export default function RelationshipMatrixView({
                       className={styles.emptyCell}
                       title="Click to add relationship"
                       onClick={() => onCreateRelationship(rowChar.id, colChar.id)}
+                      {...asButton(`Add a relationship: ${rowChar.name} and ${colChar.name}`, () =>
+                        onCreateRelationship(rowChar.id, colChar.id),
+                      )}
                     >
                       <span className={styles.addHint}>+</span>
                     </td>

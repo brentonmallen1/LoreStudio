@@ -11,7 +11,9 @@ const WIDTH = 300;
 interface Shown {
   text: string;
   top: number;
-  left: number;
+  left?: number;
+  /** From the window's right edge, for a tip that stands to the left of its control. */
+  right?: number;
 }
 
 /**
@@ -23,8 +25,11 @@ interface Shown {
  * `beside` names the column the rows sit in (a selector `closest` understands): the tip then
  * stands outside that column's right edge, level with the row, so it never covers the rows
  * under it. Where there is no room on the right it falls back to under the row.
+ *
+ * `side: "left"` is for controls on the window's right edge (the panel's rail): the tip
+ * stands to the left of the control, level with it.
  */
-export function useHoverTip({ beside }: { beside?: string } = {}): {
+export function useHoverTip({ beside, side }: { beside?: string; side?: "left" } = {}): {
   bind: (text: string | undefined) => {
     onMouseEnter?: (e: MouseEvent<HTMLElement>) => void;
     onMouseLeave?: () => void;
@@ -40,6 +45,14 @@ export function useHoverTip({ beside }: { beside?: string } = {}): {
 
   function place(el: HTMLElement, text: string) {
     const r = el.getBoundingClientRect();
+    if (side === "left") {
+      setShown({
+        text,
+        top: Math.max(MARGIN, r.top + r.height / 2 - 12),
+        right: window.innerWidth - r.left + GAP,
+      });
+      return;
+    }
     const column = beside ? el.closest<HTMLElement>(beside)?.getBoundingClientRect() : undefined;
     if (column && column.right + GAP + WIDTH <= window.innerWidth - MARGIN) {
       setShown({ text, top: Math.max(MARGIN, r.top), left: column.right + GAP });
@@ -79,7 +92,11 @@ export function useHoverTip({ beside }: { beside?: string } = {}): {
     hide,
     node: shown
       ? createPortal(
-          <div className={styles.tip} style={{ top: shown.top, left: shown.left }} aria-hidden>
+          <div
+            className={styles.tip}
+            style={{ top: shown.top, left: shown.left, right: shown.right }}
+            aria-hidden
+          >
             {shown.text}
           </div>,
           document.body,

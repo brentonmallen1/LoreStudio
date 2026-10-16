@@ -466,7 +466,8 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
             </div>
             <p className={styles.emptyTitle}>No beats yet</p>
             <p className={styles.emptyDesc}>
-              Add beats to build your beat board. Drag to reorder, drag to center to nest.
+              Add beats to build your beat board. Drag to reorder, drag to center to nest. In a beat, Tab
+              indents it and Esc reaches its buttons.
             </p>
             <button
               className={styles.addBeatBtnPrimary}

@@ -7,6 +7,7 @@ import {
   formatDelta,
   groupSnapshots,
   orderByAge,
+  savedBy,
   versionsSubtitle,
 } from "./versionsModel";
 
@@ -114,5 +115,12 @@ describe("groupSnapshots", () => {
     expect(groupSnapshots([snap({ id: "m1" })])).toEqual([
       { anchor: expect.objectContaining({ id: "m1" }), autoBackups: [] },
     ]);
+  });
+});
+
+describe("who saved a version (doc 30 D8)", () => {
+  it("says it in words, not a Manual or Auto badge", () => {
+    expect(savedBy({ trigger: "manual" })).toBe("Saved by you");
+    expect(savedBy({ trigger: "auto" })).toBe("Saved automatically");
   });
 });

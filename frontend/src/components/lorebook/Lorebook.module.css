@@ -865,7 +865,8 @@ button.cardRow:hover {
 }
 
 .rows .rowEdit:hover .iconBtn,
-.rows .iconBtn:focus-visible {
+.rows .iconBtn:focus-visible,
+.rows .rowEdit:focus-within .iconBtn {
   opacity: 1;
 }
 
@@ -1208,4 +1209,20 @@ button.cardRow:hover {
 .sheetDotDiamond {
   border-radius: 2px;
   transform: rotate(45deg) scale(0.85);
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .rows .iconBtn {
+    opacity: 1;
+  }
+
+  /* In the row's flow, not over the words, since it is always there. */
+  .milestone:not([data-linked]) .quietSelect {
+    position: static;
+    max-width: 100%;
+    opacity: 1;
+    pointer-events: auto;
+    box-shadow: none;
+  }
 }

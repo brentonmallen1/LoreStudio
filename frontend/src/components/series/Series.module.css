@@ -538,7 +538,8 @@ a.inBook:hover {
 }
 
 .fieldBlock:hover .classBtn,
-.classBtn:focus-visible {
+.classBtn:focus-visible,
+.fieldBlock:focus-within .classBtn {
   opacity: 1;
 }
 
@@ -576,4 +577,11 @@ a.inBook:hover {
 .eyeEvidence {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .classBtn {
+    opacity: 1;
+  }
 }

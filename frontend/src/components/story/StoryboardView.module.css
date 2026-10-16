@@ -178,7 +178,9 @@
 .structureNode:hover .handle,
 .structureNodeSelected .handle,
 .noteNode:hover .handle,
-.noteNodeSelected .handle {
+.noteNodeSelected .handle,
+.structureNode:focus-within .handle,
+.noteNode:focus-within .handle {
   opacity: 1;
 }
 
@@ -327,4 +329,11 @@
   background: var(--color-ai);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-ai) 25%, transparent);
   flex-shrink: 0;
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .handle {
+    opacity: 1;
+  }
 }

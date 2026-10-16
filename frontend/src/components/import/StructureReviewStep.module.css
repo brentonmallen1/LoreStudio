@@ -255,7 +255,8 @@
   transition: opacity var(--transition);
 }
 
-.nodeLine:hover .actions {
+.nodeLine:hover .actions,
+.nodeLine:focus-within .actions {
   opacity: 1;
 }
 
@@ -375,4 +376,11 @@
 .nextBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .actions {
+    opacity: 1;
+  }
 }

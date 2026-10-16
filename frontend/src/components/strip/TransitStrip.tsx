@@ -15,6 +15,7 @@ import { usePanelStore } from "../../stores/panelStore";
 import { stopClick } from "../../lib/panel/openScene";
 import { MODIFIER } from "../../lib/keyboard/shortcuts";
 import { entityColor } from "../panel/entityColor";
+import SeverityMark from "../findings/SeverityMark";
 import { useTwistScenes } from "../../lib/twists/useTwistScenes";
 import styles from "./Strip.module.css";
 
@@ -120,12 +121,26 @@ export default function TransitStrip({ line, mode, ctx, storyId }: Props) {
                     data-strip-mark
                     onClick={(e) => stopClick(e, stop.node.id, go)}
                     onMouseEnter={(e) => peekAt(e, { kind: "stop", stop })}
-                    aria-label={`${stop.node.title}${stop.planned ? " (planned)" : ""}${isPresent && highlight ? `, with ${highlight.name}` : ""}`}
+                    aria-label={`${stop.node.title}${stop.planned ? " (planned)" : ""}${mode === "findings" && swatches.length ? `, ${swatches.length} ${swatches.length === 1 ? "finding" : "findings"} (${swatches[0].label.toLowerCase()})` : ""}${isPresent && highlight ? `, with ${highlight.name}` : ""}`}
                     aria-current={current ? "page" : undefined}
                     data-stop={stop.index}
                   >
                     <span className={`${styles.rail} ${railClass(stop)}`} />
-                    {swatches.length > 1 ? (
+                    {mode === "findings" && swatches[0]?.severity ? (
+                      // Findings as shapes (doc 30 D8): the worst one here, as the Findings page draws it.
+                      <span
+                        className={styles.sevStop}
+                        title={swatches.map((s) => s.label).join(", ")}
+                        style={{ opacity: ahead ? 0.55 : 1 }}
+                      >
+                        <SeverityMark
+                          severity={swatches[0].severity}
+                          label={false}
+                          size={11}
+                          className={styles.sevMark}
+                        />
+                      </span>
+                    ) : swatches.length > 1 ? (
                       <span
                         className={`${styles.pill} ${current ? styles.pillCurrent : ""}`}
                         style={{ opacity: ahead ? 0.55 : 1 }}

@@ -79,6 +79,27 @@
   }
 }
 
+/* In the key the ring stands still: it names a colour, it isn't running. */
+.ringStill {
+  animation: none;
+}
+
+/* The key (doc 30 D8): every mark of the list and the header, with its word. */
+.key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.9rem;
+  padding-bottom: 0.2rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.keyItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 /* Finished and not yet seen, as the scratch pad's dot; a failure in the danger colour. */
 .dot {
   position: absolute;

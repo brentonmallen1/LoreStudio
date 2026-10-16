@@ -272,3 +272,10 @@
   font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .cardActions {
+    opacity: 1;
+  }
+}

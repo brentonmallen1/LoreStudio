@@ -6,13 +6,16 @@ import {
   CheckCircle2,
   Download,
   GitCompare,
+  MoreHorizontal,
+  Pencil,
   RotateCcw,
   Trash2,
 } from "lucide-react";
+import PopoverMenu, { type MenuItem } from "../../common/PopoverMenu";
 import type { StorySnapshot } from "../../../types";
 import { relativeTime } from "../../../utils/relativeTime";
 import DeltaSummaryLine from "./DeltaSummaryLine";
-import { deltaDetailEntries, formatAbsoluteDate } from "./versionsModel";
+import { deltaDetailEntries, formatAbsoluteDate, savedBy } from "./versionsModel";
 import styles from "./Versions.module.css";
 
 /** What a snapshot row can ask the section to do. */
@@ -24,7 +27,70 @@ export interface SnapshotActions {
   onExport: (s: StorySnapshot) => void;
 }
 
-/** One snapshot in the list view: name (double-click to rename), badges, actions, changelog. */
+/** A version's name, or when it was saved: what its buttons are named after. */
+function versionName(snapshot: StorySnapshot): string {
+  return snapshot.name ? `“${snapshot.name}”` : `the version from ${relativeTime(snapshot.created_at)}`;
+}
+
+/**
+ * A version's actions, in words (doc 30 D8): Restore and Compare on the card, the rest under
+ * its ⋯. Nothing waits for the pointer to find it.
+ */
+export function VersionActions({
+  snapshot,
+  onRestore,
+  onCompare,
+  onExport,
+  onRename,
+  onDelete,
+  menuAlign = "end",
+}: {
+  snapshot: StorySnapshot;
+  /** Where the ⋯ menu opens from: "start" where the actions sit at the card's left. */
+  menuAlign?: "start" | "end";
+  onRestore: (s: StorySnapshot) => void;
+  onCompare: (s: StorySnapshot) => void;
+  onExport: (s: StorySnapshot) => void;
+  onRename?: () => void;
+  onDelete: () => void;
+}) {
+  const name = versionName(snapshot);
+  const more: MenuItem[] = [
+    ...(onRename ? [{ label: "Rename", icon: Pencil, onSelect: onRename }] : []),
+    { label: "Download", icon: Download, onSelect: () => onExport(snapshot) },
+    { label: "Delete", icon: Trash2, danger: true, onSelect: onDelete },
+  ];
+  return (
+    <div className={styles.snapActions}>
+      <button
+        type="button"
+        className={styles.snapBtn}
+        onClick={() => onRestore(snapshot)}
+        aria-label={`Restore ${name}`}
+      >
+        <RotateCcw size={12} aria-hidden />
+        Restore
+      </button>
+      <button
+        type="button"
+        className={styles.snapBtn}
+        onClick={() => onCompare(snapshot)}
+        aria-label={`Compare ${name} with another version`}
+      >
+        <GitCompare size={12} aria-hidden />
+        Compare
+      </button>
+      <PopoverMenu
+        label={`More for ${name}`}
+        trigger={<MoreHorizontal size={14} />}
+        items={more}
+        align={menuAlign}
+      />
+    </div>
+  );
+}
+
+/** One version in the list view: its name, who saved it, its actions in words, its changelog. */
 export default function SnapshotCard({
   snapshot,
   onRestore,
@@ -40,6 +106,11 @@ export default function SnapshotCard({
   const [editName, setEditName] = useState(snapshot.name ?? "");
   const [pendingDelete, setPendingDelete] = useState(false);
 
+  function startRename() {
+    setEditing(true);
+    setEditName(snapshot.name ?? "");
+  }
+
   function commitRename() {
     onRename(snapshot, editName.trim() || "");
     setEditing(false);
@@ -51,10 +122,10 @@ export default function SnapshotCard({
     >
       <div className={styles.snapCardHeader}>
         <div className={styles.snapCardLeft}>
-          {isNamed ? (
-            <CheckCircle2 size={13} className={styles.snapIconNamed} />
+          {snapshot.trigger === "manual" ? (
+            <CheckCircle2 size={13} className={styles.snapIconNamed} aria-hidden />
           ) : (
-            <Circle size={11} className={styles.snapIconAuto} />
+            <Circle size={11} className={styles.snapIconAuto} aria-hidden />
           )}
           <div className={styles.snapCardInfo}>
             {editing ? (
@@ -75,11 +146,7 @@ export default function SnapshotCard({
             ) : (
               <span
                 className={`${styles.snapName} ${isNamed ? styles.snapNameNamed : ""}`}
-                onDoubleClick={() => {
-                  setEditing(true);
-                  setEditName(snapshot.name ?? "");
-                }}
-                title="Double-click to rename"
+                onDoubleClick={startRename}
               >
                 {snapshot.name ?? (
                   <span className={styles.snapNameAuto}>{relativeTime(snapshot.created_at)}</span>
@@ -94,67 +161,45 @@ export default function SnapshotCard({
           </div>
         </div>
         <div className={styles.snapCardRight}>
-          <span
-            className={`${styles.triggerBadge} ${snapshot.trigger === "manual" ? styles.triggerManual : styles.triggerAuto}`}
-          >
-            {snapshot.trigger === "manual" ? "Manual" : "Auto"}
-          </span>
+          <span className={styles.savedBy}>{savedBy(snapshot)}</span>
           {snapshot.summary && (
-            <span className={styles.snapWordCount} title="Words in this version">
-              {snapshot.summary.word_count.toLocaleString()} words
-            </span>
+            <span className={styles.snapWordCount}>{snapshot.summary.word_count.toLocaleString()} words</span>
           )}
-          <div className={styles.snapActions}>
-            <button
-              className={styles.snapBtn}
-              onClick={() => onExport(snapshot)}
-              title="Download this version"
-              aria-label="Download this version"
+          {pendingDelete ? (
+            <div
+              className={styles.deleteConfirm}
+              role="group"
+              aria-label={`Delete ${versionName(snapshot)}?`}
             >
-              <Download size={12} />
-            </button>
-            <button
-              className={styles.snapBtn}
-              onClick={() => onCompare(snapshot)}
-              title="Compare with another version"
-              aria-label="Compare with another version"
-            >
-              <GitCompare size={12} />
-            </button>
-            <button
-              className={styles.snapBtn}
-              onClick={() => onRestore(snapshot)}
-              title="Restore to this version"
-              aria-label="Restore to this version"
-            >
-              <RotateCcw size={12} />
-            </button>
-            {pendingDelete ? (
-              <div className={styles.deleteConfirm}>
-                <button
-                  className={styles.deleteConfirmYes}
-                  onClick={() => {
-                    setPendingDelete(false);
-                    onDelete(snapshot);
-                  }}
-                >
-                  Delete
-                </button>
-                <button className={styles.deleteConfirmNo} onClick={() => setPendingDelete(false)}>
-                  Cancel
-                </button>
-              </div>
-            ) : (
               <button
-                className={`${styles.snapBtn} ${styles.snapBtnDanger}`}
-                onClick={() => setPendingDelete(true)}
-                title="Delete this version"
-                aria-label="Delete this version"
+                type="button"
+                className={styles.deleteConfirmYes}
+                onClick={() => {
+                  setPendingDelete(false);
+                  onDelete(snapshot);
+                }}
               >
-                <Trash2 size={12} />
+                Delete
               </button>
-            )}
-          </div>
+              <button
+                type="button"
+                className={styles.deleteConfirmNo}
+                onClick={() => setPendingDelete(false)}
+                autoFocus
+              >
+                Keep it
+              </button>
+            </div>
+          ) : (
+            <VersionActions
+              snapshot={snapshot}
+              onRestore={onRestore}
+              onCompare={onCompare}
+              onExport={onExport}
+              onRename={startRename}
+              onDelete={() => setPendingDelete(true)}
+            />
+          )}
         </div>
       </div>
 

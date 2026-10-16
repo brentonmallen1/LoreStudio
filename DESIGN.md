@@ -328,12 +328,15 @@ One look per tier, everywhere:
 - **Header:** floating, the trail of where you are on the left, and on the right only jobs,
   undo and redo, the scratch pad, focus and "Search or jump", all ghost icons.
 - **Story strip** (left): the transit line. Chapters are stations with progress rings,
-  scenes are stops shaped by status, and the colour-by key shows only while you hover.
-  The colour-by picker sits at the top, so the line runs the strip's full height. Two
-  states: the line, or the outline, whose scene rows carry the same dots and whose folded
-  chapters show their scenes as coloured bars.
+  scenes are stops shaped by status, and the colour-by key shows while you hover a stop,
+  while the picker is open, or when **Key** is on (doc 30 D8). The colour-by picker and Key
+  sit at the top, so the line runs the strip's full height. Two states: narrow, the line,
+  or wide, whose scene rows carry the same dots and whose folded chapters show their
+  scenes as coloured bars. In the Findings mode a stop is the worst finding's shape.
 - **Side panel** (right): a tone box of tabs for This scene, open entities and tools;
   the rail beside it launches them, with the Assistant's Feather and the one collapse.
+  The rail stays icons; each names itself on hover and keyboard focus, and a one-time
+  tour labels them all (doc 30 D8).
 - **Sub header** (top of the page): the scene's icon, title, status and threads, and ⋯.
   Floating, like the header; in focus mode it is quiet (subtle text) until hovered.
 - **Status corner** (bottom right of the page): a save light (green saved, yellow
@@ -360,6 +363,8 @@ filled marker. Colour by who is on the page, threads, status, beat or findings.
 - **Do** write labels in sentence case, plain and specific ("What needs your eye").
 - **Do** define any new token in all seven palettes, light and dark, and add it to the
   contrast test when it carries meaning.
+- **Do** show a row's quiet actions on keyboard focus (`:focus-within`) and always on touch
+  (`@media (hover: none)`) wherever they wait for hover; `themes/revealOnHover.test.ts` holds it.
 
 ### Don't:
 - **Don't** build a generic SaaS dashboard: no hero-metric tiles, no identical card grids,

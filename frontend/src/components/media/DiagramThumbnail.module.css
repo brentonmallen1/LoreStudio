@@ -72,6 +72,14 @@
   transition: opacity 0.15s;
 }
 
-.card:hover .openIcon {
+.card:hover .openIcon,
+.card:focus-within .openIcon {
   opacity: 1;
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .openIcon {
+    opacity: 1;
+  }
 }

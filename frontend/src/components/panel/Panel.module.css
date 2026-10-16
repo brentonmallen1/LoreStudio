@@ -730,3 +730,12 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* A tool list's key (doc 30 D8): what the dots beside the names are. */
+.listKey {
+  margin: 0 0 0.35rem;
+  padding: 0 0.5rem;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--color-text-subtle);
+}

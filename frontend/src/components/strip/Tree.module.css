@@ -120,7 +120,8 @@
     color var(--transition);
 }
 
-.nodeRowWrap:hover .nodeAddChildBtn {
+.nodeRowWrap:hover .nodeAddChildBtn,
+.nodeRowWrap:focus-within .nodeAddChildBtn {
   display: flex;
 }
 
@@ -331,7 +332,8 @@
   transition: opacity var(--transition);
 }
 
-.nodeRowWrap:hover .dragHandle {
+.nodeRowWrap:hover .dragHandle,
+.nodeRowWrap:focus-within .dragHandle {
   opacity: 0.5;
 }
 
@@ -409,4 +411,15 @@
   border-radius: var(--radius-sm);
   background: var(--color-surface);
   color: var(--color-text);
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .nodeAddChildBtn {
+    display: flex;
+  }
+
+  .dragHandle {
+    opacity: 0.5;
+  }
 }

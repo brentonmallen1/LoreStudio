@@ -64,6 +64,11 @@ function EntityList({ tool }: { tool: "characters" | "places" | "threads" }) {
         />
       ) : (
         <div className={styles.list}>
+          {/* What the dots are, on the page (doc 30 D8). */}
+          <p className={styles.listKey}>
+            Each dot is its color in the strip and on its tab. Point at one, or reach it with Tab, to mark its
+            scenes in the strip.
+          </p>
           {rows.map((row) => {
             const onPage = entityPresence(
               kind,
@@ -86,8 +91,14 @@ function EntityList({ tool }: { tool: "characters" | "places" | "threads" }) {
                 }}
                 onMouseEnter={() => setHighlight({ kind, id: row.id, name: row.title })}
                 onMouseLeave={() => setHighlight(null)}
+                onFocus={() => setHighlight({ kind, id: row.id, name: row.title })}
+                onBlur={() => setHighlight(null)}
               >
-                <span className={styles.tabDot} style={{ background: entityColor(kind, row.id) }} />
+                <span
+                  className={styles.tabDot}
+                  style={{ background: entityColor(kind, row.id) }}
+                  aria-hidden
+                />
                 <span className={styles.rowText}>
                   <span className={styles.rowTitle} title={row.title}>
                     {row.title}

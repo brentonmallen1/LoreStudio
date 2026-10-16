@@ -342,7 +342,8 @@
   transition: opacity var(--transition);
 }
 
-.unlinkedMilestoneItem:hover .unlinkedScenePicker {
+.unlinkedMilestoneItem:hover .unlinkedScenePicker,
+.unlinkedMilestoneItem:focus-within .unlinkedScenePicker {
   opacity: 1;
 }
 
@@ -360,4 +361,11 @@
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--color-tone);
+}
+
+/* Nothing is hovered on a touch screen: show them (doc 30 D8). */
+@media (hover: none) {
+  .unlinkedScenePicker {
+    opacity: 1;
+  }
 }

@@ -30,8 +30,8 @@ Already have a draft? **Import** on your stories page brings it in. See [Import 
 - **Logo menu** (top left): every page of the story and its sections, then **Guides**, **Settings**, light and dark, the mode, your last backup of everything and your account.
 - **Command palette** ({{key:palette}}): type a few letters to reach any page or action.
 - **Breadcrumbs** (along the top): click a crumb to open that page; the › after it lists what is inside.
-- **The strip** (down the left): your book's scenes as stops on a line, so you always know where you are. {{key:cycleStrip}} widens it to name every act, chapter and scene.
-- **Side panel** (on the right): a rail of buttons for **This scene**, **Characters**, **Places**, **Threads**, **Notes**, **Freewrite** and **Dialogue**. Choose the one already showing to fold the panel away. {{key:togglePanel}} shows or hides it.
+- **The strip** (down the left): your book's scenes as stops on a line, so you always know where you are. {{key:cycleStrip}} widens it to name every act, chapter and scene. **Key**, under its color picker, says what its colors and shapes mean.
+- **Side panel** (on the right): a rail of buttons for **This scene**, **Characters**, **Places**, **Threads**, **Notes**, **Freewrite** and **Dialogue**. Choose the one already showing to fold the panel away. {{key:togglePanel}} shows or hides it. The first time, each button wears its name; point at one, or reach it with Tab, to see it again, or choose **Show what the side panel's buttons do** in the palette.
 - **Tabs** in the side panel: whatever you opened beside your prose, such as a character or a place. Choose **Open beside the prose** on any page's ⋯ menu to keep that page in a tab while you write.
 - **Status corner** (bottom right): the save light (green saved, yellow saving, red offline or a conflict) and the scene's word count. Click it for the chapter, the book, today and your goal.
 - **The scene's ⋯ menu**: type and width, notes in the margin, a writing sprint, images and the scene's tools.

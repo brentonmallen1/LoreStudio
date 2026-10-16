@@ -57,6 +57,11 @@ export function versionsSubtitle(snapshots: StorySnapshot[]): string {
   return `${byYou} saved by you` + (auto > 0 ? ` · ${auto} saved automatically` : "");
 }
 
+/** Who saved a version, in words (doc 30 D8: not a Manual or Auto badge). */
+export function savedBy(snapshot: Pick<StorySnapshot, "trigger">): string {
+  return snapshot.trigger === "manual" ? "Saved by you" : "Saved automatically";
+}
+
 /** The two snapshots of a comparison, older first. */
 export function orderByAge(a: StorySnapshot, b: StorySnapshot): [StorySnapshot, StorySnapshot] {
   return parseServerDate(a.created_at) < parseServerDate(b.created_at) ? [a, b] : [b, a];

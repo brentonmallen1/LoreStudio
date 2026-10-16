@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useRef } from "react";
 import {
   ChevronsLeft,
   ChevronsRight,
@@ -17,6 +17,9 @@ import { useAIStore } from "../../stores/aiStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { TOOL_LABELS, launcherId, pageTabId, toolsFor, type Launcher } from "../../types/panel";
+import { ASSISTANT_LINE, FREEWRITE_LINE, SCENE_LINE, toolLine } from "../../lib/panel/railWords";
+import { useHoverTip } from "../common/useHoverTip";
+import RailTour from "./RailTour";
 import { TOOL_ICONS } from "./toolIcons";
 import styles from "./Panel.module.css";
 
@@ -29,6 +32,9 @@ import styles from "./Panel.module.css";
  * While the panel is open its own controls sit at the top under the chevron (float or dock,
  * pop out), which leaves the tab strip to the tabs. In the pop-out window, which has no page
  * beside it, the rail is only the launchers.
+ *
+ * Its buttons are icons, so each names itself (doc 30 D8): a tip on hover and on keyboard
+ * focus, and a one-time tour (`RailTour`) that labels them all at once.
  */
 export default function PanelRail({ inWindow = false }: { inWindow?: boolean }) {
   const { showing, open, launch, openPage, setOpen, frame, toggleFloating, setFrame } = usePanelStore();
@@ -58,14 +64,22 @@ export default function PanelRail({ inWindow = false }: { inWindow?: boolean }) 
   const cls = (l: Launcher, extra = "") =>
     [styles.railBtn, shown(l) ? styles.railBtnOn : "", extra].join(" ");
   const sceneLabel = sceneTabLabel();
+  const rail = useRef<HTMLElement>(null);
+  const tip = useHoverTip({ side: "left" });
 
   return (
-    <aside className={`${styles.rail} ${inWindow ? styles.railInWindow : ""}`} aria-label="Side panel tools">
+    <aside
+      ref={rail}
+      className={`${styles.rail} ${inWindow ? styles.railInWindow : ""}`}
+      aria-label="Side panel tools"
+    >
+      {tip.node}
+      {!inWindow && <RailTour rail={rail} />}
       {!inWindow && (
         <button
           className={styles.railBtn}
           onClick={() => setOpen(!open)}
-          title={`${open ? "Collapse" : "Expand"} the side panel (${shortcut})`}
+          {...tip.bind(`${open ? "Collapse" : "Expand"} the side panel (${shortcut})`)}
           aria-label={`${open ? "Collapse" : "Expand"} the side panel`}
           aria-expanded={open}
         >
@@ -77,7 +91,7 @@ export default function PanelRail({ inWindow = false }: { inWindow?: boolean }) 
           <button
             className={styles.railBtn}
             onClick={toggleFloating}
-            title={frame === "floating" ? "Dock to the side" : "Float over the page"}
+            {...tip.bind(frame === "floating" ? "Dock to the side" : "Float over the page")}
             aria-label={frame === "floating" ? "Dock the side panel" : "Float the side panel"}
           >
             {frame === "floating" ? <PanelRight size={14} /> : <PictureInPicture2 size={14} />}
@@ -85,7 +99,7 @@ export default function PanelRail({ inWindow = false }: { inWindow?: boolean }) 
           <button
             className={styles.railBtn}
             onClick={popOut}
-            title="Open in its own window"
+            {...tip.bind("Open in its own window")}
             aria-label="Open the side panel in its own window"
           >
             <ExternalLink size={14} />
@@ -96,7 +110,8 @@ export default function PanelRail({ inWindow = false }: { inWindow?: boolean }) 
         <button
           className={cls("scene")}
           onClick={() => choose("scene")}
-          title={sceneLabel}
+          {...tip.bind(`${sceneLabel}: ${SCENE_LINE}`)}
+          data-rail-tour={`${sceneLabel}: ${SCENE_LINE}`}
           aria-label={sceneLabel}
           aria-pressed={shown("scene")}
         >
@@ -109,7 +124,8 @@ export default function PanelRail({ inWindow = false }: { inWindow?: boolean }) 
               <button
                 className={cls(tool)}
                 onClick={() => choose(tool)}
-                title={`${TOOL_LABELS[tool]}: beside the page`}
+                {...tip.bind(toolLine(tool))}
+                data-rail-tour={toolLine(tool)}
                 aria-label={TOOL_LABELS[tool]}
                 aria-pressed={shown(tool)}
               >
@@ -119,7 +135,8 @@ export default function PanelRail({ inWindow = false }: { inWindow?: boolean }) 
                 <button
                   className={[styles.railBtn, freewriteShown ? styles.railBtnOn : ""].join(" ")}
                   onClick={() => (freewriteShown && !inWindow ? setOpen(false) : openPage("freewrite"))}
-                  title="Freewrite: a tab beside the page"
+                  {...tip.bind(FREEWRITE_LINE)}
+                  data-rail-tour={FREEWRITE_LINE}
                   aria-label="Freewrite"
                   aria-pressed={freewriteShown}
                 >
@@ -134,7 +151,8 @@ export default function PanelRail({ inWindow = false }: { inWindow?: boolean }) 
           <button
             className={cls("assistant", styles.railAi)}
             onClick={() => choose("assistant")}
-            title="Assistant"
+            {...tip.bind(ASSISTANT_LINE)}
+            data-rail-tour={ASSISTANT_LINE}
             aria-label={`Assistant, ${sessionCount} ${sessionCount === 1 ? "session" : "sessions"}`}
             aria-pressed={shown("assistant")}
           >
