@@ -4,7 +4,10 @@ from pydantic import BaseModel
 class RenamePreviewItem(BaseModel):
     node_id: str
     node_title: str
+    #: In the prose that counts and the scene's other takes together.
     occurrences: int
+    #: How many of them are in the scene's other takes (doc 29 D7).
+    in_other_takes: int = 0
     excerpt: str
 
 

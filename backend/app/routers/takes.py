@@ -14,7 +14,9 @@ from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.takes import TakeOut, TakeRename, TakesOut, TakeWrite
 from ..services import change_log, takes
-from ..services.dialogue_service import sync_scene_dialogue
+from ..services.dialogue_service import sync_scene_dialogue, take_lines
+from ..services.edit_conflict import refuse_if_changed
+from .dialogue import DialogueBlockOut
 
 router = APIRouter()
 
@@ -33,26 +35,24 @@ def _take(take_id: str, db: Session, user: User) -> tuple[StructureNode, SceneTa
     return _node(take.node_id, db, user), take
 
 
+def _one(node: StructureNode, t: SceneTake, number: int) -> TakeOut:
+    content, words = takes.text_of(node, t)
+    return TakeOut(
+        id=t.id,
+        node_id=node.id,
+        number=number,
+        label=t.label or "",
+        content=content,
+        word_count=words,
+        counts=t.counts,
+        is_open=t.is_open,
+        created_at=t.created_at,
+        updated_at=t.updated_at,
+    )  # fmt: skip
+
+
 def _out(db: Session, node: StructureNode) -> TakesOut:
-    rows = takes.takes_of(db, node)
-    out = []
-    for i, t in enumerate(rows):
-        content, words = takes.text_of(node, t)
-        out.append(
-            TakeOut(
-                id=t.id,
-                node_id=node.id,
-                number=i + 1,
-                label=t.label or "",
-                content=content,
-                word_count=words,
-                counts=t.counts,
-                is_open=t.is_open,
-                created_at=t.created_at,
-                updated_at=t.updated_at,
-            )  # fmt: skip
-        )
-    return TakesOut(node_id=node.id, takes=out)
+    return TakesOut(node_id=node.id, takes=[_one(node, t, i + 1) for i, t in enumerate(takes.takes_of(db, node))])
 
 
 def _done(db: Session, node: StructureNode) -> TakesOut:
@@ -130,13 +130,44 @@ def write_take(
     user: User = Depends(get_current_user),
     client_id: str | None = Depends(change_log.get_client_id),
 ):
-    """Autosave for a take that does not count (the one that counts saves as the scene)."""
+    """Autosave for a take that does not count (the one that counts saves as the scene). A take
+    changed since the editor loaded it answers 409, as a scene's save does."""
     node, take = _take(take_id, db, user)
+
+    def current() -> dict:
+        number = next(i + 1 for i, t in enumerate(takes.takes_of(db, node)) if t.id == take.id)
+        return _one(node, take, number).model_dump(mode="json")
+
+    refuse_if_changed(
+        body.expected_updated_at,
+        take.updated_at,
+        message="This take changed since you loaded it.",
+        key="take",
+        current=current,
+    )
     try:
         takes.write(db, node, take, body.content, body.word_count, actor_id=user.id, client_id=client_id)
     except takes.TakeError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     return next(t for t in _done(db, node).takes if t.id == take.id)
+
+
+@router.get("/takes/{take_id}/dialogue", response_model=list[DialogueBlockOut])
+def take_dialogue(take_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Who says each line of the take, for the editor's dialogue colors: the scene's own lines for
+    the take that counts, else read from the take's words and not stored."""
+    node, take = _take(take_id, db, user)
+    if take.counts:
+        return sync_scene_dialogue(node, db)
+    return [
+        DialogueBlockOut(
+            **{**line, "speaker_name": line.get("speaker_name") or ""},
+            id=f"{take.id}:{i}",
+            scene_id=node.id,
+            subtext=None,
+        )
+        for i, line in enumerate(take_lines(node, take.content or "", db))
+    ]
 
 
 @router.delete("/takes/{take_id}", response_model=TakesOut)

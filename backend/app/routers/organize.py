@@ -15,6 +15,7 @@ from ..models.user import User
 from ..schemas.structure import StructureNodeOut
 from ..services import change_log
 from ..services.dialogue_service import sync_scene_dialogue
+from ..services.edit_conflict import changed_since
 from ..services.organize import OrganizeError, merge_next, wrap_scenes
 
 router = APIRouter()
@@ -45,10 +46,8 @@ def join_with_next(
     if node is None:
         raise HTTPException(status_code=404, detail="Scene not found")
     _story(node.story_id, db, user)
-    if body.expected_updated_at is not None:
-        e, a = body.expected_updated_at.replace(tzinfo=None), node.updated_at.replace(tzinfo=None)
-        if abs((e - a).total_seconds()) > 0.001:
-            raise HTTPException(status_code=409, detail="This scene changed since you loaded it.")
+    if body.expected_updated_at is not None and changed_since(body.expected_updated_at, node.updated_at):
+        raise HTTPException(status_code=409, detail="This scene changed since you loaded it.")
     try:
         merged = merge_next(db, node, actor_id=user.id, client_id=client_id)
     except OrganizeError as e:

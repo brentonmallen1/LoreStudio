@@ -485,7 +485,7 @@ export const api = {
     caseSensitive = false,
     nodeIds?: string[],
   ) =>
-    request<{ replaced_count: number; scenes_affected: number; node_ids: string[] }>(
+    request<{ replaced_count: number; scenes_affected: number; in_other_takes: number; node_ids: string[] }>(
       `/stories/${storyId}/replace`,
       {
         method: "POST",

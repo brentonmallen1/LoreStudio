@@ -15,6 +15,7 @@ from ..services import change_log
 from ..services.adaptation import AdaptError, check_source_scene
 from ..services.dangling import detach_scenes
 from ..services.dialogue_service import sync_scene_dialogue
+from ..services.edit_conflict import refuse_if_changed
 from ..services.held_prose import give_scene, template_levels
 from ..services.linking_service import apply_entity_links, suggest_entity_links
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
@@ -26,18 +27,6 @@ from ..services.text_utils import for_model
 from ..services.word_count import count_lines
 
 router = APIRouter()
-
-
-def _differs(expected: datetime, actual: datetime) -> bool:
-    """
-    Compare ignoring timezone awareness. The client sends back the exact string it was
-    given, so the only slack needed is a millisecond, for a value that went through a
-    JavaScript Date. It used to be a whole second, which let a second tab's save — or a
-    bulk rewrite — land unopposed if it came within a second of the load.
-    """
-    e = expected.replace(tzinfo=None)
-    a = actual.replace(tzinfo=None)
-    return abs((e - a).total_seconds()) > 0.001
 
 
 def _update_label(node: StructureNode, after: dict) -> str:
@@ -88,16 +77,8 @@ def update_node(
             check_source_scene(db, node, data["adapted_from_id"])
         except AdaptError as e:
             raise HTTPException(status_code=e.status_code, detail=str(e)) from e
-    expected = data.pop("expected_updated_at", None)
-    if expected is not None and node.updated_at is not None and _differs(expected, node.updated_at):
-        # Someone (another tab, an undo, a restore) changed this node since the client loaded it.
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail={
-                "message": "This segment changed since you loaded it.",
-                "node": StructureNodeOut.model_validate(node).model_dump(mode="json"),
-            },
-        )
+    # Someone (another tab, an undo, a restore) changed this node since the client loaded it.
+    _unchanged_since(node, data.pop("expected_updated_at", None))
     if "metadata_" in data:
         incoming = dict(data["metadata_"])
         # purpose is a column now; hoist it if an older client sends it here. Margin notes
@@ -167,14 +148,13 @@ def update_node(
 
 
 def _unchanged_since(node: StructureNode, expected: datetime | None) -> None:
-    if expected and node.updated_at is not None and _differs(expected, node.updated_at):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail={
-                "message": "This segment changed since you loaded it.",
-                "node": StructureNodeOut.model_validate(node).model_dump(mode="json"),
-            },
-        )
+    refuse_if_changed(
+        expected,
+        node.updated_at,
+        message="This segment changed since you loaded it.",
+        key="node",
+        current=lambda: StructureNodeOut.model_validate(node).model_dump(mode="json"),
+    )
 
 
 def _one_take(db: Session, node: StructureNode) -> None:

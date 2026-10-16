@@ -38,7 +38,9 @@ export interface TakesBridge {
  *   The switch itself is a server change ⌘Z takes back, and undoing it lays the first take in
  *   again, also fresh. Trying another version does the same: the copy starts with no history.
  * - **Undo, and rewrites from outside** (a replace, a rename): the takes are read again and the
- *   editor follows: another take laid in, or the shown one patched outside history.
+ *   editor follows: another take laid in, or the shown one patched outside history. Typing that
+ *   waits to save is left alone and its save meets the newer take as a conflict, Keep mine or
+ *   Take theirs, as a scene's does.
  *
  * Everything saves first, so what was typed lands in the take it was typed in.
  */
@@ -68,15 +70,18 @@ export function useSceneTakes(editor: Editor | null, autosave: AutosaveState): R
     if (!was || was.nodeId !== out.node_id || was.takeId !== (want?.id ?? null)) {
       loadScene(editor, html, { nodeId: out.node_id });
       shown.current = { nodeId: out.node_id, takeId: want?.id ?? null };
+      save.laidIn(want);
       save.recount(editor);
       if (want) save.checkDraft(`take:${want.id}`, want.content, want.updated_at);
-    } else if (
-      patch &&
-      !["unsaved", "saving", "conflict"].includes(save.saveState) &&
-      editor.getHTML() !== html
-    ) {
-      patchScene(editor, html, out.node_id);
-      save.recount(editor);
+    } else if (!["unsaved", "saving", "conflict"].includes(save.saveState)) {
+      if (patch && editor.getHTML() !== html) {
+        patchScene(editor, html, out.node_id);
+        save.recount(editor);
+      }
+      // Nothing waits to save, so the editor holds the take as it now stands: typing saves on
+      // from its stamp. Waiting typing keeps the stamp it began on, and meets a newer copy as a
+      // conflict (Keep mine or Take theirs), as the scene's prose does.
+      save.laidIn(want);
     }
     editor.setEditable(true, false);
   }

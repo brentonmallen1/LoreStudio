@@ -50,6 +50,7 @@ from ..models.trope import Trope, TropeLink
 from ..models.twist import Twist, TwistClue
 from ..models.world_system import WorldSystem
 from . import change_headers
+from .word_count import count_words
 
 #: entity_type -> model. Deletes capture a bundle of rows keyed by table name.
 ENTITY_MODELS: dict[str, type] = {
@@ -269,7 +270,7 @@ def record(
 
 def rewrite_prose(
     db: Session,
-    node: StructureNode,
+    node: StructureNode | SceneTake,
     content: str,
     *,
     label: str,
@@ -283,7 +284,19 @@ def rewrite_prose(
     editor's own history; a tool's rewrite is the change log's, and ⌘Z reaches both (doc 23
     P5b). Undo refuses a scene written in since rather than overwrite it (the before/after
     check every update gets).
+
+    A take that does not count (doc 29 D7) is rewritten the same way, its words counted again,
+    so a replace or a rename that reaches a scene's takes undoes with the scene's prose.
     """
+    if isinstance(node, SceneTake):
+        data = {"content": content, "word_count": count_words(content)}
+        after = record_update(
+            db, node, data, entity_type="scene_take", story_id=node.node.story_id, label=label,
+            actor_id=actor_id, client_id=client_id, batch_id=batch_id,
+        )  # fmt: skip
+        for key, value in (after or {}).items():
+            setattr(node, key, value)
+        return
     record(
         db,
         story_id=node.story_id,
@@ -302,11 +315,11 @@ def rewrite_prose(
 
 def prose_writer(
     db: Session, *, label: str, batch_id: str, actor_id: str | None, client_id: str | None
-) -> Callable[[StructureNode, str], None]:
-    """``rewrite_prose`` bound to one batch: for a rename or new pronouns, whose scenes undo
-    together with the record that changed (doc 20)."""
+) -> Callable[[StructureNode | SceneTake, str], None]:
+    """``rewrite_prose`` bound to one batch: for a rename or new pronouns, whose scenes (and
+    their other takes) undo together with the record that changed (doc 20)."""
 
-    def write(node: StructureNode, content: str) -> None:
+    def write(node: StructureNode | SceneTake, content: str) -> None:
         rewrite_prose(db, node, content, label=label, batch_id=batch_id, actor_id=actor_id, client_id=client_id)
 
     return write

@@ -176,4 +176,76 @@ describe("autosave with takes", () => {
     await act(() => result.current.flush());
     expect(calls.map((c) => c.to)).toEqual(["take:t2"]);
   });
+
+  /** The take's save answers 409 for the stamp it was loaded with, as if another window saved. */
+  function another() {
+    const calls: { content: string; expected_updated_at?: string }[] = [];
+    const theirs = { ...TAKE_2, is_open: true, content: "<p>Theirs.</p>", updated_at: "2026-10-16T12:00:00" };
+    server.use(
+      http.put("/api/takes/:id/content", async ({ request }) => {
+        const body = (await request.json()) as { content: string; expected_updated_at?: string };
+        calls.push(body);
+        if (body.expected_updated_at === TAKE_2.updated_at)
+          return HttpResponse.json(
+            { detail: { message: "This take changed since you loaded it.", take: theirs } },
+            { status: 409 },
+          );
+        return HttpResponse.json({ ...theirs, content: body.content, updated_at: "2026-10-16T12:30:00" });
+      }),
+    );
+    return { calls, theirs };
+  }
+
+  it("asks Keep mine or Take theirs when the take changed elsewhere, and Keep mine saves over it", async () => {
+    const { calls } = another();
+    useTakesStore.getState().setTakes("s1", [TAKE_1, { ...TAKE_2, is_open: true }]);
+    const result = typeIn(TAKE_2.content);
+    await act(() => result.current.flush());
+    expect(calls[0].expected_updated_at).toBe(TAKE_2.updated_at);
+    expect(result.current.saveState).toBe("conflict");
+    expect(result.current.conflict).not.toBeNull();
+
+    await act(async () => {
+      result.current.keepMine();
+      await result.current.flush();
+    });
+    expect(calls[1].expected_updated_at).toBeUndefined();
+    expect(calls[1].content).toContain("Again.");
+    expect(result.current.saveState).toBe("saved");
+    expect(useTakesStore.getState().takes[1].content).toContain("Again.");
+  });
+
+  it("Take theirs lays the other window's take in and saves on from its stamp", async () => {
+    const { calls, theirs } = another();
+    useTakesStore.getState().setTakes("s1", [TAKE_1, { ...TAKE_2, is_open: true }]);
+    const result = typeIn(TAKE_2.content);
+    await act(() => result.current.flush());
+    act(() => result.current.takeTheirs());
+    expect(editor!.getHTML()).toBe(theirs.content);
+    expect(useTakesStore.getState().takes[1]).toMatchObject({
+      content: theirs.content,
+      updated_at: theirs.updated_at,
+    });
+    expect(useStoryStore.getState().activeNode?.content).toBe(SCENE.content);
+    expect(result.current.saveState).toBe("idle");
+
+    editor!.commands.insertContentAt(editor!.state.doc.content.size - 1, " More.");
+    act(() => result.current.handleUpdate(editor!));
+    await act(() => result.current.flush());
+    expect(calls[1].expected_updated_at).toBe(theirs.updated_at);
+    expect(result.current.saveState).toBe("saved");
+  });
+
+  it("keeps the stamp typing began from when the take is read again before it saves", async () => {
+    const { calls } = another();
+    useTakesStore.getState().setTakes("s1", [TAKE_1, { ...TAKE_2, is_open: true }]);
+    const result = typeIn(TAKE_2.content);
+    // A replace elsewhere: the takes are read again, newer, while these words wait to save.
+    useTakesStore
+      .getState()
+      .setTakes("s1", [TAKE_1, { ...TAKE_2, is_open: true, updated_at: "2026-10-16T12:00:00" }]);
+    await act(() => result.current.flush());
+    expect(calls[0].expected_updated_at).toBe(TAKE_2.updated_at);
+    expect(result.current.saveState).toBe("conflict");
+  });
 });

@@ -33,11 +33,12 @@ from ..schemas.character_review import (
     ReviewRequest,
     ReviewScene,
 )
-from ..services import assistant_results, change_log, other_names
+from ..services import assistant_results, change_log, other_names, takes
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.pronoun_refactor import build_pronoun_identification_prompt
 from ..services.pronoun_review import SETS, patterns_for, people_on_page, pronoun_set, review_scene
 from ..services.prose_html import Edit, apply_edits, paragraphs
+from ..services.prose_rewrite import rename
 from ..services.scene_cast import on_the_page
 from ..services.snapshot_service import create_snapshot
 from ..services.structure_order import order_of
@@ -223,6 +224,19 @@ def _located(instances: list[dict], paras: list[str]) -> set[tuple[int, int]]:
     return out
 
 
+def _rename_in_takes(me: Character, body: ApplyRequest, write, db: Session) -> None:
+    """The scenes' other takes (doc 29 D7) follow a new name where it is marked (a mention, a
+    speaker tag, a cue), in the same change, when the prose took it (not on Skip). Their own
+    sentences were not reviewed, so plain words stay as they are."""
+    new = body.name
+    if not new or new == me.name or not any(e.text == new for i in body.items for e in i.edits):
+        return
+    for take in takes.others(db, me.story_id):
+        html, count = rename(take.content or "", "character", me.name, new)
+        if count:
+            write(take, html)
+
+
 @router.post("/{character_id}/review/apply", response_model=ApplyOut)
 def apply_review(
     character_id: str,
@@ -276,6 +290,8 @@ def apply_review(
             write(node, html)
             node.summary_stale = True
             applied += count
+
+    _rename_in_takes(me, body, write, db)
 
     data: dict = {}
     if body.pronouns is not None:

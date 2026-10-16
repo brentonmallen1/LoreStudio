@@ -143,7 +143,8 @@ export default function SceneEditor() {
   const takesDialog = useSceneTakes(editor, autosave);
   const takes = useTakesStore((s) => (s.nodeId === activeNode?.id ? s.takes : []));
   const comparing = useTakesStore((s) => s.comparing) && takes.length > 1;
-  const onAlternate = takes.some((t) => t.is_open && !t.counts);
+  const alternate = takes.find((t) => t.is_open && !t.counts);
+  const onAlternate = !!alternate;
   const notes = useInlineNotes({ editor, activeNode, setActiveNode, popoverRef: notePopoverRef });
   const { slash } = useSlashCommands({
     editor,
@@ -153,8 +154,8 @@ export default function SceneEditor() {
     insertImage: () => setImagePickerOpen(true),
     splitScene: () => useEditorBridge.getState().organize?.split(),
   });
-  // A take that does not count has no attributed lines of its own: no colours on the wrong lines.
-  useSceneDialogue(editor, onAlternate ? undefined : activeNode?.id, activeNode?.updated_at);
+  // A take that does not count has lines of its own, read from its words after each save.
+  useSceneDialogue(editor, activeNode?.id, alternate?.updated_at ?? activeNode?.updated_at, alternate?.id);
   const speakerTip = useSpeakerTip(editor);
   useTipWatch(editor, format);
   // A tutorial scene's lesson, above its text (doc 26, P6).

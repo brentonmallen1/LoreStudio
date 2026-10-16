@@ -240,3 +240,72 @@ def test_another_writers_takes_are_not_reached(client, db_session):
     assert client.post(f"/api/structure/{scene.id}/takes").status_code == 404
     assert client.post(f"/api/takes/{take.id}/open").status_code == 404
     assert client.delete(f"/api/takes/{take.id}").status_code == 404
+
+
+def test_a_stale_save_to_a_take_is_refused_as_a_scenes_is(client, db_session, test_user):
+    """Two windows on one take: the save from the window that loaded it before the other saved
+    meets a 409 with the take as it now stands, the scene's own shape, and Keep mine (a save
+    without the stamp) still lands."""
+    _story, scene = _scene(db_session, test_user)
+    second = _try(client, scene)[1]
+    loaded = second["updated_at"]
+    # Another window saves first.
+    r = client.put(
+        f"/api/takes/{second['id']}/content",
+        json={"content": SECOND, "word_count": 9, "expected_updated_at": loaded},
+    )
+    assert r.status_code == 200, r.text
+    newer = r.json()["updated_at"]
+    assert newer != loaded
+
+    # This window still has the copy it loaded.
+    stale = client.put(
+        f"/api/takes/{second['id']}/content",
+        json={"content": "<p>Mine.</p>", "word_count": 1, "expected_updated_at": loaded},
+    )
+    assert stale.status_code == 409
+    detail = stale.json()["detail"]
+    assert detail["message"] == "This take changed since you loaded it."
+    assert (detail["take"]["id"], detail["take"]["content"], detail["take"]["updated_at"]) == (
+        second["id"],
+        SECOND,
+        newer,
+    )
+    assert _takes(client, scene)[1]["content"] == SECOND
+
+    # With the stamp it now has, or with none (Keep mine), the save lands.
+    ok = client.put(
+        f"/api/takes/{second['id']}/content",
+        json={"content": "<p>Mine again.</p>", "word_count": 2, "expected_updated_at": newer},
+    )
+    assert ok.status_code == 200, ok.text
+    assert _write(client, second["id"], "<p>Mine.</p>", 1)["content"] == "<p>Mine.</p>"
+
+
+def test_a_take_that_does_not_count_has_its_own_lines_read(client, db_session, test_user):
+    """Coloring dialogue by speaker needs who says each line of the take on screen: read from
+    the take's own words (not stored), with a hand correction on the scene's same line kept."""
+    _story, scene = _scene(db_session, test_user)
+    first, second = _try(client, scene)
+    _write(client, second["id"], "<p>“Come in,” said Margaret. “Thank you,” Eleanor said.</p>", 6)
+    lines = client.get(f"/api/takes/{second['id']}/dialogue")
+    assert lines.status_code == 200, lines.text
+    said = [(line["content"], line["speaker_name"]) for line in lines.json()]
+    assert said == [("Come in,", "Margaret Holt"), ("Thank you,", "Eleanor Vance")]
+    assert all(line["scene_id"] == scene.id for line in lines.json())
+    # Nothing is stored for a take: the scene's own lines are its prose's.
+    assert client.get(f"/api/scenes/{scene.id}/dialogue").json() == []
+
+    # The scene's prose says the line too, and the writer says Eleanor says it there.
+    client.patch(
+        f"/api/structure/{scene.id}", json={"content": "<p>“Thank you,” Eleanor said. “Come in,” said Margaret.</p>"}
+    )
+    row = next(r for r in client.get(f"/api/scenes/{scene.id}/dialogue").json() if r["content"] == "Come in,")
+    client.patch(f"/api/dialogue/{row['id']}", json={"speaker_name": "Eleanor Vance"})
+    said = [
+        (line["content"], line["speaker_name"]) for line in client.get(f"/api/takes/{second['id']}/dialogue").json()
+    ]
+    assert said == [("Come in,", "Eleanor Vance"), ("Thank you,", "Eleanor Vance")]
+    scene_lines = client.get(f"/api/scenes/{scene.id}/dialogue").json()
+    # The take that counts reads as the scene does.
+    assert client.get(f"/api/takes/{first['id']}/dialogue").json() == scene_lines

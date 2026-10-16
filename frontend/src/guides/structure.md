@@ -73,6 +73,10 @@ Not sure a scene works? Write it another way without losing the first. **Try ano
 
 Making, switching, choosing, renaming and deleting takes are each one change {{key:undo}} takes back. Typing in a take is undone as typing always is, take by take: switching to another starts its own history, so {{key:undo}} never carries one take's typing into another. A scene with several takes is not split or joined: keep the one that counts and delete the others first.
 
+Changes made across the story reach every take, not only the one that counts: **Replace** in Find in story, a change of quote marks, and a new name for a character in its mentions and speaker tags. Choosing another take later never brings the old words back, and {{key:undo}} takes the whole change back from every take at once. Find lists the take that counts; after a replace it says how many it also changed in other takes.
+
+If a take is open in two windows and saved in one, the other asks **Keep mine** or **Take theirs** before it saves, as a scene does. With **Color dialogue by speaker** on, a take's lines are colored by who says them in that take.
+
 ## Classic patterns
 
 A **classic pattern** is a list of moments many stories share, and roughly where each one falls: **Three turning points**, **Save the Cat**, **The story circle** and **The hero's journey**, plus any you make yourself. Turning one on changes nothing in your story; it shows on your Outline, so you can see which moments you have and which you might want.

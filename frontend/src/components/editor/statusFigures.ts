@@ -9,8 +9,9 @@ import type { SaveState } from "./useSceneAutosave";
 
 export type Led = "ok" | "busy" | "trouble";
 
-/** Green for saved, yellow for unsaved or saving, red for offline or a conflict. */
-export function ledFor(state: SaveState): { led: Led; label: string } {
+/** Green for saved, yellow for unsaved or saving, red for offline or a conflict (in the
+ * scene, or in the take of it that is open). */
+export function ledFor(state: SaveState, inTake = false): { led: Led; label: string } {
   switch (state) {
     case "unsaved":
       return { led: "busy", label: "Unsaved changes, saving in a moment" };
@@ -22,7 +23,10 @@ export function ledFor(state: SaveState): { led: Led; label: string } {
         label: "Offline. Your text is kept here and the save will be tried again",
       };
     case "conflict":
-      return { led: "trouble", label: "This scene changed elsewhere. Choose which version to keep" };
+      return {
+        led: "trouble",
+        label: `This ${inTake ? "take" : "scene"} changed elsewhere. Choose which version to keep`,
+      };
     default:
       return { led: "ok", label: "Saved" };
   }

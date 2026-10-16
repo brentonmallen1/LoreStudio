@@ -35,3 +35,7 @@ class TakeRename(BaseModel):
 class TakeWrite(BaseModel):
     content: str
     word_count: int = 0
+    #: The take's ``updated_at`` as the editor loaded it: a take changed since (another window,
+    #: a replace) answers 409 with the take as it now stands, as a scene's save does. None saves
+    #: regardless (Keep mine).
+    expected_updated_at: datetime | None = None

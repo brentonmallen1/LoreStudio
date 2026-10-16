@@ -8,10 +8,11 @@ from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
 from ..database import get_db
+from ..models.scene_take import SceneTake
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
-from ..services import change_log
+from ..services import change_log, takes
 from ..services.text_utils import count_quote_styles, normalize_quotes_html
 
 router = APIRouter()
@@ -66,7 +67,8 @@ def normalize_quotes(
     changed_chars = 0
     scenes: list[dict] = []
     rewrites: list[tuple[StructureNode, str]] = []
-    for node in q.all():
+    nodes = q.all()
+    for node in nodes:
         if not node.content:
             continue
         new_html, n = normalize_quotes_html(node.content, req.style)
@@ -74,14 +76,34 @@ def normalize_quotes(
             scenes.append({"node_id": node.id, "title": node.title, "changed": n})
             changed_chars += n
             rewrites.append((node, new_html))
-    if rewrites and not req.dry_run:
+    # The scenes' other takes (doc 29 D7) too, so a take chosen later has the same quotes.
+    take_rewrites: list[tuple[SceneTake, str]] = []
+    for take in [] if req.dry_run else takes.others(db, story_id, req.node_ids or None):
+        new_html, n = normalize_quotes_html(take.content or "", req.style)
+        if n:
+            take_rewrites.append((take, new_html))
+    changed = list(dict.fromkeys([node.id for node, _ in rewrites] + [take.node_id for take, _ in take_rewrites]))
+    if req.dry_run:
+        changed = []
+    if changed:
         # One batch, one name: ⌘Z takes back the whole conversion.
-        where = f"“{rewrites[0][0].title}”" if len(rewrites) == 1 else f"{len(rewrites)} scenes"
-        label = f"{req.style.capitalize()} quotes in {where}"
-        batch_id = str(uuid.uuid4())
-        for node, new_html in rewrites:
-            change_log.rewrite_prose(
-                db, node, new_html, label=label, batch_id=batch_id, actor_id=user.id, client_id=client_id
-            )
+        titles = {node.id: node.title for node in nodes}
+        where = f"“{titles[changed[0]]}”" if len(changed) == 1 else f"{len(changed)} scenes"
+        write = change_log.prose_writer(
+            db,
+            label=f"{req.style.capitalize()} quotes in {where}",
+            batch_id=str(uuid.uuid4()),
+            actor_id=user.id,
+            client_id=client_id,
+        )
+        for target, new_html in [*rewrites, *take_rewrites]:
+            write(target, new_html)
         db.commit()
-    return {"style": req.style, "dry_run": req.dry_run, "changed_chars": changed_chars, "scenes": scenes}
+    return {
+        "style": req.style,
+        "dry_run": req.dry_run,
+        "changed_chars": changed_chars,
+        "scenes": scenes,
+        # Every scene rewritten, its other takes included, for an editor holding one to reload.
+        "node_ids": changed,
+    }

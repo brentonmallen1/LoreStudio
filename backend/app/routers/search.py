@@ -9,12 +9,13 @@ from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.character import Character
 from ..models.plot_thread import PlotThread
+from ..models.scene_take import SceneTake
 from ..models.setting import Setting
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.twist import Twist
 from ..models.user import User
-from ..services import change_log
+from ..services import change_log, takes
 from ..services.prose_html import paragraphs
 from ..services.prose_rewrite import find_in_text, replace_words
 from ..services.prose_syntax import reader_text
@@ -302,38 +303,60 @@ async def story_replace(
         raise HTTPException(status_code=404, detail="Story not found")
 
     if not req.query:
-        return {"replaced_count": 0, "scenes_affected": 0, "node_ids": []}
+        return {"replaced_count": 0, "scenes_affected": 0, "in_other_takes": 0, "node_ids": []}
 
     q = db.query(StructureNode).filter(StructureNode.story_id == story_id)
     if req.node_ids:
         q = q.filter(StructureNode.id.in_(req.node_ids))
 
     nodes = q.all()
+
+    def replaced(html: str) -> tuple[str, int]:
+        return replace_words(
+            html, req.query, req.replacement, case_sensitive=req.case_sensitive, whole_word=req.whole_word
+        )
+
     total_replaced = 0
     rewrites: list[tuple[StructureNode, str]] = []
-
     for node in nodes:
         if not node.content:
             continue
-        new_content, n = replace_words(
-            node.content, req.query, req.replacement, case_sensitive=req.case_sensitive, whole_word=req.whole_word
-        )
+        new_content, n = replaced(node.content)
         if n > 0:
             rewrites.append((node, new_content))
             total_replaced += n
 
+    # The scenes' other takes (doc 29 D7) too, so a take chosen later does not bring the old
+    # words back. Find lists the prose that counts, so their matches are counted apart.
+    in_takes = 0
+    take_rewrites: list[tuple[SceneTake, str]] = []
+    for take in takes.others(db, story_id, [n.id for n in nodes] if req.node_ids else None):
+        new_content, n = replaced(take.content or "")
+        if n > 0:
+            take_rewrites.append((take, new_content))
+            in_takes += n
+
     # One batch, one name: ⌘Z takes back the whole replace, and says what it was.
-    where = f"“{rewrites[0][0].title}”" if len(rewrites) == 1 else f"{len(rewrites)} scenes"
-    label = f"Replace “{req.query}” with “{req.replacement}” in {where}"
-    batch_id = str(uuid.uuid4())
-    for node, new_content in rewrites:
-        change_log.rewrite_prose(
-            db, node, new_content, label=label, batch_id=batch_id, actor_id=user.id, client_id=client_id
-        )
-    changed = [node.id for node, _ in rewrites]
+    changed = list(dict.fromkeys([node.id for node, _ in rewrites] + [take.node_id for take, _ in take_rewrites]))
+    titles = {node.id: node.title for node in nodes}
+    where = f"“{titles[changed[0]]}”" if len(changed) == 1 else f"{len(changed)} scenes"
+    write = change_log.prose_writer(
+        db,
+        label=f"Replace “{req.query}” with “{req.replacement}” in {where}",
+        batch_id=str(uuid.uuid4()),
+        actor_id=user.id,
+        client_id=client_id,
+    )
+    for target, new_content in [*rewrites, *take_rewrites]:
+        write(target, new_content)
     if changed:
         db.commit()
 
-    # Which scenes changed, so an editor holding one of them can reload it instead of
-    # saving its stale copy back over the replacement.
-    return {"replaced_count": total_replaced, "scenes_affected": len(changed), "node_ids": changed}
+    # Which scenes changed, so an editor holding one of them (or one of its takes) can reload
+    # it instead of saving its stale copy back over the replacement.
+    return {
+        "replaced_count": total_replaced,
+        "scenes_affected": len(rewrites),
+        "in_other_takes": in_takes,
+        "node_ids": changed,
+    }

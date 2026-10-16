@@ -11,8 +11,15 @@ import { SCENES_REWRITTEN_EVENT } from "../../lib/sceneEvents";
 import { loadScene, patchScene } from "../../lib/undo/sceneHistory";
 import { takesApi } from "../../api/takes";
 import { editingTake, useTakesStore } from "../../stores/takesStore";
+import type { SceneTake } from "../../types/takes";
 
 export type SaveState = "idle" | "unsaved" | "saving" | "saved" | "offline" | "conflict";
+
+/**
+ * A save refused because what it saves over changed since it was loaded (another window, an
+ * undo, a replace): the scene's prose as it now stands, or a take that does not count's.
+ */
+export type SaveConflict = { node: StructureNode; take?: undefined } | { take: SceneTake; node?: undefined };
 
 const SAVE_DEBOUNCE_MS = 1200;
 const SAVED_FLASH_MS = 2000;
@@ -28,7 +35,7 @@ export function useSceneAutosave(editor: Editor | null) {
   const { activeNode, activeStory, setActiveNode } = useStoryStore();
   const discoverIn = useProposalsStore((s) => s.discoverIn);
   const [saveState, setSaveState] = useState<SaveState>("idle");
-  const [conflict, setConflict] = useState<StructureNode | null>(null);
+  const [conflict, setConflict] = useState<SaveConflict | null>(null);
   const [pendingDraft, setPendingDraft] = useState<Draft | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -37,6 +44,13 @@ export function useSceneAutosave(editor: Editor | null) {
   const lastContentRef = useRef<{ nodeId: string; content: string; takeId: string | null } | null>(null);
   const saveStateRef = useRef<SaveState>("idle");
   const inflightRef = useRef<Promise<void> | null>(null);
+  /**
+   * Each take's `updated_at` as this editor's text stands on it, sent with its save as the
+   * scene's sends `activeNode.updated_at`. It moves on only with a save, Take theirs or the take
+   * being laid in again (`laidIn`), never with the takes merely being read again, so typing
+   * that waits to save still meets a newer copy as a conflict.
+   */
+  const takeStampsRef = useRef(new Map<string, string>());
   useEffect(() => {
     saveStateRef.current = saveState;
   });
@@ -105,14 +119,19 @@ export function useSceneAutosave(editor: Editor | null) {
   }
 
   function persist(nodeId: string, content: string, force: boolean, takeId: string | null): Promise<void> {
-    const saving = (takeId ? saveTake(nodeId, takeId, content) : save(nodeId, content, force)).finally(() => {
+    const saving = save(nodeId, content, force, takeId).finally(() => {
       if (inflightRef.current === saving) inflightRef.current = null;
     });
     inflightRef.current = saving;
     return saving;
   }
 
-  async function save(nodeId: string, content: string, force: boolean) {
+  /**
+   * Save to the scene's prose, or to a take that does not count (doc 29 D7), the scene then
+   * untouched. Either sends the stamp it was loaded with unless `force` (Keep mine), and either
+   * meets a newer copy as a conflict.
+   */
+  async function save(nodeId: string, content: string, force: boolean, takeId: string | null) {
     const node = useStoryStore.getState().activeNode;
     if (!node || node.id !== nodeId) return;
     setSaveState("saving");
@@ -121,34 +140,56 @@ export function useSceneAutosave(editor: Editor | null) {
       editor && editor.getHTML() === content ? editor.getText() : htmlText(content),
     );
     try {
-      const updated = await api.updateNode(nodeId, {
-        content,
-        word_count: count,
-        ...(force ? {} : { expected_updated_at: node.updated_at }),
-      });
-      const current = useStoryStore.getState().activeNode;
-      if (current && current.id === nodeId) {
-        setActiveNode({
-          ...current,
+      if (takeId) {
+        const expected = takeStampsRef.current.get(takeId) ?? stampOf(nodeId, takeId);
+        const saved = await takesApi.write(takeId, {
           content,
-          word_count: updated.word_count,
-          updated_at: updated.updated_at,
+          word_count: count,
+          ...(force || !expected ? {} : { expected_updated_at: expected }),
         });
+        takeStampsRef.current.set(takeId, saved.updated_at);
+        useTakesStore.getState().saved(saved);
+      } else {
+        const updated = await api.updateNode(nodeId, {
+          content,
+          word_count: count,
+          ...(force ? {} : { expected_updated_at: node.updated_at }),
+        });
+        const current = useStoryStore.getState().activeNode;
+        if (current && current.id === nodeId) {
+          setActiveNode({
+            ...current,
+            content,
+            word_count: updated.word_count,
+            updated_at: updated.updated_at,
+          });
+        }
       }
-      await clearDraft(nodeId);
+      await clearDraft(takeId ? `take:${takeId}` : nodeId);
       setConflict(null);
       settled();
-      if (activeStory?.discovery_enabled && activeStory?.discovery_auto_analyze) {
+      if (!takeId && activeStory?.discovery_enabled && activeStory?.discovery_auto_analyze) {
         discoverIn(node.story_id, nodeId).catch(() => {});
       }
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        setConflict((err.detail as { node: StructureNode }).node);
+        setConflict(err.detail as SaveConflict);
         setSaveState("conflict");
         return;
       }
-      retry(() => persist(nodeId, content, force, null));
+      retry(() => persist(nodeId, content, force, takeId));
     }
+  }
+
+  /** The take's stamp as the takes were last read, for typing that began before it was laid in. */
+  function stampOf(nodeId: string, takeId: string): string | undefined {
+    const { nodeId: id, takes } = useTakesStore.getState();
+    return id === nodeId ? takes.find((t) => t.id === takeId)?.updated_at : undefined;
+  }
+
+  /** A take was laid in the editor as the server has it: typing in it saves on from its stamp. */
+  function laidIn(take: SceneTake | null) {
+    if (take) takeStampsRef.current.set(take.id, take.updated_at);
   }
 
   function settled() {
@@ -167,29 +208,15 @@ export function useSceneAutosave(editor: Editor | null) {
     saveTimeoutRef.current = setTimeout(again, delay);
   }
 
-  /** Typing in a take that does not count (doc 29 D7): saved to the take, the scene untouched. */
-  async function saveTake(nodeId: string, takeId: string, content: string) {
-    if (useStoryStore.getState().activeNode?.id !== nodeId) return;
-    setSaveState("saving");
-    saveStateRef.current = "saving";
-    const count = countWordsClean(
-      editor && editor.getHTML() === content ? editor.getText() : htmlText(content),
-    );
-    try {
-      useTakesStore.getState().saved(await takesApi.write(takeId, { content, word_count: count }));
-      await clearDraft(`take:${takeId}`);
-      settled();
-    } catch {
-      retry(() => persist(nodeId, content, false, takeId));
-    }
-  }
-
   function handleUpdate(ed: Editor) {
     const node = useStoryStore.getState().activeNode;
     if (!node) return;
     const content = ed.getHTML();
     // Where it saves is decided as it is typed: a switch of take after this still saves it here.
-    const takeId = editingTake(node.id)?.id ?? null;
+    const take = editingTake(node.id);
+    const takeId = take?.id ?? null;
+    // Typing that began before the take was laid in saves on from the stamp it began on.
+    if (take && !takeStampsRef.current.has(take.id)) laidIn(take);
     lastContentRef.current = { nodeId: node.id, content, takeId };
     recount(ed);
     setSaveState("unsaved");
@@ -234,9 +261,18 @@ export function useSceneAutosave(editor: Editor | null) {
   /** Conflict: adopt the server's version and drop local edits. */
   function takeTheirs() {
     if (!conflict) return;
-    setActiveNode(conflict);
-    if (editor) loadScene(editor, conflict.content ?? "");
-    clearDraft(conflict.id);
+    if (conflict.take) {
+      const take = conflict.take;
+      laidIn(take);
+      useTakesStore.getState().saved(take);
+      // Laid in only while the editor shows that take: a switch since leaves the editor alone.
+      if (editor && editingTake(take.node_id)?.id === take.id) loadScene(editor, take.content);
+      clearDraft(`take:${take.id}`);
+    } else {
+      setActiveNode(conflict.node);
+      if (editor) loadScene(editor, conflict.node.content ?? "");
+      clearDraft(conflict.node.id);
+    }
     setConflict(null);
     setSaveState("idle");
   }
@@ -266,6 +302,7 @@ export function useSceneAutosave(editor: Editor | null) {
     discardDraft,
     checkDraft,
     recount,
+    laidIn,
   };
 }
 

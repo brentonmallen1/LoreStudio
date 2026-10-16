@@ -38,7 +38,7 @@ def test_replace_endpoint_scoped_and_whole_word(client):
         json={"query": "cat", "replacement": "dog", "whole_word": True, "node_ids": [a["id"]]},
     )
     assert r.status_code == 200
-    assert r.json() == {"replaced_count": 1, "scenes_affected": 1, "node_ids": [a["id"]]}
+    assert r.json() == {"replaced_count": 1, "scenes_affected": 1, "in_other_takes": 0, "node_ids": [a["id"]]}
     assert client.get(f"/api/structure/{a['id']}").json()["content"] == "<p>The dog sat. Concatenate.</p>"
     assert "cat" in client.get(f"/api/structure/{b['id']}").json()["content"]
 

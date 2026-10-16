@@ -16,12 +16,21 @@ writes the row (``write``).
 
 **Undo.** Making, switching, choosing, renaming and deleting are each one change ⌘Z takes back
 whole. Typing in a take is logged, not undoable here: it is the editor's own history, as typing
-in the scene is.
+in the scene is. A save to a take sends the stamp the editor loaded, and a take changed since
+answers 409 (Keep mine or Take theirs), as the scene's prose does.
+
+**Rewrites across the story.** A replace, new quotes and a rename reach every take, not just
+the one that counts (``others``): each take is written through ``change_log.rewrite_prose`` in
+the same batch as the prose, so choosing a take later does not bring back what was replaced, and
+one ⌘Z takes the whole rewrite back. A rewrite of one scene's words where they stand (a
+finding's fix, tagged speakers, linked names, new pronouns) is about the prose that counts, the
+text it was read from, and leaves the other takes alone.
 """
 
 from __future__ import annotations
 
 import uuid
+from collections.abc import Iterable
 
 from sqlalchemy.orm import Session
 
@@ -43,6 +52,19 @@ FIRST_LABEL = "first draft"
 def takes_of(db: Session, node: StructureNode) -> list[SceneTake]:
     """The scene's takes in order; empty while it has only the one."""
     return db.query(SceneTake).filter(SceneTake.node_id == node.id).order_by(SceneTake.position).all()
+
+
+def others(db: Session, story_id: str, node_ids: Iterable[str] | None = None) -> list[SceneTake]:
+    """The takes that do not count in a story (or in these of its scenes), for a rewrite across
+    the story to reach as well as the prose."""
+    q = (
+        db.query(SceneTake)
+        .join(StructureNode, SceneTake.node_id == StructureNode.id)
+        .filter(StructureNode.story_id == story_id, SceneTake.counts.is_(False))
+    )
+    if node_ids is not None:
+        q = q.filter(SceneTake.node_id.in_(list(node_ids)))
+    return q.order_by(SceneTake.node_id, SceneTake.position).all()
 
 
 def name_of(takes: list[SceneTake], take: SceneTake) -> str:
