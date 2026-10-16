@@ -73,6 +73,8 @@ def seed_stage_play_demo(user_id: str | None = None) -> None:
             title=TITLE,
             story_format="stage_play",
             structure_template_id="stage-play",
+            # Found in the writing (doc 29 D1): the Overview says Keep going.
+            working_style="discover",
             intended_length="one_act",
             description="The Last Lighthouse for the stage: one room, one storm, and a stranger who knows her name.",
             genre="Drama",

@@ -406,6 +406,7 @@ def seed_lighthouse_sequel(user_id: str | None = None) -> None:
         sequel = Story(
             user_id=owner.id,
             title=SEQUEL,
+            working_style="plan",
             description="A year after the storm, Eleanor is offered a way off the island.",
             logline="A year after the truth about the Ardent came out, a lighthouse keeper is offered the mainland, and has to decide whether staying was ever her choice.",
             premise="With her father's secret told, Eleanor keeps the light because she wants to, or so she thinks, until a letter offers her the coast she used to chart.",

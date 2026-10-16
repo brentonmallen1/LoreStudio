@@ -4,13 +4,13 @@ How your story is built from parts, and how to add, move and plan them.
 
 ## Your story is an outline
 
-Every story is an outline of parts inside parts: scenes inside chapters, chapters inside acts. The story's **structure template** names those levels. You pick one under **Story structure** when you choose **New story**.
+Every story is an outline of parts inside parts: scenes inside chapters, chapters inside acts. The story's **shape** (its structure template) names those levels. You pick one under **More options › A shape to start from** when you choose **New story**; **Freeform** is fine, and you can add parts later.
 
-- **Three-Act Structure**: acts, chapters and scenes.
+- **Three acts**: acts, chapters and scenes.
 - **Freeform**: sections and scenes, for a story that doesn't fit a shape yet.
-- Others follow a known method, such as **Snowflake Method** or **Hero's Journey**.
+- Others follow a known pattern, such as **The hero's journey**.
 
-Tick **Start with an outline** to begin with the template's parts already in place and a first scene ready to write in. **Manage**, beside **Story structure**, lets you make a template of your own with whatever levels you need.
+Tick **Start with an outline** to begin with the shape's parts already in place and a first scene ready to write in. **Make your own shape**, under the list, lets you make one with whatever levels you need.
 
 ## The Outline
 

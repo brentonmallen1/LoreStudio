@@ -498,6 +498,7 @@ def write_sequel(
         )
     if body.structure_template_id:
         story.structure_template_id = body.structure_template_id
+    story.working_style = source.working_style if body.working_style is None else body.working_style
     start = None
     if body.scaffold:
         start = scaffold_story(story.id, db.get(StoryStructureTemplate, story.structure_template_id), db)

@@ -131,6 +131,7 @@ def seed_screenplay_demo(user_id: str | None = None) -> None:
             title=TITLE,
             story_format="screenplay",
             structure_template_id="screenplay",
+            working_style="both",
             description="The Last Lighthouse written for the screen: a keeper, a storm, and a stranger who knows her name.",
             genre="Drama",
             tone="Atmospheric, quietly tense",

@@ -13,7 +13,7 @@ Open logo menu › **Plan** and choose a way in:
 
 Every answer goes into the story itself: the one-sentence summary is the logline, a character's goal is on their sheet. So **Change method** loses nothing.
 
-> **Tip:** Not ready for questions? **Start from an idea** opens Freewrite, where you write what you know and sort it later. See [Notes, Freewrite and the scratch pad](/guides/notes-and-freewrite).
+> **Tip:** Not ready for questions? **Freewrite**, in the logo menu, is where you write what you know and sort it later. See [Notes, Freewrite and the scratch pad](/guides/notes-and-freewrite).
 
 <!-- studio -->
 

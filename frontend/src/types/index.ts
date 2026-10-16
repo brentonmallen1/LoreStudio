@@ -69,6 +69,8 @@ export interface Story {
   synopsis: string;
   /** The Plan page's method (lib/planning/methods.ts), "" until chosen. */
   planning_method: string;
+  /** How the writer likes to work (doc 29 D1, lib/workingStyle.ts); "" for an older story. */
+  working_style?: WorkingStyle;
   created_at: string;
   updated_at: string;
 }
@@ -91,6 +93,9 @@ export interface DiscoveredElement {
   created_at: string;
   reviewed_at: string | null;
 }
+
+/** How the writer likes to work (doc 29 D1): where a story opens and the Overview's next step. */
+export type WorkingStyle = "plan" | "discover" | "both" | "";
 
 export interface StoryStructureTemplate {
   id: string;

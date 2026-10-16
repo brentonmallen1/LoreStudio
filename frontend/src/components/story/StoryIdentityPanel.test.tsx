@@ -37,6 +37,7 @@ const form: IdentityForm = {
     target_audience: "",
     narrative_intent: "",
     premise: "",
+    working_style: "",
   },
   update: () => {},
   collapsed: {},

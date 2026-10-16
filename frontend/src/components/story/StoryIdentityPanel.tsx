@@ -52,6 +52,7 @@ import styles from "./StoryIdentityPanel.module.css";
     target_audience: "",
     narrative_intent: "",
     premise: "",
+    working_style: "",
   });
 
   useEffect(() => {
@@ -70,6 +71,7 @@ import styles from "./StoryIdentityPanel.module.css";
       target_audience: activeStory.target_audience ?? "",
       narrative_intent: activeStory.narrative_intent ?? "",
       premise: activeStory.premise ?? "",
+      working_style: activeStory.working_style ?? "",
     });
   }, [activeStory?.id]);
 
