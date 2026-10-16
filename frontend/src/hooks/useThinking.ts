@@ -6,7 +6,7 @@ import { getSessionType } from "../lib/ai/sessionTypes";
 import { thinksFor, type ThinkingMode } from "../lib/ai/thinking";
 import { useAIStore } from "../stores/aiStore";
 
-/** The author's Thinking choice (Settings › Model parameters), read once and again when it changes. */
+/** The author's Thinking choice (Settings › Advanced), read once and again when it changes. */
 const useChoice = create<{ mode: ThinkingMode | undefined }>(() => ({ mode: undefined }));
 let watching = false;
 

@@ -720,7 +720,7 @@ def feature_budget(feature_id: str) -> int:
     return feature.budget if feature else BUDGET_MEDIUM
 
 
-#: Settings › Model parameters: when Gemma reasons before answering.
+#: Settings › Advanced: when Gemma reasons before answering.
 ThinkingMode = Literal["off", "helps", "always"]
 THINKING_MODES: tuple[ThinkingMode, ...] = ("off", "helps", "always")
 

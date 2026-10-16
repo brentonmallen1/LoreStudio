@@ -64,6 +64,11 @@ command.
     surface shows the kept answer; it runs only on Ask again, or when nothing is kept.
   - On a Plan step, its one `AssistantRow`.
   - On a page they live in the header's ⋯ menu, never as buttons across the page.
+- **Before a model is set up** (doc 30 D4): `components/ai/setup/AssistantSetupHost` asks Ollama
+  (the quick check) and, while nothing answers, a click on an Assistant action opens "Set up the
+  Assistant" instead of failing. It knows one by `AIOnly`, a menu row's `ai: true`, or a button
+  with the Orbit or wand icon; a new AI button needs nothing more. The Assistant tab shows the
+  card in place (`useAssistantReady`).
 - **The Assistant:** every conversation lives in the side panel's Assistant, opened from the
   rail's Feather, ⌘J or the palette (`components/ai/AssistantTabBody.tsx`).
   - Add a session type in `lib/ai/sessionTypes.ts` and `components/ai/SessionView.tsx`, with

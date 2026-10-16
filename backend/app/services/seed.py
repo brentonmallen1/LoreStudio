@@ -29,6 +29,7 @@ from ..models.twist import Twist, TwistClue
 from ..models.user import User
 from ..models.world_system import WorldSystem
 from . import sample_titles, seed_series
+from .first_run import new_account_settings
 from .seed_chronicle import seed_lighthouse_answer, seed_lighthouse_chronicle
 from .seed_jobs import seed_lighthouse_jobs
 from .seed_numbers import seed_lighthouse_numbers
@@ -496,6 +497,8 @@ def seed_admin():
                 password_hash=hash_password(settings.admin_password),
                 display_name="Admin",
                 is_admin=True,
+                # A fresh install's first account is asked like any other (doc 30 D4).
+                settings=new_account_settings(),
             )
             db.add(admin)
             db.commit()

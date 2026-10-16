@@ -8,23 +8,43 @@ import { useAuthStore } from "../stores/authStore";
  *   No AI affordance is rendered at all.
  * - studio: everything.
  *
- * Stored per user in `user.settings.ui.mode`. Existing accounts default to studio;
- * the first-run choice for new users arrives with the Stage 2 shell work.
+ * Stored per user in `user.settings.ui.mode`. A new account is asked on its first sign-in
+ * (doc 30 D4, `components/firstRun/WelcomeDialog`): the server starts it with
+ * `ui.welcome = "ask"`, and until it answers it shows no AI. An account from before the
+ * question has no `welcome` and keeps Studio unless it chose Writer.
  */
 export type UIMode = "writer" | "studio";
 
+type UISettings = { ui?: { mode?: string; welcome?: string; start_here?: string } } | undefined;
+
+function readMode(settings: unknown): UIMode {
+  const ui = (settings as UISettings)?.ui;
+  if (ui?.mode === "writer" || ui?.mode === "studio") return ui.mode;
+  // Not answered yet: nothing of the Assistant until the writer says they want it.
+  return ui?.welcome === "ask" ? "writer" : "studio";
+}
+
+/** A new account that has not answered the welcome question yet. */
+export function welcomePending(settings: unknown): boolean {
+  return (settings as UISettings)?.ui?.welcome === "ask";
+}
+
 export function getMode(): UIMode {
-  const settings = useAuthStore.getState().user?.settings as { ui?: { mode?: string } } | undefined;
-  return settings?.ui?.mode === "writer" ? "writer" : "studio";
+  return readMode(useAuthStore.getState().user?.settings);
 }
 
 export function useMode(): UIMode {
-  const settings = useAuthStore((s) => s.user?.settings) as { ui?: { mode?: string } } | undefined;
-  return settings?.ui?.mode === "writer" ? "writer" : "studio";
+  return readMode(useAuthStore((s) => s.user?.settings));
 }
 
 export async function setMode(mode: UIMode): Promise<void> {
   const user = await toolsApi.updateMe({ settings: { ui: { mode } } });
+  useAuthStore.setState({ user });
+}
+
+/** The welcome question's answer: the mode, and never asked again. */
+export async function answerWelcome(mode: UIMode): Promise<void> {
+  const user = await toolsApi.updateMe({ settings: { ui: { mode, welcome: "done" } } });
   useAuthStore.setState({ user });
 }
 

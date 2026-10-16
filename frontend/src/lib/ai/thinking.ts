@@ -1,6 +1,6 @@
 import { AI_FEATURES_BY_ID } from "./features.generated";
 
-/** Settings › Model parameters: when Gemma reasons before answering. */
+/** Settings › Advanced: when Gemma reasons before answering. */
 export type ThinkingMode = "off" | "helps" | "always";
 
 export const THINKING_MODES: { value: ThinkingMode; label: string }[] = [

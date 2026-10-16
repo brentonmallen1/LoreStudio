@@ -191,7 +191,7 @@ PROSE_LESSONS = [
                 # Assistant needs Studio mode, since Writer mode shows none of its buttons.
                 _lesson(
                     "This lesson needs Studio mode: switch at the bottom of the logo menu, or in "
-                    "Settings › Appearance › Mode. Writer mode keeps to your story and hides the "
+                    "Settings › Mode. Writer mode keeps to your story and hides the "
                     "Assistant and its buttons. In Studio mode, the Assistant answers questions about "
                     "your story and points things out; it never writes your prose. Open it from the "
                     "feather on the right, or with {{key:assistant}}. It needs a model, set up in "

@@ -6,7 +6,7 @@ A short tour: what LoreStudio is for, a first session, and how to find your way 
 
 LoreStudio is a writing app that helps you plan, organise and understand your story. You write every word. LoreStudio keeps track of who is in it, what you have promised the reader and where it is going, so your mind can stay on the page.
 
-It has two modes: **Writer** keeps to your story and the tools around it, and **Studio** adds more. Switch at the bottom of the logo menu, or in **Settings › Appearance › Mode**.
+It has two modes: **Writer** keeps to your story and the tools around it, and **Studio** adds more. A new account is asked which it wants the first time it signs in. Switch at the bottom of the logo menu, or in **Settings › Mode**.
 
 <!-- studio -->
 

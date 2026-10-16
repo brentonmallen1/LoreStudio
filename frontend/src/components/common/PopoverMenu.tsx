@@ -126,6 +126,8 @@ export default function PopoverMenu({
                 aria-checked={item.checked}
                 aria-current={item.current ? "page" : undefined}
                 disabled={item.disabled}
+                // An Assistant action passes the setup gate (doc 30 D4, AssistantSetupHost).
+                data-needs-assistant={item.ai ? "" : undefined}
                 className={[
                   styles.item,
                   item.ai ? styles.itemAi : "",

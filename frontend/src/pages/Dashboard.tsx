@@ -29,6 +29,7 @@ import DeleteSeriesDialog from "../components/series/DeleteSeriesDialog";
 import { seriesPath } from "../lib/series/sections";
 import ImportWizard from "../components/import/ImportWizard";
 import StoryListRow from "../components/story/StoryListRow";
+import StartHere from "../components/firstRun/StartHere";
 import list from "../components/story/StoryList.module.css";
 import type { Story } from "../types";
 import { formatLabel, formatOf, isScript } from "../lib/storyFormat";
@@ -273,6 +274,8 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
+
+        <StartHere stories={stories} />
 
         {stories.length === 0 && seriesList.length === 0 ? (
           <div className={styles.empty}>
