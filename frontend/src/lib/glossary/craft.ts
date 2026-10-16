@@ -171,6 +171,29 @@ export const PEOPLE = [
     definition: "What a character finally understands by the end, or refuses to.",
     example: "Eleanor sees she has been confusing loyalty with silence.",
   },
+  {
+    id: "craft-lenses",
+    term: "Craft lenses",
+    definition:
+      "Optional ways of looking at a character that writing books use: their character type, two kinds of archetype, and what they're for in the story. Take any that help; none of them is a box to fill.",
+    example: "Eleanor is dynamic, a Ruler at heart, and the story's hero.",
+  },
+  {
+    id: "narrative-intent",
+    term: "What they're for",
+    definition:
+      "The part a character plays in your story: what their arc does, the moments they matter, what they stand for. Writing it down keeps them from drifting into a role you didn't mean.",
+    example: "Calder is there to bring the past to Eleanor's door, and to mirror her.",
+    alsoCalled: ["narrative intent", "narrative purpose", "story function"],
+  },
+  {
+    id: "relationship-purpose",
+    term: "What a relationship is for",
+    definition:
+      "What a bond between two characters does for the story: it drives conflict, steadies someone, carries information, or shows a contrast. A relationship can do several of these, or none you need to name.",
+    example: "Eleanor and Margaret: an emotional anchor, and a way for the island's history to be told.",
+    alsoCalled: ["narrative purpose"],
+  },
 ] as const satisfies readonly GlossaryEntry[];
 
 export const DEVICES = [

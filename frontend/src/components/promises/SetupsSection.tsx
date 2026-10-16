@@ -68,6 +68,14 @@ export default function SetupsSection({ storyId }: { storyId: string }) {
           A setup is a promise too: a detail, a line or an image that a later scene pays off or returns to.
           Link the two scenes here or from either scene, and the tapestry draws them.
         </p>
+        <dl className={styles.linkKinds} aria-label="What the links mean">
+          {SETUP_TYPES.map((t) => (
+            <div key={t.value} className={styles.linkKind}>
+              <dt>{t.label}</dt>
+              <dd>{t.hint}</dd>
+            </div>
+          ))}
+        </dl>
         <section className={styles.card} aria-label="Every setup">
           {setups.length === 0 ? (
             <p className={styles.quiet}>
@@ -149,6 +157,9 @@ export default function SetupsSection({ storyId }: { storyId: string }) {
                 Link them
               </button>
             </div>
+            <p className={styles.formHint}>
+              {setupType(type).label}: {setupType(type).hint.toLowerCase()}.
+            </p>
           </section>
         )}
       </div>

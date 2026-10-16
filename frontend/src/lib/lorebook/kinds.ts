@@ -151,8 +151,10 @@ export const KINDS: Record<LoreKind, KindSpec> = {
       { key: "arc_notes", label: "Arc notes", hint: "Where they start, where they end…", term: "arc" },
       {
         key: "narrative_intent",
-        label: "Narrative intent",
-        hint: "What is this character FOR in your story? Arc trajectory, key moments, thematic role.",
+        label: "What they're for",
+        name: "Narrative intent",
+        hint: "The part they play in your story: their arc, the moments they matter, what they stand for…",
+        term: "narrative-intent",
       },
       {
         key: "arc_in_own_words",

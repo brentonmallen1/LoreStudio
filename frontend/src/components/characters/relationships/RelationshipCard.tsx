@@ -1,6 +1,7 @@
 import { EyeOff, Trash2, Check } from "lucide-react";
 import type { CharacterRelationship, Character } from "../../../types";
 import { STRENGTH_DIMS } from "./StrengthSliders";
+import { purposeLabel } from "../../../lib/characters/relationshipPurposes";
 import styles from "./RelationshipCard.module.css";
 
 interface Props {
@@ -129,7 +130,7 @@ export default function RelationshipCard({
         <div className={styles.tags}>
           {relationship.narrative_purpose.slice(0, 3).map((p) => (
             <span key={p} className={styles.tag}>
-              {p}
+              {purposeLabel(p)}
             </span>
           ))}
           {relationship.narrative_purpose.length > 3 && (

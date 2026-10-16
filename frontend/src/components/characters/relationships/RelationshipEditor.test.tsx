@@ -40,7 +40,8 @@ describe("a relationship's narrative purpose", () => {
         onSaved={onSaved}
       />,
     );
-    expect(screen.getByText("Narrative purpose (optional)")).toBeTruthy();
+    expect(screen.getByText(/\(optional\)/)).toBeTruthy();
+    expect(screen.getByText("What it's for")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(onSaved).toHaveBeenCalled());
     expect(api.updateRelationship).toHaveBeenCalledWith(

@@ -10,6 +10,7 @@ import type {
 } from "../../../types";
 import StrengthSliders from "./StrengthSliders";
 import NarrativePurposeTags from "./NarrativePurposeTags";
+import Term from "../../common/Term";
 import TropesHere from "../../tropes/TropesHere";
 import TemplateSelector from "./TemplateSelector";
 import styles from "./RelationshipEditor.module.css";
@@ -265,7 +266,9 @@ export default function RelationshipEditor({
 
         {/* Narrative purpose */}
         <div className={styles.field}>
-          <label className={styles.label}>Narrative purpose (optional)</label>
+          <span className={styles.label}>
+            <Term id="relationship-purpose">What it's for</Term> (optional)
+          </span>
           <NarrativePurposeTags value={purposes} onChange={setPurposes} />
         </div>
 

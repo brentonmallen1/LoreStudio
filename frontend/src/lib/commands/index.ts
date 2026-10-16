@@ -415,8 +415,21 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "editor-mice-guide",
-  label: "MICE Quotient guide",
-  keywords: ["mice", "milieu", "idea", "character", "event", "guide", "quotient", "threads"],
+  label: "Kinds of thread guide (MICE)",
+  keywords: [
+    "mice",
+    "milieu",
+    "idea",
+    "character",
+    "event",
+    "guide",
+    "quotient",
+    "threads",
+    "place",
+    "question",
+    "change",
+    "disruption",
+  ],
   icon: BookOpen,
   group: "Editor",
   when: () => !!useStoryStore.getState().activeNode,

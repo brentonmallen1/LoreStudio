@@ -132,7 +132,7 @@ export default function SetupsAcross({
         </select>
         <select aria-label="How they are linked" value={type} onChange={(e) => setType(e.target.value)}>
           {SETUP_TYPES.map((t) => (
-            <option key={t.value} value={t.value} title={t.hint}>
+            <option key={t.value} value={t.value}>
               {t.label.toLowerCase()}
             </option>
           ))}
@@ -181,6 +181,9 @@ export default function SetupsAcross({
           Link them
         </button>
       </div>
+      <p className={styles.formHint}>
+        {setupType(type).label}: {setupType(type).hint.toLowerCase()}.
+      </p>
     </section>
   );
 }

@@ -34,6 +34,7 @@ import { useLoreSelection } from "../useLoreSelection";
 import ArcLine from "../character/ArcLine";
 import { ArcMilestones, DiscoveryNotes, InterviewPrompts, Traits } from "../character/CharacterParts";
 import ThreeQuestions from "../character/ThreeQuestions";
+import CraftLenses from "../character/CraftLenses";
 import WhoAreTheyView from "../character/WhoAreTheyView";
 import styles from "../Lorebook.module.css";
 import TropesHere from "../../tropes/TropesHere";
@@ -50,8 +51,11 @@ const VIEWS = [
   { id: "relationships", label: "Relationships" },
 ];
 
-/** Overview's fields after the three questions (doc 20 P5). */
-const OVERVIEW_REST = KINDS.character.fields.filter((f) => !CHARACTER_QUESTIONS.includes(f.key));
+/** Overview's fields after the three questions (doc 20 P5); what they're for sits with the
+ *  Craft lenses (doc 30 D6). */
+const OVERVIEW_REST = KINDS.character.fields.filter(
+  (f) => !CHARACTER_QUESTIONS.includes(f.key) && f.key !== "narrative_intent",
+);
 
 const label = (v: string) => v.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -110,24 +114,9 @@ export default function CharactersSection() {
           <Term id={roleTerm(character.role)}>{label(character.role)}</Term>
         </Badge>
       )}
-      {character.character_type && (
-        <Badge title="Character type">
-          <Term id="character-type">{label(character.character_type)}</Term>
-        </Badge>
-      )}
       {character.gender && <Badge title="Gender">{character.gender}</Badge>}
       {character.pronouns && <Badge>{character.pronouns}</Badge>}
       {character.age && <Badge title="Age">{character.age}</Badge>}
-      {character.jungian_archetype && (
-        <Badge title="Jungian archetype">
-          <Term id="archetype">{label(character.jungian_archetype)}</Term>
-        </Badge>
-      )}
-      {character.narrative_archetype && (
-        <Badge title="Narrative archetype">
-          <Term id="archetype">{label(character.narrative_archetype)}</Term>
-        </Badge>
-      )}
     </>
   );
 
@@ -200,8 +189,8 @@ export default function CharactersSection() {
                 ? [
                     {
                       label: character.narrative_intent_hidden
-                        ? "Show narrative intent in interviews"
-                        : "Hide narrative intent from interviews",
+                        ? "Show what they're for in interviews"
+                        : "Hide what they're for from interviews",
                       icon: character.narrative_intent_hidden ? Eye : EyeOff,
                       ai: true,
                       onSelect: () =>
@@ -286,6 +275,7 @@ export default function CharactersSection() {
                   values={character as unknown as Record<string, unknown>}
                   save={(key, value) => save({ [key]: value } as Partial<Character>)}
                 />
+                <CraftLenses character={character} save={save} />
                 <DiscoveryNotes character={character} onSaved={upsertCharacter} />
                 <Traits character={character} onSaved={upsertCharacter} />
                 <AssetPicker storyId={storyId} objectType="character" objectId={character.id} />

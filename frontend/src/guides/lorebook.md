@@ -30,6 +30,7 @@ Click the name at the top of a sheet to rename it; a route takes its name from t
 - ⋯ › **Add another name…** keeps a name the prose also uses. Thomas Vance is also called Tom, so a mention of Tom is a mention of him.
 - **Open beside the page** keeps the sheet in a tab of the side panel while you write.
 - When the checks noticed something about it, a **Needs your eye** card says what. See [Findings: what needs your eye](/guides/findings).
+- On a character's **Overview**, **Craft lenses** folds away the optional ways of looking at them that writing books use: their character type, two kinds of archetype, and what they're for in the story. Closed, it names the ones you chose; Eleanor's says _Dynamic · Ruler · Hero_.
 
 ## Mentions
 

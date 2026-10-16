@@ -16,7 +16,7 @@ import ConfirmDelete from "../lorebook/ConfirmDelete";
 import EntitySheet, { Badge, SheetCard } from "../lorebook/EntitySheet";
 import LorebookList from "../lorebook/LorebookList";
 import { useLoreSelection } from "../lorebook/useLoreSelection";
-import { TYPES, cluesLine, statusLabel, typeLabel } from "../../lib/twists/labels";
+import { TYPES, cluesLine, statusHint, statusLabel, typeLabel } from "../../lib/twists/labels";
 import { slotVar } from "../../lib/colorSlots";
 import { sectionPath } from "../../lib/routes";
 import styles from "../lorebook/Lorebook.module.css";
@@ -133,7 +133,7 @@ export default function TwistsSection() {
                 <Badge title={TYPES.find((t) => t.value === twist.twist_type)?.hint}>
                   {typeLabel(twist.twist_type)}
                 </Badge>
-                <Badge>{statusLabel(twist.status)}</Badge>
+                <Badge title={statusHint(twist.status)}>{statusLabel(twist.status)}</Badge>
               </>
             }
             presence={

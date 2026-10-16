@@ -5,6 +5,7 @@ import {
   relationshipPurposeColor as purposeColor,
   relationshipTypeColor as typeColor,
 } from "../../../lib/relationships/colors";
+import { purposeLabel } from "../../../lib/characters/relationshipPurposes";
 import styles from "./RelationshipMatrixView.module.css";
 
 type CellMode = "type" | "purpose" | "trust" | "power" | "affection" | "strength";
@@ -106,10 +107,15 @@ export default function RelationshipMatrixView({
         <div className={styles.cellInner}>
           <div className={styles.purposePips}>
             {purposes.slice(0, 3).map((p) => (
-              <span key={p} className={styles.purposePip} style={{ background: purposeColor(p) }} title={p} />
+              <span
+                key={p}
+                className={styles.purposePip}
+                style={{ background: purposeColor(p) }}
+                title={purposeLabel(p)}
+              />
             ))}
           </div>
-          <span className={styles.cellLabel}>{purposes[0]}</span>
+          <span className={styles.cellLabel}>{purposeLabel(purposes[0])}</span>
           {purposes.length > 1 && <span className={styles.cellMuted}>+{purposes.length - 1}</span>}
         </div>
       );

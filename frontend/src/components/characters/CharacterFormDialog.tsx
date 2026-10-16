@@ -7,6 +7,7 @@ import { Modal, SectionCard } from "../common";
 import ManuscriptReview, { type ReviewChange } from "./ManuscriptReview";
 import PronounsAndGender from "./PronounsAndGender";
 import Term from "../common/Term";
+import AIOnly from "../ai/AIOnly";
 import {
   CHARACTER_TYPES,
   JUNGIAN_ARCHETYPES,
@@ -41,6 +42,8 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
   const [arcNotes, setArcNotes] = useState(character?.arc_notes ?? "");
   const [interviewPrompts, setInterviewPrompts] = useState<string[]>(character?.interview_prompts ?? [""]);
   const [loading, setLoading] = useState(false);
+  const lensesSet = [characterType, jungianArchetype, narrativeArchetype].filter(Boolean).length;
+  const [lensesOpen, setLensesOpen] = useState(lensesSet > 0);
 
   // After a save that changed the name or pronouns: the manuscript, sentence by sentence.
   const [reviewing, setReviewing] = useState<{ saved: Character; change: ReviewChange } | null>(null);
@@ -226,6 +229,21 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
               })()}
             </div>
           </div>
+          <PronounsAndGender
+            pronouns={effectivePronouns}
+            gender={gender}
+            onPronouns={setPronouns}
+            onGender={setGender}
+          />
+        </SectionCard>
+
+        {/* ── Craft lenses (doc 30 D6): optional, folded until wanted ── */}
+        <SectionCard title="Craft lenses" collapsed={!lensesOpen} onToggle={() => setLensesOpen((v) => !v)}>
+          <p className={styles.sectionHint}>
+            Ways of looking at a character that writing books use: what <Term id="character-type">type</Term>{" "}
+            they are, and two kinds of <Term id="archetype">archetype</Term>. Take any that help, and leave
+            the rest empty.
+          </p>
           <div className={styles.grid2}>
             <div className={styles.field}>
               <label className={styles.label}>
@@ -252,19 +270,6 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
                 })()}
             </div>
           </div>
-          <PronounsAndGender
-            pronouns={effectivePronouns}
-            gender={gender}
-            onPronouns={setPronouns}
-            onGender={setGender}
-          />
-        </SectionCard>
-
-        {/* ── Archetypes ── */}
-        <SectionCard title="Archetypes">
-          <p className={styles.sectionHint}>
-            Optional lenses on who this character is. Leave any of them empty.
-          </p>
           <div className={styles.grid2}>
             <div className={styles.field}>
               <label className={styles.label}>
@@ -369,33 +374,35 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
           />
         </SectionCard>
 
-        {/* ── Interview Setup ── */}
-        <SectionCard title="Interview setup" variant="ai">
-          <p className={styles.sectionHint}>Suggested questions to ask when you interview this character</p>
-          <div className={styles.promptList}>
-            {interviewPrompts.map((prompt, i) => (
-              <div key={i} className={styles.promptRow}>
-                <input
-                  value={prompt}
-                  onChange={(e) => updatePrompt(i, e.target.value)}
-                  placeholder={`e.g. "What do you fear most?"`}
-                  className={styles.promptInput}
-                />
-                <button
-                  aria-label="Remove this prompt"
-                  type="button"
-                  onClick={() => removePrompt(i)}
-                  className={styles.removePromptBtn}
-                >
-                  <Trash2 size={13} />
-                </button>
-              </div>
-            ))}
-          </div>
-          <button type="button" onClick={addPrompt} className={styles.addPromptBtn}>
-            <Plus size={12} /> Add prompt
-          </button>
-        </SectionCard>
+        {/* ── Interview Setup: the Assistant's, so Studio only ── */}
+        <AIOnly>
+          <SectionCard title="Interview setup" variant="ai">
+            <p className={styles.sectionHint}>Suggested questions to ask when you interview this character</p>
+            <div className={styles.promptList}>
+              {interviewPrompts.map((prompt, i) => (
+                <div key={i} className={styles.promptRow}>
+                  <input
+                    value={prompt}
+                    onChange={(e) => updatePrompt(i, e.target.value)}
+                    placeholder={`e.g. "What do you fear most?"`}
+                    className={styles.promptInput}
+                  />
+                  <button
+                    aria-label="Remove this prompt"
+                    type="button"
+                    onClick={() => removePrompt(i)}
+                    className={styles.removePromptBtn}
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button type="button" onClick={addPrompt} className={styles.addPromptBtn}>
+              <Plus size={12} /> Add prompt
+            </button>
+          </SectionCard>
+        </AIOnly>
       </form>
     </Modal>
   );
